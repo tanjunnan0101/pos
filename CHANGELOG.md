@@ -18,7 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- **Agents:** 001-log-reviewer `time-of-last-review.txt` — GitHub/issue sweep and Docker log pass lines appended (2026-03-23, through 17:05Z).
+- **Agents:** 001-log-reviewer `time-of-last-review.txt` — GitHub/issue sweep and Docker log pass lines appended (2026-03-23, through 20:55Z UTC).
 
 ## [2.0.51] - 2026-03-23
 
