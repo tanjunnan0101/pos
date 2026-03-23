@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** PostgreSQL logged `UPDATE tenantproduct SET price_cents = NULL` violating **`tenantproduct.price_cents`** NOT NULL (distinct from the earlier **`orderitem.price_cents`** INSERT incident).
+- **What was done:** A **`Session.before_flush`** guard coerces **`TenantProduct.price_cents`** from provider/linked product or raises **`InvalidRequestError`** if no fallback exists; **`PUT /tenant-products/{id}`** uses **`exclude_unset`** so explicit JSON **`price_cents: null`** does not clear the column; menu/catalog paths copy or backfill price where needed; **`test_tenant_product_price_not_null.py`** plus related menu-order tests were added.
+- **What was tested:** Pytest **`test_tenant_product_price_not_null.py`** and **`test_menu_order_line_price_fallback.py`** in Docker — **10 passed**, overall **PASS** per the task test report.
+- **Why closed:** Tester recorded **PASS** against all stated pass/fail criteria; no open verification gaps.
+- **Closed at (UTC):** 2026-03-23 16:24
+---
+
 # TenantProduct `price_cents` cleared to NULL (DB NOT NULL violation)
 
 ## Source
