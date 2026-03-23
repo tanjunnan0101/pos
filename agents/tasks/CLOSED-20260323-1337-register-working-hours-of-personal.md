@@ -36,3 +36,37 @@ When staff (“personal”) logs in, the product should record working hours for
 
 - **Pass:** pytest green; landing smoke green; dashboard card visible for staff roles and reflects open session; no Angular build errors in `docker compose … logs --tail=80 front`.
 - **Fail:** 4xx/5xx on work-session endpoints without cause; card missing for roles in `ROUTE_ROLES['/my-shift']`; build errors.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-03-23T15:32Z – 2026-03-23T15:36Z (log window aligned with `docker compose … logs` and test runs below).
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; **`BASE_URL`** `http://127.0.0.1:4202` (HAProxy); branch **`development`** @ `b05cbef`.
+
+3. **What was tested:** Items under “What to verify” and “How to test” in this file.
+
+4. **Results**
+   - **Dashboard My shift card + copy vs open session:** **PASS** — Puppeteer after login: `[data-testid="dashboard-my-shift"]` present; snippet matched clocked-in state (“You are clocked in…”).
+   - **Card → `/my-shift`, Start/End, double-start:** **PASS** — `test:landing-version` navigates to `/my-shift`; `test_work_session.py` asserts start/end, second start → 400, second end → 400.
+   - **Reports work-sessions for owner/admin:** **PASS** — Puppeteer on `/reports`: `[data-testid="reports-work-sessions"]` present, no `.error-banner`, `tbody tr` count 1 for default 30-day range.
+   - **`pytest /app/tests/test_work_session.py`:** **PASS** — `1 passed in 1.16s`.
+   - **`npm run test:landing-version`:** **PASS** — exit 0 (`elapsed_ms: 42792`, ended 2026-03-23T15:33:46Z).
+   - **Angular build (front container):** **PASS** — `docker compose … logs --since=5m front` had no `[ERROR]`/TS failures during the window; static `logs --tail=80` included an older transient TS2339 line followed by successful “Application bundle generation complete” (not attributed to this task).
+
+5. **Overall:** **PASS**
+
+6. **Product owner feedback:** Staff now see shift status on the dashboard immediately after login, which should reduce missed clock-ins. The existing reports attendance table still loads for privileged users; no regressions observed in automated checks.
+
+7. **URLs tested**
+   1. `http://127.0.0.1:4202/`
+   2. `http://127.0.0.1:4202/login?tenant=1`
+   3. `http://127.0.0.1:4202/dashboard`
+   4. `http://127.0.0.1:4202/my-shift` (via `test:landing-version` sidebar)
+   5. `http://127.0.0.1:4202/reports` (work-sessions subsection)
+
+8. **Relevant log excerpts**
+   - **Front (recent window):** `grep` over `logs --since=5m front` → no `ERROR`/`TS2339`/`Application bundle generation failed`.
+   - **Pytest:** `1 passed in 1.16s` (`test_work_session.py`).
+   - **GitHub:** `gh issue comment 57` failed: `Resource not accessible by personal access token (addComment)` — labels not updated by automation this run.
