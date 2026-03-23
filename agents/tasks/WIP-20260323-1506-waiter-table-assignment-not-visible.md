@@ -8,7 +8,7 @@
 
 Owner assigns a table to a waiter (e.g. waiter-01), but when that waiter logs in they see **no assignment** on the Tables screen. Expectation: assigned tables are visible (and clearly indicated) for the logged-in waiter role, consistent with how owner/manager sees assignments.
 
-Prior work was verified in archive `agents/tasks/done/2026/03/23/CLOSED-20260323-1357-waiter-table-assignment-not-visible.md`; GitHub **#65** remains **open** — re-queue for feature coder to confirm behaviour end-to-end, edge cases (multi-floor, refresh, permissions), and close the issue when product agrees.
+Prior work was verified in archive `agents/tasks/done/2026/03/23/CLOSED-20260323-1357-waiter-table-assignment-not-visible.md`. **001 log-reviewer (2026-03-23 UTC):** GitHub **#65** is **CLOSED** — closer should archive this WIP when satisfied; residual QA text below kept for reference.
 
 ## High-level instructions for coder
 
