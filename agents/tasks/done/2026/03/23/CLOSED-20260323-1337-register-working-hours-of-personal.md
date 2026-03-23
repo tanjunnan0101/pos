@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Issue #57 asked to record staff working hours with explicit start/end on the personal area; the codebase already had `WorkSession` APIs and `/my-shift`, and the feature pass surfaced that flow on the post-login dashboard.
+- **What was done:** Dashboard gained a **My shift** action card for roles allowed on `/my-shift` (loading state, clocked-in vs not copy, link to `/my-shift`); i18n via **`DASHBOARD.MY_SHIFT_*`** in all `public/i18n/*.json`.
+- **What was tested:** **`pytest`** `test_work_session.py` **PASS**; **`npm run test:landing-version`** **PASS**; Puppeteer checks for dashboard card and owner **Reports** work-sessions table **PASS**; front build reported clean in the test window — tester **overall PASS**.
+- **Why closed:** All stated pass/fail criteria met; tester signed off **PASS**.
+- **Closed at (UTC):** 2026-03-23 15:37
+---
+
 # Register working hours of personal
 
 ## GitHub
