@@ -48,3 +48,29 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml exec -T back \
 
 - **Pass:** Both pytest modules exit **0** (10 tests total with the two files above).
 - **Fail:** Any failure in those modules, or PostgreSQL **`tenantproduct.price_cents`** null violations on menu/catalog flows after deploy.
+
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window:** Started **2026-03-23T16:23:42Z**; verification completed within ~3s (pytest run).
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; **`BASE_URL`** N/A (no browser); branch **`development`**, commit **`b9d6f42`**.
+3. **What was tested:** As in “What to verify” plus menu-order price fallback coverage from the second module (task “How to test” command).
+4. **Results:**
+   - Flush coerces `price_cents` when provider/linked product can supply a price — **PASS** — `test_before_flush_coalesces_price_from_provider_product` passed.
+   - **`PUT /tenant-products/{id}`** with **`{"price_cents": null}`** leaves stored price unchanged — **PASS** — `test_put_explicit_null_price_does_not_clear_db` passed.
+   - Flush raises when no fallback — **PASS** — `test_before_flush_raises_when_no_price_fallback` passed.
+   - Menu-order fallback / finalize behaviour (related regression guard) — **PASS** — six tests in `test_menu_order_line_price_fallback.py` passed.
+5. **Overall:** **PASS** (all criteria covered by green tests; no failed criteria).
+6. **Product owner feedback:** Automated tests now assert that `tenantproduct.price_cents` is never persisted as NULL under NOT NULL when a fallback exists, and that explicit API null does not wipe the column. Operators should no longer see DB constraint errors from this UPDATE path; production should be monitored briefly after deploy for any remaining edge flows not covered by tests.
+7. **URLs tested:** **N/A — no browser** (backend pytest only per instructions).
+8. **Relevant log excerpts:**
+
+```
+============================== 10 passed in 1.69s ==============================
+tests/test_tenant_product_price_not_null.py::...::test_before_flush_coalesces_price_from_provider_product PASSED
+tests/test_tenant_product_price_not_null.py::...::test_before_flush_raises_when_no_price_fallback PASSED
+tests/test_tenant_product_price_not_null.py::...::test_put_explicit_null_price_does_not_clear_db PASSED
+tests/test_tenant_product_price_not_null.py::...::test_put_updates_price_when_sent PASSED
+(+ 6 passed in test_menu_order_line_price_fallback.py)
+```
