@@ -49,3 +49,20 @@
 
 - **Pass:** Both test modules above exit **0**; no PostgreSQL **`orderitem.price_cents`** null violations on order placement.
 - **Fail:** Any pytest failure, or **500** on order place when a valid price exists on provider or product.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-03-23T16:10:25Z. **Log window sampled:** same UTC minute ± few minutes for `pos-postgres` / `pos-back` tails.
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; **BASE_URL** N/A (no browser); branch **development**, commit **7c65cbb**.
+3. **What was tested:** Per “What to verify”: menu order placement must not insert null `orderitem.price_cents`; unresolved price must yield **400** with “no selling price” in detail (per tests).
+4. **Results:**
+   - `POST /menu/{token}/order` does not violate `orderitem.price_cents` NOT NULL (covered by regression tests). **PASS** — evidence: `7 passed` from pytest below.
+   - Fallback / **400** with “no selling price” when nothing resolves. **PASS** — evidence: `test_raises_400_when_nothing_resolves` asserts `"no selling price" in ctx.exception.detail.lower()` (`test_menu_order_line_price_fallback.py`).
+5. **Overall:** **PASS**
+6. **Product owner feedback:** Menu order lines now have explicit price resolution before insert, with automated tests guarding the Pozole-style failure mode. Operators should see a clear **400** if a menu row has no resolvable selling price instead of a database error. Optional manual replay of the failing UI flow was not run in this pass; pytest is the primary gate.
+7. **URLs tested:** **N/A — no browser** (optional manual step skipped).
+8. **Relevant log excerpts:**
+   - Pytest: `tests/test_menu_order_line_price_fallback.py` … **6 passed**; `tests/test_public_menu_order_response.py::TestPublicMenuOrderResponse::test_first_order_created_second_updated_same_order_id` **PASSED**; `============================== 7 passed in 0.67s ==============================`
+   - `pos-postgres`: historical incident remains logged at **`2026-03-23 15:54:28.561 UTC`** (`orderitem` … `price_cents` null); no new `orderitem` `price_cents` null **INSERT** errors observed in the verification window after pytest run.
