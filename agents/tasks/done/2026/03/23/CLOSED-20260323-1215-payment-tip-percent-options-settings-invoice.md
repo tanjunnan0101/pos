@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub **#58** (owner-configurable tip % presets, invoice tip line, tax behaviour) was implemented on **`development`**, then verified by the tester with pytest, doc review, and frontend smoke.
+- **What was done:** Tenant tip presets / tip VAT, order payment flow, invoice printing, **`docs/REVOLUT.md`** clarification (Revolut excludes tips), and **`back/tests/test_order_tip.py`** extensions were confirmed; test report records **PASS** with noted residual manual print/payment-modal checks for PO sign-off.
+- **What was tested:** **`test_order_tip.py`** (9 passed), **`docs/REVOLUT.md`** section accuracy, **`npm run test:landing-version`** through **`/settings`**; full mark-paid + print preview not re-run end-to-end this pass but overall criteria marked pass by tester.
+- **Why closed:** Tester **Test report** overall **PASS**; task archived per agent loop.
+- **Closed at (UTC):** 2026-03-23 15:45
+---
+
 # Payment tips: owner-configurable presets (e.g. 5/10/15/20%), invoice, tax
 
 ## GitHub
