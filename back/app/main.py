@@ -7825,6 +7825,73 @@ def _get_effective_tax(
     return tax
 
 
+def _price_cents_from_tenant_product_row(
+    session: Session, tp: models.TenantProduct
+) -> int | None:
+    """Resolve selling price when tenant_product.price_cents is missing (legacy NULL rows)."""
+    if tp.price_cents is not None:
+        return tp.price_cents
+    if tp.provider_product_id:
+        pp = session.get(models.ProviderProduct, tp.provider_product_id)
+        if pp is not None and pp.price_cents is not None:
+            return pp.price_cents
+    if tp.product_id:
+        p = session.get(models.Product, tp.product_id)
+        if p is not None and p.price_cents is not None:
+            return p.price_cents
+    return None
+
+
+def _finalize_menu_order_line_price_cents(
+    session: Session,
+    *,
+    tenant_id: int,
+    request_product_id: int,
+    effective_product_id: int,
+    line_tenant_product: models.TenantProduct | None,
+    price_cents: int | None,
+    product_name: str | None,
+) -> int:
+    """Ensure order lines never insert NULL price_cents (DB NOT NULL on orderitem)."""
+    if price_cents is not None:
+        return price_cents
+    if line_tenant_product is not None:
+        resolved = _price_cents_from_tenant_product_row(session, line_tenant_product)
+        if resolved is not None:
+            return resolved
+    p = session.get(models.Product, effective_product_id)
+    if p is not None and p.price_cents is not None:
+        return p.price_cents
+    tp_by_request = session.exec(
+        select(models.TenantProduct).where(
+            models.TenantProduct.id == request_product_id,
+            models.TenantProduct.tenant_id == tenant_id,
+        )
+    ).first()
+    if tp_by_request is not None:
+        resolved = _price_cents_from_tenant_product_row(session, tp_by_request)
+        if resolved is not None:
+            return resolved
+    tp_linked = session.exec(
+        select(models.TenantProduct).where(
+            models.TenantProduct.tenant_id == tenant_id,
+            models.TenantProduct.product_id == effective_product_id,
+            models.TenantProduct.is_active == True,
+        )
+    ).first()
+    if tp_linked is not None:
+        resolved = _price_cents_from_tenant_product_row(session, tp_linked)
+        if resolved is not None:
+            return resolved
+    raise HTTPException(
+        status_code=400,
+        detail=(
+            f"Cannot add «{product_name or 'item'}»: no selling price is set. "
+            "Set a price on the menu or product, or link a supplier price."
+        ),
+    )
+
+
 def _tax_amount_cents_inclusive(price_cents: int, quantity: int, rate_percent: int) -> int:
     """Tax amount from tax-inclusive price. rate_percent e.g. 10, 21, 0."""
     if rate_percent <= 0:
@@ -7999,6 +8066,7 @@ def create_order(
         cost_cents: int | None = None
         product_tax_id: int | None = None
         effective_product_id: int  # Must be Product.id (OrderItem.product_id FK references product.id)
+        line_tenant_product: models.TenantProduct | None = None
 
         if item.source == "tenant_product":
             # Explicitly look up TenantProduct (menu sends TenantProduct.id as product_id)
@@ -8010,6 +8078,7 @@ def create_order(
             ).first()
             if not tenant_product:
                 raise HTTPException(status_code=400, detail=f"TenantProduct {item.product_id} not found")
+            line_tenant_product = tenant_product
             product_name = tenant_product.name
             price_cents = tenant_product.price_cents
             cost_cents = getattr(tenant_product, "cost_cents", None)
@@ -8018,9 +8087,18 @@ def create_order(
                 effective_product_id = tenant_product.product_id
             else:
                 # TenantProduct not yet linked to Product (e.g. catalog-only) - create Product and link
+                link_price = _price_cents_from_tenant_product_row(session, tenant_product)
+                if link_price is None:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=(
+                            f"Menu item «{tenant_product.name}» has no selling price. "
+                            "Set a price in the menu or link a supplier product with a price."
+                        ),
+                    )
                 new_product = models.Product(
                     name=tenant_product.name,
-                    price_cents=tenant_product.price_cents,
+                    price_cents=link_price,
                     cost_cents=cost_cents,
                     tenant_id=table.tenant_id,
                 )
@@ -8029,6 +8107,7 @@ def create_order(
                 effective_product_id = new_product.id
                 tenant_product.product_id = new_product.id
                 session.add(tenant_product)
+                price_cents = link_price
         elif item.source == "product":
             # Explicitly look up legacy Product
             product = session.exec(
@@ -8054,6 +8133,7 @@ def create_order(
             ).first()
 
             if tenant_product:
+                line_tenant_product = tenant_product
                 product_name = tenant_product.name
                 price_cents = tenant_product.price_cents
                 cost_cents = getattr(tenant_product, "cost_cents", None)
@@ -8061,9 +8141,18 @@ def create_order(
                 if tenant_product.product_id is not None:
                     effective_product_id = tenant_product.product_id
                 else:
+                    link_price = _price_cents_from_tenant_product_row(session, tenant_product)
+                    if link_price is None:
+                        raise HTTPException(
+                            status_code=400,
+                            detail=(
+                                f"Menu item «{tenant_product.name}» has no selling price. "
+                                "Set a price in the menu or link a supplier product with a price."
+                            ),
+                        )
                     new_product = models.Product(
                         name=tenant_product.name,
-                        price_cents=tenant_product.price_cents,
+                        price_cents=link_price,
                         cost_cents=cost_cents,
                         tenant_id=table.tenant_id,
                     )
@@ -8072,6 +8161,7 @@ def create_order(
                     effective_product_id = new_product.id
                     tenant_product.product_id = new_product.id
                     session.add(tenant_product)
+                    price_cents = link_price
             else:
                 # Fallback to legacy Product table
                 product = session.exec(
@@ -8087,6 +8177,16 @@ def create_order(
                 cost_cents = getattr(product, "cost_cents", None)
                 product_tax_id = getattr(product, "tax_id", None)
                 effective_product_id = product.id
+
+        price_cents = _finalize_menu_order_line_price_cents(
+            session,
+            tenant_id=table.tenant_id,
+            request_product_id=item.product_id,
+            effective_product_id=effective_product_id,
+            line_tenant_product=line_tenant_product,
+            price_cents=price_cents,
+            product_name=product_name,
+        )
 
         # Resolve tax for this line (product override or tenant default)
         effective_tax = _get_effective_tax(session, table.tenant_id, product_tax_id, order_date)
