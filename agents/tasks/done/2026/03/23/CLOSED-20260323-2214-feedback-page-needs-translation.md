@@ -1,3 +1,14 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Task #67 (public feedback page i18n) was implemented and fully verified by the tester on the dev stack.
+- **What was done:** Feedback route copy was aligned with app i18n; the tester confirmed form, thank-you, and invalid-tenant strings in Français, Català, 中文（简体）, and हिन्दी, plus `test:landing-version` and a clean front build log.
+- **What was tested:** Per-task testing instructions §1–4 — overall **PASS** with evidence in the Test report below.
+- **Why closed:** All acceptance criteria met; tester overall **PASS**.
+- **Closed at (UTC):** 2026-03-23 22:24
+- **GitHub:** Issue **#67** — `gh issue comment` / label / close **not applied** from this environment (token: `Resource not accessible by personal access token`); do manually: final comment, remove **`agent:testing`** / **`agent:wip`**, close if fully delivered (see **`docs/agent-loop.md`**).
+---
+
 # Feedback page needs translation
 
 ## GitHub
