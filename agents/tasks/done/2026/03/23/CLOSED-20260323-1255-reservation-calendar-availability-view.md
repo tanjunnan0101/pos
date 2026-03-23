@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue #64 (public reservation calendar with slot availability) was implemented as a week grid on `/book/{tenantId}` backed by `GET /reservations/book-week-slots`, then verified by the tester.
+- **What was done:** Public booking now uses a Monday–Sunday column layout with 15-minute rows and green/red/grey slot states; staff `/reservations` kept the classic date/time flow per task scope.
+- **What was tested:** Backend pytest `tests/test_book_week_slots_public.py` (2 passed), Angular build clean in front logs, and `debug-reservations-public.mjs` completed with a picked slot and successful booking — overall **PASS**.
+- **Why closed:** Test report marked overall PASS; acceptance criteria for the delivered scope met; task archived per agent loop.
+- **Closed at (UTC):** 2026-03-23 16:32
+---
+
 # Enhacements / reservation needs improvements
 
 ## GitHub
