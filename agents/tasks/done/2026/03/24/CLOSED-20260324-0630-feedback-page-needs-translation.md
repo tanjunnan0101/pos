@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue #67 (public feedback page i18n) completed the pipeline: coder re-verified implementation and keys; tester recorded a PASS on the dev stack.
+- **What was done:** No additional `front/` changes were needed; FeedbackPublic already uses the translate pipe and `TranslateService` for titles; `FEEDBACK.*` keys are present across supported locales per task notes.
+- **What was tested:** `BASE_URL=http://127.0.0.1:4202 node front/scripts/test-feedback-public-i18n.mjs` (HEADLESS=1) exited 0; locales, `?token=`, thank-you (DE), and `/feedback/0` error paths passed; optional satisfecho.de spot-check was N/A for that run.
+- **Why closed:** Test report **Overall: PASS**; no raw `FEEDBACK.` leaks; criteria in the task met for archiving.
+- **Closed at (UTC):** 2026-03-24 07:45
+---
+
 # Feedback page needs translation
 
 ## GitHub
