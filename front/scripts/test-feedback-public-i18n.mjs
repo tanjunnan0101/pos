@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Puppeteer: public /feedback/:tenant uses translations (no raw FEEDBACK.* keys in DOM).
- * Default locale, then de/fr/es/ca/zh-CN/hi; token URL; invalid tenant /feedback/0 (issue #67).
+ * Default locale, then de/fr/es/ca/zh-CN/hi; token URL; POST submit → thank-you (de); invalid /feedback/0 (#67).
  * Fresh profile + navigator.language stub es-ES before load (no pos_language): asserts initial UI
  * uses LanguageService browser detection (first visit; complements manual picker).
  *
@@ -267,6 +267,36 @@ async function main() {
       throw new Error('Raw i18n keys visible with ?token= (en): ' + bodyToken.slice(0, 400));
     }
     console.log('>>> RESULT: Token URL path OK (no FEEDBACK.* leaks)');
+
+    // Full submit → thank-you: ensures FEEDBACK.THANK_YOU* and title stay localized (issue #67).
+    await page.goto(feedbackUrl, { waitUntil: 'networkidle2', timeout: 25000 });
+    await page.waitForSelector('.language-select', { timeout: 15000 });
+    await page.waitForSelector('.star-row .star-btn', { timeout: 15000 });
+    await page.select('.language-select', 'de');
+    await sleep(600);
+    const starBtns = await page.$$('.star-row .star-btn');
+    if (starBtns.length < 5) {
+      throw new Error(`Expected 5 star buttons, got ${starBtns.length}`);
+    }
+    await starBtns[4].click();
+    await sleep(200);
+    await page.click('button.btn-submit-feedback');
+    await page.waitForSelector('.book-success-card', { timeout: 20000 });
+    await page.waitForFunction(
+      () => {
+        const t = document.body?.innerText || '';
+        return t.includes('Vielen Dank') && !t.includes('FEEDBACK.');
+      },
+      { timeout: 10000 }
+    );
+    const titleThankDe = await page.title();
+    if (titleThankDe.includes('FEEDBACK.')) {
+      throw new Error(`Raw i18n key in document title after submit: ${titleThankDe}`);
+    }
+    if (!titleThankDe.includes('Vielen')) {
+      throw new Error(`Expected DE thank-you tab title to include "Vielen", got: ${titleThankDe}`);
+    }
+    console.log('>>> RESULT: Post-submit thank-you page i18n OK (de, no FEEDBACK.* leaks)');
 
     // Invalid tenant id: error state must be translated (issue #67).
     // Prior steps leave a non-en locale in localStorage; assert EN copy explicitly.
