@@ -34,3 +34,25 @@ Public guest feedback at `/feedback/{tenant}` (e.g. with `?token=…`) must be f
 4. **Optional manual:** Open `/feedback/1` and `/feedback/1?token=…`; switch language in the header picker; confirm form, errors, thank-you, and **browser tab title** are localized (no raw keys).
 
 **Product / GitHub:** If tester passes, optional comment on **#67** and close with product after any production spot-check.
+
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window:** Run window **2026-03-24 ~06:44–06:45 UTC** (HAProxy lines below through **06:45:34**).
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; **`BASE_URL=http://127.0.0.1:4202`**; branch **`development`** @ **`d8abbe1`**; Puppeteer **headless** (`HEADLESS=1` for feedback script; landing script default headless).
+3. **What was tested:** Per **Testing instructions**: feedback public i18n script (locales, token path, thank-you, invalid tenant); landing/version regression with demo login and sidebar nav.
+4. **Results:**
+   - Feedback i18n script (`test-feedback-public-i18n.mjs`): **PASS** — exit **0**; all five `>>> RESULT:` lines OK; no `FEEDBACK.*` leaks reported.
+   - Landing regression (`npm run test:landing-version --prefix front`): **PASS** — exit **0**; `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.` (browser console showed WebSocket auth noise during nav; script completed successfully).
+5. **Overall:** **PASS**
+6. **Product owner feedback:** Automated checks confirm public feedback stays fully translated across the supported locales and token/edge paths, with no raw `FEEDBACK.*` keys in the asserted UI. A quick human pass on tab titles and production (**satisfecho.de**) remains optional before closing **#67** with product.
+7. **URLs tested (Puppeteer, relative to `BASE_URL`):** (1) `/feedback/1` (default locale stub + locale switches), (2) `/feedback/1?token=…` (script-used token path), (3) post-submit thank-you route under feedback flow, (4) `/feedback/0` error UI (en + de), (5) `/` → login → `/dashboard` and 15 sidebar routes + 5 inventory sublinks (landing script).
+8. **GitHub automation:** Attempted `gh issue comment 67` for **agent:testing** handoff; **failed** with `Resource not accessible by personal access token (addComment)` — labels/comments not updated from this environment; human or token with Issues write can apply **`docs/agent-loop.md`** labels if desired.
+9. **Relevant log excerpts:** HAProxy (dev frontend/API traffic during run):
+
+```
+192.168.65.1:40685 [24/Mar/2026:06:45:34.238] http_frontend frontend_backend/front1 0/0/0/1/1 304 154 - - ---- "GET /chunk-QRXJ4ZIO.js HTTP/1.1"
+192.168.65.1:40685 [24/Mar/2026:06:45:34.243] http_frontend frontend_backend/front1 0/0/0/2/2 200 47589 - - ---- "GET /chunk-JSVP2ZQ7.js HTTP/1.1"
+192.168.65.1:40685 [24/Mar/2026:06:45:34.254] http_frontend api_backend/api1 0/0/0/14/14 200 621 - - ---- "GET /api/inventory/valuation HTTP/1.1"
+```
