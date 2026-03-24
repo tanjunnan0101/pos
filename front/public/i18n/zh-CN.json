@@ -62,8 +62,19 @@
     "LOGOUT": "退出登录"
   },
   "LANDING": {
-    "TITLE": "POS",
-    "SUBTITLE": "选择您的餐厅登录",
+    "TITLE": "餐厅一站连通",
+    "SUBTITLE": "顾客可预订、在桌点餐；团队在同一处管理运营。",
+    "VALUES_LABEL": "您可以在这里",
+    "VALUE_BOOKING": "在线预订桌位",
+    "VALUE_DINE_IN": "用桌位码在座位点餐",
+    "VALUE_STAFF": "员工看板与工具",
+    "SECTION_GUESTS": "顾客",
+    "SECTION_GUESTS_LEDE": "已在桌前？输入桌位名称，或打开桌上二维码中的链接。",
+    "SECTION_TEAM": "餐厅员工",
+    "SECTION_TEAM_LEDE": "需要为本店开通账号？请先注册，然后在下方选择餐厅并登录。",
+    "SECTION_TEAM_HINT": "已有账号：在列表中选择餐厅后点击登录。",
+    "TEAM_REGISTER": "创建员工账号",
+    "RESTAURANTS_HEADING": "选择您的餐厅",
     "LOGIN": "登录",
     "NO_TENANTS": "暂无注册餐厅。",
     "AT_TABLE_LABEL": "在桌点餐",
@@ -74,7 +85,8 @@
     "TABLE_MULTIPLE_HINT": "多家餐厅使用相同桌名，请选择您的餐厅。",
     "TABLE_LOOKUP_FAILED": "无法查询桌位，请重试。",
     "GO": "进入",
-    "BOOK_TABLE": "预订桌位"
+    "BOOK_TABLE": "预订桌位",
+    "ORDER_TAKEAWAY": "外带 / 居家点餐"
   },
   "DASHBOARD": {
     "TITLE": "仪表板",

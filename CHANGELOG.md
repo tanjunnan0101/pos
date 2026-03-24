@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Landing (`/`):** Hero, value props, and a two-column guest vs staff layout (table code / register CTA) using existing design tokens; section heading for restaurant list; copy and new `LANDING.*` keys in all locales (GitHub #69).
 - **Agents:** Closed task `CLOSED-20260324-1558-feedback-page-needs-translation` moved to `agents/tasks/done/2026/03/24/`.
 - **Repository:** Ignore `time-of-last-review.txt` at repo root (001 log-reviewer output), `.factory/` (local IDE settings), and vim `*.swp` swap files.
 - **API (public tenant):** `GET /public/tenants/{tenant_id}` **404** `detail` uses the same localized catalog as other public endpoints (`Accept-Language` / `?lang=`), not a hardcoded English string (GitHub #67).
