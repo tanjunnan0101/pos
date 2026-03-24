@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub #67 tracked public guest feedback URLs showing untranslated or mixed-language UI (`/feedback/{tenant}`).
+- **What was done:** The feedback public component sets the document title via `TranslateService.get()` (avoids flashing raw `FEEDBACK.*` keys while i18n loads), and `test-feedback-public-i18n.mjs` was extended to cover **ca** and **zh-CN** plus token URLs; guest POST locale behavior was confirmed unchanged (Accept-Language path already in place).
+- **What was tested:** On `development` @ `20b72f6` via HAProxy `http://127.0.0.1:4202`, automated `test:feedback-public-i18n` and `test:landing-version` **PASS** (2026-03-24T04:19–04:24Z per test report).
+- **Why closed:** Tester overall **PASS**; verification criteria in the task met. GitHub comment/label automation failed for PAT scope—human follow-up on #67 remains per test report.
+- **Closed at (UTC):** 2026-03-24 04:25
+---
+
 # Feedback page needs translation
 
 ## GitHub
