@@ -47,3 +47,32 @@ Public feedback URL (e.g. `/feedback/{tenant}` with token) should show the full 
 3. **Public feedback ES (spot check):** Switch to **Español**; confirm intro differs from English (regression guard).
 4. **Smoke:** `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` — exit 0.
 5. **GitHub:** If all pass, ensure **#67** is commented/closed by someone with token access (see **GitHub housekeeping** above).
+
+---
+
+## Test report (tester)
+
+1. **Date/time (UTC) and log window:** Started ~**2026-03-24T01:49:30Z**; finished ~**2026-03-24T01:52:00Z**. Docker `front` logs reviewed for **2026-03-24T01:48:49Z**–**01:52Z** (bundle complete, no errors in tail).
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; **`BASE_URL`** `http://127.0.0.1:4202` (HAProxy); branch **`development`**, commit **`c0b3aa7`**.
+
+3. **What was tested:** Items 1–5 under **Testing instructions (tester)** above (JSON validity, public `/feedback/1` DE + ES via language picker, landing smoke, GitHub attempt).
+
+4. **Results:**
+   - **JSON (`de.json`):** **PASS** — `node -e "JSON.parse(...)"` exited 0, printed `de.json: OK`.
+   - **Public feedback DE:** **PASS** — Puppeteer: after `select` → `de`, `.feedback-intro` text starts with “Wir freuen uns über Ihre Rückmeldung…”.
+   - **Public feedback ES:** **PASS** — After `select` → `es`, `.feedback-intro` contains “Nos encantaría saber tu opinión…” (differs from EN).
+   - **Smoke (`test:landing-version`):** **PASS** — Exit code **0**; log: `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.` (elapsed ~42.6s).
+   - **GitHub (#67 comment/labels):** **BLOCKED (automation)** — `gh issue comment 67` failed: `GraphQL: Resource not accessible by personal access token (addComment)`. Same handoff as coder section: human with Issues write should apply labels, post closing comment, and close **#67**.
+
+5. **Overall:** **PASS** (product verification). GitHub housekeeping remains **manual handoff**; not a functional failure.
+
+6. **Product owner feedback:** Public feedback at `/feedback/1` localizes correctly: German and Spanish intros match `FEEDBACK.INTRO` in their locale files after using the shared language picker. The `de.json` syntax fix means German translations load reliably again. Please close GitHub issue **#67** with the suggested comment when ready; the automation token cannot post comments.
+
+7. **URLs tested:**
+   1. `http://127.0.0.1:4202/` (landing smoke, login + sidebar crawl)
+   2. `http://127.0.0.1:4202/feedback/1` (language picker DE + ES)
+
+8. **Relevant log excerpts:**
+   - **Front (compose dev):** `Application bundle generation complete. [0.011 seconds] - 2026-03-24T01:48:49.929Z` / `Page reload sent to client(s).` — no TS/build errors in tail.
+   - **Landing smoke:** `exit_code: 0` / `ended_at: 2026-03-24T01:50:57.145Z`.
