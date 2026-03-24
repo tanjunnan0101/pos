@@ -46,3 +46,35 @@ Relevant areas: `front/src/app/feedback-public/`, `front/public/i18n/`, `docs/ag
 
 - **Pass:** Puppeteer script exits **0**; manual spot-check shows no i18n key leaks; titles and messages match selected language.
 - **Fail:** Any `FEEDBACK.` visible to users, wrong/stale title after locale change, or Puppeteer assertion failure — return task **testing → wip** with logs.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-03-24 06:32–06:34 UTC (verification run). Log window reviewed: HAProxy ~06:33 (request lines below).
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202`; branch `development`, commit `9fa484a`; `HEADLESS=1`.
+
+3. **What was tested:** Per **What to verify** — public feedback i18n (picker + navigator stub), `?token=`, post-submit thank-you, invalid tenant `/feedback/0`.
+
+4. **Results:**
+   - No raw `FEEDBACK.` in visible UI or document title across locales: **PASS** — Puppeteer `waitForFunction` + `innerText` / `title` checks all green.
+   - Language picker and initial `navigator.language` (es stub) behavior: **PASS** — first load asserts Spanish copy and title contains `Cómo`.
+   - Title updates after language change (de, fr, es, ca, zh-CN, hi): **PASS** — each locale asserts expected title substring after `select('.language-select', …)`.
+   - Error path `/feedback/0`: **PASS** — EN “Invalid restaurant”, DE “Ungültiger Restaurant”, titles localized.
+   - After submit: thank-you in DE (`Vielen Dank`), title without `FEEDBACK.`: **PASS**.
+   - Optional production `satisfecho.de`: **N/A** — not in scope for this run (task lists as optional).
+
+5. **Overall:** **PASS**
+
+6. **Product owner feedback:** Public feedback is fully covered by automated checks on the dev stack: all supported languages show real copy and tab titles, including token URLs and the thank-you step. Production spot-check on satisfecho.de remains a quick sanity check after deploy if you want parity confirmation outside Docker.
+
+7. **URLs tested**
+   1. `http://127.0.0.1:4202/feedback/1` (multiple navigations, locale switches, submit)
+   2. `http://127.0.0.1:4202/feedback/1?token=dummy-token-for-i18n-smoke`
+   3. `http://127.0.0.1:4202/feedback/0` (invalid tenant, en then de)
+
+8. **Relevant log excerpts**
+   - Command: `BASE_URL=http://127.0.0.1:4202 HEADLESS=1 node front/scripts/test-feedback-public-i18n.mjs` → exit **0**; stdout included five `>>> RESULT: … OK` lines (ES auto, all locales, token, thank-you de, invalid tenant).
+   - `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:4202/feedback/1` → **200**.
+   - HAProxy (excerpt): `GET /feedback/0 HTTP/1.1` … **200**; `GET /i18n/de.json` … **304** (locale bundles loaded during run).
