@@ -40,3 +40,35 @@ Prior implementation and multiple **CLOSED** archives under `agents/tasks/done/`
 8. **Production (optional):** After deploy, repeat (3)–(4) on `https://satisfecho.de/feedback/1` (or tenant URL from issue).
 
 **GitHub #67:** If all pass, closer/product can comment, adjust labels per `docs/agent-loop.md`, and close when agreed.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-03-24 ~03:36–03:40 (verification window). Log window: `docker logs pos-front` tail ~40 lines after runs.
+
+2. **Environment:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml` (services up: haproxy `0.0.0.0:4202`, back, front, db, redis). **`BASE_URL`:** `http://127.0.0.1:4202`. **Branch:** `development` @ `0072deb`.
+
+3. **What was tested:** Items 1–7 from **Testing instructions** above (stack, console sanity, first paint EN, DE copy + title, second locale zh-CN, `/book/1` first load, automated npm scripts). Item 8 (production) not run (optional).
+
+4. **Results:**
+   - (1) Stack reachable on 4202 — **PASS** (`docker compose ps` shows haproxy published).
+   - (2) No `_LanguageService` / circular dependency in browser console — **PASS** (Puppeteer `console` listener on `/feedback/1` then `/book/1`: zero matches).
+   - (3) First paint EN, no `FEEDBACK.*` in body — **PASS** (`test:feedback-public-i18n` `waitForFunction` + assertion).
+   - (4) Deutsch + title “Wie war” — **PASS** (same script).
+   - (5) Second locale zh-CN on `/feedback/1` — **PASS** (inline Puppeteer: no `FEEDBACK.` in body; title sample `Cobalto – 本次用餐体验如何？`). Invalid-tenant error shell not exercised.
+   - (6) `/book/1` first load — **PASS** (visited in console-scan navigation before zh-CN feedback check; no console circular-deps).
+   - (7) Automated scripts — **PASS** (`test:feedback-public-i18n` exit 0; `test:landing-version` exit 0).
+   - (8) Production — **N/A** (optional; not executed).
+
+5. **Overall:** **PASS**
+
+6. **Product owner feedback:** Public feedback and book flows load translations on first paint without raw `FEEDBACK.*` keys; German and Simplified Chinese spot-checks match expectations, including document title. Recommend human confirmation on production (`satisfecho.de`) when convenient, then close **#67** if aligned.
+
+7. **URLs tested:**
+   1. `http://127.0.0.1:4202/feedback/1` (en, de, zh-CN)
+   2. `http://127.0.0.1:4202/book/1` (navigation for console sanity)
+
+8. **Relevant log excerpts:** `pos-front` tail shows successful Angular rebuilds (`Application bundle generation complete`) with `feedback-public-component` / `book-component` lazy chunks; no `Circular` / `_LanguageService` / error lines in sampled tail.
+
+**GitHub:** `gh issue comment` / `gh issue edit` (labels) failed here with `Resource not accessible by personal access token (addComment)` — **agent could not set `agent:testing` or post “Verification started”.** Closer/human should update **#67** labels per `docs/agent-loop.md` and add a short verification comment manually if needed.
