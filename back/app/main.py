@@ -231,39 +231,46 @@ def _get_stripe_currency_code(currency_symbol: str | None) -> str | None:
 
 
 def _get_requested_language(
+    request: Request,
     lang: str | None = Query(None, description="Language code (e.g. en, es, zh-CN)"),
-    accept_language: str | None = Query(
-        None, alias="accept-language", description="Accept-Language header"
+    accept_language_query: str | None = Query(
+        None,
+        alias="accept-language",
+        description="Legacy: same format as Accept-Language, passed as a query param",
     ),
 ) -> str:
     """
-    Determine the requested language based on query param or Accept-Language header.
+    Determine the requested language: ?lang=, then HTTP Accept-Language, then ?accept-language=.
     Returns normalized language code or 'en' as fallback.
     """
     from .language_service import normalize_language_code
 
-    # 1. Check explicit lang query parameter
+    def _first_supported_from_accept_language(value: str) -> str | None:
+        for part in value.split(","):
+            lang_part = part.strip().split(";")[0].strip()
+            if not lang_part:
+                continue
+            normalized = normalize_language_code(lang_part)
+            if normalized:
+                return normalized
+        return None
+
     if lang:
         normalized = normalize_language_code(lang)
         if normalized:
             return normalized
 
-    # 2. Parse Accept-Language header
-    if accept_language:
-        # Simple parsing - take the first language with highest quality
-        # Format: "en-US,en;q=0.9,es;q=0.8"
-        languages = []
-        for part in accept_language.split(","):
-            lang_part = part.strip().split(";")[0].strip()
-            if lang_part:
-                normalized = normalize_language_code(lang_part)
-                if normalized:
-                    languages.append(normalized)
+    header = request.headers.get("accept-language")
+    if header:
+        parsed = _first_supported_from_accept_language(header)
+        if parsed:
+            return parsed
 
-        if languages:
-            return languages[0]  # Return highest priority
+    if accept_language_query:
+        parsed = _first_supported_from_accept_language(accept_language_query)
+        if parsed:
+            return parsed
 
-    # 3. Fallback to English
     return "en"
 
 
@@ -909,7 +916,7 @@ def submit_public_guest_feedback(
     """Anonymous guest feedback (rating + optional comment and contact). Optional reservation_token must match this tenant."""
     tenant = session.get(models.Tenant, tenant_id)
     if not tenant:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+        raise HTTPException(status_code=404, detail=get_message("tenant_not_found", lang))
 
     comment = None
     if body.comment is not None and str(body.comment).strip():
