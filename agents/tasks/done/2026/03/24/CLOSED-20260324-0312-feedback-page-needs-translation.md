@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Follow-up on GitHub [#67](https://github.com/satisfecho/pos/issues/67): re-verify feedback-page i18n and close remaining gaps where 422/429 API errors surfaced English in the UI.
+- **What was done:** `feedback-public.component.ts` maps **429** → `FEEDBACK.RATE_LIMIT` and **422** (or array `detail`) → `FEEDBACK.VALIDATION_ERROR`, with matching keys in all seven `front/public/i18n/*.json` files; `FEEDBACK.*` parity with `en.json` re-confirmed.
+- **What was tested:** Backend `pytest tests/test_guest_feedback.py` **5 passed**; front container build log clean; `npm run test:landing-version` **exit 0**; `/feedback/1` **200**; new keys present in en, de, es, fr, ca, zh-CN, hi.
+- **Why closed:** Tester overall **PASS** per test report; scope met. GitHub comment/label/close remains a **human/PAT handoff** (`gh` Issues write unavailable in the test run).
+- **Closed at (UTC):** 2026-03-24 03:18
+---
+
 # Feedback page needs translation
 
 ## GitHub
