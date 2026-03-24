@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Close-the-loop task for landing polish vs GitHub #69 after prior archived PASS; coder confirmed implementation parity and fixed footer provider-link i18n; tester re-verified with smoke scripts and DE locale.
+- **What was done:** `LANDING.PROVIDER_LOGIN` / `LANDING.REGISTER_AS_PROVIDER` added across locales and wired in the landing footer; evidence recorded for maintainer to close #69 (automated `gh issue comment` blocked by token scope per test report).
+- **What was tested:** `curl` 200 on `/`, `test-landing-provider-links.mjs` and `test-landing-version.mjs` exit 0, Docker front logs clean, German footer labels without raw keys — **overall PASS**.
+- **Why closed:** All stated pass criteria met; task explicitly marked tester PASS and ready for GitHub closure or final comment by maintainer.
+- **Closed at (UTC):** 2026-03-24 18:51
+---
+
 # Nice the landing page
 
 ## GitHub
