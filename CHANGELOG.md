@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Agents:** Closed task `CLOSED-20260324-1558-feedback-page-needs-translation` moved to `agents/tasks/done/2026/03/24/`.
 - **Repository:** Ignore `time-of-last-review.txt` at repo root (001 log-reviewer output), `.factory/` (local IDE settings), and vim `*.swp` swap files.
 - **API (public tenant):** `GET /public/tenants/{tenant_id}` **404** `detail` uses the same localized catalog as other public endpoints (`Accept-Language` / `?lang=`), not a hardcoded English string (GitHub #67).
 - **Smoke test:** `test:feedback-public-i18n` checks **de**, **fr**, **es**, **ca**, **zh-CN**, **hi**, `?token=` URL, invalid **`/feedback/0`** (with **en**), missing tenant **`/feedback/999999999`** (API 404), and **first-load locale** via a fresh Chromium profile with `navigator.language` stubbed to **es-ES** before navigation (document title + visible copy, no raw `FEEDBACK.*` in the DOM) (GitHub #67).

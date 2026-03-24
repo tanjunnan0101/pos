@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Tester handed off **CLOSED-20260324-1558-feedback-page-needs-translation** after verifying public guest feedback i18n against local Docker (HAProxy 4202).
+- **What was done:** Coder alignment of **FEEDBACK** keys across locales and ngx-translate in `FeedbackPublicComponent` was accepted; tester ran `BASE_URL=http://127.0.0.1:4202 node front/scripts/test-feedback-public-i18n.mjs` with exit **0** and reviewed haproxy/front logs (no build errors).
+- **What was tested:** Testing instructions items **1–2** — **PASS**; optional manual browse and production spot-check were **not** run (N/A per test report).
+- **Why closed:** Overall **PASS** on required automated acceptance; task criteria for dev verification satisfied.
+- **Closed at (UTC):** 2026-03-24 16:02
+---
+
 # Feedback page needs translation
 
 ## GitHub
