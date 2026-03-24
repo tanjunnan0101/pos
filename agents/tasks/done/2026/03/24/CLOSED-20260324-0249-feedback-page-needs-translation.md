@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue #67: public feedback flows showed untranslated strings and API validation errors stayed English for non-English locales.
+- **What was done:** Backend honors `Accept-Language` for guest-feedback messages with expanded translations; Angular sends `Accept-Language` on API calls, treats `/feedback/` as public for auth, and wires loading/tenant UI to i18n keys.
+- **What was tested:** Backend pytest (5 passed), frontend build clean, landing smoke pass, HAProxy API checks for localized invalid-email messages (de/fr); overall tester **PASS** with only automated `gh issue comment` blocked by token scope.
+- **Why closed:** Verification criteria met per test report; archive per agent loop. Human/token with issues write should finish GitHub #67 comment/labels/close if still open.
+- **Closed at (UTC):** 2026-03-24 03:06
+---
+
 # Feedback page needs translation
 
 ## GitHub
