@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Feature work for GitHub **#67** (guest feedback i18n) reached verified **closed** after coder review and tester runs on **`development`** (commit **665a460**).
+- **What was done:** Coder confirmed **FeedbackPublicComponent** uses **TranslateModule** / pipes for guest-visible strings and localized document titles; **`FEEDBACK`** is defined in all listed locale JSON files under **`front/public/i18n/`**. No further product code changes were required in this pass.
+- **What was tested:** **`npm run test:feedback-public-i18n`** and **`npm run test:landing-version`** against **`BASE_URL=http://127.0.0.1:4202`** — both **PASS** (no raw **`FEEDBACK.*`** leaks in exercised UI).
+- **Why closed:** Documented acceptance criteria met; task archive per agent loop. Issue **#67** may stay open until optional production spot-check and product sign-off (as stated in the task).
+- **Closed at (UTC):** 2026-03-24 07:08
+---
+
 # Feedback page needs translation
 
 ## GitHub
