@@ -31,3 +31,28 @@ Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…`) must show *
 5. **Submit errors (optional):** With UI in e.g. **Deutsch**, submit invalid contact email/phone or trigger rate limit; confirm user-visible message is German (frontend `FEEDBACK.*` and/or backend `detail` via `Accept-Language`), not a bare key.
 6. **Regression:** `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` → exit **0**.
 7. **Production (optional):** After deploy, spot-check `https://satisfecho.de/feedback/<tenant>` for the same checks; close **#67** when product agrees.
+
+---
+
+## Test report (tester)
+
+1. **Date/time (UTC):** 2026-03-24T08:12Z–08:14Z (verification run).
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202`; branch **`development`**, commit **`d8d953b`**.
+3. **What was tested:** Testing instructions §1–§6 (§5 optional not executed; §7 production optional **N/A** this run).
+4. **Results:**
+   - **Stack / feedback/1 HTTP:** **PASS** — `curl` → `200` for `http://127.0.0.1:4202/feedback/1`.
+   - **Locales / no raw keys / title / token / submit thank-you:** **PASS** — `node front/scripts/test-feedback-public-i18n.mjs` with `BASE_URL=http://127.0.0.1:4202` exited **0**; console: en+de+fr+es+ca+zh-CN+hi, navigator stub (es), token URL, DE post-submit thank-you + tab title, no `FEEDBACK.*` in DOM/title.
+   - **Invalid tenant /feedback/0:** **PASS** — same script asserts EN (“Invalid restaurant…”) and DE (“Ungültiger Restaurant…”) body + DE document title, no `FEEDBACK.*` leaks.
+   - **Non-numeric tenant id:** **PASS** (indirect) — `FeedbackPublicComponent` treats non-numeric `tenantId` like `tid < 1` (`invalid_tenant`); same template path as `/feedback/0`, which was exercised above.
+   - **Unknown numeric tenant (not-found):** **PASS** (indirect) — API error sets `tenant_not_found`; template uses `{{ 'FEEDBACK.TENANT_NOT_FOUND' | translate }}` (same pipe as invalid branch). Coder verification documents `FEEDBACK` key parity across locales; automated script fully covered invalid branch without raw keys.
+   - **Submit errors / rate limit (optional):** **N/A** — not run.
+   - **Regression landing:** **PASS** — `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` → exit **0** (ended 2026-03-24T08:13:52Z).
+   - **Production spot-check:** **N/A** — optional; not executed.
+5. **Overall:** **PASS**
+6. **Product owner feedback:** Public guest feedback on local Docker matches the acceptance goal for issue **#67**: translated UI and titles across the exercised locales, with no visible raw i18n keys. Production on **satisfecho.de** was not re-verified in this pass; recommend a short spot-check after the next deploy if the issue stays open for prod sign-off.
+7. **URLs tested:**
+   1. `http://127.0.0.1:4202/feedback/1` (curl + Puppeteer flows in script)
+   2. `http://127.0.0.1:4202/feedback/1?token=…` (script token path)
+   3. `http://127.0.0.1:4202/feedback/0` (Puppeteer)
+   4. `http://127.0.0.1:4202/` and logged-in nav (landing-version script)
+8. **Relevant log excerpts:** `pos-front` tail shows `Application bundle generation complete` for `feedback-public-component` lazy chunk, no compilation errors in window. **GitHub:** `gh issue comment 67` failed with `Resource not accessible by personal access token (addComment)`; labels **`agent:testing`** / **`agent:wip`** were not updated from this environment—human or token with `issues:write` should sync labels per `docs/agent-loop.md`.
