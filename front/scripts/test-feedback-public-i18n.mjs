@@ -269,6 +269,36 @@ async function main() {
     }
     console.log('>>> RESULT: Token URL path OK (no FEEDBACK.* leaks)');
 
+    // Invalid reservation token on submit: API returns localized detail (Accept-Language); must not show raw keys (#67).
+    const urlBadToken = new URL(`/feedback/${tenantId}`, baseUrl);
+    urlBadToken.searchParams.set('token', 'bogus-reservation-token-i18n-check');
+    await page.goto(urlBadToken.href, { waitUntil: 'networkidle2', timeout: 25000 });
+    await page.waitForSelector('.language-select', { timeout: 15000 });
+    await page.waitForSelector('.star-row .star-btn', { timeout: 15000 });
+    await page.select('.language-select', 'de');
+    await sleep(600);
+    const starBtnsBad = await page.$$('.star-row .star-btn');
+    await starBtnsBad[4].click();
+    await sleep(200);
+    await page.click('button.btn-submit-feedback');
+    await page.waitForFunction(
+      () => {
+        const errEl = document.querySelector('.form-error');
+        const t = errEl?.textContent || '';
+        return (
+          t.includes('Ungültiger') &&
+          t.includes('Reservierungslink') &&
+          !(document.body?.innerText || '').includes('FEEDBACK.')
+        );
+      },
+      { timeout: 15000 }
+    );
+    const titleBadTokenDe = await page.title();
+    if (titleBadTokenDe.includes('FEEDBACK.')) {
+      throw new Error(`Raw i18n key in document title after API error: ${titleBadTokenDe}`);
+    }
+    console.log('>>> RESULT: Submit with invalid ?token= shows DE API error (no FEEDBACK.* leaks)');
+
     // Full submit → thank-you: ensures FEEDBACK.THANK_YOU* and title stay localized (issue #67).
     await page.goto(feedbackUrl, { waitUntil: 'networkidle2', timeout: 25000 });
     await page.waitForSelector('.language-select', { timeout: 15000 });
