@@ -59,3 +59,30 @@ Issue **#67** is still **OPEN** on GitHub; primary remaining work is **process/G
 2. **Public feedback DE/ES:** With stack on **:4202**, open `/feedback/1` (no login). Language picker → **Deutsch** then **Español**; `.feedback-intro` should match German / Spanish copy (not English).
 3. **Smoke:** `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` — exit 0.
 4. **GitHub:** If product accepts, close **#67** with the suggested comment (automation token cannot comment).
+
+---
+
+## Test report (tester)
+
+1. **Date/time (UTC):** 2026-03-24T02:02Z–02:04Z. Log window: `docker compose … logs --tail=25 front` immediately after verification.
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; **`BASE_URL`** `http://127.0.0.1:4202`; branch **`development`**, commit **`3c05959`**.
+
+3. **What was tested:** Items 1–3 from **Testing instructions** above (`de.json` parse; public `/feedback/1` DE/ES via language picker; landing smoke).
+
+4. **Results:**
+   - **`de.json` valid JSON:** **PASS** — `node -e "JSON.parse(require('fs').readFileSync('front/public/i18n/de.json','utf8')); console.log('OK')"` exited 0, printed `OK`.
+   - **Public feedback DE/ES (`.feedback-intro`):** **PASS** — Puppeteer (`puppeteer-core` + host Chrome): navigated `http://127.0.0.1:4202/feedback/1`, `select('.language-select','de')` then waited for intro containing `Wir freuen uns über Ihre Rückmeldung`; then `es` and intro containing `Nos encantaría saber tu opinión`.
+   - **Smoke `test:landing-version`:** **PASS** — `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` exited 0; log ended with `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.` (`elapsed_ms: 42765`).
+   - **GitHub #67 comment / `agent:testing` label:** **N/A (automation blocked)** — `gh issue comment 67 -R satisfecho/pos` → `GraphQL: Resource not accessible by personal access token (addComment)`; `gh issue edit … --add-label agent:testing` → label not found in repo. Hand off to human with Issues write per task body.
+
+5. **Overall:** **PASS** (product verification criteria 1–3). GitHub actions remain manual.
+
+6. **Product owner feedback:** Public feedback still translates correctly for German and Spanish on `/feedback/1`, and German locale JSON is valid. No further app changes are required for this scope; someone with repo/issue permissions should post the suggested closing comment on **#67** and close when product agrees.
+
+7. **URLs tested:**
+   1. `http://127.0.0.1:4202/feedback/1` (DE then ES via `.language-select`)
+
+8. **Relevant log excerpts:**
+   - **front (compose dev, tail):** `Application bundle generation complete. [0.011 seconds] - 2026-03-24T01:48:49.929Z` — no build errors in tail.
+   - **Landing smoke (host):** exit_code 0, `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.`
