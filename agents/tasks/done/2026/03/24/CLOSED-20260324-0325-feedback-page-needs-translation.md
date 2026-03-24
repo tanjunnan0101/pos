@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Public `/feedback/{tenant}` and related flows showed raw ngx-translate keys on first load because locale JSON requests hit a `LanguageService` ↔ `HttpClient` circular dependency.
+- **What was done:** The accept-language interceptor now injects `LanguageService` only for API requests; feedback page document title follows locale changes; missing `NAV` / `RESERVATIONS` strings were added for several locales. Tester re-ran the documented checks and Puppeteer scripts on the dev stack.
+- **What was tested:** Local HAProxy (4202): console free of `_LanguageService` circular dependency, EN first paint, DE and zh-CN copy including document title, `/book/1` sanity, `test:feedback-public-i18n` and `test:landing-version` — all **PASS**; optional production check not run.
+- **Why closed:** Test report records overall **PASS** against the task criteria; remaining GitHub #67 housekeeping is for humans (token could not post issue comments from the agent environment).
+- **Closed at (UTC):** 2026-03-24 04:15
+---
+
 # Feedback page needs translation
 
 ## GitHub
