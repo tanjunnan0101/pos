@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Issue #67 reported the public guest feedback page (`/feedback/{tenant}`) still showing wrong or untranslated UI, including the document title on first load when the browser locale differed from the default translation load order.
+- **What was done:** The coder updated `feedback-public.component.ts` to drive the document title via `translate.stream()` and merged `onDefaultLangChange` with the existing title refresh so titles update once HTTP-loaded locale files are ready (fixing ngx-translate timing on production-style first paint).
+- **What was tested:** Puppeteer `test-feedback-public-i18n.mjs` on local Docker (`BASE_URL=http://127.0.0.1:4202`) — all supported locales, first-load `es` stub, token URL, post-submit thank-you, invalid tenant; exit 0, no `FEEDBACK.*` in body or title; front bundle generation clean in compose logs.
+- **Why closed:** Tester test report overall **PASS**; acceptance criteria satisfied for local verification. Production re-check on satisfecho.de remains optional after deploy per task notes.
+- **Closed at (UTC):** 2026-03-24 08:02
+---
+
 # Feedback page needs translation
 
 ## GitHub
