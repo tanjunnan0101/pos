@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Tester verified GitHub issue **#67** (public feedback localization) on **`development`** at **`dd46fc7`**; automated `gh issue comment` failed (PAT lacks comment scope), so GitHub follow-up stays manual.
+- **What was done:** Coder pass confirmed **`FEEDBACK`** key parity across **`front/public/i18n/*.json`**, product already uses the translate pipe / `instant()` for titles and errors, and **`front/scripts/test-feedback-public-i18n.mjs`** was extended to exercise **en**, **de**, and **fr** including document title and no raw **`FEEDBACK.`** in visible DOM text.
+- **What was tested:** **`BASE_URL=http://127.0.0.1:4202 node front/scripts/test-feedback-public-i18n.mjs`** and **`npm run test:landing-version --prefix front`** both exited **0**; optional manual/prod checks were **N/A** in the report.
+- **Why closed:** Mandatory acceptance criteria **passed**; no further product-code retest required per tester **PASS**; archived per **`agents/tasks/README.md`**.
+- **Closed at (UTC):** 2026-03-24 03:51
+---
+
 # Feedback page needs translation
 
 ## GitHub
