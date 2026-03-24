@@ -46,3 +46,35 @@ Implementation and multiple tester **PASS** archives already exist under `agents
 ### GitHub (#67)
 
 - If tester and product accept: short verification comment on the issue; remove **agent:wip** / apply closure labels per `docs/agent-loop.md`; close **#67** when agreed.
+
+---
+
+## Test report (tester)
+
+1. **Date/time (UTC) and log window:** 2026-03-24 06:08–06:09 UTC (primary run ~06:08:38–06:08:50); HAProxy/front traffic through 06:09 for optional landing smoke.
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; HAProxy host port **4202**; **`BASE_URL=http://127.0.0.1:4202`**; **`HEADLESS=1`**; branch **`development`**, commit **`348de9a`**.
+
+3. **What was tested:** Per **What to verify**: public `/feedback/1` i18n (picker locales, first-visit browser default, `?token=` path), no raw `FEEDBACK.*` in body or document title, language switches and thank-you/error states; optional regression landing/nav smoke.
+
+4. **Results:**
+   - No raw `FEEDBACK.*` in visible UI or title (automated checks): **PASS** — `test-feedback-public-i18n.mjs` reported OK for en, de, fr, es, ca, zh-CN, hi, token URL, thank-you (de), `/feedback/0` errors.
+   - Browser-default locale on first load (es stub, no `pos_language`): **PASS** — script line `Browser default locale (es, navigator stub) on first load OK`.
+   - Language / title updates and localized thank-you: **PASS** — script `Post-submit thank-you page i18n OK (de, no FEEDBACK.* leaks)`.
+   - Script exit code: **PASS** — exit **0**.
+   - Regression smoke (`test:landing-version`): **PASS** — exit **0**, `>>> RESULT: Landing version OK`.
+
+5. **Overall:** **PASS** (all criteria above).
+
+6. **Product owner feedback:** Public guest feedback is covered by automated i18n checks on dev; no leaked translation keys were observed. Production spot-check on satisfecho.de was not required by pass criteria; recommend a quick manual glance on prod before closing **#67** if desired.
+
+7. **URLs tested (Puppeteer):**
+   1. `http://127.0.0.1:4202/feedback/1` (multiple locales and flows per script)
+   2. `http://127.0.0.1:4202/feedback/1?token=…` (script token path)
+   3. `http://127.0.0.1:4202/feedback/0` (invalid tenant)
+   4. `http://127.0.0.1:4202/` and post-login staff routes (landing smoke only)
+
+8. **Relevant log excerpts:**
+   - Script stdout (exit 0): `>>> RESULT: Public feedback i18n OK (en + de + fr + es + ca + zh-CN + hi, no FEEDBACK.* leaks)`; `>>> RESULT: Token URL path OK`; `>>> RESULT: Post-submit thank-you page i18n OK (de, no FEEDBACK.* leaks)`; `>>> RESULT: Invalid tenant /feedback/0 error UI i18n OK`.
+   - `pos-front` (tail): `Application bundle generation complete` for `feedback-public-component` (no TS/NG errors in window).
+   - `pos-haproxy` (tail): `GET /i18n/en.json` 200/304 during same minute window as tests.
