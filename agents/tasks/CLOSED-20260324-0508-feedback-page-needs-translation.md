@@ -47,3 +47,45 @@ Public guest feedback (`/feedback/{tenant}`, optional `?token=…`) must be full
 ### GitHub (#67)
 
 - If **PASS** and product agrees: comment on **#67** with environment tested (dev/prod) and close the issue; label per `docs/agent-loop.md`.
+
+---
+
+## Test report (tester)
+
+1. **Date/time (UTC)** and log window: started **2026-03-24 ~05:10:34 UTC**; completed **~05:10:43 UTC** (HAProxy request timestamps for `/feedback/*`). Report finalized **2026-03-24 05:10:48 UTC**.
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; **`BASE_URL`** `http://127.0.0.1:4202`; branch **`development`**, commit **`dc98233`**.
+
+3. **What was tested:** Per **What to verify** — public feedback translated copy (no `FEEDBACK.*`), locale picker + document titles, token URL, invalid tenant error UI and title after locale switch.
+
+4. **Results:**
+   - Translated copy only (incl. loading paths covered by script waits): **PASS** — `npm run test:feedback-public-i18n` asserted no `FEEDBACK.` in `document.body.innerText` on all steps; exit **0**.
+   - Locale picker + document title consistency: **PASS** — script checks DE/FR/ES/CA/zh-CN/HI titles and body substrings (e.g. DE `Wie war`, ES `Cómo`).
+   - Invalid tenant `/feedback/0` EN + DE + title: **PASS** — script reached `Invalid restaurant` / `Ungültiger Restaurant` and DE title contains `Ungültiger`.
+   - Pass criteria (four `>>> RESULT:` lines): **PASS** — all four lines printed to stdout.
+
+5. **Overall:** **PASS**.
+
+6. **Product owner feedback:** Public guest feedback on the dev stack is fully covered by the automated sweep: browser-default Spanish, seven locales via the picker, a dummy `?token=` URL, and invalid-tenant messaging all show real copy with no raw i18n keys. Production was **not** re-checked in this run; a quick manual pass on the live tenant URL remains optional if you want prod parity on record before closing **#67**.
+
+7. **URLs tested** (Puppeteer, tenant **1**):
+   1. `http://127.0.0.1:4202/feedback/1` (ES auto-detect profile)
+   2. `http://127.0.0.1:4202/feedback/1` (locale sweep)
+   3. `http://127.0.0.1:4202/feedback/1?token=dummy-token-for-i18n-smoke`
+   4. `http://127.0.0.1:4202/feedback/0` (invalid tenant, then DE)
+
+8. **Relevant log excerpts:** `gh issue comment 67` failed: **Resource not accessible by personal access token**; label `agent:testing` not found on repo — **GitHub comment/labels not updated by automation this run.**
+
+```
+pos-haproxy | ... [24/Mar/2026:05:10:34.381] ... "GET /feedback/1 HTTP/1.1"
+pos-haproxy | ... [24/Mar/2026:05:10:40.661] ... "GET /feedback/1?token=dummy-token-for-i18n-smoke HTTP/1.1"
+pos-haproxy | ... [24/Mar/2026:05:10:42.398] ... "GET /feedback/0 HTTP/1.1"
+```
+
+```
+> front@2.0.52 test:feedback-public-i18n
+>>> RESULT: Browser default locale (es, navigator stub) on first load OK (no FEEDBACK.* leaks)
+>>> RESULT: Public feedback i18n OK (en + de + fr + es + ca + zh-CN + hi, no FEEDBACK.* leaks)
+>>> RESULT: Token URL path OK (no FEEDBACK.* leaks)
+>>> RESULT: Invalid tenant /feedback/0 error UI i18n OK
+```
