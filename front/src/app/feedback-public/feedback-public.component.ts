@@ -49,10 +49,11 @@ export class FeedbackPublicComponent implements OnInit, OnDestroy {
   googleMapsUrl = computed(() => this.tenant()?.public_google_maps_url?.trim() || null);
 
   ngOnInit() {
-    // Lang switch and late JSON load both affect title (issue #67: no stale/raw title).
+    // Lang switch, default-lang init, and late JSON load all affect title (issue #67).
     this.langSub = merge(
       this.translate.onLangChange,
-      this.translate.onTranslationChange
+      this.translate.onTranslationChange,
+      this.translate.onDefaultLangChange,
     ).subscribe(() => this.updateDocumentTitle());
 
     const idParam = this.route.snapshot.paramMap.get('tenantId');
@@ -106,7 +107,10 @@ export class FeedbackPublicComponent implements OnInit, OnDestroy {
       key = 'FEEDBACK.TITLE';
     }
     this.titleI18nSub?.unsubscribe();
-    this.titleI18nSub = this.translate.get(key).subscribe((part) => {
+    // stream() re-emits on onLangChange when the locale file finishes loading; get() can emit
+    // once with default-lang fallback while currentLang is already the target (ngx-translate race),
+    // leaving the tab title stuck on index.html on slower networks (prod #67).
+    this.titleI18nSub = this.translate.stream(key).subscribe((part) => {
       if (name && !err) {
         this.title.setTitle(`${name} – ${part}`);
       } else {
