@@ -86,7 +86,9 @@
     "TABLE_LOOKUP_FAILED": "No s'ha pogut cercar la taula. Torneu-ho a provar.",
     "GO": "Anar",
     "BOOK_TABLE": "Reservar taula",
-    "ORDER_TAKEAWAY": "Emportar / Comanda a domicili"
+    "ORDER_TAKEAWAY": "Emportar / Comanda a domicili",
+    "PROVIDER_LOGIN": "Inici de sessió de proveïdor",
+    "REGISTER_AS_PROVIDER": "Registrar-se com a proveïdor"
   },
   "ORDERS_PUBLIC": {
     "TITLE": "Emportar i comanda a domicili",

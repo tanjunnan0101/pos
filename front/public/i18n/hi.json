@@ -86,7 +86,9 @@
     "TABLE_LOOKUP_FAILED": "टेबल नहीं मिल सकी। फिर कोशिश करें।",
     "GO": "जाएं",
     "BOOK_TABLE": "टेबल बुक करें",
-    "ORDER_TAKEAWAY": "पार्सल / घर पर ऑर्डर"
+    "ORDER_TAKEAWAY": "पार्सल / घर पर ऑर्डर",
+    "PROVIDER_LOGIN": "प्रदाता लॉगिन",
+    "REGISTER_AS_PROVIDER": "प्रदाता के रूप में पंजीकरण करें"
   },
   "DASHBOARD": {
     "TITLE": "डैशबोर्ड",

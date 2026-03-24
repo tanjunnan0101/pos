@@ -86,7 +86,9 @@
     "TABLE_LOOKUP_FAILED": "Impossible de trouver la table. Réessayez.",
     "GO": "Aller",
     "BOOK_TABLE": "Réserver une table",
-    "ORDER_TAKEAWAY": "À emporter / Commande à domicile"
+    "ORDER_TAKEAWAY": "À emporter / Commande à domicile",
+    "PROVIDER_LOGIN": "Connexion fournisseur",
+    "REGISTER_AS_PROVIDER": "S'inscrire comme fournisseur"
   },
   "ORDERS_PUBLIC": {
     "TITLE": "À emporter et livraison",
