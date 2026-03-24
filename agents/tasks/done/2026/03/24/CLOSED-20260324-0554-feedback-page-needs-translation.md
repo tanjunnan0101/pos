@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Work tracked GitHub [#67](https://github.com/satisfecho/pos/issues/67): public `/feedback/{tenant}` must be fully translated (including `?token=`, thank-you, and invalid tenant).
+- **What was done:** Feature review found no further application changes needed—`FeedbackPublicComponent`, language picker / `Accept-Language`, and `FEEDBACK` keys in `front/public/i18n/*.json` already satisfy acceptance; automated smoke `test-feedback-public-i18n.mjs` documents the check.
+- **What was tested:** `BASE_URL=http://127.0.0.1:4202` `npm run test:feedback-public-i18n --prefix front` — **PASS** (all locales, token path, post-submit DE thank-you, `/feedback/0` EN+DE; no raw `FEEDBACK.*` in body or title).
+- **Why closed:** Tester **Overall: PASS**; criteria met on local Docker stack; production spot-check left to human if needed.
+- **Closed at (UTC):** 2026-03-24 05:58
+---
+
 # Feedback page needs translation
 
 ## GitHub
