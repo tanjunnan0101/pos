@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Tester ran the public feedback i18n Puppeteer script on the dev stack and recorded an overall **PASS** for automated criteria aligned with GitHub **#67**.
+- **What was done:** Prior work confirmed FEEDBACK keys across locales, public feedback UI uses translations, and `test-feedback-public-i18n.mjs` was extended (es navigator stub, `/feedback/0` error UI); this run verified those checks end-to-end.
+- **What was tested:** `BASE_URL=http://127.0.0.1:4202 node front/scripts/test-feedback-public-i18n.mjs` — **exit 0**, four expected `>>> RESULT:` lines, no raw `FEEDBACK.` in DOM/title assertions; optional manual and staging/prod spot-checks were **N/A** in the report.
+- **Why closed:** Automated acceptance criteria in the task test report are satisfied; file archived per agent closing workflow (GitHub verification comment on **#67** still needs a human if PAT cannot post).
+- **Closed at (UTC):** 2026-03-24 05:02
+---
+
 # Feedback page needs translation
 
 ## GitHub
