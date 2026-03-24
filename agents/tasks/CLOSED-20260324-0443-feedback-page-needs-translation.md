@@ -46,3 +46,49 @@ Public guest feedback URLs (e.g. `https://satisfecho.de/feedback/1?token=…`) m
 ### Suggested GitHub comment (human with token)
 
 > Verified 2026-03-24: public `/feedback/:id` i18n + tab title refresh on translation load; Puppeteer `test-feedback-public-i18n` passes. Please close **#67** if product agrees.
+
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window:** Verification run **2026-03-24** approx. **04:47–04:49 UTC**; Docker `front` log window reviewed via `docker compose … logs --tail=80 front` (same window; rebuilds through **04:46:37Z**).
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; **`BASE_URL=http://127.0.0.1:4202`**; branch **`development`** @ **`448a641`**; **`HEADLESS=1`** for Puppeteer.
+
+3. **What was tested:** Items under “What to verify” (public feedback locales + token URL + invalid tenant titles/copy; regression landing/nav; front build health).
+
+4. **Results:**
+   - Locales **en, de, fr, es, ca, zh-CN, hi** on `/feedback/1` + `?token=…`: **PASS** — `node front/scripts/test-feedback-public-i18n.mjs` exit **0**; script asserts no `FEEDBACK.` in `document.body.innerText` and locale-specific title substrings (e.g. DE “Wie war”, invalid DE “Ungültiger”).
+   - Browser tab title per locale (incl. invalid tenant DE): **PASS** — enforced by same script (`page.title()` checks).
+   - Invalid tenant `/feedback/0` EN + DE copy/title: **PASS** — script waits for “Invalid restaurant” / “Ungültiger Restaurant” and DE title contains “Ungültiger”.
+   - Regression **`test:landing-version`**: **PASS** — exit **0**, ~43s elapsed (`>>> RESULT: Landing version OK…`).
+   - Front container build: **PASS** — tail shows **`Application bundle generation complete`** for `feedback-public-component` lazy chunks; no `error TS` / `NG` failures in excerpt.
+
+5. **Overall:** **PASS** (all criteria above).
+
+6. **Product owner feedback:** Public guest feedback at `/feedback/:tenant` now tracks the language picker across all supported locales without exposing raw i18n keys, and the document title stays aligned with the selected language, including the invalid-tenant error state. Automated coverage matches the acceptance described in **#67**; you can treat this as ready to close the issue once you are happy with wording in production.
+
+7. **URLs tested (automated):**
+   1. `http://127.0.0.1:4202/feedback/1` (locale cycling)
+   2. `http://127.0.0.1:4202/feedback/1?token=dummy-token-for-i18n-smoke`
+   3. `http://127.0.0.1:4202/feedback/0` (EN then DE)
+   4. Additional regression navigation from `test:landing-version` (e.g. `/`, `/dashboard`, sidebar routes including `/settings`) — see script output in run log.
+
+8. **Relevant log excerpts:**
+
+```
+pos-front  | Application bundle generation complete. [0.254 seconds] - 2026-03-24T04:46:37.705Z
+```
+
+```
+>>> RESULT: Public feedback i18n OK (en + de + fr + es + ca + zh-CN + hi, no FEEDBACK.* leaks)
+>>> RESULT: Token URL path OK (no FEEDBACK.* leaks)
+>>> RESULT: Invalid tenant /feedback/0 error UI i18n OK
+```
+
+```
+>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.
+exit_code: 0
+```
+
+**GitHub:** `gh issue comment 67` failed (**Resource not accessible by personal access token** — token lacks Issues write). Human should post the suggested one-liner from “Suggested GitHub comment” above and adjust labels / close **#67** per `docs/agent-loop.md`. Issue had no `agent:*` labels at test time.
