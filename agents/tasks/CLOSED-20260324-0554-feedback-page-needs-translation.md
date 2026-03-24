@@ -41,3 +41,42 @@ Public guest feedback URLs (e.g. `/feedback/{tenant}` with optional `?token=…`
 3. **Pass / fail**  
    - **Pass:** Script completes with all `>>> RESULT:` lines and **exit code 0**.  
    - **Fail:** Any assertion error, timeout, or raw `FEEDBACK.` substring in body or title checks.
+
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window**  
+   - **Started:** 2026-03-24 05:56:45 UTC  
+   - **Finished:** 2026-03-24 05:57:05 UTC (approx.; script ~12s)  
+   - **Log window reviewed:** `docker compose … logs --since 2m` for **haproxy** (UTC-stamped lines ~05:56:52–05:56:57).
+
+2. **Environment**  
+   - **Compose:** `docker-compose.yml` + `docker-compose.dev.yml`  
+   - **BASE_URL:** `http://127.0.0.1:4202` (HAProxy → front)  
+   - **Branch / commit:** `development` @ `ab466c4`  
+   - **Command:** `BASE_URL=http://127.0.0.1:4202 HEADLESS=1 npm run test:feedback-public-i18n --prefix front`
+
+3. **What was tested**  
+   - Per **Testing instructions**: public `/feedback/{tenant}` with and without `?token=…`, all picker locales, post-submit thank-you (DE), invalid `/feedback/0` (EN + DE); no raw `FEEDBACK.*` in body or document title.
+
+4. **Results**  
+   - **Criterion:** `/feedback/1` + picker locales (en/de/fr/es/ca/zh-CN/hi), titles and body — **PASS** — evidence: `>>> RESULT: Public feedback i18n OK (en + de + fr + es + ca + zh-CN + hi, no FEEDBACK.* leaks)`  
+   - **Criterion:** Browser default locale (ES) on first load without stored `pos_language` — **PASS** — evidence: `>>> RESULT: Browser default locale (es, navigator stub) on first load OK (no FEEDBACK.* leaks)`  
+   - **Criterion:** Same with `?token=dummy-token-for-i18n-smoke` — **PASS** — evidence: `>>> RESULT: Token URL path OK (no FEEDBACK.* leaks)`  
+   - **Criterion:** After valid submit, thank-you UI and tab title localized (DE) — **PASS** — evidence: `>>> RESULT: Post-submit thank-you page i18n OK (de, no FEEDBACK.* leaks)`; HAProxy `POST /api/public/tenants/1/guest-feedback` **200**  
+   - **Criterion:** `/feedback/0` translated EN + DE (body + title) — **PASS** — evidence: `>>> RESULT: Invalid tenant /feedback/0 error UI i18n OK`
+
+5. **Overall:** **PASS**
+
+6. **Product owner feedback**  
+   - Local Docker verification matches **#67** acceptance: guest feedback is fully translated across supported languages, including deep link with token, success state, and invalid-tenant error. Production was not re-checked in this run; if **satisfecho.de** ever diverges, confirm deploy/cache there separately.
+
+7. **URLs tested**  
+   1. `http://127.0.0.1:4202/feedback/1`  
+   2. `http://127.0.0.1:4202/feedback/1?token=dummy-token-for-i18n-smoke`  
+   3. `http://127.0.0.1:4202/feedback/0` (after flow; EN then DE via picker)
+
+8. **Relevant log excerpts**  
+   - **haproxy (excerpt):** `GET /api/public/tenants/1 HTTP/1.1` … **200**; `POST /api/public/tenants/1/guest-feedback HTTP/1.1` … **200**; `GET /feedback/0 HTTP/1.1` … **200**; i18n JSON fetches `GET /i18n/de.json`, `en.json`, etc. — **304/200**, no 5xx in window.  
+   - **front:** no new errors in `--since 2m` tail (empty for that slice).
