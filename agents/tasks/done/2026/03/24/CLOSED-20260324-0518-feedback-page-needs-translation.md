@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Public guest feedback i18n for GitHub **#67** was fully verified on the dev stack: locale parity, UI/title behavior, and automated smoke coverage all matched the task goal.
+- **What was done:** Coder confirmed `FEEDBACK` keys across `en` and all target locales, `feedback-public` uses `translate` / `Title` updates correctly, and no further code changes were required this round.
+- **What was tested:** `test-feedback-public-i18n.mjs` and `npm run test:landing-version` both **PASS** on `BASE_URL=http://127.0.0.1:4202` per the test report.
+- **Why closed:** Tester **overall PASS**; all stated automated criteria met; optional manual/prod checks left to product alignment on closing **#67**.
+- **Closed at (UTC):** 2026-03-24 06:45
+---
+
 # Feedback page needs translation
 
 ## GitHub
