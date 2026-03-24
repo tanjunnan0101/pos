@@ -42,3 +42,35 @@ Public feedback URLs (e.g. `/feedback/{tenant}` with token) must show **every** 
 
 - **Pass:** Language picker on **loading** and all branches; no hard-coded English-only user strings on the public feedback flow for supported locales; JSON valid; front build clean; landing smoke test exits 0.
 - **Fail:** Missing translation keys (raw keys in UI), picker missing on loading, or build errors in front logs.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-03-24T02:40Z–02:43Z (verification window). Log window: same (front container `pos-front` tail captured during run).
+2. **Environment:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml`; **`BASE_URL`** `http://127.0.0.1:4202`; branch **`development`**, commit **`b1a6baf`**.
+3. **What was tested:** Per **Testing instructions** — public feedback routes, language picker (including early presence after navigation), all seven picker locales, absence of raw `FEEDBACK` / `BOOK` / `SETTINGS` keys in visible text, regression smoke, front build logs.
+4. **Results:**
+   - Valid tenant `/feedback/1`: language dropdown present; **`app-language-picker`** observed within ~1s of navigation start on automated runs; cycling **en, es, fr, ca, de, zh-CN, hi** — **PASS** (no `FEEDBACK.*` / `BOOK.*` / `SETTINGS.*` in `document.body.innerText`; sample **en** vs **de**: “How was your visit?” vs “Wie war Ihr Besuch?”).
+   - `/feedback/1?token=opaque-test-token`: same picker + locale sweep — **PASS** (no raw keys).
+   - `/feedback/0` invalid numeric tenant: error UI + picker + locale sweep — **PASS** (no raw keys).
+   - `/feedback/999999` unknown tenant: same — **PASS** (no raw keys).
+   - Optional non-numeric path `/feedback/abc` (HTTP 200): shows “Invalid restaurant link.” + picker; no raw keys in body text — **PASS** (bonus check).
+   - Smoke `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version` (from `front/`) — **PASS** (`exit_code: 0`, ended 2026-03-24T02:41:00Z).
+   - Front logs (`docker compose … logs --tail=80 front`) — **PASS** (“Application bundle generation complete”, no TS/NG errors in tail).
+5. **Overall:** **PASS** (all criteria above satisfied).
+6. **Product owner feedback:** Public feedback pages expose the language control early in the load sequence, and the form and error states stay fully translated across all supported picker languages in this environment. Tenant marketing/description text may stay in the tenant’s own language (expected). After deploy to production, a quick spot-check on the live hostname is still worthwhile.
+7. **URLs tested:**
+   1. `http://127.0.0.1:4202/feedback/1`
+   2. `http://127.0.0.1:4202/feedback/1?token=opaque-test-token`
+   3. `http://127.0.0.1:4202/feedback/0`
+   4. `http://127.0.0.1:4202/feedback/999999`
+   5. `http://127.0.0.1:4202/feedback/abc` (bonus)
+8. **Relevant log excerpts:**
+
+```
+pos-front | Application bundle generation complete. [0.303 seconds] - 2026-03-24T02:39:24.922Z
+pos-front | Component update sent to client(s).
+```
+
+**GitHub:** `gh issue comment 67` / label updates failed with `Resource not accessible by personal access token` (same as coder notes). **Human / committer:** comment on **#67**, set **`agent:testing` → remove on close**, and close **#67** when product accepts (per `docs/agent-loop.md`).
