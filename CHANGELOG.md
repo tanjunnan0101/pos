@@ -30,6 +30,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Smoke test:** `test:feedback-public-i18n` checks **de**, **fr**, **es**, **ca**, **zh-CN**, **hi**, `?token=` URL, invalid **`/feedback/0`** (with **en**), missing tenant **`/feedback/999999999`** (API 404), and **first-load locale** via a fresh Chromium profile with `navigator.language` stubbed to **es-ES** before navigation (document title + visible copy, no raw `FEEDBACK.*` in the DOM) (GitHub #67).
 - **Agents:** 001-log-reviewer `time-of-last-review.txt` — GitHub/issue sweep and Docker log pass lines appended (2026-03-23, through 22:55Z UTC).
 
+## [2.0.53] - 2026-03-24
+
+### Fixed
+
+- **Public feedback (browser tab title, production):** Tab title uses synchronous `translate.instant` plus `get()` and omits `takeUntilDestroyed` on the inner subscription so `production-static` builds (e.g. satisfecho.de) update `document.title` instead of leaving the index default while the page copy is translated (GitHub #67).
+
 ## [2.0.52] - 2026-03-24
 
 ### Added

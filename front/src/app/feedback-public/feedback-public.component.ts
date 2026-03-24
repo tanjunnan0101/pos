@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, computed, DestroyRef } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, computed, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DomSanitizer, SafeResourceUrl, SafeStyle, Title } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
@@ -16,7 +16,7 @@ import { merge, Subscription } from 'rxjs';
   templateUrl: './feedback-public.component.html',
   styleUrls: ['../book/book.component.scss', './feedback-public.component.scss'],
 })
-export class FeedbackPublicComponent implements OnInit {
+export class FeedbackPublicComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private api = inject(ApiService);
   private translate = inject(TranslateService);
@@ -105,19 +105,37 @@ export class FeedbackPublicComponent implements OnInit {
       key = 'FEEDBACK.TITLE';
     }
     this.titleI18nSub?.unsubscribe();
-    // stream() re-emits on onLangChange when the locale file finishes loading; get() can emit
-    // once with default-lang fallback while currentLang is already the target (ngx-translate race),
-    // leaving the tab title stuck on index.html on slower networks (prod #67).
-    this.titleI18nSub = this.translate
-      .stream(key)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((part) => {
-        if (name && !err) {
-          this.title.setTitle(`${name} – ${part}`);
-        } else {
-          this.title.setTitle(part);
-        }
-      });
+
+    const applyPart = (part: string) => {
+      if (name && !err) {
+        this.title.setTitle(`${name} – ${part}`);
+      } else {
+        this.title.setTitle(part);
+      }
+    };
+
+    // No takeUntilDestroyed on this inner subscription: production (satisfecho.de) kept index.html
+    // title while the body was translated (#67). Sync instant() + get() matches visible locale; merge()
+    // above still refreshes the title on lang / translation file changes.
+    const instant = this.translate.instant(key);
+    if (
+      typeof instant === 'string' &&
+      instant.length > 0 &&
+      instant !== key &&
+      !instant.startsWith('FEEDBACK.')
+    ) {
+      applyPart(instant);
+    }
+
+    this.titleI18nSub = this.translate.get(key).subscribe((part) => {
+      if (typeof part === 'string') {
+        applyPart(part);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.titleI18nSub?.unsubscribe();
   }
 
   getLogoSafeUrl(url: string | null): SafeResourceUrl | null {
