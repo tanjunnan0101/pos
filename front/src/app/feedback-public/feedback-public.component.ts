@@ -114,9 +114,8 @@ export class FeedbackPublicComponent implements OnInit, OnDestroy {
       }
     };
 
-    // No takeUntilDestroyed on this inner subscription: production (satisfecho.de) kept index.html
-    // title while the body was translated (#67). Sync instant() + get() matches visible locale; merge()
-    // above still refreshes the title on lang / translation file changes.
+    // No takeUntilDestroyed on this inner subscription: production-static builds (satisfecho.de)
+    // must still update document.title (#67). Sync instant() + get(); merge() refreshes on lang/files.
     const instant = this.translate.instant(key);
     if (
       typeof instant === 'string' &&
