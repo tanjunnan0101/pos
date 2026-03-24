@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Independent tester re-ran verification for GitHub **#67** (public `/feedback/{tenant}` i18n) on local Docker and recorded **PASS** with evidence (development @ `627d59b`).
+- **What was done:** Confirmed automated `test-feedback-public-i18n.mjs` (locales, `?token=`, thank-you, invalid tenant, tab titles) and `test:landing-version` both **PASS**; front build healthy in cited log window. Optional production spot-check and `gh issue comment` were not completed (N/A / token).
+- **What was tested:** Full §1–§4 criteria from the task — **PASS** overall per tester table; §5 production **N/A** this run.
+- **Why closed:** All in-scope acceptance criteria met; tester overall **PASS**; remaining work is product/GitHub follow-up on **#67** if prod confirmation is still required.
+- **Closed at (UTC):** 2026-03-24 06:35
+---
+
 # Feedback page needs translation
 
 ## GitHub
