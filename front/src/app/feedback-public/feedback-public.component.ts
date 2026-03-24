@@ -6,7 +6,7 @@ import { ApiService, TenantSummary } from '../services/api.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LanguagePickerComponent } from '../shared/language-picker.component';
 import { contactEmailValid, contactPhoneValid } from '../shared/contact-validators';
-import { Subscription } from 'rxjs';
+import { merge, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-feedback-public',
@@ -49,7 +49,11 @@ export class FeedbackPublicComponent implements OnInit, OnDestroy {
   googleMapsUrl = computed(() => this.tenant()?.public_google_maps_url?.trim() || null);
 
   ngOnInit() {
-    this.langSub = this.translate.onLangChange.subscribe(() => this.updateDocumentTitle());
+    // Lang switch and late JSON load both affect title (issue #67: no stale/raw title).
+    this.langSub = merge(
+      this.translate.onLangChange,
+      this.translate.onTranslationChange
+    ).subscribe(() => this.updateDocumentTitle());
 
     const idParam = this.route.snapshot.paramMap.get('tenantId');
     const tid = idParam ? parseInt(idParam, 10) : NaN;
