@@ -31,3 +31,30 @@ Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…` on productio
    Expect: all `>>> RESULT:` lines OK; **no** raw `FEEDBACK.` substrings in body or tab title during checks.
 3. **Manual spot-check (optional):** `/feedback/1` and `/feedback/1?token=test`; switch language picker through **en, de, fr, es, ca, zh-CN, hi**; confirm form, errors, thank-you, **invalid id** (`/feedback/0`), **missing tenant** (e.g. `/feedback/999999999`), and browser tab title track the locale.
 4. **Production (optional):** Repeat a subset on **https://satisfecho.de** per `docs/agent-loop.md` / product process.
+
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window:** 2026-03-24 14:47:44 UTC – ~14:48:10 UTC (automated run ~14s).
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202`; branch `development` @ `aaa09f3`; Puppeteer headless (`HEADLESS=1`).
+3. **What was tested:** Required item (2) from **Testing instructions** — `front/scripts/test-feedback-public-i18n.mjs` per coder extension (browser default `es`, locales en/de/fr/es/ca/zh-CN/hi, `?token=`, POST thank-you DE, `/feedback/0`, `/feedback/999999999`). Optional manual (3) and production (4) not run; automated script already exercises those URL classes.
+4. **Results:**
+   - **Docker stack reachable on 4202:** **PASS** — `docker compose … ps` shows `pos-haproxy` `0.0.0.0:4202->4202/tcp`, services up.
+   - **Script exit 0, all `>>> RESULT:` OK:** **PASS** — six OK lines printed; no assertion failures.
+   - **No raw `FEEDBACK.` in body or document title (automated checks):** **PASS** — script asserts absence of `FEEDBACK.` substring and localized phrases per locale; including missing-tenant (404) EN/DE body and DE title.
+   - **Optional manual / production spot-check:** **N/A** — not required for closure of this verification step per task text.
+5. **Overall:** **PASS**
+6. **Product owner feedback:** Public feedback i18n is covered end-to-end by the headless script on dev, including the new 404 tenant-not-found regression checks. Remaining decision is whether to spot-check **https://satisfecho.de** and close **#67** when product is satisfied.
+7. **URLs tested (automated):**
+   1. `http://127.0.0.1:4202/feedback/1` (browser stub `es-ES` first load)
+   2. `http://127.0.0.1:4202/feedback/1` (language picker: en, de, fr, es, ca, zh-CN, hi)
+   3. `http://127.0.0.1:4202/feedback/1?token=dummy-token-for-i18n-smoke`
+   4. `http://127.0.0.1:4202/feedback/1` → submit → thank-you (de)
+   5. `http://127.0.0.1:4202/feedback/0` (invalid id, en then de)
+   6. `http://127.0.0.1:4202/feedback/999999999` (missing tenant, en then de)
+8. **Relevant log excerpts:**
+   - **Script (host stdout):** `>>> RESULT: Browser default locale (es, navigator stub) on first load OK (no FEEDBACK.* leaks)` … through `>>> RESULT: Missing tenant (404) error UI i18n OK`.
+   - **`docker logs pos-front` (tail):** `Application bundle generation complete. [0.022 seconds] - 2026-03-24T14:32:32.085Z` — no errors in tail during window.
+
+**GitHub:** `gh issue comment 67` failed with “Resource not accessible by personal access token (addComment)”; labels `agent:testing` / `agent:wip` are also absent on the repo’s label set. Human/closer should comment on **#67** if needed.
