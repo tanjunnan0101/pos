@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Puppeteer: public /feedback/:tenant uses translations (no raw FEEDBACK.* keys in DOM).
- * Default locale, then Deutsch, then Français (issue #67: multiple non-default locales).
+ * Default locale, then Deutsch, Français, Español (issue #67: multiple non-default locales).
  *
  * Usage:
  *   BASE_URL=http://127.0.0.1:4202 node front/scripts/test-feedback-public-i18n.mjs
@@ -130,7 +130,25 @@ async function main() {
       throw new Error(`Expected FR document title to include "Comment", got: ${docTitleFr}`);
     }
 
-    console.log('>>> RESULT: Public feedback i18n OK (en + de + fr, no FEEDBACK.* leaks)');
+    await page.select('.language-select', 'es');
+    await sleep(600);
+
+    await page.waitForFunction(
+      () => (document.body?.innerText || '').includes('Cómo fue'),
+      { timeout: 10000 }
+    );
+
+    const bodyEs = await page.evaluate(() => document.body.innerText);
+    if (bodyEs.includes('FEEDBACK.')) {
+      throw new Error('Raw i18n keys visible after switch to es');
+    }
+
+    const docTitleEs = await page.title();
+    if (!docTitleEs.includes('Cómo')) {
+      throw new Error(`Expected ES document title to include "Cómo", got: ${docTitleEs}`);
+    }
+
+    console.log('>>> RESULT: Public feedback i18n OK (en + de + fr + es, no FEEDBACK.* leaks)');
   } finally {
     await browser.close();
   }

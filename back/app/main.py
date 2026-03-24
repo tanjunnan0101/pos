@@ -815,11 +815,12 @@ def list_public_tenants(session: Session = Depends(get_session)) -> list:
 def get_public_tenant(
     tenant_id: int,
     session: Session = Depends(get_session),
+    lang: str = Depends(_get_requested_language),
 ) -> JSONResponse:
     """Get one tenant's public info for book page (name, logo, phone, email, whatsapp, opening_hours). Public, no authentication."""
     tenant = session.get(models.Tenant, tenant_id)
     if not tenant:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+        raise HTTPException(status_code=404, detail=get_message("tenant_not_found", lang))
     summary = _tenant_to_summary(tenant, session)
     # Return explicit JSON so whatsapp is always present (same tenant as /tenant/settings)
     body = {
