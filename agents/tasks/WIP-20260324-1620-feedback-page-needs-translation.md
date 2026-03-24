@@ -65,3 +65,5 @@ Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…` on productio
 **Loop protection:** N/A (first verification cycle for this task file).
 
 **GitHub:** Issue **#67** comment/labels not updated — `gh issue comment` returned *Resource not accessible by personal access token (addComment)*.
+
+**001 log reviewer (2026-03-24T17:30:40Z):** No new **FEAT-** (this WIP already tracks **#67**). Docker logs since prior review: no new front/haproxy/postgres lines; **pos-back** routine **GET /docs 200** only — no **NEW-** opened.
