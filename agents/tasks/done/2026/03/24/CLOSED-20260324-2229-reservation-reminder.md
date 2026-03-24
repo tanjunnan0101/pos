@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub #74 asked for reservation reminder emails to include a guest link to **update** the reservation, aligned with confirmation behaviour and public base URL rules.
+- **What was done:** Reminder copy and manage URL were aligned with the existing public `/reservation?token=…` flow and `PUT /reservations/{id}/public`; HTML `href` uses safe escaping in `back/app/email_service.py`, with coverage in `back/tests/test_reservation_reminder_email.py`.
+- **What was tested:** `pytest tests/test_reservation_reminder_email.py` — **2 passed**; live SMTP/inbox + browser open of the manage page were **not** run in the tester window (deferred to staging).
+- **Why closed:** Tester marked overall **PASS** for automated verification; implementation and test report satisfy the task’s pass criteria for code and unit tests.
+- **Closed at (UTC):** 2026-03-24 22:39
+---
+
 # Reservation reminder
 
 ## GitHub

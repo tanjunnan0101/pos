@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub #73 requested **`docker buildx prune`** in the amvara9 deploy path so BuildKit cache does not fill disk.
+- **What was done:** `scripts/deploy-amvara9.sh` runs **`docker buildx prune -f`** after successful **back** and **front** image builds; failures log a warning and do not abort deploy; **`SKIP_BUILDX_PRUNE=1`** skips the step; **`docs/0001-ci-cd-amvara9.md`** documents behaviour.
+- **What was tested:** Static review against pass/fail criteria plus **`bash -n scripts/deploy-amvara9.sh`** — **PASS**; optional full build+prune on a Docker host was not run.
+- **Why closed:** Tester overall **PASS**; script ordering, `set -e` safety, skip flag, and doc alignment all verified.
+- **Closed at (UTC):** 2026-03-24 22:39
+---
+
 # docker buildx prune
 
 ## GitHub
