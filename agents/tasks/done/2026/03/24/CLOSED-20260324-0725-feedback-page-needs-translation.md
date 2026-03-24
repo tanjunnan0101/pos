@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue #67 (public guest feedback i18n) was driven through coder verification and an independent tester run on local dev; no further frontend changes were required in the final pass.
+- **What was done:** Confirmed `FeedbackPublicComponent` uses the translate pipe for guest-visible copy and updates the document title via `translate.get` so raw `FEEDBACK.*` keys do not appear; locale JSON under `front/public/i18n/` already covers the keys in use.
+- **What was tested:** `node front/scripts/test-feedback-public-i18n.mjs` against `http://127.0.0.1:4202` (locales, token URL, thank-you in de, invalid tenant); **PASS** with exit 0 and Angular build healthy per front container logs.
+- **Why closed:** All stated pass/fail criteria met; tester overall **PASS**; optional production check on satisfecho.de and GitHub comment/close remain product follow-up (not blocking archive).
+- **Closed at (UTC):** 2026-03-24 07:30
+---
+
 # Feedback page needs translation
 
 ## GitHub
