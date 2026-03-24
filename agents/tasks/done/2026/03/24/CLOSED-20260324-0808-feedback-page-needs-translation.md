@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue **#67** (public guest feedback i18n) was verified after coder parity checks showed no code change was required and the tester ran the full local verification plan.
+- **What was done:** Confirmed **FEEDBACK** key parity across locales, translate pipe usage and document-title handling in **FeedbackPublicComponent**, and **Accept-Language** wiring for guest feedback; implementation already matched acceptance on **development**.
+- **What was tested:** Local Docker (**4202**): **PASS** — `test-feedback-public-i18n.mjs` (multi-locale, token path, invalid tenant), `curl` **200** on `/feedback/1`, `npm run test:landing-version` **exit 0**; optional submit-error and production spot-checks were **N/A** this run.
+- **Why closed:** Tester **overall PASS**; task criteria met on **development**; production re-check left optional per test report.
+- **Closed at (UTC):** 2026-03-24 08:16
+---
+
 # Feedback page needs translation
 
 ## GitHub
