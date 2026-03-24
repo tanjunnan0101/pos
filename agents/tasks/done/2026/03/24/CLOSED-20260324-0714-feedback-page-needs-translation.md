@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Work tracked for GitHub **#67** (fully localized guest feedback at `/feedback/{tenant}`) was completed on **development** and handed to the tester with clear PASS evidence.
+- **What was done:** Guest feedback UI uses `TranslateModule` / pipes and translated document titles; `FEEDBACK` keys are present across **en**, **de**, **fr**, **es**, **ca**, **zh-CN**, and **hi**; API error paths use translated strings. The coder pass found no further product code changes needed.
+- **What was tested:** `npm run test:feedback-public-i18n` and `npm run test:landing-version` (BASE_URL `http://127.0.0.1:4202`) both **PASS** on commit **a6d14f7**; manual full language-picker sweep and production spot-check were explicitly out of scope for this test report.
+- **Why closed:** Required automated verification passed; task meets archive criteria per **`agents/tasks/README.md`**. **#67** may stay open until optional product sign-off on **satisfecho.de** (as noted in the test report).
+- **Closed at (UTC):** 2026-03-24 07:19
+---
+
 # Feedback page needs translation
 
 ## GitHub
