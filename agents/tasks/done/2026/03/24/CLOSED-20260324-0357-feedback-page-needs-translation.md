@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Tester verified the feedback-page i18n work tracked for GitHub **#67** (localized public tenant 404, Puppeteer/locale checks, regression smoke) on local dev compose.
+- **What was done:** Coder localized `GET /public/tenants/{tenant_id}` 404 `detail`, added `test_get_public_tenant_404_localized_de`, extended `test-feedback-public-i18n.mjs`, and confirmed FEEDBACK key parity across locale JSON files.
+- **What was tested:** Backend `test_guest_feedback.py` (6 passed), public feedback i18n script (en/de/fr/es, no `FEEDBACK.*` leaks), `test:landing-version`, and front build log tail — all **PASS**.
+- **Why closed:** All executed verification criteria in the test report passed; task handed off for archive per agent loop (GitHub comment on **#67** blocked by PAT; issue may remain open until human/product closes).
+- **Closed at (UTC):** 2026-03-24 04:02
+---
+
 # Feedback page needs translation
 
 ## GitHub
