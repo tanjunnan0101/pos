@@ -38,3 +38,38 @@ The public landing at `http://127.0.0.1:4202/` (and production) should feel poli
 ### Pass / fail criteria
 - **Pass:** Both scripts exit `0`; build log clean; footer and hero strings localized (no exposed keys); no layout regression on `/`.
 - **Fail:** Non-zero script exit, build errors, missing i18n keys, or broken table lookup / tenant cards / footer routes.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-03-24 — verification started ~19:00Z, completed ~19:03Z. Log window: `docker compose … logs --tail=80/200 front` immediately after runs (~19:01–19:03Z).
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202`; branch `development` @ `a6317bc`; services up (haproxy 4202, pos-front, pos-back, db).
+
+3. **What was tested:** Per **What to verify** and **How to test**: `/` load; Puppeteer landing scripts; front build log sanity; German locale (no exposed i18n keys); required `data-testid` attributes; narrow (375×812) + wide (1440×900) viewport spot-checks.
+
+4. **Results**
+   - `/` returns HTTP 200 — **PASS** — `curl -s -o /dev/null -w "%{http_code}"` → `200`.
+   - `test-landing-provider-links.mjs` — **PASS** — exit `0`; provider login/register links OK; navigates to `/provider/register` successfully.
+   - `test-landing-version.mjs` — **PASS** — exit `0`; `landing-version` text present; extended nav completed.
+   - Front container logs (tail 80 + grep tail 200) — **PASS** — `Application bundle generation complete`; no `error` / `TS####` / `NG####` / `failed` matches in tail=200.
+   - DE locale: no raw `LANDING.` in visible body text — **PASS** — Puppeteer: `page.select('.language-select','de')` then `!document.body.innerText.includes('LANDING.')`.
+   - `data-testid` — **PASS** — `landing-provider-login`, `landing-provider-register`, `landing-staff-register`, `landing-version` all found on `/` after DE switch.
+   - Layout / hero — **PASS** — narrow DE check + wide EN hero title non-empty and not a raw key (`Your restaurant, connected`).
+
+5. **Overall:** **PASS**
+
+6. **Product owner feedback:** The public landing responds quickly and the automated checks confirm provider footer links, version bar, and staff register hook remain intact. German strings render without leaking translation keys, which keeps the experience trustworthy for non-English users. Ready for closer to align GitHub **#69** (open/close) with product intent.
+
+7. **URLs tested**
+   1. `http://127.0.0.1:4202/`
+   2. `http://127.0.0.1:4202/provider/register` (from provider-links script)
+   3. `http://127.0.0.1:4202/dashboard` … `http://127.0.0.1:4202/settings` (sidebar nav from `test-landing-version.mjs`)
+
+8. **Relevant log excerpts**
+   - `pos-front` (tail): `Application bundle generation complete. [0.007 seconds] - 2026-03-24T18:44:32.846Z` (and similar successful rebuild lines); no errors in sampled window.
+   - Puppeteer (provider links): `>>> RESULT: Landing shows provider login and register links; register link works.`
+   - Puppeteer (version): `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.`
+
+**GitHub:** Comment posted on **#69** at verification start; **`agent:testing`** label add failed (label not defined on repo). PASS summary commented on **#69**.
