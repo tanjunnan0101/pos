@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub [#67](https://github.com/satisfecho/pos/issues/67) tracked missing translations on public guest feedback URLs (`/feedback/{tenant}`, token flow); the loop reached verified closure after coder hardening and a full tester run.
+- **What was done:** Confirmed `FeedbackPublicComponent` uses ngx-translate end-to-end; extended `front/scripts/test-feedback-public-i18n.mjs` (hi locale, `/feedback/0` invalid-tenant + de switch, localStorage ordering) and aligned `docs/testing.md` with the script.
+- **What was tested:** `BASE_URL=http://127.0.0.1:4202 npm run test:feedback-public-i18n` on docker dev (HAProxy 4202) — **PASS** (no `FEEDBACK.*` leaks, titles, token URL, invalid tenant i18n).
+- **Why closed:** Test report documents **PASS** on all stated criteria; archive per `agents/tasks/README.md`. Optional production spot-check on satisfecho.de was not run; `gh issue comment` previously failed (token) — human may still post, adjust labels, and decide close vs prod confirmation.
+- **Closed at (UTC):** 2026-03-24 04:37
+---
+
 # Feedback page needs translation
 
 ## GitHub
