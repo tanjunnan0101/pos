@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** `/tables/canvas` did not show the floor-plan canvas because Angular matched the broader `tables` route before the `tables/canvas` route.
+- **What was done:** The coder registered `tables/canvas` before `tables` in `app.routes.ts` so the canvas component loads for that URL.
+- **What was tested:** `test-tables-canvas-view-options.mjs` (Puppeteer) passed with exit 0: canvas header and view options visible, no spurious redirect to `/dashboard`, `/tables` list and toggles still work.
+- **Why closed:** Tester test report overall **PASS**; acceptance criteria satisfied.
+- **Closed at (UTC):** 2026-03-24 22:04
+---
+
 # tables > canvas view is broken
 
 ## GitHub
