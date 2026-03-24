@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The Angular dev build failed with `TS2339` because `FeedbackPublicComponent` referenced `langSub` without declaring it (and lifecycle cleanup was inconsistent).
+- **What was done:** The component was refactored to use `DestroyRef` and `takeUntilDestroyed` on merged translate streams; document title updates use an optional `titleI18n` subscription with resubscribe-safe cleanup. The class implements `OnInit` only—no manual `OnDestroy`/`langSub`.
+- **What was tested:** Docker front rebuild (no `TS2339`/`langSub`), `test-feedback-public-i18n.mjs` (all checks OK), and `npm run test:landing-version` (PASS)—**overall PASS** per the embedded test report.
+- **Why closed:** Verification met all pass/fail criteria; incident no longer reproducible on current `development`.
+- **Closed at (UTC):** 2026-03-24 15:31
+---
+
 # TypeScript build failure: FeedbackPublicComponent OnDestroy property
 
 ## Source
