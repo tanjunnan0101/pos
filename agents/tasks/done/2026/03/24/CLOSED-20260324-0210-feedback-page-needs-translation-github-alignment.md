@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Alignment handoff for GitHub **#67** after prior archived verification that public feedback is localized; this task captured re-smoke, i18n parity checks, and GitHub closure notes.
+- **What was done:** No product code changes were required; coder confirmed `FeedbackPublicComponent` / `FEEDBACK` keys and valid JSON across `front/public/i18n/*.json`; tester re-ran public `/feedback/1` and `/feedback/0` plus `test:landing-version` and front log sanity.
+- **What was tested:** Locales **fr**, **ca**, **zh-CN**, **hi** on `/feedback/1`, invalid-tenant copy on `/feedback/0` after French, landing smoke **exit 0** — **overall PASS** per test report.
+- **Why closed:** All documented pass/fail criteria met; ready for archive. **GitHub:** `gh issue comment` / automation still blocked by token per task notes — human with **Issues: write** should post the suggested closing comment, adjust labels per `docs/agent-loop.md`, and close **#67** when product accepts.
+- **Closed at (UTC):** 2026-03-24 02:17
+---
+
 # Feedback page needs translation
 
 ## GitHub
