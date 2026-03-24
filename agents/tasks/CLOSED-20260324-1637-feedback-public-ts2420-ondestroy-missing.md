@@ -54,3 +54,41 @@
 4. **`test-feedback-public-i18n.mjs`:** **PASS** (exit 0; seven `>>> RESULT:` OK).
 5. **`npm run test:landing-version --prefix front`:** **PASS** (exit 0).
 6. **Overall:** **PASS**.
+
+## Test report (tester)
+
+1. **Date/time (UTC) and log window:** **2026-03-24T16:42Z–16:45Z**; `pos-front` logs inspected for rebuilds through **2026-03-24T16:44:30.787Z**.
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; **`BASE_URL=http://127.0.0.1:4202`**; branch **`development`**, **`78ae4ff`**.
+3. **What was tested:** Per **Testing instructions** — Angular compile after `touch` on `feedback-public.component.ts`, `test-feedback-public-i18n.mjs`, `test:landing-version`.
+4. **Results:**
+   - **TS2420 / `FeedbackPublicComponent` / `OnDestroy`:** **PASS** — Source implements **`ngOnDestroy()`** at line 136; post-`touch` **`docker compose … logs --tail=25 front`** shows **`Application bundle generation complete`** at **16:44:30.787Z** with **no** `TS2420` / `OnDestroy` lines in that tail (earlier **16:41Z** window in an **80-line** tail had contained a **stale** TS2420 block before a succeeding rebuild; current tree + latest rebuild are clean).
+   - **`test-feedback-public-i18n.mjs`:** **PASS** — Exit **0**; seven **`>>> RESULT:`** lines **OK**.
+   - **`npm run test:landing-version --prefix front`:** **PASS** — **`>>> RESULT: Landing version OK…`**, **EXIT:0**.
+5. **Overall:** **PASS**.
+6. **Product owner feedback:** Public feedback still loads translated strings and document title behaviour without raw `FEEDBACK.*` keys in the checked flows. Dev hot-reload rebuilds cleanly for this component, so local iteration should not hit the previous TS2420 compile break.
+7. **URLs tested (Puppeteer):**
+   1. `http://127.0.0.1:4202/`
+   2. `http://127.0.0.1:4202/dashboard`
+   3. `http://127.0.0.1:4202/my-shift`
+   4. `http://127.0.0.1:4202/staff/orders`
+   5. `http://127.0.0.1:4202/reservations`
+   6. `http://127.0.0.1:4202/guest-feedback`
+   7. `http://127.0.0.1:4202/tables`
+   8. `http://127.0.0.1:4202/kitchen`
+   9. `http://127.0.0.1:4202/bar`
+   10. `http://127.0.0.1:4202/customers`
+   11. `http://127.0.0.1:4202/products`
+   12. `http://127.0.0.1:4202/catalog`
+   13. `http://127.0.0.1:4202/reports`
+   14. `http://127.0.0.1:4202/working-plan`
+   15. `http://127.0.0.1:4202/users`
+   16. `http://127.0.0.1:4202/settings`
+   17. `http://127.0.0.1:4202/inventory/items`
+   18. `http://127.0.0.1:4202/inventory/suppliers`
+   19. `http://127.0.0.1:4202/inventory/purchase-orders`
+   20. `http://127.0.0.1:4202/inventory/stock`
+   21. `http://127.0.0.1:4202/inventory/reports`
+   22. `http://127.0.0.1:4202/feedback/1` (and same with `?token=` variants per script)
+   23. `http://127.0.0.1:4202/feedback/0`
+   24. `http://127.0.0.1:4202/feedback/999999999`
+8. **Relevant log excerpts:** `pos-front` after final `touch`: `Application bundle generation complete. [0.194 seconds] - 2026-03-24T16:44:30.787Z` (lazy chunk includes `feedback-public-component`); no `TS2420` in that tail.
