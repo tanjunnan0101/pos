@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The frontend Docker build failed with **TS2420** because `FeedbackPublicComponent` did not correctly satisfy the `OnDestroy` interface.
+- **What was done:** Subscriptions were moved to **`DestroyRef`** + **`takeUntilDestroyed`** (rxjs-interop), removing the incorrect `OnDestroy` surface while preserving teardown when the title i18n key changes.
+- **What was tested:** Tester **PASS**: Angular bundle generation clean, `/feedback/1` HTTP 200, and **`test-feedback-public-i18n.mjs`** exit 0 with all asserted i18n paths OK.
+- **Why closed:** All pass/fail criteria in the test report were met for the current tree and stack.
+- **Closed at (UTC):** 2026-03-24 15:07
+---
+
 # Frontend bundle failed: FeedbackPublicComponent OnDestroy (TS2420)
 
 ## Source
