@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** `pos-front` reported TS2420 because `FeedbackPublicComponent` implemented `OnDestroy` without `ngOnDestroy` during dev hot-reload.
+- **What was done:** Coder restored a real `ngOnDestroy()` with `titleI18nSub` cleanup and kept the inner `translate.get` subscription pattern required for production-static / GitHub #67; tester re-verified compile and scripts.
+- **What was tested:** Angular rebuild after `touch` on the component, `test-feedback-public-i18n.mjs`, and `test:landing-version` — all **PASS** (exit 0, no TS2420 in latest tail).
+- **Why closed:** All pass/fail criteria met; coder and tester reports **PASS**.
+- **Closed at (UTC):** 2026-03-24 16:46
+---
+
 # pos-front: TS2420 FeedbackPublicComponent missing ngOnDestroy (dev rebuild)
 
 ## Source
