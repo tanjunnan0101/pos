@@ -29,3 +29,35 @@ Relevant areas: `front/src/app/feedback-public/`, locale JSON under `front/publi
 2. From repo root: `BASE_URL=http://127.0.0.1:4202 node front/scripts/test-feedback-public-i18n.mjs` — expect exit **0** and no `FEEDBACK.` substrings in the DOM assertions.
 3. Optional manual: open `/feedback/1` with and without `?token=…`, switch languages, submit once — confirm no raw keys or mixed-language chrome.
 4. For GitHub **#67** closure on production: repeat spot-check on `https://satisfecho.de/feedback/1` (or tenant under test) if product wants prod sign-off.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-03-24 16:00:41 UTC (run start). Log window reviewed: ~16:00:41–16:01:00 UTC (`pos-haproxy` / `pos-front` tails).
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; HAProxy host port **4202**; **`BASE_URL=http://127.0.0.1:4202`**; branch **`development`**, commit **`c5795f9`**.
+
+3. **What was tested:** Items 1–2 of **Testing instructions** (stack up; `test-feedback-public-i18n.mjs`). Item 3 (manual) not run (optional). Item 4 (production spot-check) not run (product sign-off path only).
+
+4. **Results:**
+   - Dev stack reachable on 4202: **PASS** — `docker compose … ps` shows `pos-haproxy` `0.0.0.0:4202->4202/tcp`, services up.
+   - `BASE_URL=http://127.0.0.1:4202 node front/scripts/test-feedback-public-i18n.mjs` exit **0**, seven `>>> RESULT:` lines, no `FEEDBACK.` leaks: **PASS** — command exit code 0; script output as expected.
+   - Optional manual browse (item 3): **N/A** — not required for automated pass.
+   - Production URL check (item 4): **N/A** — not executed; remains for product if closing **#67** against prod.
+
+5. **Overall:** **PASS** (local Docker / dev acceptance per instructions 1–2).
+
+6. **Product owner feedback:** Public feedback i18n is covered by an automated Puppeteer script across default browser locale (es stub), all picker languages, token URL, invalid-token API error, thank-you flow, and invalid/missing tenant errors—all without raw `FEEDBACK.*` in the DOM. Production smoke on satisfecho.de is still optional before formally closing the GitHub issue if you want prod parity confirmation.
+
+7. **URLs tested** (via Puppeteer against `http://127.0.0.1:4202`):
+   1. `http://127.0.0.1:4202/feedback/1` (multiple navigations, language switches en/de/fr/es/ca/zh-CN/hi)
+   2. `http://127.0.0.1:4202/feedback/1?token=dummy-token-for-i18n-smoke`
+   3. `http://127.0.0.1:4202/feedback/1?token=bogus-reservation-token-i18n-check` (submit → localized API error)
+   4. `http://127.0.0.1:4202/feedback/1` (valid submit → thank-you DE)
+   5. `http://127.0.0.1:4202/feedback/0` (invalid tenant)
+   6. `http://127.0.0.1:4202/feedback/999999999` (missing tenant / 404)
+
+8. **Relevant log excerpts:**
+   - `pos-haproxy` (sample during run): `GET /i18n/de.json`, `GET /chunk-HMUOE5MY.js` (feedback-public lazy chunk), `GET /api/public/tenants/999999999` → **404** (missing-tenant path).
+   - `pos-front` tail: `Application bundle generation complete` (no build errors in window).
