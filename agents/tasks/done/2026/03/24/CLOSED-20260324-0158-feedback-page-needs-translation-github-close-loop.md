@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The feedback-page translation loop (GitHub #67) was verified on `development`; coder and tester both confirmed no further app work was needed beyond prior archives, with GitHub comment/close left to a human with Issues write.
+- **What was done:** Coder re-validated `de.json` JSON, public `FEEDBACK.*` usage, and landing smoke; tester re-ran `de.json` parse, Puppeteer checks on `/feedback/1` for DE/ES intros, and `test:landing-version` — all PASS. `gh issue comment` / label edits remain blocked for the automation token; handoff text is in the task body.
+- **What was tested:** **PASS** — `de.json` parse; public `/feedback/1` language picker DE/ES (`.feedback-intro`); `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front`.
+- **Why closed:** Product verification criteria for this scope were met; remaining work is process/GitHub alignment only, explicitly documented for manual follow-up.
+- **Closed at (UTC):** 2026-03-24 02:05
+---
+
 # Feedback page needs translation
 
 ## GitHub
