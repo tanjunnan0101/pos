@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Deploy (amvara9, GitHub #73):** After successful **back** and **front** image builds, `scripts/deploy-amvara9.sh` runs `docker buildx prune -f` to trim unused BuildKit cache (non-interactive). `SKIP_BUILDX_PRUNE=1` skips; prune failure logs a warning and does not abort deploy. Documented in `docs/0001-ci-cd-amvara9.md`.
 - **Agents:** Bump-version task for issue #70 moved from `UNTESTED-20260324-2131-bump-version` to `WIP-20260324-2131-bump-version` (tester notes: package/changelog at 2.0.54; refresh generated `commit-hash` / run `get-commit-hash.js` so the landing footer matches the package version).
 
 ## [2.0.55] - 2026-03-24
