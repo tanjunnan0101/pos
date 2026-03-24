@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue **#67** (public guest feedback i18n) was driven through coder verification and independent tester PASS on the dev stack; automation could not update the issue due to token scope.
+- **What was done:** No further product code was required on `development`; `npm run test:feedback-public-i18n` covered browser-default locale, seven picker locales, token URL, and invalid-tenant paths with no `FEEDBACK.*` leaks.
+- **What was tested:** **PASS** on `docker-compose.yml` + `docker-compose.dev.yml` at `http://127.0.0.1:4202` (branch `development`, commit `dc98233`); all four script `>>> RESULT:` lines and body/title checks succeeded.
+- **Why closed:** Tester **Overall: PASS** per documented criteria; optional production spot-check remains a human/GitHub follow-up if #67 is to be closed on record for prod.
+- **Closed at (UTC):** 2026-03-24 05:11
+---
+
 # Feedback page needs translation
 
 ## GitHub
