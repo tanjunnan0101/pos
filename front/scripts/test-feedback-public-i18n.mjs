@@ -148,7 +148,45 @@ async function main() {
       throw new Error(`Expected ES document title to include "Cómo", got: ${docTitleEs}`);
     }
 
-    console.log('>>> RESULT: Public feedback i18n OK (en + de + fr + es, no FEEDBACK.* leaks)');
+    await page.select('.language-select', 'ca');
+    await sleep(600);
+
+    await page.waitForFunction(
+      () => (document.body?.innerText || '').includes('Com ha anat'),
+      { timeout: 10000 }
+    );
+
+    const bodyCa = await page.evaluate(() => document.body.innerText);
+    if (bodyCa.includes('FEEDBACK.')) {
+      throw new Error('Raw i18n keys visible after switch to ca');
+    }
+
+    const docTitleCa = await page.title();
+    if (!docTitleCa.includes('Com ha anat')) {
+      throw new Error(`Expected CA document title to include "Com ha anat", got: ${docTitleCa}`);
+    }
+
+    await page.select('.language-select', 'zh-CN');
+    await sleep(600);
+
+    await page.waitForFunction(
+      () => (document.body?.innerText || '').includes('本次用餐'),
+      { timeout: 10000 }
+    );
+
+    const bodyZh = await page.evaluate(() => document.body.innerText);
+    if (bodyZh.includes('FEEDBACK.')) {
+      throw new Error('Raw i18n keys visible after switch to zh-CN');
+    }
+
+    const docTitleZh = await page.title();
+    if (!docTitleZh.includes('本次用餐')) {
+      throw new Error(`Expected zh-CN document title to include Chinese prompt, got: ${docTitleZh}`);
+    }
+
+    console.log(
+      '>>> RESULT: Public feedback i18n OK (en + de + fr + es + ca + zh-CN, no FEEDBACK.* leaks)'
+    );
 
     // Token query (reservation deep link): same i18n expectations, no raw keys in DOM
     const urlWithToken = new URL(`/feedback/${tenantId}`, baseUrl);

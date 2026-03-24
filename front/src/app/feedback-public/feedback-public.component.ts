@@ -22,6 +22,8 @@ export class FeedbackPublicComponent implements OnInit, OnDestroy {
   private sanitizer = inject(DomSanitizer);
   private title = inject(Title);
   private langSub?: Subscription;
+  /** Avoids document title showing raw FEEDBACK.* before translations load (issue #67). */
+  private titleI18nSub?: Subscription;
 
   tenantId = signal(0);
   tenant = signal<TenantSummary | null>(null);
@@ -79,6 +81,7 @@ export class FeedbackPublicComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.langSub?.unsubscribe();
+    this.titleI18nSub?.unsubscribe();
   }
 
   /** Browser tab title follows selected language (issue #67). */
@@ -98,12 +101,14 @@ export class FeedbackPublicComponent implements OnInit, OnDestroy {
     } else {
       key = 'FEEDBACK.TITLE';
     }
-    const part = this.translate.instant(key);
-    if (name && !err) {
-      this.title.setTitle(`${name} – ${part}`);
-    } else {
-      this.title.setTitle(part);
-    }
+    this.titleI18nSub?.unsubscribe();
+    this.titleI18nSub = this.translate.get(key).subscribe((part) => {
+      if (name && !err) {
+        this.title.setTitle(`${name} – ${part}`);
+      } else {
+        this.title.setTitle(part);
+      }
+    });
   }
 
   getLogoSafeUrl(url: string | null): SafeResourceUrl | null {
