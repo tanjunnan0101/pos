@@ -921,7 +921,7 @@
     "RESERVATION_REMINDER_24H": "Erinnerung 24 h vorher",
     "RESERVATION_REMINDER_24H_HINT": "Wenn aktiviert, kann eine Erinnerung (manuell oder automatisch) einen Tag vorher gesendet werden.",
     "RESERVATION_REMINDER_2H": "Erinnerung 2 h vorher",
-    "RESERVATION_REMINDER_2H_HINT": "Wenn aktiviert, kann eine Erinnerung (manuell oder automatisch) zwei Stunden vorher gesendet werden."
+    "RESERVATION_REMINDER_2H_HINT": "Wenn aktiviert, kann eine Erinnerung (manuell oder automatisch) zwei Stunden vorher gesendet werden.",
     "STRIPE_SECRET_HINT": "Ihr geheimer Stripe-Schlüssel. Leer lassen, um den aktuellen Wert beizubehalten.",
     "REVOLUT_INTEGRATION": "Revolut-Integration",
     "REVOLUT_MERCHANT_SECRET": "Revolut Merchant API Secret",
