@@ -1222,6 +1222,7 @@
     "TITLE": "Comment s'est passée votre visite ?",
     "INTRO": "Nous serions ravis d'avoir votre avis. Votre note et vos commentaires nous aident à nous améliorer.",
     "RATING_LABEL": "Expérience globale",
+    "FIELD_REQUIRED_MARK": " *",
     "COMMENT_LABEL": "Commentaires (facultatif)",
     "COMMENT_PLACEHOLDER": "Dites-nous ce qui s'est bien passé ou ce que nous pouvons améliorer",
     "CONTACT_OPTIONAL": "Coordonnées (facultatif)",

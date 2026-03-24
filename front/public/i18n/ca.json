@@ -1239,6 +1239,7 @@
     "TITLE": "Com ha anat la vostra visita?",
     "INTRO": "Ens encantaria saber la vostra opinió. La vostra valoració i els comentaris ens ajuden a millorar.",
     "RATING_LABEL": "Experiència general",
+    "FIELD_REQUIRED_MARK": " *",
     "COMMENT_LABEL": "Comentaris (opcional)",
     "COMMENT_PLACEHOLDER": "Expliqueu-nos què ha anat bé o què podem millorar",
     "CONTACT_OPTIONAL": "Dades de contacte (opcional)",

@@ -731,6 +731,7 @@
     "TITLE": "¿Cómo fue tu visita?",
     "INTRO": "Nos encantaría saber tu opinión. Tu valoración y comentarios nos ayudan a mejorar.",
     "RATING_LABEL": "Experiencia general",
+    "FIELD_REQUIRED_MARK": " *",
     "COMMENT_LABEL": "Comentarios (opcional)",
     "COMMENT_PLACEHOLDER": "Cuéntanos qué salió bien o qué podemos mejorar",
     "CONTACT_OPTIONAL": "Datos de contacto (opcional)",

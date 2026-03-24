@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Public feedback (error view):** Invalid or missing tenant now shows `FEEDBACK` strings via the translate pipe and includes the language picker so title and error lines follow the selected locale without a prior visit to `/feedback/1` (GitHub #67).
 - **i18n (de):** Repaired invalid `de.json` (missing comma in `SETTINGS` after `RESERVATION_REMINDER_2H_HINT`) so the German locale file parses and loads; public feedback and all DE strings work again (GitHub #67).
 - **Public feedback i18n:** French, Catalan, Hindi, and Simplified Chinese now include full `FEEDBACK.*` strings (form, errors, staff table columns); public language picker `aria-label` uses `SETTINGS.SELECT_LANGUAGE` (GitHub #67).
+- **Public feedback (loading):** Language picker is shown while the tenant loads; rating “required” marker uses `FEEDBACK.FIELD_REQUIRED_MARK` in all locales (GitHub #67).
 - **Catalog menu rows:** Prevent `tenantproduct.price_cents` from being cleared to NULL (database NOT NULL): flush-time coalesce from supplier or linked product price, safer product backfill from catalog-only items, and PUT ignores explicit null price.
 - **Tables floor plan:** Selected-table panel shows read-only assigned waiter from table API for roles without `table:write`, consistent with Tiles/Table list (GitHub #65).
 

@@ -736,6 +736,7 @@
     "TITLE": "How was your visit?",
     "INTRO": "We would love to hear from you. Your rating and comments help us improve.",
     "RATING_LABEL": "Overall experience",
+    "FIELD_REQUIRED_MARK": " *",
     "COMMENT_LABEL": "Comments (optional)",
     "COMMENT_PLACEHOLDER": "Tell us what went well or what we could do better",
     "CONTACT_OPTIONAL": "Contact details (optional)",

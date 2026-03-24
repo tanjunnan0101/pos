@@ -1171,6 +1171,7 @@
     "TITLE": "本次用餐体验如何？",
     "INTRO": "我们很乐意听取您的意见。您的评分和留言帮助我们不断改进。",
     "RATING_LABEL": "整体体验",
+    "FIELD_REQUIRED_MARK": " *",
     "COMMENT_LABEL": "留言（可选）",
     "COMMENT_PLACEHOLDER": "请告诉我们哪些方面做得好，或我们可以如何改进",
     "CONTACT_OPTIONAL": "联系方式（可选）",

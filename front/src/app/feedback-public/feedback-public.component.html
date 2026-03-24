@@ -4,11 +4,16 @@
   [style.--hero-header-bg]="tenant()?.public_background_color ?? null"
 >
   @if (loading()) {
-    <div class="loading-screen">
-      <div class="loading-content">
-        <div class="skeleton-header">
-          <div class="skeleton-logo"></div>
-          <div class="skeleton-text skeleton-title"></div>
+    <div class="feedback-error-shell">
+      <div class="feedback-error-bar">
+        <app-language-picker class="book-language-picker"></app-language-picker>
+      </div>
+      <div class="loading-screen">
+        <div class="loading-content">
+          <div class="skeleton-header">
+            <div class="skeleton-logo"></div>
+            <div class="skeleton-text skeleton-title"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -142,8 +147,12 @@
           <p class="feedback-intro">{{ 'FEEDBACK.INTRO' | translate }}</p>
 
           <div class="form-group feedback-rating-group">
-            <span class="feedback-rating-label">{{ 'FEEDBACK.RATING_LABEL' | translate }} *</span>
-            <div class="star-row" role="group" [attr.aria-label]="'FEEDBACK.RATING_LABEL' | translate">
+            <span class="feedback-rating-label">{{ 'FEEDBACK.RATING_LABEL' | translate }}{{ 'FEEDBACK.FIELD_REQUIRED_MARK' | translate }}</span>
+            <div
+              class="star-row"
+              role="group"
+              [attr.aria-label]="('FEEDBACK.RATING_LABEL' | translate) + ('FEEDBACK.FIELD_REQUIRED_MARK' | translate)"
+            >
               @for (s of stars; track s) {
                 <button
                   type="button"

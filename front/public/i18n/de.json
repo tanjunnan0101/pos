@@ -594,6 +594,7 @@
     "TITLE": "Wie war Ihr Besuch?",
     "INTRO": "Wir freuen uns über Ihre Rückmeldung. Bewertung und Kommentare helfen uns, besser zu werden.",
     "RATING_LABEL": "Gesamterlebnis",
+    "FIELD_REQUIRED_MARK": " *",
     "COMMENT_LABEL": "Kommentar (optional)",
     "COMMENT_PLACEHOLDER": "Was hat gut funktioniert, was können wir verbessern?",
     "CONTACT_OPTIONAL": "Kontaktdaten (optional)",
