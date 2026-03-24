@@ -67,3 +67,5 @@ Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…` on productio
 **GitHub:** Issue **#67** comment/labels not updated — `gh issue comment` returned *Resource not accessible by personal access token (addComment)*.
 
 **001 log reviewer (2026-03-24T17:30:40Z):** No new **FEAT-** (this WIP already tracks **#67**). Docker logs since prior review: no new front/haproxy/postgres lines; **pos-back** routine **GET /docs 200** only — no **NEW-** opened.
+
+**001 log reviewer (2026-03-24T17:37:17Z):** Same dedupe — no new **FEAT-** for **#67**. **`gh issue comment 67`** / **`gh issue edit 67 --add-label agent-planned`** still fail: *Resource not accessible by personal access token* (**`issues:write`** needed). Docker **`--since 2026-03-24T17:30:40Z`**: **pos-front** / **pos-haproxy** / **pos-postgres** empty; **pos-back** ~200 lines **GET /docs 200** only; `grep -iE 'error|exception|traceback| 5[0-9]{2} '` — no matches → **0× new NEW**.
