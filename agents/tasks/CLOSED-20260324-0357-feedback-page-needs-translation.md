@@ -41,3 +41,34 @@ Public feedback flows (`/feedback/{tenant}`, tokenized links) must be fully loca
 5. **Manual (optional):** `/feedback/1` — spot-check **ca**, **zh-CN**, **hi** in the language picker; confirm no raw keys.
 
 6. **GitHub:** If tester **PASS** and product accepts, comment on **#67** and close per `docs/agent-loop.md` (PAT may lack `issues: write` for automated comments).
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-03-24T03:59Z–04:02Z (pytest + Puppeteer window). **Log window:** same (front container tail captured immediately after runs).
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; **`BASE_URL`** `http://127.0.0.1:4202` (HAProxy → front). **Branch:** `development` @ `65b2c6c`.
+
+3. **What was tested:** Items 1–4 from **Testing instructions** above (backend guest feedback tests, public feedback i18n script, landing regression, front build log scan). Item 5 (manual ca/zh-CN/hi) **not** run this pass.
+
+4. **Results:**
+   - **Backend `test_guest_feedback.py`:** **PASS** — evidence: `6 passed in 0.70s`, exit 0.
+   - **Public feedback i18n (`test-feedback-public-i18n.mjs`):** **PASS** — evidence: `>>> RESULT: Public feedback i18n OK (en + de + fr + es, no FEEDBACK.* leaks)`, exit 0.
+   - **Regression `test:landing-version`:** **PASS** — evidence: `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.`, `exit_code: 0`.
+   - **Front build logs (tail 80):** **PASS** — evidence: repeated `Application bundle generation complete.`; no `TS2345`, `NG8002`, or “failed” compile lines in tail.
+
+5. **Overall:** **PASS** (all executed criteria met).
+
+6. **Product owner feedback:** Automated verification on local dev compose confirms guest-feedback API tests, public feedback locale switching (en/de/fr/es) without raw `FEEDBACK.*` keys in the body, and the landing sidebar smoke still pass. Optional manual spot-check of ca, zh-CN, and hi in the picker was not performed; recommend a quick human pass on `/feedback/1` if those locales are customer-critical.
+
+7. **URLs tested:**
+   1. `http://127.0.0.1:4202/` (landing + logged-in nav per `test-landing-version.mjs`)
+   2. `http://127.0.0.1:4202/feedback/1` (public feedback i18n script — multiple locale query/param states)
+
+8. **Relevant log excerpts:**
+   - `pos-back` (pytest): `...... [100%]` / `6 passed in 0.70s`
+   - Puppeteer i18n: `>>> RESULT: Public feedback i18n OK (en + de + fr + es, no FEEDBACK.* leaks)`
+   - `pos-front` (tail): `Application bundle generation complete. [0.170 seconds] - 2026-03-24T03:35:57.187Z` (no error lines in sampled tail)
+
+**GitHub:** `gh issue comment 67` **failed** (`Resource not accessible by personal access token` — no **Issues: write** on this token). Human or CI with issue permissions should mirror this **Test report** on **#67**. Issue left **open** per task text (final close when product accepts). No `agent:*` labels were present on the issue.
