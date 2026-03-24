@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Housekeeping task for GitHub **#67** (public feedback i18n) after prior archives; coder found and fixed **invalid `de.json`** blocking German locale app-wide.
+- **What was done:** Missing comma after `SETTINGS.RESERVATION_REMINDER_2H_HINT` in `front/public/i18n/de.json` was added; Puppeteer and smoke checks re-ran. **`gh issue comment` / close** on #67 remains blocked (`Resource not accessible by personal access token`); human with Issues write should post the suggested closing comment, adjust labels per `docs/agent-loop.md`, and close **#67** when product agrees.
+- **What was tested:** **PASS** — `de.json` parses; `/feedback/1` DE and ES intros match locale; `test:landing-version` exit 0; front logs clean; GitHub automation **N/A (token)**.
+- **Why closed:** Product verification complete; GitHub handoff documented; ready for archive per agent loop.
+- **Closed at (UTC):** 2026-03-24 01:53
+---
+
 # Feedback page needs translation
 
 ## GitHub
