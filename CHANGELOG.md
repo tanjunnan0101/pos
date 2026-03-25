@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Settings → Reservations (GitHub #82):** Pre-payment amount uses **whole amount** and **minor units** derived from the tenant currency via `Intl` (e.g. euros + cents); zero-decimal currencies show a single whole-unit field. Still stored as smallest-currency-unit integer (`reservation_prepayment_cents`).
+
 ### Fixed
 
 - **Settings Security / 2FA (GitHub #83):** Spacing between OTP description hint and the enable action (and setup hint before the secret row) so the control is not flush against the copy.

@@ -890,7 +890,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                   
                   <div class="form-group">
                     <label for="currency_code">{{ 'SETTINGS.SELECT_CURRENCY' | translate }}</label>
-                    <select id="currency_code" [(ngModel)]="formData.currency_code" name="currency_code" class="input-medium">
+                    <select
+                      id="currency_code"
+                      [(ngModel)]="formData.currency_code"
+                      (ngModelChange)="onTenantCurrencyCodeChange()"
+                      name="currency_code"
+                      class="input-medium">
                       @for (c of currencySelectOptions(); track c) {
                         <option [value]="c">{{ c }}</option>
                       }
@@ -1015,8 +1020,53 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                     <p>{{ 'SETTINGS.RESERVATIONS_SUBTITLE' | translate }}</p>
                   </div>
                   <div class="form-group">
-                    <label for="reservation_prepayment_cents">{{ 'SETTINGS.RESERVATION_PREPAYMENT' | translate }}</label>
-                    <input type="number" id="reservation_prepayment_cents" min="0" step="1" [(ngModel)]="formData.reservation_prepayment_cents" name="reservation_prepayment_cents" [placeholder]="'SETTINGS.RESERVATION_PREPAYMENT_PLACEHOLDER' | translate" />
+                    <label>{{ 'SETTINGS.RESERVATION_PREPAYMENT' | translate }}</label>
+                    <div class="form-row prepayment-amount-row">
+                      @if (getPrepaymentMinorDigits() === 0) {
+                        <div class="form-group">
+                          <label for="reservation_prepayment_major">{{ 'SETTINGS.PREPAYMENT_WHOLE_AMOUNT_LABEL' | translate }}</label>
+                          <input
+                            type="number"
+                            id="reservation_prepayment_major"
+                            min="0"
+                            step="1"
+                            [(ngModel)]="prepaymentMajorUnits"
+                            name="reservation_prepayment_major"
+                            (ngModelChange)="applyPrepaymentPartsToCents()"
+                          />
+                          <span class="prepayment-currency-hint">{{ getPrepaymentCurrencyLabel() }}</span>
+                        </div>
+                      } @else {
+                        <div class="form-group">
+                          <label for="reservation_prepayment_major">{{ 'SETTINGS.PREPAYMENT_MAJOR_LABEL' | translate }}</label>
+                          <input
+                            type="number"
+                            id="reservation_prepayment_major"
+                            min="0"
+                            step="1"
+                            [(ngModel)]="prepaymentMajorUnits"
+                            name="reservation_prepayment_major"
+                            (ngModelChange)="applyPrepaymentPartsToCents()"
+                          />
+                          <span class="prepayment-currency-hint">{{ getPrepaymentCurrencyLabel() }}</span>
+                        </div>
+                        <div class="form-group">
+                          <label for="reservation_prepayment_minor">{{
+                            'SETTINGS.PREPAYMENT_MINOR_LABEL' | translate: { max: prepaymentMinorMax() }
+                          }}</label>
+                          <input
+                            type="number"
+                            id="reservation_prepayment_minor"
+                            min="0"
+                            [max]="prepaymentMinorMax()"
+                            step="1"
+                            [(ngModel)]="prepaymentMinorUnits"
+                            name="reservation_prepayment_minor"
+                            (ngModelChange)="applyPrepaymentPartsToCents()"
+                          />
+                        </div>
+                      }
+                    </div>
                     <small class="field-hint">{{ 'SETTINGS.RESERVATION_PREPAYMENT_HINT' | translate }}</small>
                   </div>
                   <div class="form-group">
@@ -1332,6 +1382,15 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       .form-row .form-group {
         flex: 1;
       }
+    }
+
+    .prepayment-amount-row .form-group {
+      margin-bottom: 0;
+    }
+
+    .prepayment-currency-hint {
+      font-size: 0.8125rem;
+      color: var(--color-text-muted);
     }
 
     .form-group {
@@ -2230,6 +2289,86 @@ export class SettingsComponent implements OnInit, OnDestroy {
     return base;
   }
 
+  /** Split UI for `reservation_prepayment_cents` (major + minor units per ISO 4217 / Intl). */
+  prepaymentMajorUnits = 0;
+  prepaymentMinorUnits = 0;
+
+  getPrepaymentMinorDigits(): number {
+    const raw = (this.formData.currency_code || 'EUR').trim().toUpperCase();
+    if (!raw || raw.length !== 3) {
+      return 2;
+    }
+    try {
+      const opts = new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency: raw,
+      }).resolvedOptions();
+      const n = opts.maximumFractionDigits ?? 2;
+      return Math.min(6, Math.max(0, n));
+    } catch {
+      return 2;
+    }
+  }
+
+  prepaymentMinorMax(): number {
+    const d = this.getPrepaymentMinorDigits();
+    if (d <= 0) {
+      return 0;
+    }
+    return 10 ** d - 1;
+  }
+
+  getPrepaymentCurrencySymbol(): string {
+    const raw = (this.formData.currency_code || 'EUR').trim().toUpperCase();
+    const code = raw.length === 3 ? raw : 'EUR';
+    try {
+      const parts = new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency: code,
+      }).formatToParts(0);
+      return parts.find((p) => p.type === 'currency')?.value || code;
+    } catch {
+      return code;
+    }
+  }
+
+  getPrepaymentCurrencyLabel(): string {
+    const raw = (this.formData.currency_code || 'EUR').trim().toUpperCase();
+    const code = raw.length === 3 ? raw : 'EUR';
+    const sym = this.getPrepaymentCurrencySymbol();
+    return sym && sym !== code ? `${code} (${sym})` : code;
+  }
+
+  onTenantCurrencyCodeChange(): void {
+    this.syncPrepaymentFieldsFromCents();
+  }
+
+  syncPrepaymentFieldsFromCents(): void {
+    const rawTotal = this.formData.reservation_prepayment_cents;
+    const total =
+      rawTotal == null || rawTotal === 0 || Number.isNaN(Number(rawTotal))
+        ? 0
+        : Math.max(0, Math.floor(Number(rawTotal)));
+    const d = this.getPrepaymentMinorDigits();
+    const mod = 10 ** d;
+    this.prepaymentMajorUnits = Math.floor(total / mod);
+    this.prepaymentMinorUnits = d > 0 ? total % mod : 0;
+  }
+
+  applyPrepaymentPartsToCents(): void {
+    const d = this.getPrepaymentMinorDigits();
+    const mod = 10 ** d;
+    let maj = Math.max(0, Math.floor(Number(this.prepaymentMajorUnits) || 0));
+    let min = d === 0 ? 0 : Math.max(0, Math.floor(Number(this.prepaymentMinorUnits) || 0));
+    if (d > 0 && min >= mod) {
+      maj += Math.floor(min / mod);
+      min = min % mod;
+    }
+    this.prepaymentMajorUnits = maj;
+    this.prepaymentMinorUnits = min;
+    this.formData.reservation_prepayment_cents = maj * mod + min;
+  }
+
   settings = signal<TenantSettings | null>(null);
   taxes = signal<Tax[]>([]);
   taxError = signal('');
@@ -2509,6 +2648,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         }
         this.timezoneSearch = settings.timezone || '';
         this.parseOpeningHours(settings.opening_hours);
+        this.syncPrepaymentFieldsFromCents();
         this.loadTaxes();
         this.loading.set(false);
       },
