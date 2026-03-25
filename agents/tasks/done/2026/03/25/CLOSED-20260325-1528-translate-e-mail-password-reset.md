@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue #97 asked for password-reset emails in every supported backend locale, aligned with the app’s language choice.
+- **What was done:** Backend `email_password_reset_*` messages and `send_password_reset_email(..., lang=...)`; `POST /password-reset/request` passes the requested language; the Angular API client sends `?lang=` so copy matches the UI picker.
+- **What was tested:** `pytest /app/tests/test_password_reset.py` — 6 passed; front container logs showed clean Angular builds; optional live SMTP / browser flow was not run.
+- **Why closed:** Tester report **PASS** on all executed criteria; work is verified and ready to archive.
+- **Closed at (UTC):** 2026-03-25 15:34
+---
+
 # Translate e-Mail Password reset
 
 ## GitHub
