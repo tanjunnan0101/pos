@@ -3210,8 +3210,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
   removeLogo() {
     this.logoFile = null;
     this.logoPreview.set(null);
-    // Note: To actually remove from server, we'd need a DELETE endpoint
-    // For now, just clear the preview
+    this.api.deleteTenantLogo().subscribe({
+      next: (updated) => {
+        this.settings.set(updated);
+      },
+      error: () => {},
+    });
   }
 
   onHeaderBackgroundSelected(event: Event) {

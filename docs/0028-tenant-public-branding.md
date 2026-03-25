@@ -20,7 +20,7 @@ When a header image is set, a dark overlay keeps text readable.
 
 - **Model:** `Tenant.public_background_color` (VARCHAR, hex), `Tenant.header_background_filename` (stored under `uploads/{tenant_id}/header/`).
 - **Migrations:** `20260319100000_add_tenant_public_background_color.sql`, `20260319110000_add_tenant_header_background.sql`.
-- **Endpoints:** `GET /uploads/{tenant_id}/header/{filename}` (serve image), `POST /tenant/header-background` (upload), `DELETE /tenant/header-background` (remove). Public tenant and menu responses include `public_background_color` and `header_background_filename` / `tenant_header_background_filename`.
+- **Endpoints:** `GET /uploads/{tenant_id}/header/{filename}` (serve image), `POST /tenant/header-background` (upload), `DELETE /tenant/header-background` (remove). Logo (business profile): `POST /tenant/logo`, `DELETE /tenant/logo` (remove file and clear `logo_filename`). Public tenant and menu responses include `public_background_color` and `header_background_filename` / `tenant_header_background_filename`.
 
 ## Frontend
 

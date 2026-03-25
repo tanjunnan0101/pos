@@ -39,3 +39,5 @@ Same structure as main coder; append before **UNTESTED-** rename.
 1. Read **`agents/tasks/README.md`**.
 2. Pick **FEAT-*.md** → **WIP-*.md**.
 3. Implement; add **Testing instructions**; **UNTESTED-*.md**.
+4. Add comment with the changes to github issue (use gh issue xxx comment)
+

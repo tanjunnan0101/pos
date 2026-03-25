@@ -2973,6 +2973,54 @@ async def upload_tenant_logo(
     return tenant_dict
 
 
+@app.delete("/tenant/logo")
+@limiter.limit(
+    f"{getattr(settings, 'rate_limit_admin_per_minute', 30)}/minute",
+    key_func=_rate_limit_key_user,
+)
+def delete_tenant_logo(
+    request: Request,
+    current_user: Annotated[models.User, Depends(require_permission(Permission.SETTINGS_UPDATE))],
+    session: Session = Depends(get_session),
+) -> dict:
+    """Remove the tenant logo image."""
+    tenant = session.exec(
+        select(models.Tenant).where(models.Tenant.id == current_user.tenant_id)
+    ).first()
+
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    if tenant.logo_filename:
+        tenant_dir = UPLOADS_DIR / str(current_user.tenant_id) / "logo"
+        path = tenant_dir / tenant.logo_filename
+        if path.exists():
+            path.unlink()
+        tenant.logo_filename = None
+        session.add(tenant)
+        session.commit()
+        session.refresh(tenant)
+
+    tenant_dict = tenant.model_dump(mode="json", exclude={"users"})
+    tenant_dict["id"] = tenant.id
+    tenant_dict["logo_size_bytes"] = None
+    tenant_dict["logo_size_formatted"] = format_file_size(None)
+
+    if tenant_dict.get("stripe_secret_key"):
+        secret_key = tenant_dict["stripe_secret_key"]
+        tenant_dict["stripe_secret_key"] = (
+            f"{secret_key[:7]}...{secret_key[-4:]}" if len(secret_key) > 11 else "***"
+        )
+    if tenant_dict.get("revolut_merchant_secret"):
+        sk = tenant_dict["revolut_merchant_secret"]
+        tenant_dict["revolut_merchant_secret"] = (
+            f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
+        )
+    if tenant_dict.get("smtp_password"):
+        tenant_dict["smtp_password"] = "********"
+    return JSONResponse(content=tenant_dict)
+
+
 @app.post("/tenant/header-background")
 @limiter.limit(
     f"{getattr(settings, 'rate_limit_upload_per_hour', 10)}/hour",

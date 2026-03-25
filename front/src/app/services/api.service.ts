@@ -1848,6 +1848,10 @@ export class ApiService {
     return this.http.post<TenantSettings>(`${this.apiUrl}/tenant/logo`, formData);
   }
 
+  deleteTenantLogo(): Observable<TenantSettings> {
+    return this.http.delete<TenantSettings>(`${this.apiUrl}/tenant/logo`);
+  }
+
   getTenantLogoUrl(logoFilename: string | null | undefined, tenantId: number | null | undefined): string | null {
     if (!logoFilename || !tenantId) return null;
     return `${this.apiUrl}/uploads/${tenantId}/logo/${logoFilename}`;
