@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -235,7 +235,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
               @if (success()) {
                 <div class="toast success">
                   <span>{{ success() }}</span>
-                  <button type="button" class="toast-close" (click)="success.set(null)" aria-label="Dismiss">×</button>
+                  <button type="button" class="toast-close" (click)="dismissSuccessToast()" aria-label="Dismiss">×</button>
                 </div>
               }
             </form>
@@ -1147,7 +1147,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
               @if (success()) {
                 <div class="toast success">
                   <span>{{ success() }}</span>
-                  <button type="button" class="toast-close" (click)="success.set(null)" aria-label="Dismiss">×</button>
+                  <button type="button" class="toast-close" (click)="dismissSuccessToast()" aria-label="Dismiss">×</button>
                 </div>
               }
               
@@ -2021,19 +2021,24 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
        ========================================== */
     .toast {
       position: fixed;
-      bottom: env(safe-area-inset-bottom, 16px);
-      right: var(--space-4);
-      left: var(--space-4);
+      top: calc(env(safe-area-inset-top, 0px) + var(--space-4));
+      left: 50%;
+      right: auto;
+      bottom: auto;
+      width: min(400px, calc(100% - 2 * var(--space-4)));
+      max-width: 400px;
       padding: var(--space-4);
       border-radius: var(--radius-md);
       color: white;
       font-weight: 500;
-      animation: slideUp 0.3s ease;
+      transform: translateX(-50%);
+      animation: settingsToastEnter 0.3s ease;
       z-index: 100;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: var(--space-3);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
 
       &.success {
         background: var(--color-success);
@@ -2056,13 +2061,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
     .toast-close:hover {
       color: white;
-    }
-
-    @media (min-width: 640px) {
-      .toast {
-        left: auto;
-        max-width: 400px;
-      }
     }
 
     .timezone-select-wrapper {
@@ -2181,19 +2179,19 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       margin-bottom: var(--space-4);
     }
 
-    @keyframes slideUp {
+    @keyframes settingsToastEnter {
       from {
-        transform: translateY(100%);
+        transform: translate(-50%, calc(-100% - 12px));
         opacity: 0;
       }
       to {
-        transform: translateY(0);
+        transform: translate(-50%, 0);
         opacity: 1;
       }
     }
   `]
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -2278,6 +2276,9 @@ export class SettingsComponent implements OnInit {
   saving = signal<boolean>(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null);
+  /** Auto-hide save success toast (GitHub #80); manual dismiss still works. */
+  private static readonly SETTINGS_SUCCESS_TOAST_MS = 60_000;
+  private successDismissTimer?: ReturnType<typeof setTimeout>;
   logoPreview = signal<string | null>(null);
   logoFile: File | null = null;
   headerBackgroundPreview = signal<string | null>(null);
@@ -3132,9 +3133,34 @@ export class SettingsComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.clearSuccessDismissTimer();
+  }
+
+  private clearSuccessDismissTimer(): void {
+    if (this.successDismissTimer !== undefined) {
+      clearTimeout(this.successDismissTimer);
+      this.successDismissTimer = undefined;
+    }
+  }
+
+  private scheduleSuccessDismiss(): void {
+    this.clearSuccessDismissTimer();
+    this.successDismissTimer = setTimeout(() => {
+      this.successDismissTimer = undefined;
+      this.success.set(null);
+    }, SettingsComponent.SETTINGS_SUCCESS_TOAST_MS);
+  }
+
+  dismissSuccessToast(): void {
+    this.clearSuccessDismissTimer();
+    this.success.set(null);
+  }
+
   saveSettings() {
     this.saving.set(true);
     this.error.set(null);
+    this.clearSuccessDismissTimer();
     this.success.set(null);
 
     const doLogoUpload = () => {
@@ -3225,6 +3251,7 @@ export class SettingsComponent implements OnInit {
         this.settings.set(updatedSettings);
         this.api.applyTenantUiModulesFromSettings(updatedSettings);
         this.success.set('Settings saved successfully!');
+        this.scheduleSuccessDismiss();
         this.saving.set(false);
       },
       error: (err) => {
