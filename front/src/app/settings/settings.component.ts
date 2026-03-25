@@ -2176,6 +2176,11 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       color: var(--color-text);
     }
 
+    /* Security / OTP: separate explanatory copy from actions (GitHub #83) */
+    [data-testid='settings-security-section'] .form-card > p.hint {
+      margin-bottom: var(--space-4);
+    }
+
     @keyframes slideUp {
       from {
         transform: translateY(100%);
