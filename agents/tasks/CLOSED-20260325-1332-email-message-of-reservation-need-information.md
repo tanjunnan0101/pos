@@ -24,3 +24,23 @@ Reservation emails sent via SMTP should include more useful guest-facing informa
 2. **Integration (optional):** With valid SMTP and `PUBLIC_APP_BASE_URL` in `config.env`, create a reservation with a real test recipient email and tenant **phone** + **email** set in Settings → Contact. Confirm the received message (HTML + plain) shows the manage link and a “Contact us” section with phone and email.
 3. **Reminder:** From staff reservations, use **Send reminder** for a booking with customer email; body should include the contact block when tenant phone/email are set (same as confirmation formatting).
 4. **UI copy:** Settings → Reservations → reservation confirmation body hint should mention `restaurant_contact_block_html` in the active UI language.
+
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window:** 2026-03-25 13:44–13:45 UTC; backend pytest in `pos-back`.
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; branch `development` @ `ec88ef5`.
+3. **What was tested:** Items 1–4 under **Testing instructions** (unit tests; optional SMTP receive skipped; reminder send skipped in browser; i18n hint strings in repo).
+4. **Results:**
+   - **(1) Backend unit tests** — **PASS** — `8 passed in 0.24s` for `test_reservation_email_template.py` + `test_reservation_reminder_email.py`.
+   - **(2) Integration (optional)** — **N/A** — No live SMTP inbox verification in this run (not required as “optional” in task).
+   - **(3) Reminder (manual staff flow)** — **PASS (by automated tests)** — Not re-sent via UI; `test_reservation_reminder_email.py` exercises reminder formatting path per implementation notes.
+   - **(4) UI copy / i18n hint** — **PASS** — `RESERVATION_CONFIRMATION_BODY_HINT` includes `restaurant_contact_block_html` in `en`, `es`, `de`, `fr`, `ca`, `zh-CN`, `hi` under `front/public/i18n/`.
+5. **Overall:** **PASS**
+6. **Product owner feedback:** Backend tests and locale files confirm the new contact placeholder is wired and documented. For full confidence on real mail rendering, send one confirmation and one reminder through your SMTP to a real inbox when convenient.
+7. **URLs tested:** **N/A — no browser** (i18n verified in source files).
+8. **Relevant log excerpts:**
+   - `pytest`: `8 passed in 0.24s` (`tests/test_reservation_email_template.py`, `tests/test_reservation_reminder_email.py`).
+
+**Note:** `agent:testing` label not present on repo; start comment posted on issue #91.
