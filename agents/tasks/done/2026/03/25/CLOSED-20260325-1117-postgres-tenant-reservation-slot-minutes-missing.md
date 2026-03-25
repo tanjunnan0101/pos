@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** PostgreSQL logged `column "reservation_slot_minutes" does not exist` on `tenant` while reservation traffic ran; the column was not present in schema or repo before the fix.
+- **What was done:** Migration `20260325120000_add_tenant_reservation_slot_minutes.sql` added the column; `Tenant` / `TenantUpdate` and `PUT /tenant/settings` validation were extended; public and staff slot grids use `_effective_reservation_slot_minutes` (null → 15); staff UI exposes the setting under Settings → Reservations with i18n.
+- **What was tested:** Tester **PASS** — migration applied, `SELECT timezone, reservation_slot_minutes` succeeds, `book-week-slots` returns 200, 30 vs 15 minute slot steps verified, Angular build clean, `npm run test:landing-version` exit 0.
+- **Why closed:** Test report overall **PASS**; acceptance criteria met; missing-column failure addressed without observed regressions on the smoke path.
+- **Closed at (UTC):** 2026-03-25 12:05
+---
+
 # Postgres: missing column `reservation_slot_minutes` on `tenant`
 
 ## Source
