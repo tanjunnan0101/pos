@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Password reset (GitHub #93):** Self-service recovery for **staff** (optional `tenant_id`, same as login) and **provider** accounts. New table `password_reset_token`, `POST /password-reset/request` (generic JSON message; rate-limited), `POST /password-reset/confirm` (one-time token, min. 8-char password, bumps `token_version`). Email uses existing SMTP (tenant SMTP when set). Frontend: `/forgot-password`, `/reset-password`, `/provider/forgot-password`; link from staff and provider login. Requires `PUBLIC_APP_BASE_URL` for emailed links. Env: `PASSWORD_RESET_TOKEN_EXPIRE_MINUTES`, `RATE_LIMIT_PASSWORD_RESET_PER_HOUR`. Tests: `tests/test_password_reset.py`.
+
 - **Working plan bulk month (GitHub #88):** **Apply to month** on the working plan creates the same shift on selected weekdays for the target calendar month (aligned with export month rules). Optional **skip days that already have a shift** preserves per-day edits and exceptions. New `POST /schedule/bulk`; `tests/test_schedule_bulk.py`; Puppeteer `test:working-plan` checks the new control.
 
 - **Working plan Excel export (GitHub #89):** Staff with schedule access can choose a worker and download that person’s shifts for the visible calendar month (calendar view) or the month containing the Monday of the displayed week (week view) as `.xlsx`. New `GET /schedule/export` (`user_id`, `year`, `month`, optional `lang`) uses openpyxl; tenant- and role-scoped like the schedule API. Puppeteer `test:working-plan` checks export UI; backend `tests/test_schedule_export.py` covers the endpoint.

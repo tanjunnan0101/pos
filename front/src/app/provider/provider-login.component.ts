@@ -60,6 +60,9 @@ import { ApiService } from '../services/api.service';
           <a routerLink="/provider/register">Register as provider</a>
         </div>
         <div class="auth-footer">
+          <a routerLink="/provider/forgot-password">Forgot password?</a>
+        </div>
+        <div class="auth-footer">
           <a routerLink="/login">Back to staff login</a>
         </div>
       </div>

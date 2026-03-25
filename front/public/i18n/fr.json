@@ -176,7 +176,21 @@
     "SHOW_PASSWORD": "Afficher le mot de passe",
     "HIDE_PASSWORD": "Masquer le mot de passe",
     "ORGANIZATION_PLACEHOLDER": "Nom de votre restaurant",
-    "NAME_PLACEHOLDER": "Jean Dupont"
+    "NAME_PLACEHOLDER": "Jean Dupont",
+    "FORGOT_TITLE": "Réinitialiser le mot de passe",
+    "FORGOT_DESC": "Saisissez votre adresse e-mail : nous vous enverrons un lien pour choisir un nouveau mot de passe.",
+    "RESET_EMAIL_SENT": "Si un compte existe pour cette adresse, vous recevrez des instructions sous peu.",
+    "REQUEST_RESET": "Envoyer le lien",
+    "REQUESTING_RESET": "Envoi…",
+    "RESET_PASSWORD_TITLE": "Choisir un nouveau mot de passe",
+    "RESET_PASSWORD_DESC": "Utilisez un mot de passe fort (au moins 8 caractères) que vous ne réutilisez pas ailleurs.",
+    "NEW_PASSWORD": "Nouveau mot de passe",
+    "NEW_PASSWORD_PLACEHOLDER": "Au moins 8 caractères",
+    "SAVE_NEW_PASSWORD": "Mettre à jour le mot de passe",
+    "SAVING": "Enregistrement…",
+    "RESET_SUCCESS": "Mot de passe mis à jour. Vous pouvez vous connecter.",
+    "RESET_TOKEN_MISSING": "Ce lien est manquant ou invalide. Demandez une nouvelle réinitialisation depuis la page de connexion.",
+    "BACK_TO_LOGIN": "Retour à la connexion"
   },
   "MENU": {
     "TITLE": "Menu",

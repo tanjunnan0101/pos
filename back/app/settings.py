@@ -101,6 +101,12 @@ class Settings(BaseSettings):
         description="e.g. https://satisfecho.de or http://localhost:4202",
     )
 
+    # Password reset links in email point to {PUBLIC_APP_BASE_URL}/reset-password?token=...
+    password_reset_token_expire_minutes: int = Field(
+        default=60,
+        validation_alias="PASSWORD_RESET_TOKEN_EXPIRE_MINUTES",
+    )
+
     # Production mode (enables secure cookies, stricter CORS, etc.)
     is_production: bool = Field(default=False, validation_alias="PRODUCTION")
 
@@ -147,6 +153,11 @@ class Settings(BaseSettings):
         validation_alias="RATE_LIMIT_GUEST_FEEDBACK_PER_HOUR",
         description="Max guest feedback submissions per IP per hour (public form)",
     )
+    rate_limit_password_reset_per_hour: int = Field(
+        default=5,
+        validation_alias="RATE_LIMIT_PASSWORD_RESET_PER_HOUR",
+        description="Max password-reset email requests per IP per hour",
+    )
 
     @model_validator(mode="after")
     def _relax_rate_limits_in_dev(self) -> "Settings":
@@ -162,6 +173,7 @@ class Settings(BaseSettings):
             self.rate_limit_payment_per_order_per_hour = 100
             self.rate_limit_reservation_delay_per_hour = 200
             self.rate_limit_guest_feedback_per_hour = 200
+            self.rate_limit_password_reset_per_hour = 100
         return self
 
     @property

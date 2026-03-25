@@ -183,7 +183,21 @@
     "OTP_CODE_PLACEHOLDER": "000000",
     "VERIFY_OTP": "Verify",
     "VERIFYING": "Verifying…",
-    "BACK": "Back"
+    "BACK": "Back",
+    "FORGOT_TITLE": "Reset your password",
+    "FORGOT_DESC": "Enter your email address and we will send you a link to choose a new password.",
+    "RESET_EMAIL_SENT": "If an account exists for this email, you will receive instructions shortly.",
+    "REQUEST_RESET": "Send reset link",
+    "REQUESTING_RESET": "Sending…",
+    "RESET_PASSWORD_TITLE": "Choose a new password",
+    "RESET_PASSWORD_DESC": "Enter a strong password (at least 8 characters) that you have not reused elsewhere for this account.",
+    "NEW_PASSWORD": "New password",
+    "NEW_PASSWORD_PLACEHOLDER": "At least 8 characters",
+    "SAVE_NEW_PASSWORD": "Update password",
+    "SAVING": "Saving…",
+    "RESET_SUCCESS": "Your password was updated. You can sign in now.",
+    "RESET_TOKEN_MISSING": "This reset link is missing or invalid. Request a new reset from the login page.",
+    "BACK_TO_LOGIN": "Back to sign in"
   },
   "MENU": {
     "TITLE": "Menu",

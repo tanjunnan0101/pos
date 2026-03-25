@@ -176,7 +176,21 @@
     "SHOW_PASSWORD": "Mostra la contrasenya",
     "HIDE_PASSWORD": "Amaga la contrasenya",
     "ORGANIZATION_PLACEHOLDER": "Nom del teu restaurant",
-    "NAME_PLACEHOLDER": "Joan García"
+    "NAME_PLACEHOLDER": "Joan García",
+    "FORGOT_TITLE": "Restablir la contrasenya",
+    "FORGOT_DESC": "Introdueix el teu correu i t'enviarem un enllaç per triar una contrasenya nova.",
+    "RESET_EMAIL_SENT": "Si existeix un compte amb aquest correu, rebràs instruccions aviat.",
+    "REQUEST_RESET": "Enviar enllaç",
+    "REQUESTING_RESET": "S'està enviant…",
+    "RESET_PASSWORD_TITLE": "Trieu una contrasenya nova",
+    "RESET_PASSWORD_DESC": "Utilitza una contrasenya segura (mínim 8 caràcters) que no reutilitzis en altres llocs.",
+    "NEW_PASSWORD": "Contrasenya nova",
+    "NEW_PASSWORD_PLACEHOLDER": "Mínim 8 caràcters",
+    "SAVE_NEW_PASSWORD": "Actualitzar contrasenya",
+    "SAVING": "S'està desant…",
+    "RESET_SUCCESS": "Contrasenya actualitzada. Ja pots iniciar sessió.",
+    "RESET_TOKEN_MISSING": "Aquest enllaç no és vàlid o està incomplet. Sol·licita un nou restabliment des de l'inici de sessió.",
+    "BACK_TO_LOGIN": "Tornar a iniciar sessió"
   },
   "MENU": {
     "TITLE": "Menú",

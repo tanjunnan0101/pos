@@ -32,6 +32,8 @@ MESSAGES = {
         "stripe_not_configured": "Stripe not configured for this tenant",
         "payment_not_completed": "Payment not completed",
         "order_must_have_at_least_one_item": "Order must have at least one item",
+        "password_reset_sent": "If an account exists for this email, you will receive password reset instructions shortly.",
+        "password_reset_invalid": "Invalid or expired reset link. Please request a new one from the login page.",
     },
     "es": {
         "database_error": "Error de base de datos",
@@ -61,6 +63,8 @@ MESSAGES = {
         "payment_not_completed": "Pago no completado",
         "order_must_have_at_least_one_item": "El pedido debe tener al menos un artículo",
         "reservation_min_lead_time": "La reserva debe ser al menos {minutes} minutos desde ahora",
+        "password_reset_sent": "Si existe una cuenta con este correo, recibirá instrucciones para restablecer la contraseña en breve.",
+        "password_reset_invalid": "Enlace de restablecimiento no válido o caducado. Solicite uno nuevo desde la página de inicio de sesión.",
     },
     "ca": {
         "database_error": "Error de base de dades",

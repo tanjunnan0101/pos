@@ -44,6 +44,9 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml exec -T back sh -
 # One file (anonymous GET /users/me → 200 + null):
 docker compose -f docker-compose.yml -f docker-compose.dev.yml exec -T back python3 -m pytest /app/tests/test_users_me_anonymous.py -q
 
+# Password reset API (GitHub #93; Postgres + rolled-back session):
+docker compose -f docker-compose.yml -f docker-compose.dev.yml exec -T back python3 -m pytest /app/tests/test_password_reset.py -q
+
 # Full suite under tests/ (adjust if some tests need extra env):
 docker compose -f docker-compose.yml -f docker-compose.dev.yml exec -T back python3 -m pytest /app/tests -q --tb=short
 ```

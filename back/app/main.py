@@ -6,6 +6,7 @@ import hmac
 import json
 import logging
 import os
+import secrets
 import time as _time
 from calendar import monthrange
 from datetime import date, timedelta, datetime, time, timezone
@@ -15,6 +16,7 @@ from zoneinfo import ZoneInfo
 from io import BytesIO
 from pathlib import Path
 from typing import Annotated, Any, Dict, List, Tuple
+from urllib.parse import quote
 from uuid import uuid4
 
 from PIL import Image
@@ -25,7 +27,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response, StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel as _BaseModel
+from pydantic import BaseModel as _BaseModel, Field
 from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from sqlmodel import Session, select
@@ -1312,6 +1314,130 @@ def logout():
     response.delete_cookie(key="access_token", path="/")
     response.delete_cookie(key="refresh_token", path="/")
     return response
+
+
+def _password_reset_token_hash(raw_token: str) -> str:
+    return hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+
+
+def _resolve_user_for_password_reset(
+    session: Session,
+    email: str,
+    tenant_id: int | None,
+    scope: str | None,
+) -> models.User | None:
+    statement = select(models.User).where(models.User.email == email)
+    if scope == "provider":
+        statement = statement.where(
+            models.User.provider_id.is_not(None),
+            models.User.tenant_id.is_(None),
+        )
+    elif tenant_id is not None:
+        statement = statement.where(models.User.tenant_id == tenant_id)
+    return session.exec(statement).first()
+
+
+class PasswordResetRequestBody(_BaseModel):
+    email: str
+    tenant_id: int | None = None
+    scope: str | None = None
+
+
+class PasswordResetConfirmBody(_BaseModel):
+    token: str = Field(..., min_length=16, max_length=256)
+    new_password: str = Field(..., min_length=8, max_length=256)
+
+
+@app.post("/password-reset/request")
+@limiter.limit(f"{getattr(settings, 'rate_limit_password_reset_per_hour', 5)}/hour")
+async def password_reset_request(
+    request: Request,
+    body: PasswordResetRequestBody,
+    lang: str = Depends(_get_requested_language),
+    session: Session = Depends(get_session),
+) -> JSONResponse:
+    """Request a password reset email. Response is always generic (no email enumeration)."""
+    if body.scope is not None and body.scope != "provider":
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Invalid scope",
+        )
+    try:
+        email = normalize_email_address(body.email)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=get_message("invalid_email", lang))
+    user = _resolve_user_for_password_reset(session, email, body.tenant_id, body.scope)
+    msg = get_message("password_reset_sent", lang)
+    if not user:
+        return JSONResponse({"status": "ok", "message": msg})
+    base = (settings.public_app_base_url or "").strip().rstrip("/")
+    if not base:
+        logger.warning("password reset: PUBLIC_APP_BASE_URL is not set; cannot send reset email")
+        return JSONResponse({"status": "ok", "message": msg})
+    pending = session.exec(
+        select(models.PasswordResetToken).where(
+            models.PasswordResetToken.user_id == user.id,
+            models.PasswordResetToken.used_at.is_(None),
+        )
+    ).all()
+    for pr in pending:
+        session.delete(pr)
+    raw = secrets.token_urlsafe(32)
+    th = _password_reset_token_hash(raw)
+    exp = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.password_reset_token_expire_minutes
+    )
+    prt = models.PasswordResetToken(user_id=user.id, token_hash=th, expires_at=exp)
+    session.add(prt)
+    session.flush()
+    reset_url = f"{base}/reset-password?token={quote(raw, safe='')}"
+    tenant_for_smtp = None
+    if user.tenant_id is not None:
+        tenant_for_smtp = session.get(models.Tenant, user.tenant_id)
+    sent = await email_svc.send_password_reset_email(
+        user.email, reset_url, tenant=tenant_for_smtp
+    )
+    if not sent:
+        session.delete(prt)
+    session.commit()
+    return JSONResponse({"status": "ok", "message": msg})
+
+
+@app.post("/password-reset/confirm")
+@limiter.limit(f"{getattr(settings, 'rate_limit_password_reset_per_hour', 5)}/hour")
+def password_reset_confirm(
+    request: Request,
+    body: PasswordResetConfirmBody,
+    lang: str = Depends(_get_requested_language),
+    session: Session = Depends(get_session),
+) -> dict:
+    """Set a new password using a one-time token from the reset email."""
+    raw = (body.token or "").strip()
+    th = _password_reset_token_hash(raw)
+    row = session.exec(
+        select(models.PasswordResetToken).where(
+            models.PasswordResetToken.token_hash == th
+        )
+    ).first()
+    now = datetime.now(timezone.utc)
+    if row is None or row.used_at is not None or row.expires_at < now:
+        raise HTTPException(
+            status_code=400,
+            detail=get_message("password_reset_invalid", lang),
+        )
+    user = session.get(models.User, row.user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=400,
+            detail=get_message("password_reset_invalid", lang),
+        )
+    row.used_at = now
+    user.hashed_password = security.get_password_hash(body.new_password)
+    user.token_version = (user.token_version or 0) + 1
+    session.add(row)
+    session.add(user)
+    session.commit()
+    return {"status": "ok"}
 
 
 @app.post("/refresh")

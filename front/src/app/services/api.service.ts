@@ -1058,6 +1058,28 @@ export class ApiService {
     );
   }
 
+  requestPasswordReset(
+    email: string,
+    tenantId?: number,
+    scope?: 'provider',
+  ): Observable<{ status: string; message: string }> {
+    return this.http.post<{ status: string; message: string }>(
+      `${this.apiUrl}/password-reset/request`,
+      {
+        email,
+        tenant_id: tenantId ?? null,
+        scope: scope ?? null,
+      },
+    );
+  }
+
+  confirmPasswordReset(token: string, newPassword: string): Observable<{ status: string }> {
+    return this.http.post<{ status: string }>(`${this.apiUrl}/password-reset/confirm`, {
+      token,
+      new_password: newPassword,
+    });
+  }
+
   getOtpStatus(): Observable<{ otp_enabled: boolean }> {
     return this.http.get<{ otp_enabled: boolean }>(`${this.apiUrl}/users/me/otp/status`);
   }

@@ -169,7 +169,21 @@
     "SHOW_PASSWORD": "पासवर्ड दिखाएं",
     "HIDE_PASSWORD": "पासवर्ड छुपाएं",
     "ORGANIZATION_PLACEHOLDER": "आपके रेस्तरां का नाम",
-    "NAME_PLACEHOLDER": "जॉन डो"
+    "NAME_PLACEHOLDER": "जॉन डो",
+    "FORGOT_TITLE": "पासवर्ड रीसेट करें",
+    "FORGOT_DESC": "अपना ईमेल दर्ज करें; हम नया पासवर्ड चुनने के लिए लिंक भेजेंगे।",
+    "RESET_EMAIL_SENT": "यदि इस ईमेल पर खाता है तो जल्द ही निर्देश मिलेंगे।",
+    "REQUEST_RESET": "रीसेट लिंक भेजें",
+    "REQUESTING_RESET": "भेजा जा रहा है…",
+    "RESET_PASSWORD_TITLE": "नया पासवर्ड चुनें",
+    "RESET_PASSWORD_DESC": "कम से कम 8 अक्षरों का मजबूत पासवर्ड इस्तेमाल करें जो आपने कहीं और न हो।",
+    "NEW_PASSWORD": "नया पासवर्ड",
+    "NEW_PASSWORD_PLACEHOLDER": "कम से कम 8 अक्षर",
+    "SAVE_NEW_PASSWORD": "पासवर्ड अपडेट करें",
+    "SAVING": "सहेजा जा रहा है…",
+    "RESET_SUCCESS": "पासवर्ड अपडेट हो गया। अब आप साइन इन कर सकते हैं।",
+    "RESET_TOKEN_MISSING": "यह लिंक अमान्य या अधूरा है। लॉगिन पेज से नया रीसेट मांगें।",
+    "BACK_TO_LOGIN": "साइन इन पर वापस"
   },
   "MENU": {
     "TITLE": "मेनू",

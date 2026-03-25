@@ -182,7 +182,21 @@
     "OTP_CODE_PLACEHOLDER": "000000",
     "VERIFY_OTP": "Verificar",
     "VERIFYING": "Verificando…",
-    "BACK": "Atrás"
+    "BACK": "Atrás",
+    "FORGOT_TITLE": "Restablecer contraseña",
+    "FORGOT_DESC": "Introduce tu correo y te enviaremos un enlace para elegir una nueva contraseña.",
+    "RESET_EMAIL_SENT": "Si existe una cuenta con este correo, recibirás instrucciones en breve.",
+    "REQUEST_RESET": "Enviar enlace",
+    "REQUESTING_RESET": "Enviando…",
+    "RESET_PASSWORD_TITLE": "Elegir nueva contraseña",
+    "RESET_PASSWORD_DESC": "Usa una contraseña segura (mínimo 8 caracteres) que no reutilices en otros sitios.",
+    "NEW_PASSWORD": "Nueva contraseña",
+    "NEW_PASSWORD_PLACEHOLDER": "Mínimo 8 caracteres",
+    "SAVE_NEW_PASSWORD": "Actualizar contraseña",
+    "SAVING": "Guardando…",
+    "RESET_SUCCESS": "Contraseña actualizada. Ya puedes iniciar sesión.",
+    "RESET_TOKEN_MISSING": "Este enlace no es válido o está incompleto. Solicita un nuevo restablecimiento desde el inicio de sesión.",
+    "BACK_TO_LOGIN": "Volver al inicio de sesión"
   },
   "MENU": {
     "TITLE": "Menú",

@@ -81,6 +81,9 @@ import { LanguagePickerComponent } from '../shared/language-picker.component';
                 }
               </button>
             </div>
+            <div class="forgot-row">
+              <a routerLink="/forgot-password" [queryParams]="forgotPasswordQueryParams">{{ 'AUTH.FORGOT_PASSWORD' | translate }}</a>
+            </div>
           </div>
 
           @if (error()) {
@@ -236,6 +239,18 @@ import { LanguagePickerComponent } from '../shared/language-picker.component';
     .btn-back:hover {
       background: var(--color-bg);
     }
+    .forgot-row {
+      margin-top: var(--space-2);
+      text-align: right;
+    }
+    .forgot-row a {
+      font-size: 0.875rem;
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+    .forgot-row a:hover {
+      text-decoration: underline;
+    }
   `]
 })
 export class LoginComponent {
@@ -256,6 +271,12 @@ export class LoginComponent {
     password: ['', Validators.required]
   });
   showPassword = signal(false);
+
+  /** Preserve tenant picker query param on forgot-password link. */
+  get forgotPasswordQueryParams(): Record<string, string> {
+    const t = this.route.snapshot.queryParamMap.get('tenant');
+    return t ? { tenant: t } : {};
+  }
 
   onSubmit() {
     if (this.form.valid) {

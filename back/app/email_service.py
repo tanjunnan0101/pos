@@ -179,6 +179,53 @@ async def send_verification_email(
     return await send_email(to_email, subject, html_content, text_content, tenant=tenant)
 
 
+async def send_password_reset_email(
+    to_email: str,
+    reset_url: str,
+    tenant: Optional["Tenant"] = None,
+) -> bool:
+    """Send password reset link. Uses tenant SMTP when configured; else global."""
+    subject = "Reset your password"
+    safe_url = html.escape(reset_url, quote=True)
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .button {{ display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Reset your password</h1>
+            <p>We received a request to reset the password for your account. Click the button below to choose a new password:</p>
+            <p style="text-align: center;">
+                <a href="{safe_url}" class="button">Reset password</a>
+            </p>
+            <p>Or copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; color: #666;">{safe_url}</p>
+            <p>If you did not request this, you can ignore this email. Your password will not change.</p>
+            <hr>
+            <p style="color: #666; font-size: 12px;">This is an automated message, please do not reply.</p>
+        </div>
+    </body>
+    </html>
+    """
+    text_content = f"""
+    Reset your password
+
+    We received a request to reset your password. Open this link to choose a new password:
+
+    {reset_url}
+
+    If you did not request this, you can ignore this email.
+    """
+    return await send_email(to_email, subject, html_content, text_content, tenant=tenant)
+
+
 async def send_reservation_confirmation(
     to_email: str,
     customer_name: str,

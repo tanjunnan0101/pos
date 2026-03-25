@@ -228,6 +228,22 @@ class User(SQLModel, table=True):
     otp_enabled: bool = Field(default=False)
 
 
+class PasswordResetToken(SQLModel, table=True):
+    """Single-use token for self-service password reset (raw token is emailed; only hash is stored)."""
+
+    __tablename__ = "password_reset_token"
+
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True)
+    token_hash: str = Field(max_length=64, index=True)
+    expires_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    used_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
+
+
 class TenantMixin(SQLModel):
     tenant_id: int = Field(foreign_key="tenant.id")
 

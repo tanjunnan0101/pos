@@ -176,7 +176,21 @@
     "SHOW_PASSWORD": "Passwort anzeigen",
     "HIDE_PASSWORD": "Passwort verbergen",
     "ORGANIZATION_PLACEHOLDER": "Name Ihres Restaurants",
-    "NAME_PLACEHOLDER": "Max Mustermann"
+    "NAME_PLACEHOLDER": "Max Mustermann",
+    "FORGOT_TITLE": "Passwort zurücksetzen",
+    "FORGOT_DESC": "Geben Sie Ihre E-Mail-Adresse ein. Wir senden Ihnen einen Link zum Festlegen eines neuen Passworts.",
+    "RESET_EMAIL_SENT": "Wenn ein Konto mit dieser E-Mail existiert, erhalten Sie in Kürze eine Anleitung.",
+    "REQUEST_RESET": "Link senden",
+    "REQUESTING_RESET": "Wird gesendet…",
+    "RESET_PASSWORD_TITLE": "Neues Passwort wählen",
+    "RESET_PASSWORD_DESC": "Verwenden Sie ein sicheres Passwort (mindestens 8 Zeichen), das Sie nicht woanders nutzen.",
+    "NEW_PASSWORD": "Neues Passwort",
+    "NEW_PASSWORD_PLACEHOLDER": "Mindestens 8 Zeichen",
+    "SAVE_NEW_PASSWORD": "Passwort aktualisieren",
+    "SAVING": "Wird gespeichert…",
+    "RESET_SUCCESS": "Passwort aktualisiert. Sie können sich jetzt anmelden.",
+    "RESET_TOKEN_MISSING": "Dieser Link ist ungültig oder unvollständig. Fordern Sie auf der Anmeldeseite einen neuen Link an.",
+    "BACK_TO_LOGIN": "Zur Anmeldung"
   },
   "MENU": {
     "TITLE": "Speisekarte",

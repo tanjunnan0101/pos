@@ -10,9 +10,16 @@ export const routes: Routes = [
   { path: '', loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent) },
   { path: 'login', loadComponent: () => import('./auth/login.component').then(m => m.LoginComponent) },
   { path: 'register', loadComponent: () => import('./auth/register.component').then(m => m.RegisterComponent) },
+  { path: 'forgot-password', loadComponent: () => import('./auth/forgot-password.component').then(m => m.ForgotPasswordComponent) },
+  { path: 'reset-password', loadComponent: () => import('./auth/reset-password.component').then(m => m.ResetPasswordComponent) },
   // Provider portal (public auth pages)
   { path: 'provider/login', loadComponent: () => import('./provider/provider-login.component').then(m => m.ProviderLoginComponent) },
   { path: 'provider/register', loadComponent: () => import('./provider/provider-register.component').then(m => m.ProviderRegisterComponent) },
+  {
+    path: 'provider/forgot-password',
+    loadComponent: () => import('./auth/forgot-password.component').then(m => m.ForgotPasswordComponent),
+    data: { passwordResetScope: 'provider' },
+  },
   // Provider portal (protected)
   { path: 'provider', canActivate: [providerGuard], loadComponent: () => import('./provider/provider-dashboard.component').then(m => m.ProviderDashboardComponent) },
   { path: 'menu/:token', loadComponent: () => import('./menu/menu.component').then(m => m.MenuComponent) },
