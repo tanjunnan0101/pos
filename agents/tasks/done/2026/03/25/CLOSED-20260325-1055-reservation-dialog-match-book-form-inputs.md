@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub #84 asked to align the staff reservation create/edit dialog with the public `/book` flow so field order, patterns, and validation feel consistent.
+- **What was done:** The modal was reordered to mirror `/book`, wrapped in a submit form with shared contact validators and `BOOK.INVALID_PHONE` / `BOOK.INVALID_EMAIL`, list cards use matching reservation/customer-notes terminology, global `.form-group` styling applies, and new `RESERVATIONS.*` i18n keys cover the staff date/time hint and errors.
+- **What was tested:** Tester **PASS** — field order and label keys vs `/book`, global form look, phone/email validation parity, staff hint and owner notes, create/save regression, `npm run test:landing-version`, clean Angular build in compose logs.
+- **Why closed:** Test report overall **PASS**; acceptance criteria met.
+- **Closed at (UTC):** 2026-03-25 11:09
+---
+
 # Reservation dialog should match public /book/ form inputs
 
 ## GitHub
