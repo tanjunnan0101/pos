@@ -8,6 +8,7 @@ import { PermissionService } from '../services/permission.service';
 import { SidebarComponent } from '../shared/sidebar.component';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal.component';
 import { FocusFirstInputDirective } from '../shared/focus-first-input.directive';
+import { contactEmailValid, contactPhoneValid } from '../shared/contact-validators';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
@@ -83,7 +84,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                   <div>{{ r.customer_email }}</div>
                 }
                 @if (r.client_notes) {
-                  <div class="res-notes client-notes"><strong>{{ 'RESERVATIONS.CLIENT_NOTES' | translate }}:</strong> {{ r.client_notes }}</div>
+                  <div class="res-notes client-notes"><strong>{{ 'RESERVATIONS.RESERVATION_NOTES' | translate }}:</strong> {{ r.client_notes }}</div>
                 }
                 @if (r.owner_notes) {
                   <div class="res-notes owner-notes"><strong>{{ 'RESERVATIONS.OWNER_NOTES' | translate }}:</strong> {{ r.owner_notes }}</div>
@@ -128,77 +129,124 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           <div class="modal-content" (click)="$event.stopPropagation()" appFocusFirstInput>
             <div class="modal-header">
               <h3>{{ editingReservation() ? ('RESERVATIONS.EDIT' | translate) : ('RESERVATIONS.NEW' | translate) }}</h3>
-              <button class="close-btn" (click)="closeForm()">
+              <button type="button" class="close-btn" (click)="closeForm()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
               </button>
             </div>
-            <div class="modal-body">
-              <div class="form-group">
-                <label>{{ 'RESERVATIONS.CUSTOMER_NAME' | translate }}</label>
-                <input type="text" [(ngModel)]="formName" />
-              </div>
-              <div class="form-group">
-                <label>{{ 'RESERVATIONS.CUSTOMER_PHONE' | translate }}</label>
-                <div class="phone-with-prefill">
-                  <input type="text" [(ngModel)]="formPhone" />
-                  @if (!editingReservation()) {
-                    <button type="button" class="btn btn-ghost btn-sm" (click)="prefillFromPhone()" [disabled]="prefillLoading() || !formPhone.trim()" [title]="'RESERVATIONS.PREFILL_FROM_PHONE' | translate">
-                      {{ prefillLoading() ? ('COMMON.LOADING' | translate) : ('RESERVATIONS.PREFILL_FROM_PHONE' | translate) }}
-                    </button>
+            <form (ngSubmit)="saveReservation()" class="reservation-modal-form">
+              <div class="modal-body">
+                <p class="reservation-modal-hint">{{ 'RESERVATIONS.MODAL_DATE_TIME_HINT' | translate }}</p>
+                <div class="form-group">
+                  <label for="res-modal-date">{{ 'RESERVATIONS.DATE' | translate }}</label>
+                  <input
+                    id="res-modal-date"
+                    type="date"
+                    name="resDate"
+                    required
+                    [(ngModel)]="formDate"
+                    (ngModelChange)="onFormDateChange($event); loadSlotCapacity()"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="res-modal-time">{{ 'RESERVATIONS.TIME' | translate }}</label>
+                  <input
+                    id="res-modal-time"
+                    type="time"
+                    name="resTime"
+                    required
+                    [(ngModel)]="formTime"
+                    (ngModelChange)="loadSlotCapacity()"
+                    (focus)="openNativeTimePicker($event)"
+                    (change)="dismissNativeTimePickerAfterCommit($event)"
+                  />
+                  @if (suggestedTime()) {
+                    <small class="suggested-time" (click)="formTime = suggestedTime()!">{{ 'RESERVATIONS.SUGGESTED_TIME' | translate }}: {{ suggestedTime() }}</small>
                   }
                 </div>
-                @if (prefillMessage()) {
-                  <small class="prefill-message" [class.prefill-success]="prefillSuccess()">{{ prefillMessage() }}</small>
+                <div class="form-group">
+                  <label for="res-modal-party">{{ 'RESERVATIONS.PARTY_SIZE' | translate }}</label>
+                  <input
+                    id="res-modal-party"
+                    type="number"
+                    name="partySize"
+                    min="1"
+                    max="20"
+                    required
+                    [(ngModel)]="formPartySize"
+                    (ngModelChange)="loadSlotCapacity()"
+                  />
+                </div>
+                @if (slotCapacity(); as cap) {
+                  <p class="slot-capacity">{{ 'RESERVATIONS.SEATS_LEFT' | translate }}: {{ cap.seats_left }} · {{ 'RESERVATIONS.TABLES_LEFT' | translate }}: {{ cap.tables_left }}</p>
+                }
+                <div class="form-group">
+                  <label for="res-modal-name">{{ 'RESERVATIONS.CUSTOMER_NAME' | translate }}</label>
+                  <input id="res-modal-name" type="text" name="customerName" [(ngModel)]="formName" required autocomplete="name" />
+                </div>
+                <div class="form-group">
+                  <label for="res-modal-phone">{{ 'RESERVATIONS.CUSTOMER_PHONE' | translate }}</label>
+                  <div class="phone-with-prefill">
+                    <input id="res-modal-phone" type="tel" name="customerPhone" [(ngModel)]="formPhone" required autocomplete="tel" />
+                    @if (!editingReservation()) {
+                      <button type="button" class="btn btn-ghost btn-sm" (click)="prefillFromPhone()" [disabled]="prefillLoading() || !formPhone.trim()" [title]="'RESERVATIONS.PREFILL_FROM_PHONE' | translate">
+                        {{ prefillLoading() ? ('COMMON.LOADING' | translate) : ('RESERVATIONS.PREFILL_FROM_PHONE' | translate) }}
+                      </button>
+                    }
+                  </div>
+                  @if (prefillMessage()) {
+                    <small class="prefill-message" [class.prefill-success]="prefillSuccess()">{{ prefillMessage() }}</small>
+                  }
+                </div>
+                <div class="form-group">
+                  <label for="res-modal-email">{{ 'RESERVATIONS.CUSTOMER_EMAIL' | translate }}</label>
+                  <input
+                    id="res-modal-email"
+                    type="email"
+                    name="customerEmail"
+                    [(ngModel)]="formEmail"
+                    placeholder="your@email.com"
+                    autocomplete="email"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="res-modal-notes">{{ 'RESERVATIONS.RESERVATION_NOTES' | translate }}</label>
+                  <textarea
+                    id="res-modal-notes"
+                    name="clientNotes"
+                    [(ngModel)]="formClientNotes"
+                    rows="2"
+                    [placeholder]="'RESERVATIONS.RESERVATION_NOTES_PLACEHOLDER' | translate"
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="res-modal-customer-notes">{{ 'RESERVATIONS.CUSTOMER_NOTES' | translate }}</label>
+                  <textarea
+                    id="res-modal-customer-notes"
+                    name="customerNotes"
+                    [(ngModel)]="formCustomerNotes"
+                    rows="2"
+                    [placeholder]="'RESERVATIONS.CUSTOMER_NOTES_PLACEHOLDER' | translate"
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="res-modal-owner-notes">{{ 'RESERVATIONS.OWNER_NOTES' | translate }}</label>
+                  <textarea
+                    id="res-modal-owner-notes"
+                    name="ownerNotes"
+                    [(ngModel)]="formOwnerNotes"
+                    rows="2"
+                    [placeholder]="'RESERVATIONS.OWNER_NOTES_PLACEHOLDER' | translate"
+                  ></textarea>
+                </div>
+                @if (formError()) {
+                  <div class="form-error">{{ formError() }}</div>
                 }
               </div>
-              <div class="form-group">
-                <label>{{ 'RESERVATIONS.CUSTOMER_EMAIL' | translate }}</label>
-                <input type="email" [(ngModel)]="formEmail" />
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" (click)="closeForm()">{{ 'COMMON.CANCEL' | translate }}</button>
+                <button type="submit" class="btn btn-primary">{{ 'COMMON.SAVE' | translate }}</button>
               </div>
-              <div class="form-group">
-                <label>{{ 'RESERVATIONS.CLIENT_NOTES' | translate }}</label>
-                <textarea [(ngModel)]="formClientNotes" rows="2" placeholder="{{ 'RESERVATIONS.CLIENT_NOTES_PLACEHOLDER' | translate }}"></textarea>
-              </div>
-              <div class="form-group">
-                <label>{{ 'RESERVATIONS.CUSTOMER_NOTES' | translate }}</label>
-                <textarea [(ngModel)]="formCustomerNotes" rows="2" placeholder="{{ 'RESERVATIONS.CUSTOMER_NOTES_PLACEHOLDER' | translate }}"></textarea>
-              </div>
-              <div class="form-group">
-                <label>{{ 'RESERVATIONS.OWNER_NOTES' | translate }}</label>
-                <textarea [(ngModel)]="formOwnerNotes" rows="2" placeholder="{{ 'RESERVATIONS.OWNER_NOTES_PLACEHOLDER' | translate }}"></textarea>
-              </div>
-              <div class="form-group">
-                <label>{{ 'RESERVATIONS.DATE' | translate }}</label>
-                <input type="date" [(ngModel)]="formDate" (ngModelChange)="onFormDateChange($event); loadSlotCapacity()" />
-              </div>
-              <div class="form-group">
-                <label>{{ 'RESERVATIONS.TIME' | translate }}</label>
-                <input
-                  type="time"
-                  [(ngModel)]="formTime"
-                  (ngModelChange)="loadSlotCapacity()"
-                  (focus)="openNativeTimePicker($event)"
-                  (change)="dismissNativeTimePickerAfterCommit($event)"
-                />
-                @if (suggestedTime()) {
-                  <small class="suggested-time" (click)="formTime = suggestedTime()!">{{ 'RESERVATIONS.SUGGESTED_TIME' | translate }}: {{ suggestedTime() }}</small>
-                }
-              </div>
-              <div class="form-group">
-                <label>{{ 'RESERVATIONS.PARTY_SIZE' | translate }}</label>
-                <input type="number" min="1" max="20" [(ngModel)]="formPartySize" (ngModelChange)="loadSlotCapacity()" />
-              </div>
-              @if (slotCapacity(); as cap) {
-                <p class="slot-capacity">{{ 'RESERVATIONS.SEATS_LEFT' | translate }}: {{ cap.seats_left }} · {{ 'RESERVATIONS.TABLES_LEFT' | translate }}: {{ cap.tables_left }}</p>
-              }
-              @if (formError()) {
-                <div class="form-error">{{ formError() }}</div>
-              }
-            </div>
-            <div class="modal-footer">
-              <button class="btn btn-ghost" (click)="closeForm()">{{ 'COMMON.CANCEL' | translate }}</button>
-              <button class="btn btn-primary" (click)="saveReservation()">{{ 'COMMON.SAVE' | translate }}</button>
-            </div>
+            </form>
           </div>
         </div>
       }
@@ -292,16 +340,13 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     .table-assigned { font-weight: 500; }
     .card-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-    .modal-content { background: #fff; border-radius: 8px; max-width: 420px; width: 90%; max-height: 90vh; overflow: auto; }
+    .modal-content { background: #fff; border-radius: var(--radius-md, 8px); max-width: min(520px, 92vw); width: 100%; max-height: 90vh; overflow: auto; box-shadow: var(--shadow-lg, 0 12px 32px rgba(0,0,0,0.1)); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid #e5e7eb; }
     .modal-body { padding: 1rem; }
     .modal-footer { display: flex; justify-content: flex-end; gap: 0.5rem; padding: 1rem; border-top: 1px solid #e5e7eb; }
-    .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
-    .form-group input, .form-group textarea { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    .form-group textarea { resize: vertical; min-height: 2.5rem; }
-    .form-error { color: #dc2626; font-size: 0.875rem; margin-top: 0.5rem; }
-    .suggested-time { display: block; margin-top: 4px; font-size: 0.8rem; color: var(--color-primary, #c0785c); cursor: pointer; text-decoration: underline; }
+    .reservation-modal-hint { font-size: 0.875rem; color: var(--color-text-muted); margin: 0 0 var(--space-3) 0; line-height: 1.45; }
+    .form-error { color: var(--color-error); font-size: 0.875rem; margin-top: var(--space-2); }
+    .suggested-time { display: block; margin-top: var(--space-1); font-size: 0.8125rem; color: var(--color-primary); cursor: pointer; text-decoration: underline; }
     .table-list { display: flex; flex-direction: column; gap: 0.5rem; }
     .table-option { padding: 0.5rem 1rem; text-align: left; border: 1px solid #e5e7eb; border-radius: 4px; background: #fff; cursor: pointer; }
     .table-option:hover { background: #f3f4f6; }
@@ -322,7 +367,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     .client-tech-inner { margin-top: 0.25rem; padding-left: 0.5rem; }
     .client-tech .ua { word-break: break-all; }
     .phone-with-prefill { display: flex; gap: 0.5rem; align-items: center; }
-    .phone-with-prefill input { flex: 1; }
+    .phone-with-prefill input { flex: 1; min-width: 0; width: auto; }
     .prefill-message { display: block; margin-top: 0.25rem; font-size: 0.8rem; color: #6b7280; }
     .prefill-message.prefill-success { color: #15803d; }
   `],
@@ -592,6 +637,24 @@ export class ReservationsComponent implements OnInit, OnDestroy {
 
   saveReservation() {
     this.formError.set(null);
+    if (!contactPhoneValid(this.formPhone)) {
+      this.formError.set(this.translate.instant('BOOK.INVALID_PHONE'));
+      return;
+    }
+    const em = this.formEmail.trim();
+    if (em && !contactEmailValid(em)) {
+      this.formError.set(this.translate.instant('BOOK.INVALID_EMAIL'));
+      return;
+    }
+    if (!this.formDate?.trim() || !this.formTime?.trim()) {
+      this.formError.set(this.translate.instant('RESERVATIONS.ERROR_DATE_TIME_REQUIRED'));
+      return;
+    }
+    const ps = Number(this.formPartySize);
+    if (!Number.isFinite(ps) || ps < 1 || ps > 20) {
+      this.formError.set(this.translate.instant('RESERVATIONS.ERROR_PARTY_SIZE_RANGE'));
+      return;
+    }
     const user = this.api.getCurrentUser();
     const tenantId = user?.tenant_id;
     if (!tenantId && !this.editingReservation()) {
@@ -604,7 +667,7 @@ export class ReservationsComponent implements OnInit, OnDestroy {
       customer_email: this.formEmail.trim() || undefined,
       reservation_date: this.formDate,
       reservation_time: this.formTime,
-      party_size: this.formPartySize,
+      party_size: ps,
       client_notes: this.formClientNotes.trim() || undefined,
       customer_notes: this.formCustomerNotes.trim() || undefined,
     };
@@ -616,7 +679,7 @@ export class ReservationsComponent implements OnInit, OnDestroy {
         customer_email: payload.customer_email,
         reservation_date: payload.reservation_date,
         reservation_time: payload.reservation_time,
-        party_size: payload.party_size,
+        party_size: ps,
         client_notes: this.formClientNotes.trim() || undefined,
         customer_notes: this.formCustomerNotes.trim() || undefined,
         owner_notes: this.formOwnerNotes.trim() || undefined,
