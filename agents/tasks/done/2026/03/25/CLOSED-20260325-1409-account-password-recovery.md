@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue #93 requested self-service password recovery for staff/tenant and provider accounts instead of admin-only workarounds.
+- **What was done:** Backend migration and `PasswordResetToken` model, non-enumerating reset request/confirm endpoints, email integration with `PUBLIC_APP_BASE_URL` for links, and Angular routes for forgot/reset (including provider scope) with i18n aligned to existing auth patterns.
+- **What was tested:** All four `test_password_reset.py` tests passed; front container reached successful bundle generation; `npm run test:landing-version` exited 0; `/forgot-password`, `/reset-password`, and `/provider/forgot-password` returned HTTP 200; optional manual SMTP inbox E2E was not run in this cycle.
+- **Why closed:** Tester **Test report** overall **PASS** met the task pass/fail criteria (pytest, build health, landing smoke).
+- **Closed at (UTC):** 2026-03-25 14:25
+---
+
 # Create a system to recover the password of the account
 
 ## GitHub
