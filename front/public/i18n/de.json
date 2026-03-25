@@ -833,6 +833,18 @@
     "EXPORT_WORKER": "Export: Mitarbeiter",
     "EXPORT_EXCEL": "Excel exportieren",
     "EXPORT_MONTH_HINT": "Lädt die Schichten des gewählten Mitarbeiters für {{month}} (Kalendermonat wie in der Ansicht; in der Wochenansicht der Monat, der den Montag der Woche enthält).",
+    "BULK_MONTH": "Monat zuweisen",
+    "BULK_MONTH_TITLE": "Schichtplan für einen Monat anwenden",
+    "BULK_MONTH_SCOPE": "Zielmonat: {{month}} (wie beim Excel-Export — Kalendermonat in der Monatsansicht oder Monat der aktuellen Woche in der Wochenansicht).",
+    "BULK_WEEKDAYS": "Wiederholen am",
+    "BULK_SKIP_EXISTING": "Tage überspringen, an denen diese Person schon eine Schicht hat",
+    "BULK_SKIP_EXISTING_HINT": "Erhält Einzeltage und Ausnahmen. Aus, um an diesen Tagen zusätzliche Schichten zu ergänzen.",
+    "BULK_APPLY": "Anwenden",
+    "BULK_DONE": "{{created}} Schicht(en) angelegt. {{skipped}} Tag(e) übersprungen (bereits eine Schicht).",
+    "BULK_ERR_USER": "Bitte Mitarbeitende auswählen.",
+    "BULK_ERR_WEEKDAYS": "Mindestens einen Wochentag auswählen.",
+    "BULK_ERR_TIMES": "Start muss vor Ende liegen.",
+    "BULK_ERR_MONTH": "Ungültiger Zielmonat.",
     "EXPORT_FAILED": "Export des Plans fehlgeschlagen."
   },
   "SETTINGS": {

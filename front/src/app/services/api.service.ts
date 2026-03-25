@@ -88,6 +88,23 @@ export interface ShiftUpdate {
   label?: string | null;
 }
 
+/** Same as backend ShiftBulkCreate: weekdays 0=Sunday .. 6=Saturday (Date.getDay()). */
+export interface ShiftBulkCreate {
+  user_id: number;
+  year: number;
+  month: number;
+  weekdays: number[];
+  start_time: string;
+  end_time: string;
+  label?: string | null;
+  skip_days_with_existing_shift?: boolean;
+}
+
+export interface ShiftBulkResult {
+  created_count: number;
+  skipped_existing_count: number;
+}
+
 /** Recorded clock-in/out (attendance), not the planned working plan shift. */
 export interface WorkSession {
   id: number;
@@ -2102,6 +2119,10 @@ export class ApiService {
 
   createShift(data: ShiftCreate): Observable<Shift> {
     return this.http.post<Shift>(`${this.apiUrl}/schedule`, data);
+  }
+
+  bulkCreateShifts(data: ShiftBulkCreate): Observable<ShiftBulkResult> {
+    return this.http.post<ShiftBulkResult>(`${this.apiUrl}/schedule/bulk`, data);
   }
 
   updateShift(shiftId: number, data: ShiftUpdate): Observable<Shift> {

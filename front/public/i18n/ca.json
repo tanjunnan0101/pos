@@ -783,6 +783,18 @@
     "EXPORT_WORKER": "Exportar treballador",
     "EXPORT_EXCEL": "Exportar Excel",
     "EXPORT_MONTH_HINT": "Baixa els torns d’aquest treballador per a {{month}} (mateix mes natural que la graella; en vista setmanal, el mes que conté el dilluns de la setmana).",
+    "BULK_MONTH": "Aplicar al mes",
+    "BULK_MONTH_TITLE": "Aplicar horari al mes",
+    "BULK_MONTH_SCOPE": "Mes objectiu: {{month}} (mateixes regles que l’exportació Excel).",
+    "BULK_WEEKDAYS": "Repetir els",
+    "BULK_SKIP_EXISTING": "Omet els dies en què aquesta persona ja té un torn",
+    "BULK_SKIP_EXISTING_HINT": "Conserva canvis puntuals i rotacions. Desactiva-ho per afegir un torn extra aquells dies.",
+    "BULK_APPLY": "Aplicar",
+    "BULK_DONE": "S’han afegit {{created}} torn(s). S’han omès {{skipped}} dia(s) que ja tenien torn.",
+    "BULK_ERR_USER": "Selecciona un membre de l’equip.",
+    "BULK_ERR_WEEKDAYS": "Selecciona almenys un dia de la setmana.",
+    "BULK_ERR_TIMES": "L’hora d’inici ha de ser anterior a la de fi.",
+    "BULK_ERR_MONTH": "Mes objectiu no vàlid.",
     "EXPORT_FAILED": "No s’ha pogut exportar el pla."
   },
   "SETTINGS": {

@@ -161,7 +161,15 @@ async function main() {
       await browser.close();
       process.exit(1);
     }
-    console.log('   Working plan page loaded; Add shift button present.');
+    const bulkMonthBtn = await page.$('[data-testid="working-plan-bulk-month"]');
+    if (!bulkMonthBtn) {
+      console.log(
+        '   FAIL: Apply to month button missing (data-testid="working-plan-bulk-month").'
+      );
+      await browser.close();
+      process.exit(1);
+    }
+    console.log('   Working plan page loaded; Add shift and Apply to month buttons present.');
 
     console.log('4. Checking week navigation...');
     const hasWeekNav = await page.evaluate(() => {

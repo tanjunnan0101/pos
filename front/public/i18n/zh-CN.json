@@ -786,6 +786,18 @@
     "EXPORT_WORKER": "导出员工",
     "EXPORT_EXCEL": "导出 Excel",
     "EXPORT_MONTH_HINT": "下载该员工 {{month}} 的班次（与日历网格同一自然月；周视图则为包含该周周一的月份）。",
+    "BULK_MONTH": "应用到整月",
+    "BULK_MONTH_TITLE": "将班次应用到整月",
+    "BULK_MONTH_SCOPE": "目标月份：{{month}}（与 Excel 导出使用相同月份规则）。",
+    "BULK_WEEKDAYS": "重复于",
+    "BULK_SKIP_EXISTING": "跳过该员工已有班次的日期",
+    "BULK_SKIP_EXISTING_HINT": "保留单日调整与轮班。关闭后可在这些日期再添加一条班次。",
+    "BULK_APPLY": "应用",
+    "BULK_DONE": "已添加 {{created}} 个班次。已跳过 {{skipped}} 个已有班次的日期。",
+    "BULK_ERR_USER": "请选择员工。",
+    "BULK_ERR_WEEKDAYS": "请至少选择一个星期。",
+    "BULK_ERR_TIMES": "开始时间必须早于结束时间。",
+    "BULK_ERR_MONTH": "目标月份无效。",
     "EXPORT_FAILED": "无法导出排班。"
   },
   "SETTINGS": {

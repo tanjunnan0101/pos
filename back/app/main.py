@@ -5215,6 +5215,97 @@ def create_shift(
     return _shift_to_dict(shift, user_name, user.role.value)
 
 
+def _date_to_js_weekday(d: date) -> int:
+    """Match JavaScript Date.getDay(): Sunday=0 .. Saturday=6."""
+    return (d.weekday() + 1) % 7
+
+
+@app.post("/schedule/bulk")
+def create_shifts_bulk(
+    body: models.ShiftBulkCreate,
+    current_user: Annotated[models.User, Depends(require_permission(Permission.SCHEDULE_WRITE))],
+    session: Session = Depends(get_session),
+) -> dict:
+    """Create the same shift on selected weekdays for every day in a calendar month.
+
+    When skip_days_with_existing_shift is true, days where the user already has any shift are left unchanged
+    so single-day edits and exceptions stay intact.
+    """
+    from datetime import datetime as dt_parse
+
+    if current_user.tenant_id is None:
+        raise HTTPException(status_code=403, detail="Tenant required")
+    weekday_set = set(body.weekdays)
+    if not weekday_set.issubset(range(7)):
+        raise HTTPException(status_code=400, detail="weekdays must be integers 0–6 (Sunday=0 .. Saturday=6)")
+    user = session.exec(
+        select(models.User).where(
+            models.User.id == body.user_id,
+            models.User.tenant_id == current_user.tenant_id,
+        )
+    ).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found")
+    if user.role not in (
+        models.UserRole.owner,
+        models.UserRole.admin,
+        models.UserRole.kitchen,
+        models.UserRole.bartender,
+        models.UserRole.waiter,
+        models.UserRole.receptionist,
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="User must have role owner, admin, kitchen, bartender, waiter, or receptionist",
+        )
+    try:
+        start_time = dt_parse.strptime(body.start_time[:5], "%H:%M").time()
+        end_time = dt_parse.strptime(body.end_time[:5], "%H:%M").time()
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="Invalid start_time or end_time; use HH:MM")
+    if start_time >= end_time:
+        raise HTTPException(status_code=400, detail="start_time must be before end_time")
+
+    first = date(body.year, body.month, 1)
+    last_day = monthrange(body.year, body.month)[1]
+    created_count = 0
+    skipped_existing_count = 0
+
+    for dom in range(1, last_day + 1):
+        shift_date = date(body.year, body.month, dom)
+        if _date_to_js_weekday(shift_date) not in weekday_set:
+            continue
+        if body.skip_days_with_existing_shift:
+            existing = session.exec(
+                select(models.Shift)
+                .where(models.Shift.tenant_id == current_user.tenant_id)
+                .where(models.Shift.user_id == body.user_id)
+                .where(models.Shift.shift_date == shift_date)
+                .limit(1)
+            ).first()
+            if existing is not None:
+                skipped_existing_count += 1
+                continue
+        shift = models.Shift(
+            tenant_id=current_user.tenant_id,
+            user_id=body.user_id,
+            shift_date=shift_date,
+            start_time=start_time,
+            end_time=end_time,
+            label=body.label,
+        )
+        session.add(shift)
+        created_count += 1
+
+    if created_count:
+        _mark_working_plan_updated(session, current_user.tenant_id)
+    session.commit()
+    return {
+        "created_count": created_count,
+        "skipped_existing_count": skipped_existing_count,
+    }
+
+
 @app.put("/schedule/{shift_id}")
 def update_shift(
     shift_id: int,

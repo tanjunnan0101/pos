@@ -810,6 +810,18 @@
     "EXPORT_WORKER": "Exporter : employé",
     "EXPORT_EXCEL": "Exporter Excel",
     "EXPORT_MONTH_HINT": "Télécharge les shifts de cet employé pour {{month}} (même mois calendaire que la grille ; en vue semaine, le mois du lundi affiché).",
+    "BULK_MONTH": "Appliquer au mois",
+    "BULK_MONTH_TITLE": "Appliquer un horaire sur le mois",
+    "BULK_MONTH_SCOPE": "Mois cible : {{month}} (mêmes règles que l’export Excel).",
+    "BULK_WEEKDAYS": "Répéter le",
+    "BULK_SKIP_EXISTING": "Ignorer les jours où cette personne a déjà un shift",
+    "BULK_SKIP_EXISTING_HINT": "Préserve les exceptions et rotations. Désactiver pour ajouter un shift supplémentaire ces jours-là.",
+    "BULK_APPLY": "Appliquer",
+    "BULK_DONE": "{{created}} shift(s) ajouté(s). {{skipped}} jour(s) ignoré(s) (déjà un shift).",
+    "BULK_ERR_USER": "Sélectionnez un membre de l’équipe.",
+    "BULK_ERR_WEEKDAYS": "Sélectionnez au moins un jour de la semaine.",
+    "BULK_ERR_TIMES": "L’heure de début doit être avant la fin.",
+    "BULK_ERR_MONTH": "Mois cible invalide.",
     "EXPORT_FAILED": "Impossible d’exporter le planning."
   },
   "SETTINGS": {

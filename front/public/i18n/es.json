@@ -906,6 +906,18 @@
     "EXPORT_WORKER": "Exportar trabajador",
     "EXPORT_EXCEL": "Exportar Excel",
     "EXPORT_MONTH_HINT": "Descarga los turnos de este trabajador para {{month}} (mismo mes calendario que la cuadrícula; en vista semanal, el mes que contiene el lunes de la semana).",
+    "BULK_MONTH": "Aplicar al mes",
+    "BULK_MONTH_TITLE": "Aplicar horario al mes",
+    "BULK_MONTH_SCOPE": "Mes objetivo: {{month}} (mismas reglas que la exportación Excel: mes del calendario en vista mensual, o el mes de la semana en vista semanal).",
+    "BULK_WEEKDAYS": "Repetir en",
+    "BULK_SKIP_EXISTING": "Omitir días en los que esta persona ya tiene un turno",
+    "BULK_SKIP_EXISTING_HINT": "Conserva cambios puntuales y rotaciones. Desactívalo para añadir otro turno esos días.",
+    "BULK_APPLY": "Aplicar",
+    "BULK_DONE": "Añadidos {{created}} turno(s). Omitidos {{skipped}} día(s) que ya tenían turno.",
+    "BULK_ERR_USER": "Selecciona un miembro del equipo.",
+    "BULK_ERR_WEEKDAYS": "Selecciona al menos un día de la semana.",
+    "BULK_ERR_TIMES": "La hora de inicio debe ser anterior a la de fin.",
+    "BULK_ERR_MONTH": "Mes objetivo no válido.",
     "EXPORT_FAILED": "No se pudo exportar el plan."
   },
   "SETTINGS": {

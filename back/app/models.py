@@ -845,6 +845,19 @@ class ShiftUpdate(SQLModel):
     label: str | None = None
 
 
+class ShiftBulkCreate(SQLModel):
+    """Create the same shift on many days in a month (e.g. Mon–Fri). Weekdays use JS convention: 0=Sunday .. 6=Saturday."""
+
+    user_id: int
+    year: int = Field(ge=2000, le=2100)
+    month: int = Field(ge=1, le=12)
+    weekdays: list[int] = Field(min_length=1)
+    start_time: str
+    end_time: str
+    label: str | None = None
+    skip_days_with_existing_shift: bool = True
+
+
 class OrderItemCreate(SQLModel):
     product_id: int
     quantity: int

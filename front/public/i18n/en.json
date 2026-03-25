@@ -921,6 +921,18 @@
     "EXPORT_WORKER": "Export worker",
     "EXPORT_EXCEL": "Export Excel",
     "EXPORT_MONTH_HINT": "Downloads this worker’s shifts for {{month}} (same calendar month as the grid, or the month that contains the Monday of the week in week view).",
+    "BULK_MONTH": "Apply to month",
+    "BULK_MONTH_TITLE": "Apply schedule to month",
+    "BULK_MONTH_SCOPE": "Target calendar month: {{month}} (same rules as Excel export — calendar month in calendar view, or the month of the week range in week view).",
+    "BULK_WEEKDAYS": "Repeat on",
+    "BULK_SKIP_EXISTING": "Skip days that already have a shift for this person",
+    "BULK_SKIP_EXISTING_HINT": "Preserves one-off edits and rotations. Turn off to add an extra shift on those days too.",
+    "BULK_APPLY": "Apply",
+    "BULK_DONE": "Added {{created}} shift(s). Skipped {{skipped}} day(s) that already had a shift.",
+    "BULK_ERR_USER": "Select a staff member.",
+    "BULK_ERR_WEEKDAYS": "Select at least one weekday.",
+    "BULK_ERR_TIMES": "Start time must be before end time.",
+    "BULK_ERR_MONTH": "Invalid target month.",
     "EXPORT_FAILED": "Could not export schedule."
   },
   "SETTINGS": {
