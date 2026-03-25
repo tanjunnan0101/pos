@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub #98 requested structured, stack-aligned Cursor/agent rules beyond `AGENTS.md` and existing `.cursor/rules/`.
+- **What was done:** Coder added Angular i18n, FastAPI/SQLModel, Docker/HAProxy, and security `.mdc` rules plus `docs/agent-cursor-rules.md` with links from `AGENTS.md` and `docs/agent-loop.md`.
+- **What was tested:** Tester ran static checks (rule files, frontmatter, catalog parity with `ls`, CHANGELOG #98, cross-links); overall **PASS**.
+- **Why closed:** Test report met all pass/fail criteria; deliverable is documentation/rules only and verified complete.
+- **Closed at (UTC):** 2026-03-25 18:10
+---
+
 # Missing rules to improve agent behavior across frameworks and technologies
 
 ## GitHub
