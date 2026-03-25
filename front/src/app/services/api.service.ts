@@ -2132,6 +2132,18 @@ export class ApiService {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/users/${userId}`);
   }
 
+  /** Owner only: ZIP with tenant-export.json (secrets redacted server-side). */
+  downloadTenantDataExport(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/tenant/data-export`, { responseType: 'blob' });
+  }
+
+  /** Owner only: irreversible delete of tenant and all data; session invalid after success. */
+  purgeTenant(confirmTenantName: string): Observable<{ message: string; tenant_id: number }> {
+    return this.http.post<{ message: string; tenant_id: number }>(`${this.apiUrl}/tenant/purge`, {
+      confirm_tenant_name: confirmTenantName,
+    });
+  }
+
   // Working plan (schedule)
   getSchedule(fromDate: string, toDate: string): Observable<Shift[]> {
     const params = new HttpParams().set('from_date', fromDate).set('to_date', toDate);

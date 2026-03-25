@@ -113,7 +113,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                     required
                     [disabled]="editingUser()?.id === currentUser()?.id"
                   >
-                    @for (role of availableRoles(); track role) {
+                    @for (role of roleOptionsForModal(); track role) {
                       <option [value]="role">{{ getRoleDisplayName(role) }}</option>
                     }
                   </select>
@@ -162,6 +162,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                     </button>
                   </div>
                 </div>
+                @if (editingUser() && currentUser()?.role === 'owner' && editingUser()?.id !== currentUser()?.id) {
+                  <p class="role-hint">{{ 'USERS.CO_OWNER_HINT' | translate }}</p>
+                }
                 @if (formError()) {
                   <div class="form-error">{{ formError() }}</div>
                 }
@@ -503,6 +506,13 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       color: var(--color-text);
     }
 
+    .role-hint {
+      margin-bottom: var(--space-3);
+      font-size: 0.8125rem;
+      color: var(--color-text-muted, #64748b);
+      line-height: 1.4;
+    }
+
     .form-error {
       margin-bottom: var(--space-4);
       padding: var(--space-3);
@@ -579,12 +589,21 @@ export class UsersComponent implements OnInit {
     if (!user) return;
 
     if (user.role === 'owner') {
-      // Owner can create all roles except owner (there's only one owner)
+      // New accounts cannot be created as owner (virgin-tenant registration is separate).
       this.availableRoles.set(['admin', 'kitchen', 'bartender', 'waiter', 'receptionist']);
     } else if (user.role === 'admin') {
-      // Admin can create all roles except owner
       this.availableRoles.set(['admin', 'kitchen', 'bartender', 'waiter', 'receptionist']);
     }
+  }
+
+  /** Roles shown in create/edit modal: owners editing another user may assign owner (co-owner). */
+  roleOptionsForModal(): UserRole[] {
+    const cur = this.currentUser();
+    const ed = this.editingUser();
+    if (cur?.role === 'owner' && ed && ed.id !== cur.id) {
+      return ['owner', 'admin', 'kitchen', 'bartender', 'waiter', 'receptionist'];
+    }
+    return this.availableRoles();
   }
 
   getInitials(user: User): string {

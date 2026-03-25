@@ -37,6 +37,7 @@ from .db import check_db_connection, create_db_and_tables, get_session, engine
 from .settings import settings
 from .inventory_routes import router as inventory_router
 from .reports_routes import router as reports_router
+from .tenant_lifecycle_routes import router as tenant_lifecycle_router
 from .work_session_serialization import serialize_work_session
 from .inventory_service import deduct_inventory_for_order
 from . import inventory_models
@@ -448,6 +449,8 @@ app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 app.include_router(inventory_router, prefix="/inventory", tags=["Inventory"])
 # Reports (sales / revenue analysis)
 app.include_router(reports_router, prefix="/reports", tags=["Reports"])
+# Owner-only data export & tenant purge (GitHub #96)
+app.include_router(tenant_lifecycle_router, prefix="/tenant", tags=["Tenant lifecycle"])
 
 
 # ============ IMAGE OPTIMIZATION ============

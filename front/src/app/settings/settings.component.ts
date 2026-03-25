@@ -187,6 +187,19 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             </svg>
             <span>{{ 'SETTINGS.SECURITY' | translate }}</span>
           </button>
+          @if (isTenantOwner()) {
+          <button
+            type="button"
+            class="tab"
+            data-testid="settings-data-privacy-tab"
+            [class.active]="activeSection() === 'data-privacy'"
+            (click)="activeSection.set('data-privacy')">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>{{ 'SETTINGS.DATA_AND_PRIVACY_TAB' | translate }}</span>
+          </button>
+          }
         </div>
       </div>
 
@@ -528,6 +541,50 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                 }
               </div>
             }
+          </div>
+          } @else if (activeSection() === 'data-privacy') {
+          <div class="section" data-testid="settings-data-privacy-section">
+            <div class="section-header">
+              <h2>{{ 'SETTINGS.DATA_EXPORT_TITLE' | translate }}</h2>
+              <p>{{ 'SETTINGS.DATA_EXPORT_DESC' | translate }}</p>
+            </div>
+            <div class="form-card data-export-card">
+              <button
+                type="button"
+                class="btn btn-primary"
+                data-testid="settings-download-export"
+                (click)="downloadTenantDataExport()"
+                [disabled]="dataExporting()">
+                {{ dataExporting() ? ('SETTINGS.DATA_EXPORTING' | translate) : ('SETTINGS.DATA_EXPORT_BUTTON' | translate) }}
+              </button>
+            </div>
+            <div class="danger-zone">
+              <h2>{{ 'SETTINGS.DANGER_ZONE_TITLE' | translate }}</h2>
+              <p class="danger-lede">{{ 'SETTINGS.DANGER_ZONE_DESC' | translate }}</p>
+              <div class="form-group">
+                <label for="purge-confirm-name">{{ 'SETTINGS.PURGE_CONFIRM_LABEL' | translate }}</label>
+                <input
+                  id="purge-confirm-name"
+                  type="text"
+                  name="purgeConfirmName"
+                  [(ngModel)]="purgeConfirmTenantName"
+                  [placeholder]="settings()?.name || ('SETTINGS.PURGE_PLACEHOLDER' | translate)"
+                  autocomplete="off"
+                  data-testid="settings-purge-confirm-input"
+                />
+              </div>
+              @if (purgeError()) {
+                <p class="field-error">{{ purgeError() }}</p>
+              }
+              <button
+                type="button"
+                class="btn btn-danger-outline"
+                data-testid="settings-purge-button"
+                (click)="purgeTenantForever()"
+                [disabled]="purging() || !purgeConfirmTenantName.trim()">
+                {{ purging() ? ('SETTINGS.PURGING' | translate) : ('SETTINGS.PURGE_BUTTON' | translate) }}
+              </button>
+            </div>
           </div>
           } @else {
             <!-- Tenant Settings Sections (Shared Form) -->
@@ -2027,6 +2084,41 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       }
     }
 
+    .data-export-card {
+      margin-bottom: var(--space-8);
+    }
+
+    .danger-zone {
+      margin-top: var(--space-8);
+      padding: var(--space-5);
+      border: 2px solid #dc2626;
+      border-radius: var(--radius-md);
+      background: #fef2f2;
+    }
+
+    .danger-zone h2 {
+      color: #991b1b;
+      font-size: 1.125rem;
+      margin: 0 0 var(--space-2);
+    }
+
+    .danger-lede {
+      color: #7f1d1d;
+      margin: 0 0 var(--space-4);
+      line-height: 1.5;
+    }
+
+    .btn-danger-outline {
+      margin-top: var(--space-3);
+      background: #dc2626;
+      color: #fff;
+      border: 1px solid #b91c1c;
+
+      &:hover:not(:disabled) {
+        background: #b91c1c;
+      }
+    }
+
     /* ==========================================
        FORM ACTIONS - Mobile First
        ========================================== */
@@ -2394,6 +2486,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     | 'providers'
     | 'translations'
     | 'security'
+    | 'data-privacy'
   >('general');
 
   readonly uiModuleRows: { key: TenantUiModuleKey; labelKey: string; descKey: string }[] = [
@@ -2463,6 +2556,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
   otpDisableCode = '';
   otpDisabling = signal(false);
   otpSettingUp = signal(false);
+
+  purgeConfirmTenantName = '';
+  dataExporting = signal(false);
+  purging = signal(false);
+  purgeError = signal<string | null>(null);
 
   daysOfWeek = [
     { key: 'monday', label: 'SETTINGS.DAY_MONDAY' },
@@ -2957,6 +3055,48 @@ export class SettingsComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.otpError.set(err?.error?.detail || 'Invalid code');
         this.otpDisabling.set(false);
+      },
+    });
+  }
+
+  isTenantOwner(): boolean {
+    return this.api.getCurrentUser()?.role === 'owner';
+  }
+
+  downloadTenantDataExport(): void {
+    this.purgeError.set(null);
+    this.dataExporting.set(true);
+    this.api.downloadTenantDataExport().subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'tenant-data-export.zip';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.dataExporting.set(false);
+      },
+      error: () => {
+        this.purgeError.set(this.translate.instant('SETTINGS.DATA_EXPORT_FAILED'));
+        this.dataExporting.set(false);
+      },
+    });
+  }
+
+  purgeTenantForever(): void {
+    this.purgeError.set(null);
+    const name = this.purgeConfirmTenantName.trim();
+    this.purging.set(true);
+    this.api.purgeTenant(name).subscribe({
+      next: () => {
+        this.api.logout().subscribe(() => this.router.navigateByUrl('/login'));
+      },
+      error: (err) => {
+        const detail = err?.error?.detail;
+        this.purgeError.set(
+          typeof detail === 'string' ? detail : this.translate.instant('SETTINGS.PURGE_FAILED'),
+        );
+        this.purging.set(false);
       },
     });
   }
