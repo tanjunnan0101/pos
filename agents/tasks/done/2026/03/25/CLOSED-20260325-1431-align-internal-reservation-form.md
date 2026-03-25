@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Public booking used a week grid for slots while staff `/reservations` still used separate date and time inputs, diverging UX and behavior.
+- **What was done:** Introduced shared `reservation-week-slot-grid` for public book and staff modal; backend `GET /reservations/book-week-slots` accepts optional `exclude_reservation_id` for edits; staff modal uses tenant IANA timezone like the book page; new bookings require an available slot; edits allow unchanged slot when needed.
+- **What was tested:** Tester **PASS** — public and staff grids present, party-size refresh, pytest `test_book_week_slots_public.py` (3 passed), front build OK, `test:landing-version` exit 0; edit/save UI marked light coverage with pytest covering `exclude_reservation_id`.
+- **Why closed:** Test report overall **PASS**; scope delivered per task; residual note is optional manual spot-check on busy tenant.
+- **Closed at (UTC):** 2026-03-25 14:54
+---
+
 # Align internal reservation form
 
 ## GitHub

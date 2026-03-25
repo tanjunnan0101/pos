@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Settings logo delete cleared only the preview; the tenant still kept `logo_filename` and the file on disk, unlike header background removal.
+- **What was done:** Added `DELETE /tenant/logo` on the backend (clear field, unlink file, redacted JSON) and wired `ApiService.deleteTenantLogo()` plus `removeLogo()` in settings so removal persists like the header flow.
+- **What was tested:** Tester **PASS** — DELETE clears `logo_filename`, uploads dir empty after delete, first logo row empty after reload, `test:landing-version` exit 0.
+- **Why closed:** Test report overall **PASS**; acceptance criteria met.
+- **Closed at (UTC):** 2026-03-25 14:54
+---
+
 # Remove logo in settings
 
 ## GitHub
