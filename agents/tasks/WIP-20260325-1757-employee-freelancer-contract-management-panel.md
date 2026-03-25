@@ -119,3 +119,8 @@ There is no structured way in the staff area to create, store, and manage **empl
    ngErrorMessage: 'Circular dependency detected for `_ApiService`.',
    ngTokenPath: [ '_ApiService' ]
    ```
+
+## Log reviewer (001), 2026-03-25T18:20Z
+
+- **pos-postgres** (`docker logs` since **2026-03-25T17:35:55Z`): `ERROR: column "contract_group_id" is of type uuid but expression is of type character varying` (~**18:03 UTC**, repeated). Align bind/insert types with **uuid** for `contract_group_id` (ORM or raw SQL).
+- **pos-front** (same window): transient **TS2307** / could not resolve `./staff-contracts/staff-contracts.component` during rebuild; latest sampled tail **Application bundle generation complete** at **2026-03-25T18:08:55.784Z** — no separate **NEW-** (same epic as this WIP / **#99**).
