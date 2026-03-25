@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Tenant `reservation_slot_minutes`:** Migration adds nullable column; staff Settings → Reservations can set the interval between public booking start times (5–120 minutes, or empty/0 for legacy 15-minute steps). Public `book-week-slots`, `next-available`, and staff overbooking default grid use this value.
+
 ### Changed
 
 - **Staff reservations modal (GitHub #84):** Create/edit dialog field order and labels match the public `/book` flow (date, time, party size, then name, phone, email, reservation notes, customer notes); staff-only notes remain at the end. Uses global form styling, optional email placeholder like the book page, and the same phone/email validation rules as the book form. Short hint explains calendar/time inputs vs. the public week grid.

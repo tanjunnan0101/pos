@@ -1108,6 +1108,8 @@
     "RESERVATION_ARRIVAL_TOLERANCE_HINT": "Tiempo que se mantiene la mesa (ej. 15).",
     "RESERVATION_AVG_TABLE_TURN": "Rotación media de mesa (minutos)",
     "RESERVATION_AVG_TABLE_TURN_HINT": "Tiempo típico que ocupa un grupo tras sentarse. Sirve para calcular cuándo la mesa puede reservarse de nuevo. Déjalo vacío para bloquear el día sin ventana de rotación.",
+    "RESERVATION_SLOT_MINUTES": "Intervalo entre horarios de reserva (minutos)",
+    "RESERVATION_SLOT_MINUTES_HINT": "Separación entre horas de inicio en la reserva pública (p. ej. 15 o 30). Déjalo vacío o 0 para pasos de 15 minutos.",
     "RESERVATION_WALK_IN_TABLES": "Mesas reservadas para walk-in",
     "RESERVATION_WALK_IN_TABLES_HINT": "Mesas que no cuentan en la capacidad de reservas online para poder atender sin cita. Se priorizan las mesas más pequeñas.",
     "RESERVATION_DRESS_CODE": "Código de vestimenta",

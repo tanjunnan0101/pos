@@ -1123,6 +1123,8 @@
     "RESERVATION_ARRIVAL_TOLERANCE_HINT": "How long we hold the table after the booked time (e.g. 15).",
     "RESERVATION_AVG_TABLE_TURN": "Average table turn (minutes)",
     "RESERVATION_AVG_TABLE_TURN_HINT": "Typical time a party occupies a table after seating. Used to plan when that table can be booked again. Leave empty to use a simple same-day block (no turn window).",
+    "RESERVATION_SLOT_MINUTES": "Booking time slot step (minutes)",
+    "RESERVATION_SLOT_MINUTES_HINT": "Interval between offered start times on the public booking grid (e.g. 15 or 30). Leave empty or 0 for 15-minute steps.",
     "RESERVATION_WALK_IN_TABLES": "Tables reserved for walk-ins",
     "RESERVATION_WALK_IN_TABLES_HINT": "Number of tables kept out of online reservation capacity so you can seat walk-in guests. Smallest tables are withheld first.",
     "RESERVATION_DRESS_CODE": "Dress code",

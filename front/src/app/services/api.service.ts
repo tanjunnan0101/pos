@@ -746,6 +746,8 @@ export interface TenantSettings {
   reservation_arrival_tolerance_minutes?: number | null;
   /** Average seated session length (minutes); null = same-day block without turn window */
   reservation_average_table_turn_minutes?: number | null;
+  /** Minutes between bookable start times on public grid; null = 15 */
+  reservation_slot_minutes?: number | null;
   /** Tables kept out of the reservation pool for walk-ins (smallest tables first) */
   reservation_walk_in_tables_reserved?: number | null;
   reservation_dress_code?: string | null;

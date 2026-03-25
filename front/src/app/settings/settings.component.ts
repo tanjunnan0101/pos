@@ -1089,6 +1089,11 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                     <small class="field-hint">{{ 'SETTINGS.RESERVATION_AVG_TABLE_TURN_HINT' | translate }}</small>
                   </div>
                   <div class="form-group">
+                    <label for="reservation_slot_minutes">{{ 'SETTINGS.RESERVATION_SLOT_MINUTES' | translate }}</label>
+                    <input type="number" id="reservation_slot_minutes" min="0" max="120" [(ngModel)]="formData.reservation_slot_minutes" name="reservation_slot_minutes" placeholder="15" />
+                    <small class="field-hint">{{ 'SETTINGS.RESERVATION_SLOT_MINUTES_HINT' | translate }}</small>
+                  </div>
+                  <div class="form-group">
                     <label for="reservation_walk_in_tables_reserved">{{ 'SETTINGS.RESERVATION_WALK_IN_TABLES' | translate }}</label>
                     <input type="number" id="reservation_walk_in_tables_reserved" min="0" max="99" [(ngModel)]="formData.reservation_walk_in_tables_reserved" name="reservation_walk_in_tables_reserved" placeholder="0" />
                     <small class="field-hint">{{ 'SETTINGS.RESERVATION_WALK_IN_TABLES_HINT' | translate }}</small>
@@ -2542,6 +2547,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     reservation_cancellation_policy: null,
     reservation_arrival_tolerance_minutes: null,
     reservation_average_table_turn_minutes: null,
+    reservation_slot_minutes: null,
     reservation_walk_in_tables_reserved: 0,
     reservation_dress_code: null,
     reservation_reminder_24h_enabled: false,
@@ -2622,6 +2628,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
           reservation_cancellation_policy: settings.reservation_cancellation_policy ?? null,
           reservation_arrival_tolerance_minutes: settings.reservation_arrival_tolerance_minutes ?? null,
           reservation_average_table_turn_minutes: settings.reservation_average_table_turn_minutes ?? null,
+          reservation_slot_minutes: settings.reservation_slot_minutes ?? null,
           reservation_walk_in_tables_reserved: settings.reservation_walk_in_tables_reserved ?? 0,
           reservation_dress_code: settings.reservation_dress_code ?? null,
           reservation_reminder_24h_enabled: settings.reservation_reminder_24h_enabled ?? false,

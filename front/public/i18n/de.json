@@ -953,6 +953,8 @@
     "RESERVATION_ARRIVAL_TOLERANCE_HINT": "Wie lange der Tisch gehalten wird (z. B. 15).",
     "RESERVATION_AVG_TABLE_TURN": "Durchschnittliche Tischbelegung (Minuten)",
     "RESERVATION_AVG_TABLE_TURN_HINT": "Typische Dauer, die eine Gruppe nach dem Setzen am Tisch bleibt. Bestimmt, wann der Tisch wieder reservierbar ist. Leer lassen für einfachen Tagesblock ohne Zeitfenster.",
+    "RESERVATION_SLOT_MINUTES": "Raster für Buchungszeiten (Minuten)",
+    "RESERVATION_SLOT_MINUTES_HINT": "Abstand zwischen Startzeiten im öffentlichen Buchungsraster (z. B. 15 oder 30). Leer oder 0 = 15-Minuten-Raster.",
     "RESERVATION_WALK_IN_TABLES": "Tische für Walk-in freihalten",
     "RESERVATION_WALK_IN_TABLES_HINT": "Anzahl Tische außerhalb der Online-Reservierungskapazität für spontane Gäste. Zuerst die kleinsten Tische.",
     "RESERVATION_DRESS_CODE": "Kleiderordnung",

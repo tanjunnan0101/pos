@@ -2235,6 +2235,17 @@ def update_tenant_settings(
             )
         else:
             tenant.reservation_average_table_turn_minutes = v
+    if tenant_update.reservation_slot_minutes is not None:
+        v = tenant_update.reservation_slot_minutes
+        if v <= 0:
+            tenant.reservation_slot_minutes = None
+        elif v < 5 or v > 120:
+            raise HTTPException(
+                status_code=400,
+                detail="reservation_slot_minutes must be between 5 and 120, or 0 to use default (15)",
+            )
+        else:
+            tenant.reservation_slot_minutes = int(v)
     if tenant_update.reservation_walk_in_tables_reserved is not None:
         w = tenant_update.reservation_walk_in_tables_reserved
         tenant.reservation_walk_in_tables_reserved = max(0, int(w))
@@ -5642,14 +5653,25 @@ def _raise_if_reservation_time_invalid_for_opening_hours(
     )
 
 
-def _quarter_slot_times_for_windows(windows: List[Tuple[time, time]]) -> List[time]:
-    """15-minute start times within each window, strictly before close, respecting 1h-before-close rule."""
+def _effective_reservation_slot_minutes(tenant: models.Tenant) -> int:
+    """Minutes between bookable start times on the public grid; null/invalid → 15 (legacy)."""
+    v = tenant.reservation_slot_minutes
+    if v is None or v <= 0:
+        return 15
+    return int(v)
+
+
+def _grid_slot_times_for_windows(
+    windows: List[Tuple[time, time]], slot_step_minutes: int
+) -> List[time]:
+    """Start times on a fixed minute grid within each window, strictly before close, respecting 1h-before-close rule."""
+    step = max(1, min(120, int(slot_step_minutes)))
     seen: set[int] = set()
     out: List[time] = []
     for open_t, close_t in windows:
         om = open_t.hour * 60 + open_t.minute
         cm = close_t.hour * 60 + close_t.minute
-        t = ((om + 14) // 15) * 15
+        t = ((om + step - 1) // step) * step
         while t < cm:
             slot = time(t // 60, t % 60)
             if _reservation_time_allowed_before_closing(slot, close_t):
@@ -5657,7 +5679,7 @@ def _quarter_slot_times_for_windows(windows: List[Tuple[time, time]]) -> List[ti
                 if key not in seen:
                     seen.add(key)
                     out.append(slot)
-            t += 15
+            t += step
     out.sort(key=lambda x: x.hour * 60 + x.minute)
     return out
 
@@ -5993,9 +6015,9 @@ def get_reservations_overbooking_report(
     ).all()
     slot_times_set: set[time] = set(reservations_on_date)
     if not slot_times_set:
-        for h in range(8, 23):
-            for m in (0, 15, 30, 45):
-                slot_times_set.add(time(h, m))
+        slot_step = _effective_reservation_slot_minutes(tenant)
+        for st in _grid_slot_times_for_windows([(time(8, 0), time(23, 0))], slot_step):
+            slot_times_set.add(st)
     slot_times = sorted(slot_times_set)
 
     time_from_parsed: time | None = None
@@ -6315,6 +6337,7 @@ def get_reservation_book_week_slots(
 
     anchor_monday = _monday_on_or_before(anchor_day)
 
+    slot_step = _effective_reservation_slot_minutes(tenant)
     all_slot_times: set[time] = set()
     for i in range(7):
         d = anchor_monday + timedelta(days=i)
@@ -6323,7 +6346,7 @@ def get_reservation_book_week_slots(
             windows = [(time(8, 0), time(23, 0))]
         if len(windows) == 0:
             continue
-        for st in _quarter_slot_times_for_windows(windows):
+        for st in _grid_slot_times_for_windows(windows, slot_step):
             all_slot_times.add(st)
 
     times_sorted = sorted(all_slot_times, key=lambda x: x.hour * 60 + x.minute)
@@ -6339,7 +6362,7 @@ def get_reservation_book_week_slots(
         day_closed = len(windows) == 0
         allowed_times = set()
         if not day_closed:
-            allowed_times = set(_quarter_slot_times_for_windows(windows))
+            allowed_times = set(_grid_slot_times_for_windows(windows, slot_step))
 
         for st in times_sorted:
             key = st.strftime("%H:%M")
@@ -6414,6 +6437,7 @@ def get_next_available_reservation_time(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+    slot_step = _effective_reservation_slot_minutes(tenant)
     for day_offset in range(8):
         d = check_date + timedelta(days=day_offset)
         windows = _opening_service_windows_for_date(tenant, d)
@@ -6422,7 +6446,7 @@ def get_next_available_reservation_time(
         if len(windows) == 0:
             continue
 
-        for slot_time in _quarter_slot_times_for_windows(windows):
+        for slot_time in _grid_slot_times_for_windows(windows, slot_step):
             slot_dt = datetime.combine(d, slot_time, tzinfo=tz)
             if slot_dt < min_dt:
                 continue

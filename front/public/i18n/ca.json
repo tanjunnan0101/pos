@@ -882,6 +882,8 @@
     "RESERVATION_ARRIVAL_TOLERANCE_HINT": "Temps que es manté la taula (ej. 15).",
     "RESERVATION_AVG_TABLE_TURN": "Rotació mitjana de taula (minuts)",
     "RESERVATION_AVG_TABLE_TURN_HINT": "Temps típic que ocupa un grup després de seure. Es fa servir per saber quan la taula es pot tornar a reservar. Deixa-ho buit per bloquejar el dia sense finestra de rotació.",
+    "RESERVATION_SLOT_MINUTES": "Interval entre horaris de reserva (minuts)",
+    "RESERVATION_SLOT_MINUTES_HINT": "Separació entre hores d’inici a la reserva pública (p. ex. 15 o 30). Deixa-ho buit o 0 per passos de 15 minuts.",
     "RESERVATION_WALK_IN_TABLES": "Taules per a walk-in",
     "RESERVATION_WALK_IN_TABLES_HINT": "Taules que no compten a la capacitat de reserves online per atendre sense cita. Es reserven primer les més petites.",
     "RESERVATION_DRESS_CODE": "Codi de vestir",

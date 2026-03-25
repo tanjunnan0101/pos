@@ -930,6 +930,8 @@
     "RESERVATION_ARRIVAL_TOLERANCE_HINT": "Délai de tenue de la table (ex. 15).",
     "RESERVATION_AVG_TABLE_TURN": "Rotation moyenne des tables (minutes)",
     "RESERVATION_AVG_TABLE_TURN_HINT": "Durée typique d’occupation après installation. Sert à savoir quand la table peut être réservée à nouveau. Laisser vide pour un blocage à la journée sans fenêtre.",
+    "RESERVATION_SLOT_MINUTES": "Pas des créneaux de réservation (minutes)",
+    "RESERVATION_SLOT_MINUTES_HINT": "Intervalle entre les heures de début proposées sur la page publique (ex. 15 ou 30). Vide ou 0 = créneaux de 15 minutes.",
     "RESERVATION_WALK_IN_TABLES": "Tables réservées aux walk-in",
     "RESERVATION_WALK_IN_TABLES_HINT": "Nombre de tables hors capacité de réservation en ligne pour les clients sans rendez-vous. Les plus petites tables sont retenues en premier.",
     "RESERVATION_DRESS_CODE": "Tenue",

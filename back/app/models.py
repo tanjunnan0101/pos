@@ -155,6 +155,8 @@ class Tenant(SQLModel, table=True):
     reservation_arrival_tolerance_minutes: int | None = Field(default=None)  # e.g. 15
     # Planning: average seated session length; used to free tables for later reservation slots (null = legacy same-day block)
     reservation_average_table_turn_minutes: int | None = Field(default=None)
+    # Interval between bookable start times on public grid (null or unset = 15 minutes)
+    reservation_slot_minutes: int | None = Field(default=None)
     # Tables kept out of reservation pool so walk-ins can be seated (smallest tables dropped first from pool)
     reservation_walk_in_tables_reserved: int = Field(default=0)
     reservation_dress_code: str | None = Field(default=None)
@@ -983,6 +985,7 @@ class TenantUpdate(SQLModel):
     reservation_cancellation_policy: str | None = None
     reservation_arrival_tolerance_minutes: int | None = None
     reservation_average_table_turn_minutes: int | None = None
+    reservation_slot_minutes: int | None = None
     reservation_walk_in_tables_reserved: int | None = None
     reservation_dress_code: str | None = None
     reservation_reminder_24h_enabled: bool | None = None
