@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Settings → Reservations (GitHub #82):** Pre-payment amount uses **whole amount** and **minor units** derived from the tenant currency via `Intl` (e.g. euros + cents); zero-decimal currencies show a single whole-unit field. Still stored as smallest-currency-unit integer (`reservation_prepayment_cents`).
 
+- **Agents:** 001-log-reviewer `time-of-last-review.txt` — GitHub/issue sweep and Docker log pass line appended (2026-03-25, 12:02Z UTC).
+
 ### Fixed
 
 - **Tables → Open menu / table PIN (GitHub #86):** Staff “Open menu” from the tables list and tile view now uses the same short-lived `staff_access` link as staff orders, so placing an order no longer forces the public table PIN modal. QR codes and “Copy” still use the customer URL. The PIN modal still shows **which table** (`Table: …`) when a PIN is required (e.g. wrong PIN retry).
