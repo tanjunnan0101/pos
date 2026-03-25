@@ -114,127 +114,6 @@ ModuleRegistry.registerModules([
                         }
                         <span class="order-time" [title]="formatExactTime(order.created_at)">{{ 'ORDERS.ORDER_TIME' | translate }}: {{ formatOrderTime(order.created_at) }}</span>
                       </div>
-                      <div class="order-header-actions">
-                        @if (canUpdateStatus() && order.status !== 'cancelled') {
-                          <button type="button" class="btn btn-urgent" (click)="toggleStaffUrgent(order, $event)">
-                            {{ order.staff_urgent ? ('ORDERS.CLEAR_URGENT' | translate) : ('ORDERS.MARK_URGENT' | translate) }}
-                          </button>
-                        }
-                        <button type="button" class="btn btn-edit-order" (click)="openOrderEdit(order)" [title]="'ORDERS.EDIT_ORDER' | translate">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                          </svg>
-                          {{ 'COMMON.EDIT' | translate }}
-                        </button>
-                        @if (order.status !== 'paid' && order.status !== 'cancelled' && canMarkPaid()) {
-                          <button
-                            type="button"
-                            class="btn"
-                            [class.btn-secondary]="canFinishOrder()"
-                            [class.btn-primary]="!canFinishOrder()"
-                            (click)="markAsPaid(order)"
-                            [title]="'ORDERS.PAY_NOW_HINT' | translate">
-                            {{ 'ORDERS.PAY_NOW' | translate }}
-                          </button>
-                        }
-                        @if (order.status !== 'paid' && order.status !== 'cancelled' && canFinishOrder()) {
-                          <button type="button" class="btn btn-success" (click)="openFinishPaymentModal(order)" [title]="'ORDERS.FINISH_ORDER_MENU' | translate">
-                            {{ 'ORDERS.FINISH_ORDER' | translate }}
-                          </button>
-                        }
-                        <div class="status-control">
-                          <button 
-                            class="status-badge-btn" 
-                            [class]="order.status"
-                            (click)="toggleStatusDropdown(order.id)"
-                            [title]="'ORDERS.CLICK_TO_CHANGE_STATUS' | translate">
-                            {{ getStatusLabel(order.status) }}
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                              <polyline points="6,9 12,15 18,9"/>
-                            </svg>
-                          </button>
-                          @if (statusDropdownOpen() === order.id) {
-                            <div class="status-dropdown" (click)="$event.stopPropagation()">
-                              @if (getOrderStatusTransitions(order.status).backward.length > 0) {
-                                <div class="dropdown-section">
-                                  <div class="dropdown-label">{{ 'ORDERS.GO_BACK' | translate }}</div>
-                                  @for (status of getOrderStatusTransitions(order.status).backward; track status) {
-                                    <button 
-                                      class="dropdown-item backward"
-                                      (click)="updateStatus(order, status)">
-                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="15,18 9,12 15,6"/>
-                                      </svg>
-                                      {{ getStatusLabel(status) }}
-                                    </button>
-                                  }
-                                </div>
-                              }
-                              @if (getOrderStatusTransitions(order.status).forward.length > 0) {
-                                <div class="dropdown-section">
-                                  <div class="dropdown-label">{{ 'ORDERS.MOVE_FORWARD' | translate }}</div>
-                                  @for (status of getOrderStatusTransitions(order.status).forward; track status) {
-                                    <button 
-                                      class="dropdown-item forward"
-                                      (click)="updateStatus(order, status)">
-                                      {{ getStatusLabel(status) }}
-                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="9,18 15,12 9,6"/>
-                                      </svg>
-                                    </button>
-                                  }
-                                </div>
-                              }
-                              @if (order.status !== 'paid' && order.status !== 'cancelled' && canMarkPaid()) {
-                                <div class="dropdown-section">
-                                  <button 
-                                    class="dropdown-item forward"
-                                    (click)="markAsPaid(order); statusDropdownOpen.set(null)">
-                                    {{ 'ORDERS.MARK_AS_PAID' | translate }}
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                      <polyline points="9,18 15,12 9,6"/>
-                                    </svg>
-                                  </button>
-                                </div>
-                              }
-                              @if (order.status !== 'paid' && order.status !== 'cancelled' && canFinishOrder()) {
-                                <div class="dropdown-section">
-                                  <button 
-                                    class="dropdown-item forward"
-                                    (click)="openFinishPaymentModal(order); statusDropdownOpen.set(null)">
-                                    {{ 'ORDERS.FINISH_ORDER_MENU' | translate }}
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                      <polyline points="9,18 15,12 9,6"/>
-                                    </svg>
-                                  </button>
-                                </div>
-                              }
-                              @if (order.status === 'paid' && canMarkPaid()) {
-                                <div class="dropdown-section">
-                                  <button 
-                                    class="dropdown-item backward"
-                                    (click)="unmarkPaid(order)">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                      <polyline points="15,18 9,12 15,6"/>
-                                    </svg>
-                                    {{ 'ORDERS.UNMARK_PAID' | translate }}
-                                  </button>
-                                </div>
-                              }
-                            </div>
-                          }
-                        </div>
-                        @if (canDeleteOrder()) {
-                          <button type="button" class="btn btn-delete-order" (click)="deleteOrder(order)" [title]="'ORDERS.DELETE_ORDER' | translate">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                              <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
-                            </svg>
-                            {{ 'ORDERS.DELETE_ORDER' | translate }}
-                          </button>
-                        }
-                      </div>
                     </div>
 
                     <div class="order-items">
@@ -343,6 +222,125 @@ ModuleRegistry.registerModules([
                         }
                       </div>
                       <div class="order-actions">
+                        @if (canUpdateStatus() && order.status !== 'cancelled') {
+                          <button type="button" class="btn btn-urgent" (click)="toggleStaffUrgent(order, $event)">
+                            {{ order.staff_urgent ? ('ORDERS.CLEAR_URGENT' | translate) : ('ORDERS.MARK_URGENT' | translate) }}
+                          </button>
+                        }
+                        <button type="button" class="btn btn-edit-order" (click)="openOrderEdit(order)" [title]="'ORDERS.EDIT_ORDER' | translate">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                          {{ 'COMMON.EDIT' | translate }}
+                        </button>
+                        @if (order.status !== 'paid' && order.status !== 'cancelled' && canMarkPaid()) {
+                          <button
+                            type="button"
+                            class="btn"
+                            [class.btn-secondary]="canFinishOrder()"
+                            [class.btn-primary]="!canFinishOrder()"
+                            (click)="markAsPaid(order)"
+                            [title]="'ORDERS.PAY_NOW_HINT' | translate">
+                            {{ 'ORDERS.PAY_NOW' | translate }}
+                          </button>
+                        }
+                        @if (order.status !== 'paid' && order.status !== 'cancelled' && canFinishOrder()) {
+                          <button type="button" class="btn btn-success" (click)="openFinishPaymentModal(order)" [title]="'ORDERS.FINISH_ORDER_MENU' | translate">
+                            {{ 'ORDERS.FINISH_ORDER' | translate }}
+                          </button>
+                        }
+                        <div class="status-control">
+                          <button
+                            class="status-badge-btn"
+                            [class]="order.status"
+                            (click)="toggleStatusDropdown(order.id)"
+                            [title]="'ORDERS.CLICK_TO_CHANGE_STATUS' | translate">
+                            {{ getStatusLabel(order.status) }}
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <polyline points="6,9 12,15 18,9"/>
+                            </svg>
+                          </button>
+                          @if (statusDropdownOpen() === order.id) {
+                            <div class="status-dropdown" (click)="$event.stopPropagation()">
+                              @if (getOrderStatusTransitions(order.status).backward.length > 0) {
+                                <div class="dropdown-section">
+                                  <div class="dropdown-label">{{ 'ORDERS.GO_BACK' | translate }}</div>
+                                  @for (status of getOrderStatusTransitions(order.status).backward; track status) {
+                                    <button
+                                      class="dropdown-item backward"
+                                      (click)="updateStatus(order, status)">
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="15,18 9,12 15,6"/>
+                                      </svg>
+                                      {{ getStatusLabel(status) }}
+                                    </button>
+                                  }
+                                </div>
+                              }
+                              @if (getOrderStatusTransitions(order.status).forward.length > 0) {
+                                <div class="dropdown-section">
+                                  <div class="dropdown-label">{{ 'ORDERS.MOVE_FORWARD' | translate }}</div>
+                                  @for (status of getOrderStatusTransitions(order.status).forward; track status) {
+                                    <button
+                                      class="dropdown-item forward"
+                                      (click)="updateStatus(order, status)">
+                                      {{ getStatusLabel(status) }}
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="9,18 15,12 9,6"/>
+                                      </svg>
+                                    </button>
+                                  }
+                                </div>
+                              }
+                              @if (order.status !== 'paid' && order.status !== 'cancelled' && canMarkPaid()) {
+                                <div class="dropdown-section">
+                                  <button
+                                    class="dropdown-item forward"
+                                    (click)="markAsPaid(order); statusDropdownOpen.set(null)">
+                                    {{ 'ORDERS.MARK_AS_PAID' | translate }}
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                      <polyline points="9,18 15,12 9,6"/>
+                                    </svg>
+                                  </button>
+                                </div>
+                              }
+                              @if (order.status !== 'paid' && order.status !== 'cancelled' && canFinishOrder()) {
+                                <div class="dropdown-section">
+                                  <button
+                                    class="dropdown-item forward"
+                                    (click)="openFinishPaymentModal(order); statusDropdownOpen.set(null)">
+                                    {{ 'ORDERS.FINISH_ORDER_MENU' | translate }}
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                      <polyline points="9,18 15,12 9,6"/>
+                                    </svg>
+                                  </button>
+                                </div>
+                              }
+                              @if (order.status === 'paid' && canMarkPaid()) {
+                                <div class="dropdown-section">
+                                  <button
+                                    class="dropdown-item backward"
+                                    (click)="unmarkPaid(order)">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                      <polyline points="15,18 9,12 15,6"/>
+                                    </svg>
+                                    {{ 'ORDERS.UNMARK_PAID' | translate }}
+                                  </button>
+                                </div>
+                              }
+                            </div>
+                          }
+                        </div>
+                        @if (canDeleteOrder()) {
+                          <button type="button" class="btn btn-delete-order" (click)="deleteOrder(order)" [title]="'ORDERS.DELETE_ORDER' | translate">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                              <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                            </svg>
+                            {{ 'ORDERS.DELETE_ORDER' | translate }}
+                          </button>
+                        }
                         @if (order.table_id != null && order.table_token) {
                           <button type="button" class="btn btn-menu-link" (click)="openMenuForOrder(order)" [title]="'ORDERS.OPEN_MENU_LINK' | translate">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -392,127 +390,6 @@ ModuleRegistry.registerModules([
                           }
                           <span class="order-time" [title]="formatExactTime(order.created_at)">{{ 'ORDERS.ORDER_TIME' | translate }}: {{ formatOrderTime(order.created_at) }}</span>
                         </div>
-                        <div class="order-header-actions">
-                          @if (canUpdateStatus() && order.status !== 'cancelled') {
-                            <button type="button" class="btn btn-urgent" (click)="toggleStaffUrgent(order, $event)">
-                              {{ order.staff_urgent ? ('ORDERS.CLEAR_URGENT' | translate) : ('ORDERS.MARK_URGENT' | translate) }}
-                            </button>
-                          }
-                          <button type="button" class="btn btn-edit-order" (click)="openOrderEdit(order)" [title]="'ORDERS.EDIT_ORDER' | translate">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                            {{ 'COMMON.EDIT' | translate }}
-                          </button>
-                          @if (order.status !== 'paid' && order.status !== 'cancelled' && canMarkPaid()) {
-                            <button
-                              type="button"
-                              class="btn"
-                              [class.btn-secondary]="canFinishOrder()"
-                              [class.btn-primary]="!canFinishOrder()"
-                              (click)="markAsPaid(order)"
-                              [title]="'ORDERS.PAY_NOW_HINT' | translate">
-                              {{ 'ORDERS.PAY_NOW' | translate }}
-                            </button>
-                          }
-                          @if (order.status !== 'paid' && order.status !== 'cancelled' && canFinishOrder()) {
-                            <button type="button" class="btn btn-success" (click)="openFinishPaymentModal(order)" [title]="'ORDERS.FINISH_ORDER_MENU' | translate">
-                              {{ 'ORDERS.FINISH_ORDER' | translate }}
-                            </button>
-                          }
-                          <div class="status-control">
-                            <button 
-                              class="status-badge-btn" 
-                              [class]="order.status"
-                              (click)="toggleStatusDropdown(order.id)"
-                              [title]="'Click to change status'">
-                              {{ getStatusLabel(order.status) }}
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="6,9 12,15 18,9"/>
-                              </svg>
-                            </button>
-                            @if (statusDropdownOpen() === order.id) {
-                              <div class="status-dropdown" (click)="$event.stopPropagation()">
-                                @if (getOrderStatusTransitions(order.status).backward.length > 0) {
-                                  <div class="dropdown-section">
-                                    <div class="dropdown-label">{{ 'ORDERS.GO_BACK' | translate }}</div>
-                                    @for (status of getOrderStatusTransitions(order.status).backward; track status) {
-                                      <button 
-                                        class="dropdown-item backward"
-                                        (click)="updateStatus(order, status)">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                          <polyline points="15,18 9,12 15,6"/>
-                                        </svg>
-                                        {{ getStatusLabel(status) }}
-                                      </button>
-                                    }
-                                  </div>
-                                }
-                                @if (getOrderStatusTransitions(order.status).forward.length > 0) {
-                                  <div class="dropdown-section">
-                                    <div class="dropdown-label">{{ 'ORDERS.MOVE_FORWARD' | translate }}</div>
-                                    @for (status of getOrderStatusTransitions(order.status).forward; track status) {
-                                      <button 
-                                        class="dropdown-item forward"
-                                        (click)="updateStatus(order, status)">
-                                        {{ getStatusLabel(status) }}
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                          <polyline points="9,18 15,12 9,6"/>
-                                        </svg>
-                                      </button>
-                                    }
-                                  </div>
-                                }
-                                @if (order.status !== 'paid' && order.status !== 'cancelled' && canMarkPaid()) {
-                                  <div class="dropdown-section">
-                                    <button 
-                                      class="dropdown-item forward"
-                                      (click)="markAsPaid(order); statusDropdownOpen.set(null)">
-                                      {{ 'ORDERS.MARK_AS_PAID' | translate }}
-                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="9,18 15,12 9,6"/>
-                                      </svg>
-                                    </button>
-                                  </div>
-                                }
-                                @if (order.status !== 'paid' && order.status !== 'cancelled' && canFinishOrder()) {
-                                  <div class="dropdown-section">
-                                    <button 
-                                      class="dropdown-item forward"
-                                      (click)="openFinishPaymentModal(order); statusDropdownOpen.set(null)">
-                                      {{ 'ORDERS.FINISH_ORDER_MENU' | translate }}
-                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="9,18 15,12 9,6"/>
-                                      </svg>
-                                    </button>
-                                  </div>
-                                }
-                                @if (order.status === 'paid' && canMarkPaid()) {
-                                  <div class="dropdown-section">
-                                    <button 
-                                      class="dropdown-item backward"
-                                      (click)="unmarkPaid(order)">
-                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="15,18 9,12 15,6"/>
-                                      </svg>
-                                      {{ 'ORDERS.UNMARK_PAID' | translate }}
-                                    </button>
-                                  </div>
-                                }
-                              </div>
-                            }
-                          </div>
-                        </div>
-                        @if (canDeleteOrder()) {
-                          <button type="button" class="btn btn-delete-order" (click)="deleteOrder(order)" [title]="'ORDERS.DELETE_ORDER' | translate">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                              <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
-                            </svg>
-                            {{ 'ORDERS.DELETE_ORDER' | translate }}
-                          </button>
-                        }
                       </div>
 
                       <div class="order-items">
@@ -621,6 +498,125 @@ ModuleRegistry.registerModules([
                           }
                         </div>
                         <div class="order-actions">
+                          @if (canUpdateStatus() && order.status !== 'cancelled') {
+                            <button type="button" class="btn btn-urgent" (click)="toggleStaffUrgent(order, $event)">
+                              {{ order.staff_urgent ? ('ORDERS.CLEAR_URGENT' | translate) : ('ORDERS.MARK_URGENT' | translate) }}
+                            </button>
+                          }
+                          <button type="button" class="btn btn-edit-order" (click)="openOrderEdit(order)" [title]="'ORDERS.EDIT_ORDER' | translate">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                            {{ 'COMMON.EDIT' | translate }}
+                          </button>
+                          @if (order.status !== 'paid' && order.status !== 'cancelled' && canMarkPaid()) {
+                            <button
+                              type="button"
+                              class="btn"
+                              [class.btn-secondary]="canFinishOrder()"
+                              [class.btn-primary]="!canFinishOrder()"
+                              (click)="markAsPaid(order)"
+                              [title]="'ORDERS.PAY_NOW_HINT' | translate">
+                              {{ 'ORDERS.PAY_NOW' | translate }}
+                            </button>
+                          }
+                          @if (order.status !== 'paid' && order.status !== 'cancelled' && canFinishOrder()) {
+                            <button type="button" class="btn btn-success" (click)="openFinishPaymentModal(order)" [title]="'ORDERS.FINISH_ORDER_MENU' | translate">
+                              {{ 'ORDERS.FINISH_ORDER' | translate }}
+                            </button>
+                          }
+                          <div class="status-control">
+                            <button
+                              class="status-badge-btn"
+                              [class]="order.status"
+                              (click)="toggleStatusDropdown(order.id)"
+                              [title]="'ORDERS.CLICK_TO_CHANGE_STATUS' | translate">
+                              {{ getStatusLabel(order.status) }}
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6,9 12,15 18,9"/>
+                              </svg>
+                            </button>
+                            @if (statusDropdownOpen() === order.id) {
+                              <div class="status-dropdown" (click)="$event.stopPropagation()">
+                                @if (getOrderStatusTransitions(order.status).backward.length > 0) {
+                                  <div class="dropdown-section">
+                                    <div class="dropdown-label">{{ 'ORDERS.GO_BACK' | translate }}</div>
+                                    @for (status of getOrderStatusTransitions(order.status).backward; track status) {
+                                      <button
+                                        class="dropdown-item backward"
+                                        (click)="updateStatus(order, status)">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                          <polyline points="15,18 9,12 15,6"/>
+                                        </svg>
+                                        {{ getStatusLabel(status) }}
+                                      </button>
+                                    }
+                                  </div>
+                                }
+                                @if (getOrderStatusTransitions(order.status).forward.length > 0) {
+                                  <div class="dropdown-section">
+                                    <div class="dropdown-label">{{ 'ORDERS.MOVE_FORWARD' | translate }}</div>
+                                    @for (status of getOrderStatusTransitions(order.status).forward; track status) {
+                                      <button
+                                        class="dropdown-item forward"
+                                        (click)="updateStatus(order, status)">
+                                        {{ getStatusLabel(status) }}
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                          <polyline points="9,18 15,12 9,6"/>
+                                        </svg>
+                                      </button>
+                                    }
+                                  </div>
+                                }
+                                @if (order.status !== 'paid' && order.status !== 'cancelled' && canMarkPaid()) {
+                                  <div class="dropdown-section">
+                                    <button
+                                      class="dropdown-item forward"
+                                      (click)="markAsPaid(order); statusDropdownOpen.set(null)">
+                                      {{ 'ORDERS.MARK_AS_PAID' | translate }}
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="9,18 15,12 9,6"/>
+                                      </svg>
+                                    </button>
+                                  </div>
+                                }
+                                @if (order.status !== 'paid' && order.status !== 'cancelled' && canFinishOrder()) {
+                                  <div class="dropdown-section">
+                                    <button
+                                      class="dropdown-item forward"
+                                      (click)="openFinishPaymentModal(order); statusDropdownOpen.set(null)">
+                                      {{ 'ORDERS.FINISH_ORDER_MENU' | translate }}
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="9,18 15,12 9,6"/>
+                                      </svg>
+                                    </button>
+                                  </div>
+                                }
+                                @if (order.status === 'paid' && canMarkPaid()) {
+                                  <div class="dropdown-section">
+                                    <button
+                                      class="dropdown-item backward"
+                                      (click)="unmarkPaid(order)">
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="15,18 9,12 15,6"/>
+                                      </svg>
+                                      {{ 'ORDERS.UNMARK_PAID' | translate }}
+                                    </button>
+                                  </div>
+                                }
+                              </div>
+                            }
+                          </div>
+                          @if (canDeleteOrder()) {
+                            <button type="button" class="btn btn-delete-order" (click)="deleteOrder(order)" [title]="'ORDERS.DELETE_ORDER' | translate">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                                <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                              </svg>
+                              {{ 'ORDERS.DELETE_ORDER' | translate }}
+                            </button>
+                          }
                           @if (order.table_id != null && order.table_token) {
                             <button type="button" class="btn btn-menu-link" (click)="openMenuForOrder(order)" [title]="'ORDERS.OPEN_MENU_LINK' | translate">
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1088,21 +1084,13 @@ ModuleRegistry.registerModules([
     .order-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
       gap: var(--space-3);
       padding: var(--space-4);
       border-bottom: 1px solid var(--color-border);
       margin-bottom: var(--space-3);
     }
-    .order-header-main { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
-    .order-header-actions {
-      flex-shrink: 0;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: flex-end;
-      gap: var(--space-2);
-    }
+    .order-header-main { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; flex: 1; }
     .btn-edit-order {
       display: inline-flex; align-items: center; gap: var(--space-2);
       padding: var(--space-2) var(--space-3); min-height: 44px;
@@ -1394,7 +1382,15 @@ ModuleRegistry.registerModules([
       gap: var(--space-1);
     }
     .order-total { font-weight: 600; color: var(--color-text); }
-    .order-actions { display: flex; gap: var(--space-2); position: relative; overflow: visible; }
+    .order-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: var(--space-2);
+      position: relative;
+      overflow: visible;
+    }
     
     .status-control {
       position: relative;
