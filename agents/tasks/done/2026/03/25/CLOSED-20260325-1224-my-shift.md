@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue #87 (“My shift” overtime visibility) was implemented and verified end-to-end; the task reached **CLOSED** with a tester **PASS** report.
+- **What was done:** Backend serialization now exposes `contract_threshold_minutes`, `open_duration_minutes`, and `over_contract` for open work sessions; the My shift page and dashboard card show user-visible overtime warnings with stable `data-testid` hooks; `tests/test_work_session.py` covers the behaviour.
+- **What was tested:** Pytest (3 passed), Angular bundle build clean in Docker front logs, `test:landing-version` smoke, and headless UI check for overtime banners — all **PASS** per the embedded test report.
+- **Why closed:** All stated pass/fail criteria met; no outstanding test failures or build errors documented in the task.
+- **Closed at (UTC):** 2026-03-25 12:35
+---
+
 # My shift
 
 ## GitHub
