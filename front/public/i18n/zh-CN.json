@@ -131,6 +131,7 @@
     "MY_SHIFT_LOADING": "正在检查考勤…",
     "MY_SHIFT_DESC_OFF": "上班打卡以记录工时",
     "MY_SHIFT_DESC_ON": "您已打卡上班 — 打开以下班打卡或查看记录",
+    "MY_SHIFT_OVERTIME": "已超过通常班次时长 — 请打开「我的班次」",
     "CHANGELOG_TITLE": "更新日志",
     "CHANGELOG_LOADING": "加载中…"
   },
@@ -692,7 +693,10 @@
     "NO_HISTORY": "最近 30 天无记录。",
     "COL_START": "开始",
     "COL_END": "结束",
-    "COL_DURATION": "时长"
+    "COL_DURATION": "时长",
+    "ELAPSED": "已用工时",
+    "OVERTIME_TITLE": "延长班次",
+    "OVERTIME_BODY": "您已连续打卡超过通常的 {{hours}} 小时。若仍在工作，请与负责人确认加班安排，并在结束时下班打卡。"
   },
   "REPORTS": {
     "TITLE": "销售与收入",

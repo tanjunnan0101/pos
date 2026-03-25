@@ -138,6 +138,7 @@
     "MY_SHIFT_LOADING": "Vérification de la présence…",
     "MY_SHIFT_DESC_OFF": "Pointez l’arrivée pour enregistrer vos heures",
     "MY_SHIFT_DESC_ON": "Vous êtes pointé(e) — ouvrez pour pointer le départ ou voir l’historique",
+    "MY_SHIFT_OVERTIME": "Service plus long que d’habitude — ouvrez Mon service",
     "CHANGELOG_TITLE": "Journal des modifications",
     "CHANGELOG_LOADING": "Chargement…"
   },
@@ -549,7 +550,10 @@
     "NO_HISTORY": "Aucune session sur les 30 derniers jours.",
     "COL_START": "Début",
     "COL_END": "Fin",
-    "COL_DURATION": "Durée"
+    "COL_DURATION": "Durée",
+    "ELAPSED": "Écoulé",
+    "OVERTIME_TITLE": "Service prolongé",
+    "OVERTIME_BODY": "Vous êtes pointé(e) depuis plus de {{hours}} heures (durée habituelle). Si vous travaillez encore, coordonnez les heures supplémentaires avec votre responsable et pointez la sortie en fin de service."
   },
   "REPORTS": {
     "TITLE": "Ventes et chiffre d'affaires",

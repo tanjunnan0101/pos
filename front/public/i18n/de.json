@@ -138,6 +138,7 @@
     "MY_SHIFT_LOADING": "Status wird geladen…",
     "MY_SHIFT_DESC_OFF": "Zur Arbeitszeiterfassung einchecken",
     "MY_SHIFT_DESC_ON": "Sie sind eingecheckt — öffnen zum Auschecken oder für die Historie",
+    "MY_SHIFT_OVERTIME": "Länger als üblich — „Meine Schicht“ öffnen",
     "CHANGELOG_TITLE": "Changelog",
     "CHANGELOG_LOADING": "Wird geladen…"
   },
@@ -734,7 +735,10 @@
     "NO_HISTORY": "Keine Sitzungen in den letzten 30 Tagen.",
     "COL_START": "Beginn",
     "COL_END": "Ende",
-    "COL_DURATION": "Dauer"
+    "COL_DURATION": "Dauer",
+    "ELAPSED": "Verstrichen",
+    "OVERTIME_TITLE": "Verlängerte Schicht",
+    "OVERTIME_BODY": "Sie sind länger als übliche {{hours}} Stunden eingestochen. Wenn Sie noch arbeiten, stimmen Sie Überstunden mit der Führung ab und stechen Sie aus, wenn Sie fertig sind."
   },
   "REPORTS": {
     "TITLE": "Umsatz & Einnahmen",

@@ -138,6 +138,7 @@
     "MY_SHIFT_LOADING": "Checking attendance…",
     "MY_SHIFT_DESC_OFF": "Clock in to record working hours",
     "MY_SHIFT_DESC_ON": "You are clocked in — open to clock out or view history",
+    "MY_SHIFT_OVERTIME": "Longer than usual shift — open My shift",
     "CHANGELOG_TITLE": "Changelog",
     "CHANGELOG_LOADING": "Loading…"
   },
@@ -575,7 +576,10 @@
     "NO_HISTORY": "No sessions in the last 30 days.",
     "COL_START": "Start",
     "COL_END": "End",
-    "COL_DURATION": "Duration"
+    "COL_DURATION": "Duration",
+    "ELAPSED": "Elapsed",
+    "OVERTIME_TITLE": "Extended shift",
+    "OVERTIME_BODY": "You have been clocked in for more than the usual {{hours}} hours. If you are still working, coordinate overtime with your manager and clock out when you finish."
   },
   "REPORTS": {
     "TITLE": "Sales & Revenue",

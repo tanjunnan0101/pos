@@ -138,6 +138,7 @@
     "MY_SHIFT_LOADING": "Comprovant assistència…",
     "MY_SHIFT_DESC_OFF": "Marca l'entrada per registrar la jornada",
     "MY_SHIFT_DESC_ON": "Estàs en jornada — obre per marcar la sortida o veure l'historial",
+    "MY_SHIFT_OVERTIME": "Torn més llarg del habitual — obre El meu torn",
     "CHANGELOG_TITLE": "Registre de canvis",
     "CHANGELOG_LOADING": "Carregant…"
   },
@@ -689,7 +690,10 @@
     "NO_HISTORY": "Cap sessió en els últims 30 dies.",
     "COL_START": "Inici",
     "COL_END": "Fi",
-    "COL_DURATION": "Durada"
+    "COL_DURATION": "Durada",
+    "ELAPSED": "Transcorregut",
+    "OVERTIME_TITLE": "Torn prolongat",
+    "OVERTIME_BODY": "Portes més de {{hours}} hores habituals marcades. Si encara treballes, coordina les hores extres amb el responsable i marca la sortida en acabar."
   },
   "REPORTS": {
     "TITLE": "Vendes i ingressos",

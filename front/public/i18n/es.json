@@ -138,6 +138,7 @@
     "MY_SHIFT_LOADING": "Comprobando asistencia…",
     "MY_SHIFT_DESC_OFF": "Marca entrada para registrar tu jornada",
     "MY_SHIFT_DESC_ON": "Estás en jornada — abre para marcar salida o ver el historial",
+    "MY_SHIFT_OVERTIME": "Turno más largo de lo habitual — abre Mi turno",
     "CHANGELOG_TITLE": "Registro de cambios",
     "CHANGELOG_LOADING": "Cargando…"
   },
@@ -573,7 +574,10 @@
     "NO_HISTORY": "No hay sesiones en los últimos 30 días.",
     "COL_START": "Inicio",
     "COL_END": "Fin",
-    "COL_DURATION": "Duración"
+    "COL_DURATION": "Duración",
+    "ELAPSED": "Transcurrido",
+    "OVERTIME_TITLE": "Turno prolongado",
+    "OVERTIME_BODY": "Llevas fichado más de las {{hours}} horas habituales. Si sigues trabajando, coordina las horas extra con tu responsable y ficha la salida al terminar."
   },
   "REPORTS": {
     "TITLE": "Ventas e ingresos",

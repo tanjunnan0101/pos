@@ -35,6 +35,7 @@ from .db import check_db_connection, create_db_and_tables, get_session, engine
 from .settings import settings
 from .inventory_routes import router as inventory_router
 from .reports_routes import router as reports_router
+from .work_session_serialization import serialize_work_session
 from .inventory_service import deduct_inventory_for_order
 from . import inventory_models
 from .translation_service import TranslationService
@@ -1461,23 +1462,6 @@ def _require_tenant_staff_for_work_session(user: models.User) -> None:
         )
 
 
-def _work_session_to_dict(ws: models.WorkSession, user_name: str) -> dict:
-    duration_minutes: int | None = None
-    if ws.ended_at is not None and ws.started_at is not None:
-        duration_minutes = max(0, int((ws.ended_at - ws.started_at).total_seconds() // 60))
-    return {
-        "id": ws.id,
-        "tenant_id": ws.tenant_id,
-        "user_id": ws.user_id,
-        "user_name": user_name,
-        "started_at": ws.started_at.isoformat() if ws.started_at else None,
-        "ended_at": ws.ended_at.isoformat() if ws.ended_at else None,
-        "duration_minutes": duration_minutes,
-        "start_ip": ws.start_ip,
-        "end_ip": ws.end_ip,
-    }
-
-
 @app.get("/users/me/work-session")
 def get_my_open_work_session(
     current_user: Annotated[models.User, Depends(security.get_current_user)],
@@ -1494,7 +1478,7 @@ def get_my_open_work_session(
     if not open_row:
         return None
     name = current_user.full_name or current_user.email or ""
-    return _work_session_to_dict(open_row, name)
+    return serialize_work_session(open_row, name)
 
 
 @app.post("/users/me/work-session/start")
@@ -1535,7 +1519,7 @@ def start_my_work_session(
         )
     session.refresh(ws)
     name = current_user.full_name or current_user.email or ""
-    return _work_session_to_dict(ws, name)
+    return serialize_work_session(ws, name)
 
 
 @app.post("/users/me/work-session/end")
@@ -1563,7 +1547,7 @@ def end_my_work_session(
     session.commit()
     session.refresh(open_row)
     name = current_user.full_name or current_user.email or ""
-    return _work_session_to_dict(open_row, name)
+    return serialize_work_session(open_row, name)
 
 
 @app.get("/users/me/work-sessions")
@@ -1592,7 +1576,7 @@ def list_my_work_sessions(
         .order_by(models.WorkSession.started_at.desc())
     ).all()
     name = current_user.full_name or current_user.email or ""
-    return [_work_session_to_dict(r, name) for r in rows]
+    return [serialize_work_session(r, name) for r in rows]
 
 
 # ============ USER MANAGEMENT ============

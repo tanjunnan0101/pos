@@ -1,9 +1,9 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { SidebarComponent } from '../shared/sidebar.component';
 import { TranslateModule } from '@ngx-translate/core';
-import { ApiService, WorkSession } from '../services/api.service';
+import { ApiService, WorkSession, workSessionOpenExceedsContract } from '../services/api.service';
 
 @Component({
   selector: 'app-my-shift',
@@ -19,6 +19,13 @@ import { ApiService, WorkSession } from '../services/api.service';
 
         <p class="hint">{{ 'MY_SHIFT.AUDIT_HINT' | translate }}</p>
 
+        @if (exceedsContract()) {
+          <div class="overtime-banner" role="status" data-testid="my-shift-overtime-banner">
+            <strong>{{ 'MY_SHIFT.OVERTIME_TITLE' | translate }}</strong>
+            <p>{{ 'MY_SHIFT.OVERTIME_BODY' | translate: { hours: contractHours() } }}</p>
+          </div>
+        }
+
         @if (error()) {
           <div class="error-banner">{{ error() }}</div>
         }
@@ -32,6 +39,12 @@ import { ApiService, WorkSession } from '../services/api.service';
               <span class="label">{{ 'MY_SHIFT.STARTED' | translate }}</span>
               <span>{{ formatDt(s.started_at) }}</span>
             </p>
+            @if (openElapsedLabel()) {
+              <p class="time-row elapsed-row">
+                <span class="label">{{ 'MY_SHIFT.ELAPSED' | translate }}</span>
+                <span>{{ openElapsedLabel() }}</span>
+              </p>
+            }
             <button type="button" class="btn btn-primary btn-end" (click)="endShift()" [disabled]="actionLoading()">
               {{ actionLoading() ? ('MY_SHIFT.WORKING' | translate) : ('MY_SHIFT.END_SHIFT' | translate) }}
             </button>
@@ -99,6 +112,23 @@ import { ApiService, WorkSession } from '../services/api.service';
       border-radius: 8px;
       margin-bottom: 1rem;
     }
+    .overtime-banner {
+      background: var(--color-warning-bg, #fff8e6);
+      border: 1px solid var(--color-warning-border, #f5d78e);
+      color: var(--color-text, #1a1a1a);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    .overtime-banner strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+    .overtime-banner p {
+      margin: 0;
+      font-size: 0.875rem;
+      line-height: 1.45;
+    }
     .card {
       background: var(--color-surface, #fff);
       border: 1px solid var(--color-border, #e5e5e5);
@@ -159,7 +189,7 @@ import { ApiService, WorkSession } from '../services/api.service';
     }
   `,
 })
-export class MyShiftComponent implements OnInit {
+export class MyShiftComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
 
   loading = signal(true);
@@ -167,9 +197,43 @@ export class MyShiftComponent implements OnInit {
   error = signal<string | null>(null);
   open = signal<WorkSession | null>(null);
   history = signal<WorkSession[]>([]);
+  /** Bumps on an interval so overtime / elapsed labels update while the page is open. */
+  private overtimeTick = signal(0);
+  private overtimeTimer: ReturnType<typeof setInterval> | null = null;
+
+  exceedsContract = computed(() => {
+    this.overtimeTick();
+    return workSessionOpenExceedsContract(this.open());
+  });
+
+  contractHours = computed(() => {
+    const m = this.open()?.contract_threshold_minutes ?? 480;
+    return Math.round(m / 60);
+  });
+
+  openElapsedLabel = computed(() => {
+    this.overtimeTick();
+    const s = this.open();
+    if (!s || s.ended_at) return '';
+    const start = new Date(s.started_at).getTime();
+    if (Number.isNaN(start)) return '';
+    const mins = Math.max(0, Math.floor((Date.now() - start) / 60_000));
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+  });
 
   ngOnInit(): void {
     this.refreshAll();
+    this.overtimeTimer = setInterval(() => this.overtimeTick.update((n) => n + 1), 30_000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.overtimeTimer != null) {
+      clearInterval(this.overtimeTimer);
+      this.overtimeTimer = null;
+    }
   }
 
   private rangeLastDays(n: number): { from: string; to: string } {

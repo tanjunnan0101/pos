@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import unittest
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from pg_client_mixin import PgClientTestCase
 
 from app import models, security
+from app.work_session_serialization import WORK_SESSION_CONTRACT_THRESHOLD_MINUTES, serialize_work_session
 
 
 def _bearer_headers(user: models.User) -> dict[str, str]:
@@ -57,6 +58,9 @@ class TestWorkSession(PgClientTestCase):
         body = r.json()
         self.assertIn("id", body)
         self.assertIsNone(body.get("ended_at"))
+        self.assertFalse(body.get("over_contract"))
+        self.assertEqual(body.get("contract_threshold_minutes"), WORK_SESSION_CONTRACT_THRESHOLD_MINUTES)
+        self.assertIsNotNone(body.get("open_duration_minutes"))
 
         r2 = self.client.post("/users/me/work-session/start", headers=wh)
         self.assertEqual(r2.status_code, 400, r2.text)
@@ -92,6 +96,45 @@ class TestWorkSession(PgClientTestCase):
         self.assertEqual(rep.status_code, 200, rep.text)
         self.assertEqual(len(rep.json()), 1)
         self.assertEqual(rep.json()[0]["user_id"], self.waiter.id)
+
+    def test_open_shift_over_contract_after_threshold(self):
+        wh = _bearer_headers(self.waiter)
+        r = self.client.post("/users/me/work-session/start", headers=wh)
+        self.assertEqual(r.status_code, 200, r.text)
+        ws_id = r.json()["id"]
+        row = self.session.get(models.WorkSession, ws_id)
+        self.assertIsNotNone(row)
+        row.started_at = datetime.now(timezone.utc) - timedelta(
+            minutes=WORK_SESSION_CONTRACT_THRESHOLD_MINUTES + 15
+        )
+        self.session.add(row)
+        self.session.commit()
+
+        cur = self.client.get("/users/me/work-session", headers=wh)
+        self.assertEqual(cur.status_code, 200, cur.text)
+        payload = cur.json()
+        self.assertTrue(payload.get("over_contract"))
+        self.assertGreaterEqual(
+            payload.get("open_duration_minutes", 0),
+            WORK_SESSION_CONTRACT_THRESHOLD_MINUTES,
+        )
+
+    def test_serialize_work_session_respects_now_override(self):
+        started = datetime(2020, 1, 1, 8, 0, tzinfo=timezone.utc)
+        now = started + timedelta(minutes=WORK_SESSION_CONTRACT_THRESHOLD_MINUTES)
+        ws = models.WorkSession(
+            tenant_id=self.tenant_id,
+            user_id=self.waiter.id,
+            started_at=started,
+            ended_at=None,
+        )
+        self.session.add(ws)
+        self.session.commit()
+        self.session.refresh(ws)
+        d = serialize_work_session(ws, "Waiter", now_utc=now)
+        self.assertTrue(d["over_contract"])
+        d2 = serialize_work_session(ws, "Waiter", now_utc=started + timedelta(minutes=30))
+        self.assertFalse(d2["over_contract"])
 
 
 if __name__ == "__main__":

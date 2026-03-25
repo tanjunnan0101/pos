@@ -97,8 +97,23 @@ export interface WorkSession {
   started_at: string;
   ended_at: string | null;
   duration_minutes: number | null;
+  /** Elapsed minutes while session is open; null when ended. */
+  open_duration_minutes?: number | null;
+  /** Server default for “normal” shift length (minutes); UI may compare locally to `started_at`. */
+  contract_threshold_minutes?: number;
+  /** True when open elapsed time >= threshold (server time at last response). */
+  over_contract?: boolean;
   start_ip: string | null;
   end_ip: string | null;
+}
+
+/** Whether an open work session has reached the contract-length threshold (client clock). */
+export function workSessionOpenExceedsContract(ws: WorkSession | null | undefined): boolean {
+  if (!ws || ws.ended_at) return false;
+  const threshold = ws.contract_threshold_minutes ?? 480;
+  const start = new Date(ws.started_at).getTime();
+  if (Number.isNaN(start)) return false;
+  return Date.now() - start >= threshold * 60 * 1000;
 }
 
 export interface AuthResponse {
