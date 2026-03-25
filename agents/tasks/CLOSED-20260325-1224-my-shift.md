@@ -43,3 +43,38 @@ Staff use **My shift** / **Start shift** to clock in. The product should **detec
 
 - **Pass:** All three pytest cases in `test_work_session.py` green; front build clean; landing smoke exits 0; overtime banner visible when open session age ≥ threshold.
 - **Fail:** Any pytest failure, Angular build error in front logs, or banner missing when session is clearly over 8 hours open.
+
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window:** 2026-03-25 ~12:31–12:35 UTC (pytest, smoke, UI check); Docker `front`/`back` logs reviewed for the same window.
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202`; branch `development` @ `44c58f2`.
+
+3. **What was tested:** As in “What to verify” / pass criteria: API serialization + over-contract behaviour, Angular build health, landing smoke including `/my-shift`, and browser presence of overtime `data-testid` elements for a user with an open session older than 8 hours (existing dev DB row `work_session.id=6` for `ralf@roeber.de`).
+
+4. **Results:**
+   - Open session API fields (`contract_threshold_minutes`, `open_duration_minutes`, `over_contract`) consistent with elapsed time — **PASS** — `pytest tests/test_work_session.py -q` → `3 passed in 2.22s`.
+   - Clock-in/out and list/report JSON — **PASS** — covered by `test_clock_in_out_and_report` in same run.
+   - Front build — **PASS** — `docker compose … logs --tail=80 front` shows `Application bundle generation complete` with no TS/Angular errors in the tail.
+   - Landing smoke — **PASS** — `BASE_URL=http://127.0.0.1:4202 HEADLESS=1 npm run test:landing-version` (from `front/`) exit code 0.
+   - Overtime banner + dashboard hint (`my-shift-overtime-banner`, `dashboard-my-shift-overtime`) with session ≥8h open — **PASS** — headless Puppeteer (one-off script, `NODE_PATH=front/node_modules`) found both selectors after login.
+
+5. **Overall:** **PASS**
+
+6. **Product owner feedback:** Staff on long shifts get a clear on-screen warning on **My shift** and a matching hint on the dashboard card once the open session passes the fixed 8-hour threshold, backed by explicit API fields for tooling and tests. The behaviour matches the stated rule (wall-clock elapsed from `started_at` in UTC).
+
+7. **URLs tested:**
+   1. `http://127.0.0.1:4202/`
+   2. `http://127.0.0.1:4202/login?tenant=1`
+   3. `http://127.0.0.1:4202/dashboard`
+   4. `http://127.0.0.1:4202/my-shift` (and same route during `test:landing-version` sidebar crawl)
+   5. Additional routes from `test:landing-version` sidebar/inventory crawl (staff nav smoke; see script output) — `/staff/orders`, `/reservations`, `/guest-feedback`, `/tables`, `/kitchen`, `/bar`, `/customers`, `/products`, `/catalog`, `/reports`, `/working-plan`, `/users`, `/settings`, `/inventory/items`, `/inventory/suppliers`, `/inventory/purchase-orders`, `/inventory/stock`, `/inventory/reports`
+
+8. **Relevant log excerpts:**
+   - **Back (pytest, host-side):** `3 passed in 2.22s`
+   - **Back (runtime, HAProxy → API during UI checks):** e.g. `GET /users/me/work-session HTTP/1.1" 200 OK` (compose `back` logs ~12:32Z).
+   - **Front:** `Application bundle generation complete. [0.011 seconds] - 2026-03-25T12:28:54.691Z` (no error lines in sampled tail).
+
+**GitHub:** Comment posted on #87 when verification started. `gh issue edit … --add-label agent:testing` failed: label `agent:testing` not defined on the repo (create label or set manually if needed).
