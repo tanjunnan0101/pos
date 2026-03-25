@@ -40,3 +40,43 @@ In **Settings**, after **Save**, the success snackbar/toast overlaps the save co
 
 - **Pass:** Success toast is top-centered (not over Save), auto-dismiss ~60s works, manual dismiss works, Angular build clean (`docker compose … logs --tail=80 front` shows no errors).
 - **Fail:** Toast still anchored to bottom over actions, no auto-dismiss for save success, or build errors.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-03-25 ~10:50–11:05 (single session). Log window: same window for `docker compose … logs --tail=80 front`.
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202`; branch `development` @ `22f1ae9`.
+
+3. **What was tested:** Criteria from “What to verify” / pass-fail above (toast position vs Save row, auto-dismiss behaviour, error toast styling, regression smoke, front build).
+
+4. **Results**
+
+   - Success toast **near top center**, does **not** cover Save/Cancel row: **PASS** — Puppeteer measured after save on **Settings → Navigation & UI**: `.toast.success` `position: fixed`, `toastTop` 16px, Save row `saveTop` ~673px, `overlapVertical: false`, width 400px centered (viewport 1280×900).
+   - Success **auto-dismiss ~60s**: **PASS (code + partial runtime)** — `SETTINGS_SUCCESS_TOAST_MS = 60_000` and `scheduleSuccessDismiss()` in `settings.component.ts`; full 60s wall-clock wait not run (optional per task); timer cleared on `ngOnDestroy` / manual dismiss.
+   - Manual **×** dismiss / timer cancel: **PASS** — `dismissSuccessToast()` clears timeout and `success` signal (code review); close control present in template.
+   - **Error** toasts top-centered, no auto-dismiss on success timer: **PASS** — same `.toast` CSS (`top` + `translateX(-50%)`); errors only call `error.set`, not `scheduleSuccessDismiss` (code review).
+   - `test:landing-version`: **PASS** (includes `/settings` nav).
+   - Angular build / front logs: **PASS** — `Application bundle generation complete` with no TS errors in sampled `front` logs.
+
+5. **Overall:** **PASS**
+
+6. **Product owner feedback:** The green save confirmation now sits at the top of the screen and stays clear of the Save button, so staff can save again immediately if needed. The message is set to clear automatically after about a minute, and the close control still works for instant dismissal. No regressions showed up in the automated navigation smoke test.
+
+7. **URLs tested**
+
+   1. `http://127.0.0.1:4202/login?tenant=1`
+   2. `http://127.0.0.1:4202/dashboard` (post-login)
+   3. `http://127.0.0.1:4202/settings`
+   4. `http://127.0.0.1:4202/` (landing smoke)
+
+8. **Relevant log excerpts**
+
+   ```
+   pos-front  | Application bundle generation complete. [0.007 seconds] - 2026-03-25T10:43:47.632Z
+   ```
+
+   **GitHub:** Comment posted on #80; label `agent:testing` not applied (label missing in repo).
+
+**Tester note:** One-off Puppeteer geometry script was used locally (`/tmp/verify-settings-success-toast.mjs`); not committed to the repo.
