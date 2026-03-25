@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Settings → Email (SMTP) fell back to English for non-English UI languages because many `SETTINGS.*` keys existed only in `en.json`.
+- **What was done:** Translation keys were added across `ca`, `de`, `es`, `fr`, `hi`, and `zh-CN` locale JSON; the settings template wired SMTP port/user placeholders through `translate`.
+- **What was tested:** Tester reported **PASS** for Spanish UI, sidebar label, spot-check of other locales via JSON, `npm run test:landing-version`, and front build logs.
+- **Why closed:** Test report overall **PASS**; acceptance criteria met.
+- **Closed at (UTC):** 2026-03-25 12:10
+---
+
 # Email SMTP widget shows English when Spanish is selected
 
 ## GitHub
