@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue #92 asked to remove or hide **`order-header-actions`** only in the staff orders context while keeping layout alignment correct.
+- **What was done:** **`orders.component.ts`** drops the header actions column on **Active** and **Not paid yet** cards; the same controls live in the card footer **`order-actions`** with flex alignment updates, scoped to orders without changing kitchen or global card styles.
+- **What was tested:** Angular build clean; **`review-order-edit-puppeteer.mjs`** and **`test:landing-version`** exit 0; manual checks on **`/staff/orders`** and kitchen regression — overall **PASS** per test report.
+- **Why closed:** Verification passed; task archived per agent loop.
+- **Closed at (UTC):** 2026-03-25 14:02
+---
+
 # Buttons of order
 
 ## GitHub
