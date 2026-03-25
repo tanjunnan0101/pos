@@ -1136,7 +1136,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                   <div class="form-row">
                     <div class="form-group">
                       <label for="smtp_port">{{ 'SETTINGS.SMTP_PORT' | translate }}</label>
-                      <input type="number" id="smtp_port" [(ngModel)]="formData.smtp_port" name="smtp_port" placeholder="587" min="1" max="65535" />
+                      <input type="number" id="smtp_port" [(ngModel)]="formData.smtp_port" name="smtp_port" [placeholder]="'SETTINGS.SMTP_PORT_PLACEHOLDER' | translate" min="1" max="65535" />
                     </div>
                     <div class="form-group checkbox-row">
                       <label class="switch">
@@ -1150,7 +1150,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                   </div>
                   <div class="form-group">
                     <label for="smtp_user">{{ 'SETTINGS.SMTP_USER' | translate }}</label>
-                    <input type="text" id="smtp_user" [(ngModel)]="formData.smtp_user" name="smtp_user" placeholder="you@your-mail.com" />
+                    <input type="text" id="smtp_user" [(ngModel)]="formData.smtp_user" name="smtp_user" [placeholder]="'SETTINGS.SMTP_USER_PLACEHOLDER' | translate" />
                   </div>
                   <div class="form-group">
                     <label for="smtp_password">{{ 'SETTINGS.SMTP_PASSWORD' | translate }}</label>

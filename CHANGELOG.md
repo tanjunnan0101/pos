@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Settings → Email (SMTP) (GitHub #81):** Added missing `SETTINGS.*` translation keys for SMTP and reservation confirmation copy in Catalan, Spanish, German, French, Hindi, and Chinese (`public/i18n`). SMTP port and username placeholders use i18n like other fields.
+
 - **Settings Security / 2FA (GitHub #83):** Spacing between OTP description hint and the enable action (and setup hint before the secret row) so the control is not flush against the copy.
 
 ## [2.0.56] - 2026-03-25
