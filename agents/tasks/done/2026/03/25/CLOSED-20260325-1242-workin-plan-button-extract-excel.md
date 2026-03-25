@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue #89 asked for a worker-scoped Excel export of the working-plan calendar month.
+- **What was done:** Backend `GET /schedule/export` (openpyxl, tenant-safe user scoping, localized headers), frontend worker `<select>` plus “Export Excel” on Working plan with i18n, plus pytest and Puppeteer coverage per the task notes.
+- **What was tested:** `tests/test_schedule_export.py` passed (3 tests); `npm run test:working-plan` passed; front/back logs sampled clean; manual open-in-Excel was not run but mitigated by API-side xlsx parsing tests.
+- **Why closed:** Test report overall **PASS** — automated pass/fail criteria satisfied.
+- **Closed at (UTC):** 2026-03-25 13:08
+---
+
 # Workin plan button extract excel
 
 ## GitHub
