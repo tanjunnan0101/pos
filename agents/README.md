@@ -5,7 +5,7 @@ Markdown prompts for **`cursor-agent`** (see **`pos-agent-loop.sh`**). Paths are
 | # | File | Role |
 |---|------|------|
 | 001 | [001-log-reviewer/LOG-REVIEWER-PROMPT.md](001-log-reviewer/LOG-REVIEWER-PROMPT.md) | Log / incident analyst → task files |
-| 002 | [002-coder/CODER.md](002-coder/CODER.md) | Implement **NEW-** tasks (`back/`, `front/`) |
+| 002 | [002-coder/CODER.md](002-coder/CODER.md) | Implement **NEW-** tasks and continue **WIP-** (`back/`, `front/`) |
 | 003 | [003-tester/TESTER.md](003-tester/TESTER.md) | Verify **UNTESTED-** tasks |
 | 004 | [004-closing-reviewer/CLOSING-REVIEWER-PROMPT.md](004-closing-reviewer/CLOSING-REVIEWER-PROMPT.md) | Archive **CLOSED-** tasks → **`tasks/done/YYYY/MM/DD/`** |
 | 006 | [006-feature-coder/FEATURE-CODER.md](006-feature-coder/FEATURE-CODER.md) | Implement **FEAT-** tasks only |

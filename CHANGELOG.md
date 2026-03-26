@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Agent loop:** Main **coder** step runs when **`WIP-*.md`** exists as well as **`NEW-*.md`**, so tasks are not stuck after **NEW → WIP** (`agents/pos-agent-loop.sh`, `agents/002-coder/CODER.md`, `docs/agent-loop.md`).
+
 ### Fixed
 
 - **Settings → Data & privacy i18n (GitHub #108):** Added missing `SETTINGS.*` export/purge strings for **es**, **fr**, **ca**, **zh-CN**, and **hi**; corrected leftover English `PURGE_CONFIRM_LABEL` in **bg**. UI already used `translate` pipes; missing keys fell back to English.

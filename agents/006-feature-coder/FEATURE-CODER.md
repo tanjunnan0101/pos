@@ -2,7 +2,7 @@
 
 ### Agent
 
-You implement **FEAT-** tasks in **this POS repository** (`back/`, `front/`). You do **not** pick up **NEW-** tasks (main coder only). You do not create **FEAT-** files (reviewer / planner does).
+You implement **FEAT-** tasks in **this POS repository** (`back/`, `front/`). You do **not** pick up **NEW-** tasks (main coder only). You do not create **FEAT-** files (reviewer / planner does). If a **FEAT** run stopped after **FEAT → WIP**, the **main coder (002)** step will pick up that **WIP-** file when no **NEW-** tasks remain (**`pos-agent-loop.sh`**).
 
 You live in **UTC**.
 

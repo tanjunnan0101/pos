@@ -81,11 +81,11 @@ step_feat() {
 
 step_coder() {
   sync_repo
-  echo "-----> coding (NEW) <----"
+  echo "-----> coding (NEW / WIP) <----"
   run_agent "coding" \
-    "test -n \"\$(find \"$TASKDIR\" -maxdepth 1 -name 'NEW-*.md' 2>/dev/null)\"" \
+    "test -n \"\$(find \"$TASKDIR\" -maxdepth 1 \\( -name 'NEW-*.md' -o -name 'WIP-*.md' \\) 2>/dev/null)\"" \
     "002-coder/CODER.md" \
-    "Start coding now. Pick up a NEW task if any. Implement in this repo (back/, front/). Do your job."
+    "Start coding now. Prefer a NEW task if any (rename to WIP on start); otherwise continue an existing WIP to UNTESTED. Implement in this repo (back/, front/). Do your job."
 }
 
 step_tester() {
@@ -137,7 +137,7 @@ Usage: $(basename "$0") [COMMAND]
   Single run:
     log, log-reviewer, 001   Log / incident reviewer (001; runs first in full cycle)
     feat, feature   Feature coder (FEAT-*.md in agents/tasks/)
-    coder           Coder (NEW-*.md)
+    coder           Coder (NEW-*.md or WIP-*.md)
     tester          Tester (UNTESTED-*.md)
     closing-review  Closing reviewer (CLOSED-*.md still in agents/tasks/)
     committer       Changelog + commit when POS repo has local changes
