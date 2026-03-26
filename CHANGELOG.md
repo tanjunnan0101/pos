@@ -4,33 +4,19 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [2.0.60] - 2026-03-26
-
-### Added
-
-- **Staff contract templates & print view (GitHub #101):** Per-tenant contract document templates (`staff_contract_template` migration `20260326103000`), CRUD API `/staff-contract-templates` (`STAFF_CONTRACT_MANAGE`), safe delete when no `staff_contract` references the template key. `GET /staff-contracts/{id}/print` returns print-styled HTML with `{{placeholder}}` merge (employer/worker/role/dates/etc.) and signature block; falls back to a field summary when no template matches. Settings → **Contract templates**; **Contracts** links templates when creating a contract and adds **Print view**. Tests: `tests/test_staff_contract_templates.py`.
-
 ## [Unreleased]
 
+## [2.0.61] - 2026-03-26
+
 ### Added
+
+- **Bulgarian locale (`bg`):** Full UI coverage in `public/i18n/bg.json` and backend message catalog alignment with other shipped locales.
 
 - **Landing footer Contact us (GitHub #104):** Mailto **sales@satisfecho.de** with i18n label `LANDING.CONTACT_US` in all `public/i18n` locales; `test-landing-provider-links` asserts the mailto href.
 
 - **User management password re-auth (GitHub #105):** `PUT /users/{id}` with a new `password` requires `actor_current_password` (verified against the signed-in user). `/users` edit modal collects **Your current password** above new/confirm when changing a password. API messages in `messages.py`; UI strings in all `public/i18n` locales. Tests: `tests/test_user_password_update.py`.
 
 - **OpenStreetMap link for tenants (GitHub #102):** Optional `public_openstreetmap_url` in contact settings (same validation as other public http(s) links). Shown on public book (including post-submit), reservation-by-token view, and feedback pages alongside Google Maps when configured. Reservation confirmation and reminder emails include `google_maps_link_block_html` and `openstreetmap_link_block_html` placeholders (default template updated). Migration `20260326104500_tenant_public_openstreetmap_url.sql`. Tests: `tests/test_reservation_email_template.py`, `tests/test_reservation_reminder_email.py`, `tests/test_guest_feedback.py`.
-
-### Fixed
-
-- **Angular NG0200 ApiService circular dependency (GitHub #100):** `authInterceptor` no longer calls `inject(ApiService)` while `HttpClient` is constructed for `ApiService`; it resolves `ApiService` lazily via `Injector` inside the 401 error path (`front/src/app/auth/auth.interceptor.ts`).
-
-### Changed
-
-- **Docs — PostgreSQL username:** Clarified in `README.md`, `config.env.example`, and `docker-compose.yml` that the container superuser is **`POSTGRES_USER`** (default `pos`), not `postgres`, so IDE/`psql` defaults do not cause **`FATAL: role "postgres" does not exist`** confusion.
-
-- **Password reset email i18n (GitHub #97):** Reset email subject/body use `messages.py` translations for all backend-supported locales; language matches `POST /password-reset/request` (`?lang` / `Accept-Language`, same as API message). Forgot/reset flows send `lang` from the in-app language picker (`ApiService`). Tests: `tests/test_password_reset.py`.
-
-### Added
 
 - **Agent Cursor rules (GitHub #98):** Stack-focused **`.cursor/rules/*.mdc`** for Angular/ngx-translate (all `public/i18n` locales), FastAPI/SQLModel/migrations, Docker Compose + HAProxy, and security/tenant boundaries; catalog in **`docs/agent-cursor-rules.md`** with pointers from **`AGENTS.md`** and **`docs/agent-loop.md`**.
 
@@ -48,6 +34,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Docs — PostgreSQL username:** Clarified in `README.md`, `config.env.example`, and `docker-compose.yml` that the container superuser is **`POSTGRES_USER`** (default `pos`), not `postgres`, so IDE/`psql` defaults do not cause **`FATAL: role "postgres" does not exist`** confusion.
+
+- **Password reset email i18n (GitHub #97):** Reset email subject/body use `messages.py` translations for all backend-supported locales; language matches `POST /password-reset/request` (`?lang` / `Accept-Language`, same as API message). Forgot/reset flows send `lang` from the in-app language picker (`ApiService`). Tests: `tests/test_password_reset.py`.
+
 - **Staff reservations week grid (GitHub #94):** Create/edit on `/reservations` uses the same Mon–Sun availability grid as public `/book` (`GET /reservations/book-week-slots`), tenant timezone, party size, and public lead-time rules. Shared `ReservationWeekSlotGridComponent`; optional `exclude_reservation_id` on book-week-slots excludes the edited booking from demand. Saving without changing date/time still allowed (e.g. past slots).
 
 - **Reservation emails (GitHub #91):** Default confirmation template and scheduled/staff-triggered **reminder** emails include a **Contact us** block with the tenant’s public phone and email (`tel:` / `mailto:` in HTML, plain lines in text) when those fields are set. New template placeholder `restaurant_contact_block_html`; Settings → Reservations hint text updated in all i18n files.
@@ -58,14 +48,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Settings → Reservations (GitHub #82):** Pre-payment amount uses **whole amount** and **minor units** derived from the tenant currency via `Intl` (e.g. euros + cents); zero-decimal currencies show a single whole-unit field. Still stored as smallest-currency-unit integer (`reservation_prepayment_cents`).
 
-- **Agents:** 001-log-reviewer `time-of-last-review.txt` — GitHub/issue sweep and Docker log pass line appended (2026-03-25, 20:17Z UTC).
-- **Agents:** 001-log-reviewer `time-of-last-review.txt` — GitHub/issue sweep and Docker log pass line appended (2026-03-25, 20:49Z UTC).
-- **Agents:** 001-log-reviewer `time-of-last-review.txt` — GitHub/issue sweep and Docker log pass line appended (2026-03-25, 20:57Z UTC).
-- **Agents:** 001-log-reviewer `time-of-last-review.txt` — GitHub/issue sweep and Docker log pass line appended (2026-03-26, 09:00Z UTC).
-- **Agents:** 001-log-reviewer `LOG-REVIEWER-PROMPT.md` — accept data-deletion instructions only from user `raro42`.
-- **Agents:** Contact us (#104): task queue rename `UNTESTED-20260326-1105-contact-us.md` → `TESTING-20260326-1105-contact-us.md`.
+- **Agents:** 001 log-reviewer review stamps (2026-03-25–26), `LOG-REVIEWER-PROMPT.md` data-deletion scope, and task queue updates for contact-us (#104).
 
 ### Fixed
+
+- **Angular NG0200 ApiService circular dependency (GitHub #100):** `authInterceptor` no longer calls `inject(ApiService)` while `HttpClient` is constructed for `ApiService`; it resolves `ApiService` lazily via `Injector` inside the 401 error path (`front/src/app/auth/auth.interceptor.ts`).
 
 - **Settings → logo remove (GitHub #95):** Removing the business logo now calls `DELETE /tenant/logo` (unlink file, clear `logo_filename`), matching header-background removal. Previously only the local preview was cleared.
 
@@ -76,6 +63,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Settings → Email (SMTP) (GitHub #81):** Added missing `SETTINGS.*` translation keys for SMTP and reservation confirmation copy in Catalan, Spanish, German, French, Hindi, and Chinese (`public/i18n`). SMTP port and username placeholders use i18n like other fields.
 
 - **Settings Security / 2FA (GitHub #83):** Spacing between OTP description hint and the enable action (and setup hint before the secret row) so the control is not flush against the copy.
+
+## [2.0.60] - 2026-03-26
+
+### Added
+
+- **Staff contract templates & print view (GitHub #101):** Per-tenant contract document templates (`staff_contract_template` migration `20260326103000`), CRUD API `/staff-contract-templates` (`STAFF_CONTRACT_MANAGE`), safe delete when no `staff_contract` references the template key. `GET /staff-contracts/{id}/print` returns print-styled HTML with `{{placeholder}}` merge (employer/worker/role/dates/etc.) and signature block; falls back to a field summary when no template matches. Settings → **Contract templates**; **Contracts** links templates when creating a contract and adds **Print view**. Tests: `tests/test_staff_contract_templates.py`.
 
 ## [2.0.57] - 2026-03-25
 
