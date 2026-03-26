@@ -47,3 +47,32 @@ Compose defaults use **`POSTGRES_USER`** **`pos`** (not the conventional superus
 
 - Documentation clearly states superuser is **`POSTGRES_USER`** (default **`pos`**), not **`postgres`**, and explains the FATAL message.
 - No product code changes required for pass; optional `psql` check confirms expected credentials from `config.env`.
+
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window:** Testing started **2026-03-26T11:52Z** (approx.); verification completed **2026-03-26T11:53Z**. Log window reviewed: `docker logs pos-postgres` tail through **2026-03-26T11:51Z** (includes historical and new `FATAL: role "postgres" does not exist` lines).
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; stack running (db healthy, `127.0.0.1:5433`); **BASE_URL** N/A (no browser). Branch **development**, commit **3d95889**.
+
+3. **What was tested:** README + `config.env.example` + `docker-compose.yml` db service comments; optional in-container `psql` as `pos` vs `postgres`; `CHANGELOG.md` entry presence.
+
+4. **Results:**
+   - README states superuser is **`POSTGRES_USER`** / **`DB_USER`** (default **`pos`**), port mapping, and interprets **`FATAL: role "postgres" does not exist`**: **PASS** — grep/read `README.md` § “PostgreSQL: connecting from your machine” (lines ~235–239).
+   - `config.env.example` comment block above `POSTGRES_*` explains same: **PASS** — lines 3–5.
+   - `docker-compose.yml` `db` service comment on superuser vs `postgres`: **PASS** — line 74.
+   - Optional connectivity: `docker compose … exec -T db psql -U pos -d pos -c 'select 1'` succeeds; `psql -U postgres` fails with `FATAL:  role "postgres" does not exist`: **PASS** — matches documented behavior.
+   - Changelog documents the doc change: **PASS** — `CHANGELOG.md` Unreleased bullet on PostgreSQL username.
+
+5. **Overall:** **PASS**
+
+6. **Product owner feedback:** Operators now have a single place in the README and env example that explains why tools defaulting to user `postgres` fail, and what credentials to use instead. The compose comment reinforces this at the service definition. No application code change was required; behavior remains correct when clients use **`pos`** as documented.
+
+7. **URLs tested:** **N/A — no browser**
+
+8. **Relevant log excerpts:**
+   ```
+   2026-03-26 11:23:28.392 UTC [94603] FATAL:  role "postgres" does not exist
+   ```
+   (Reproduced during test via `psql -U postgres` inside `pos-postgres`; `psql -U pos` succeeds with `select 1`.)
