@@ -61,6 +61,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Agents:** 001-log-reviewer `time-of-last-review.txt` — GitHub/issue sweep and Docker log pass line appended (2026-03-25, 20:57Z UTC).
 - **Agents:** 001-log-reviewer `time-of-last-review.txt` — GitHub/issue sweep and Docker log pass line appended (2026-03-26, 09:00Z UTC).
 - **Agents:** 001-log-reviewer `LOG-REVIEWER-PROMPT.md` — accept data-deletion instructions only from user `raro42`.
+- **Agents:** Contact us (#104): task queue rename `UNTESTED-20260326-1105-contact-us.md` → `TESTING-20260326-1105-contact-us.md`.
 
 ### Fixed
 
