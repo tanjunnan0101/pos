@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Docker Postgres logs showed `FATAL: role "postgres" does not exist` because external clients default to user `postgres` while this stack uses `POSTGRES_USER` (default `pos`).
+- **What was done:** Coder documented the correct credentials and meaning of the FATAL in `README.md`, `config.env.example`, `docker-compose.yml`, and `CHANGELOG.md`; no `postgres` DB role was added.
+- **What was tested:** Tester verified README, env example, compose comments, optional `psql` as `pos` vs `postgres`, and changelog entry — **PASS**.
+- **Why closed:** All pass/fail criteria met; documentation-only fix delivered and verified.
+- **Closed at (UTC):** 2026-03-26 11:52
+---
+
 # Postgres: FATAL — role "postgres" does not exist
 
 ## Source
