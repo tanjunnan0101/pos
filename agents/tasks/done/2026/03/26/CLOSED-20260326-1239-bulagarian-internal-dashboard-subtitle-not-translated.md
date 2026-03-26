@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The tester handed off a closed task to fix the Bulgarian staff dashboard subtitle that still showed English copy under the welcome heading.
+- **What was done:** `DASHBOARD.WELCOME_TEXT` in `front/public/i18n/bg.json` was set to the Bulgarian string **"Управлявайте бизнес операциите си оттук"**; the tester re-checked locale selection, staff `/dashboard`, front build logs, and landing smoke.
+- **What was tested:** Bulgarian UI path plus `curl`/`bg.json` key check, last-80-lines front compose logs, and `npm run test:landing-version` — all **PASS** per the embedded test report.
+- **Why closed:** All testing instructions satisfied and overall outcome **PASS**; ready to archive.
+- **Closed at (UTC):** 2026-03-26 12:47
+---
+
 # Bulagarian internal dashboard subtitle not translated
 
 ## GitHub
