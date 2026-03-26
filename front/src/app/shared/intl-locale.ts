@@ -18,6 +18,7 @@ export function intlLocaleFromTranslate(translate: TranslateService): string {
     de: 'de-DE',
     fr: 'fr-FR',
     ca: 'ca-ES',
+    bg: 'bg-BG',
     hi: 'hi-IN',
   };
   return map[base] || (typeof navigator !== 'undefined' && navigator.language) || 'en-US';

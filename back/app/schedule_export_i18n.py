@@ -82,12 +82,24 @@ _HI: dict[str, str] = {
     "role": "भूमिका",
 }
 
+_BG: dict[str, str] = {
+    **_EN,
+    "sheet": "График",
+    "date": "Дата",
+    "start_time": "Начало",
+    "end_time": "Край",
+    "label": "Бележка",
+    "employee": "Служител",
+    "role": "Роля",
+}
+
 _LABELS: dict[str, dict[str, str]] = {
     "en": _EN,
     "es": _ES,
     "de": _DE,
     "ca": _CA,
     "fr": _FR,
+    "bg": _BG,
     "zh-CN": _ZH,
     "hi": _HI,
 }

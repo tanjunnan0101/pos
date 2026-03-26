@@ -7,6 +7,7 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'fr', label: 'Français', locale: 'fr-FR' },
   { code: 'ca', label: 'Català', locale: 'ca-ES' },
   { code: 'de', label: 'Deutsch', locale: 'de-DE' },
+  { code: 'bg', label: 'Български', locale: 'bg-BG' },
   { code: 'zh-CN', label: '中文（简体）', locale: 'zh-CN' },
   { code: 'hi', label: 'हिन्दी', locale: 'hi-IN' },
 ] as const;

@@ -12,3 +12,10 @@ def test_report_export_german_headers():
 def test_report_export_lang_fallback_lowercase():
     L = report_export_labels("DE")
     assert L["waiter"] == "Kellner"
+
+
+def test_report_export_bulgarian_headers():
+    L = report_export_labels("bg")
+    assert L["sheet_summary"] == "Обобщение"
+    assert L["revenue_cents"] == "Приходи (стотинки)"
+    assert L["res_status_no_show"] == "Неявяване"
