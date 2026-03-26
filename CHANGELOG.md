@@ -6,11 +6,75 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.0.61] - 2026-03-26
+
 ### Added
+
+- **Bulgarian locale (`bg`):** Full UI coverage in `public/i18n/bg.json` and backend message catalog alignment with other shipped locales.
+
+- **Landing footer Contact us (GitHub #104):** Mailto **sales@satisfecho.de** with i18n label `LANDING.CONTACT_US` in all `public/i18n` locales; `test-landing-provider-links` asserts the mailto href.
+
+- **User management password re-auth (GitHub #105):** `PUT /users/{id}` with a new `password` requires `actor_current_password` (verified against the signed-in user). `/users` edit modal collects **Your current password** above new/confirm when changing a password. API messages in `messages.py`; UI strings in all `public/i18n` locales. Tests: `tests/test_user_password_update.py`.
+
+- **OpenStreetMap link for tenants (GitHub #102):** Optional `public_openstreetmap_url` in contact settings (same validation as other public http(s) links). Shown on public book (including post-submit), reservation-by-token view, and feedback pages alongside Google Maps when configured. Reservation confirmation and reminder emails include `google_maps_link_block_html` and `openstreetmap_link_block_html` placeholders (default template updated). Migration `20260326104500_tenant_public_openstreetmap_url.sql`. Tests: `tests/test_reservation_email_template.py`, `tests/test_reservation_reminder_email.py`, `tests/test_guest_feedback.py`.
+
+- **Agent Cursor rules (GitHub #98):** Stack-focused **`.cursor/rules/*.mdc`** for Angular/ngx-translate (all `public/i18n` locales), FastAPI/SQLModel/migrations, Docker Compose + HAProxy, and security/tenant boundaries; catalog in **`docs/agent-cursor-rules.md`** with pointers from **`AGENTS.md`** and **`docs/agent-loop.md`**.
+
+- **Tenant data export & purge (GitHub #96):** Owner-only `GET /tenant/data-export` returns a ZIP with `tenant-export.json` (tenant settings with payment/SMTP secrets redacted, staff without password hashes, products, orders, reservations, i18n, inventory, etc.). Owner-only `POST /tenant/purge` with `confirm_tenant_name` matching the tenant name irreversibly deletes tenant data and schedules upload cleanup; logs a warning with operator id/email. Settings → **Data & privacy** (owners): download export and danger-zone delete. **Users:** owners editing another user can assign the **Owner** role (co-owner). Script `python -m app.seeds.purge_demo_tenants` removes tenants **2–7** when `DEMO_PURGE_CONFIRM=1`. Tests: `tests/test_tenant_lifecycle.py`.
+
+- **Password reset (GitHub #93):** Self-service recovery for **staff** (optional `tenant_id`, same as login) and **provider** accounts. New table `password_reset_token`, `POST /password-reset/request` (generic JSON message; rate-limited), `POST /password-reset/confirm` (one-time token, min. 8-char password, bumps `token_version`). Email uses existing SMTP (tenant SMTP when set). Frontend: `/forgot-password`, `/reset-password`, `/provider/forgot-password`; link from staff and provider login. Requires `PUBLIC_APP_BASE_URL` for emailed links. Env: `PASSWORD_RESET_TOKEN_EXPIRE_MINUTES`, `RATE_LIMIT_PASSWORD_RESET_PER_HOUR`. Tests: `tests/test_password_reset.py`.
+
+- **Working plan bulk month (GitHub #88):** **Apply to month** on the working plan creates the same shift on selected weekdays for the target calendar month (aligned with export month rules). Optional **skip days that already have a shift** preserves per-day edits and exceptions. New `POST /schedule/bulk`; `tests/test_schedule_bulk.py`; Puppeteer `test:working-plan` checks the new control.
+
+- **Working plan Excel export (GitHub #89):** Staff with schedule access can choose a worker and download that person’s shifts for the visible calendar month (calendar view) or the month containing the Monday of the displayed week (week view) as `.xlsx`. New `GET /schedule/export` (`user_id`, `year`, `month`, optional `lang`) uses openpyxl; tenant- and role-scoped like the schedule API. Puppeteer `test:working-plan` checks export UI; backend `tests/test_schedule_export.py` covers the endpoint.
+
+- **My shift overtime alert (GitHub #87):** Open clock-in sessions expose `open_duration_minutes`, `contract_threshold_minutes` (default 8h), and `over_contract` on work-session APIs and reports. **My shift** shows a warning banner and elapsed time while clocked in past the threshold; dashboard **My shift** card shows a short notice. Backend tests cover threshold logic.
+
+- **Tenant `reservation_slot_minutes`:** Migration adds nullable column; staff Settings → Reservations can set the interval between public booking start times (5–120 minutes, or empty/0 for legacy 15-minute steps). Public `book-week-slots`, `next-available`, and staff overbooking default grid use this value.
 
 ### Changed
 
+- **Docs — PostgreSQL username:** Clarified in `README.md`, `config.env.example`, and `docker-compose.yml` that the container superuser is **`POSTGRES_USER`** (default `pos`), not `postgres`, so IDE/`psql` defaults do not cause **`FATAL: role "postgres" does not exist`** confusion.
+
+- **Password reset email i18n (GitHub #97):** Reset email subject/body use `messages.py` translations for all backend-supported locales; language matches `POST /password-reset/request` (`?lang` / `Accept-Language`, same as API message). Forgot/reset flows send `lang` from the in-app language picker (`ApiService`). Tests: `tests/test_password_reset.py`.
+
+- **Staff reservations week grid (GitHub #94):** Create/edit on `/reservations` uses the same Mon–Sun availability grid as public `/book` (`GET /reservations/book-week-slots`), tenant timezone, party size, and public lead-time rules. Shared `ReservationWeekSlotGridComponent`; optional `exclude_reservation_id` on book-week-slots excludes the edited booking from demand. Saving without changing date/time still allowed (e.g. past slots).
+
+- **Reservation emails (GitHub #91):** Default confirmation template and scheduled/staff-triggered **reminder** emails include a **Contact us** block with the tenant’s public phone and email (`tel:` / `mailto:` in HTML, plain lines in text) when those fields are set. New template placeholder `restaurant_contact_block_html`; Settings → Reservations hint text updated in all i18n files.
+
+- **Public table menu (GitHub #85):** Product cards and featured items use a light primary tint and border while the product is in the cart; adding or incrementing shows a short highlight on the card and the matching cart line. Respects reduced-motion for the pulse animation.
+
+- **Staff reservations modal (GitHub #84):** Create/edit dialog field order and labels match the public `/book` flow (date, time, party size, then name, phone, email, reservation notes, customer notes); staff-only notes remain at the end. Uses global form styling, optional email placeholder like the book page, and the same phone/email validation rules as the book form. Short hint explains calendar/time inputs vs. the public week grid.
+
+- **Settings → Reservations (GitHub #82):** Pre-payment amount uses **whole amount** and **minor units** derived from the tenant currency via `Intl` (e.g. euros + cents); zero-decimal currencies show a single whole-unit field. Still stored as smallest-currency-unit integer (`reservation_prepayment_cents`).
+
+- **Agents:** 001 log-reviewer review stamps (2026-03-25–26), `LOG-REVIEWER-PROMPT.md` data-deletion scope, and task queue updates for contact-us (#104).
+
 ### Fixed
+
+- **Angular NG0200 ApiService circular dependency (GitHub #100):** `authInterceptor` no longer calls `inject(ApiService)` while `HttpClient` is constructed for `ApiService`; it resolves `ApiService` lazily via `Injector` inside the 401 error path (`front/src/app/auth/auth.interceptor.ts`).
+
+- **Settings → logo remove (GitHub #95):** Removing the business logo now calls `DELETE /tenant/logo` (unlink file, clear `logo_filename`), matching header-background removal. Previously only the local preview was cleared.
+
+- **Working plan Excel export hidden for non-admin staff (GitHub #90):** The worker dropdown and export button were omitted when `GET /users` failed (403 for roles with `schedule:read` but not `user:read`). The app now loads schedulable staff via `GET /schedule/plan-users`; export controls stay visible with a disabled state and hint when no plan users exist.
+
+- **Tables → Open menu / table PIN (GitHub #86):** Staff “Open menu” from the tables list and tile view now uses the same short-lived `staff_access` link as staff orders, so placing an order no longer forces the public table PIN modal. QR codes and “Copy” still use the customer URL. The PIN modal still shows **which table** (`Table: …`) when a PIN is required (e.g. wrong PIN retry).
+
+- **Settings → Email (SMTP) (GitHub #81):** Added missing `SETTINGS.*` translation keys for SMTP and reservation confirmation copy in Catalan, Spanish, German, French, Hindi, and Chinese (`public/i18n`). SMTP port and username placeholders use i18n like other fields.
+
+- **Settings Security / 2FA (GitHub #83):** Spacing between OTP description hint and the enable action (and setup hint before the secret row) so the control is not flush against the copy.
+
+## [2.0.60] - 2026-03-26
+
+### Added
+
+- **Staff contract templates & print view (GitHub #101):** Per-tenant contract document templates (`staff_contract_template` migration `20260326103000`), CRUD API `/staff-contract-templates` (`STAFF_CONTRACT_MANAGE`), safe delete when no `staff_contract` references the template key. `GET /staff-contracts/{id}/print` returns print-styled HTML with `{{placeholder}}` merge (employer/worker/role/dates/etc.) and signature block; falls back to a field summary when no template matches. Settings → **Contract templates**; **Contracts** links templates when creating a contract and adds **Print view**. Tests: `tests/test_staff_contract_templates.py`.
+
+## [2.0.57] - 2026-03-25
+
+### Added
+
+- **Staff contracts (GitHub #99):** Tenant-scoped **employee** and **freelancer** agreements with statuses, versioning (`POST /staff-contracts/{id}/new-version`), payroll vs invoice payment structure, optional tax-id and jurisdiction notes, internal management notes, and signed **PDF** upload stored under `uploads/{tenant_id}/contracts/` (served only via authenticated `GET /staff-contracts/{id}/document`, not public `/uploads`). **RBAC:** `staff_contract:read` for all tenant staff (list filtered to own contracts unless owner/admin); `staff_contract:manage` for owner/admin (create/update/upload). Staff UI: sidebar **Contracts**, route `/contracts`. Migration `20260325180000_staff_contract.sql`. Tests: `tests/test_staff_contracts.py`.
 
 ## [2.0.56] - 2026-03-25
 

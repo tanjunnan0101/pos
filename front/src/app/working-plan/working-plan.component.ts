@@ -6,12 +6,14 @@ import {
   Shift,
   ShiftCreate,
   ShiftUpdate,
+  ShiftBulkCreate,
   User,
 } from '../services/api.service';
 import { SidebarComponent } from '../shared/sidebar.component';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal.component';
 import { FocusFirstInputDirective } from '../shared/focus-first-input.directive';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../services/language.service';
 
 function getWeekRange(weekStart: Date): { from: string; to: string } {
   const d = new Date(weekStart);
@@ -125,6 +127,17 @@ const WORKING_PLAN_VIEW_KEY = 'workingPlanView';
 const VALID_VIEWS = ['week', 'calendar'] as const;
 type ViewMode = (typeof VALID_VIEWS)[number];
 
+/** Weekday checkboxes for bulk month (Mon–Sun); values match Date.getDay() (Sun=0). */
+const BULK_WEEKDAY_OPTS: { js: number; labelKey: string }[] = [
+  { js: 1, labelKey: 'WORKING_PLAN.MON' },
+  { js: 2, labelKey: 'WORKING_PLAN.TUE' },
+  { js: 3, labelKey: 'WORKING_PLAN.WED' },
+  { js: 4, labelKey: 'WORKING_PLAN.THU' },
+  { js: 5, labelKey: 'WORKING_PLAN.FRI' },
+  { js: 6, labelKey: 'WORKING_PLAN.SAT' },
+  { js: 0, labelKey: 'WORKING_PLAN.SUN' },
+];
+
 function isValidView(v: string | null): v is ViewMode {
   return v === 'week' || v === 'calendar';
 }
@@ -138,12 +151,17 @@ function isValidView(v: string | null): v is ViewMode {
       <div class="working-plan-page" data-testid="working-plan-page">
       <div class="page-header">
         <h1>{{ 'WORKING_PLAN.TITLE' | translate }}</h1>
+        <div class="page-header-actions">
+        <button type="button" class="btn btn-secondary" (click)="openBulkMonth()" data-testid="working-plan-bulk-month">
+          {{ 'WORKING_PLAN.BULK_MONTH' | translate }}
+        </button>
         <button type="button" class="btn btn-primary" (click)="openCreate()" data-testid="working-plan-add-shift">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
           {{ 'WORKING_PLAN.ADD_SHIFT' | translate }}
         </button>
+        </div>
       </div>
 
       <div class="filters">
@@ -162,7 +180,38 @@ function isValidView(v: string | null): v is ViewMode {
         }
         <button type="button" class="btn btn-ghost btn-sm" (click)="goToToday()">{{ 'WORKING_PLAN.TODAY' | translate }}</button>
         <button type="button" class="btn btn-ghost btn-sm" (click)="load()">{{ 'ORDERS.REFRESH' | translate }}</button>
+        <span class="export-sep" aria-hidden="true"></span>
+        <label class="export-label" for="working-plan-export-worker">{{ 'WORKING_PLAN.EXPORT_WORKER' | translate }}</label>
+        <select
+          id="working-plan-export-worker"
+          class="export-worker-select"
+          [(ngModel)]="exportUserId"
+          [disabled]="!scheduleUsers().length"
+          data-testid="working-plan-export-worker"
+        >
+          @if (!scheduleUsers().length) {
+            <option [ngValue]="null">{{ 'WORKING_PLAN.EXPORT_NO_STAFF_OPTION' | translate }}</option>
+          } @else {
+            @for (u of scheduleUsers(); track u.id) {
+              <option [ngValue]="u.id">{{ u.full_name || u.email }} ({{ getRoleLabel(u.role) }})</option>
+            }
+          }
+        </select>
+        <button
+          type="button"
+          class="btn btn-ghost btn-sm"
+          (click)="exportExcel()"
+          [disabled]="exportUserId == null || exportLoading() || !scheduleUsers().length"
+          data-testid="working-plan-export-excel"
+        >
+          {{ exportLoading() ? ('COMMON.LOADING' | translate) : ('WORKING_PLAN.EXPORT_EXCEL' | translate) }}
+        </button>
       </div>
+      @if (scheduleUsers().length) {
+        <p class="export-hint">{{ 'WORKING_PLAN.EXPORT_MONTH_HINT' | translate: { month: exportMonthLabel() } }}</p>
+      } @else {
+        <p class="export-hint export-hint-muted">{{ 'WORKING_PLAN.EXPORT_NO_STAFF_HINT' | translate }}</p>
+      }
 
       @if (viewMode() === 'calendar') {
         <div class="calendar-section" data-testid="working-plan-calendar-section">
@@ -236,6 +285,89 @@ function isValidView(v: string | null): v is ViewMode {
             }
           </div>
         }
+      }
+
+      @if (showBulkModal()) {
+        <div class="modal-overlay" (click)="closeBulkModal()">
+          <div class="modal-content modal-content-wide" (click)="$event.stopPropagation()" appFocusFirstInput>
+            <div class="modal-header">
+              <h3>{{ 'WORKING_PLAN.BULK_MONTH_TITLE' | translate }}</h3>
+              <button type="button" class="close-btn" (click)="closeBulkModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p class="bulk-month-scope">{{ 'WORKING_PLAN.BULK_MONTH_SCOPE' | translate: { month: bulkMonthLabel() } }}</p>
+              <div class="form-group">
+                <label for="bulk-user">{{ 'WORKING_PLAN.USER' | translate }}</label>
+                <select id="bulk-user" [(ngModel)]="bulkUserId" [disabled]="!scheduleUsers().length">
+                  <option [ngValue]="null">{{ 'WORKING_PLAN.SELECT_USER' | translate }}</option>
+                  @for (u of scheduleUsers(); track u.id) {
+                    <option [ngValue]="u.id">{{ u.full_name || u.email }} ({{ getRoleLabel(u.role) }})</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group">
+                <span class="bulk-section-label">{{ 'WORKING_PLAN.BULK_WEEKDAYS' | translate }}</span>
+                <div class="bulk-weekdays">
+                  @for (w of bulkWeekdayOpts; track w.js) {
+                    <label class="bulk-wd">
+                      <input type="checkbox" [checked]="bulkWeekdays().has(w.js)" (change)="toggleBulkWeekday(w.js)" />
+                      {{ w.labelKey | translate }}
+                    </label>
+                  }
+                </div>
+              </div>
+              <div class="form-group">
+                <label>{{ 'WORKING_PLAN.TIME_STEP' | translate }}</label>
+                <select [(ngModel)]="bulkTimeStep" (ngModelChange)="onBulkTimeOptionsChange()">
+                  <option [ngValue]="30">{{ 'WORKING_PLAN.TIME_STEP_30' | translate }}</option>
+                  <option [ngValue]="60">{{ 'WORKING_PLAN.TIME_STEP_1H' | translate }}</option>
+                </select>
+              </div>
+              <div class="form-group form-group-checkbox">
+                <label>
+                  <input type="checkbox" [(ngModel)]="bulkUseAnyHour" (ngModelChange)="onBulkTimeOptionsChange()" />
+                  {{ 'WORKING_PLAN.USE_ANY_HOUR' | translate }}
+                </label>
+              </div>
+              <div class="form-group">
+                <label>{{ 'WORKING_PLAN.START_TIME' | translate }}</label>
+                <select [(ngModel)]="bulkStartTime">
+                  @for (t of timeOptsForBulk(); track t) {
+                    <option [value]="t">{{ t }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group">
+                <label>{{ 'WORKING_PLAN.END_TIME' | translate }}</label>
+                <select [(ngModel)]="bulkEndTime">
+                  @for (t of timeOptsForBulk(); track t) {
+                    <option [value]="t">{{ t }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group">
+                <label>{{ 'WORKING_PLAN.LABEL' | translate }}</label>
+                <input type="text" [(ngModel)]="bulkLabel" placeholder="{{ 'WORKING_PLAN.LABEL_PLACEHOLDER' | translate }}" />
+              </div>
+              <div class="form-group form-group-checkbox">
+                <label>
+                  <input type="checkbox" [(ngModel)]="bulkSkipExisting" />
+                  {{ 'WORKING_PLAN.BULK_SKIP_EXISTING' | translate }}
+                </label>
+                <span class="form-hint">{{ 'WORKING_PLAN.BULK_SKIP_EXISTING_HINT' | translate }}</span>
+              </div>
+              @if (bulkFormError()) {
+                <div class="form-error">{{ bulkFormError() }}</div>
+              }
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-ghost" (click)="closeBulkModal()">{{ 'COMMON.CANCEL' | translate }}</button>
+              <button type="button" class="btn btn-primary" (click)="saveBulkMonth()" [disabled]="bulkSaving()">{{ bulkSaving() ? ('COMMON.LOADING' | translate) : ('WORKING_PLAN.BULK_APPLY' | translate) }}</button>
+            </div>
+          </div>
+        </div>
       }
 
       @if (showModal()) {
@@ -331,8 +463,14 @@ function isValidView(v: string | null): v is ViewMode {
     </app-sidebar>
   `,
   styles: [`
-    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-    .filters { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem; }
+    .page-header-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .filters { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.35rem; }
+    .export-sep { width: 1px; height: 1.25rem; background: var(--border-color, #ddd); margin: 0 0.25rem; }
+    .export-label { font-size: 0.875rem; color: var(--text-muted, #666); margin: 0; }
+    .export-worker-select { min-width: 10rem; max-width: 14rem; padding: 0.35rem 0.5rem; border: 1px solid var(--border-color, #ccc); border-radius: 6px; font-size: 0.875rem; }
+    .export-hint { font-size: 0.75rem; color: var(--text-muted, #666); margin: 0 0 1rem 0; }
+    .export-hint-muted { font-style: italic; }
     .week-label { min-width: 12rem; font-weight: 500; }
     .empty-state { text-align: center; padding: 2rem; color: var(--text-muted, #666); }
     .empty-state .btn { margin-top: 0.5rem; }
@@ -350,6 +488,12 @@ function isValidView(v: string | null): v is ViewMode {
     .shift-actions { display: flex; gap: 0.25rem; }
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
     .modal-content { background: var(--card-bg, #fff); border-radius: 12px; max-width: 420px; width: 90%; max-height: 90vh; overflow: auto; }
+    .modal-content-wide { max-width: 28rem; }
+    .bulk-month-scope { font-size: 0.875rem; color: var(--text-muted, #666); margin: 0 0 1rem 0; }
+    .bulk-section-label { display: block; margin-bottom: 0.35rem; font-weight: 500; font-size: 0.875rem; }
+    .bulk-weekdays { display: flex; flex-wrap: wrap; gap: 0.35rem 0.75rem; }
+    .bulk-wd { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.875rem; font-weight: normal; cursor: pointer; }
+    .bulk-wd input { width: auto; margin: 0; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color, #eee); }
     .modal-header h3 { margin: 0; font-size: 1.125rem; }
     .close-btn { background: none; border: none; cursor: pointer; padding: 0.25rem; }
@@ -396,6 +540,7 @@ function isValidView(v: string | null): v is ViewMode {
 export class WorkingPlanComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private translate = inject(TranslateService);
+  private languageService = inject(LanguageService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private routeParamSub?: { unsubscribe: () => void };
@@ -409,6 +554,24 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
   calendarMonth = signal<Date>(new Date());
   shifts = signal<Shift[]>([]);
   scheduleUsers = signal<User[]>([]);
+  /** Worker selected for Excel export (month scoped by current view). */
+  exportUserId: number | null = null;
+  exportLoading = signal(false);
+  /** Bulk “apply to month” modal. */
+  showBulkModal = signal(false);
+  bulkTargetYear = signal(0);
+  bulkTargetMonth = signal(1);
+  bulkWeekdays = signal<Set<number>>(new Set([1, 2, 3, 4, 5]));
+  bulkFormError = signal<string | null>(null);
+  bulkSaving = signal(false);
+  readonly bulkWeekdayOpts = BULK_WEEKDAY_OPTS;
+  bulkUserId: number | null = null;
+  bulkTimeStep: 30 | 60 = 30;
+  bulkUseAnyHour = false;
+  bulkStartTime = '09:00';
+  bulkEndTime = '17:00';
+  bulkLabel = '';
+  bulkSkipExisting = true;
   loading = signal(true);
   showModal = signal(false);
   editingShift = signal<Shift | null>(null);
@@ -428,6 +591,19 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
   formUseAnyHour = false;
 
   weekRange = computed(() => getWeekRange(this.weekStart()));
+
+  /** Time options for bulk apply (Monday opening hours as template, or full day). */
+  timeOptsForBulk(): string[] {
+    void this.openingHours();
+    const step = this.bulkTimeStep;
+    if (this.bulkUseAnyHour) return fullDayTimeOptions(step);
+    const day = this.openingHours()['monday'];
+    if (!day || day.closed || !day.open || !day.close) return defaultTimeOptions(step);
+    const open = day.hasBreak && day.morningOpen ? day.morningOpen : day.open;
+    const close = day.hasBreak && day.eveningClose ? day.eveningClose : day.close;
+    const opts = timeOptionsBetween(open, close, step);
+    return opts.length > 0 ? opts : defaultTimeOptions(step);
+  }
 
   /** Time options for start/end. If formUseAnyHour, full-day; else aligned to opening hours. Step from formTimeStep. */
   timeOptsForSelectedDay(): string[] {
@@ -463,6 +639,20 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
   calendarMonthLabel = computed(() => {
     const d = this.calendarMonth();
     return `${this.monthShort(d.getMonth())} ${d.getFullYear()}`;
+  });
+
+  /** Month label for export hint (calendar month or month of week range start). */
+  exportMonthLabel = computed(() => {
+    const { year, month } = this.exportYearMonth();
+    return `${this.monthShort(month - 1)} ${year}`;
+  });
+
+  /** Label for bulk modal (target month). */
+  bulkMonthLabel = computed(() => {
+    const y = this.bulkTargetYear();
+    const m = this.bulkTargetMonth();
+    if (!y || m < 1 || m > 12) return '';
+    return `${this.monthShort(m - 1)} ${y}`;
   });
 
   /** Short weekday names for calendar header (Mon–Sun). */
@@ -554,8 +744,22 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
       }
     });
     this.api.getUsersForSchedule().subscribe({
-      next: (users) => this.scheduleUsers.set(users),
-      error: () => this.scheduleUsers.set([]),
+      next: (users) => {
+        this.scheduleUsers.set(users);
+        if (!users.length) {
+          this.exportUserId = null;
+          return;
+        }
+        if (this.exportUserId == null || !users.some((u) => u.id === this.exportUserId)) {
+          const me = this.api.getCurrentUser()?.id;
+          this.exportUserId =
+            me != null && users.some((u) => u.id === me) ? me : (users[0].id ?? null);
+        }
+      },
+      error: () => {
+        this.scheduleUsers.set([]);
+        this.exportUserId = null;
+      },
     });
     this.api.getTenantSettings().subscribe({
       next: (settings) => this.parseOpeningHours(settings.opening_hours),
@@ -621,6 +825,102 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
     if (this.formStartTime >= this.formEndTime) {
       this.formEndTime = opts[opts.indexOf(this.formStartTime) + 1] ?? opts[opts.length - 1];
     }
+  }
+
+  onBulkTimeOptionsChange(): void {
+    const opts = this.timeOptsForBulk();
+    if (opts.length === 0) return;
+    if (!opts.includes(this.bulkStartTime)) this.bulkStartTime = opts[0];
+    if (!opts.includes(this.bulkEndTime)) this.bulkEndTime = opts[opts.length - 1];
+    if (this.bulkStartTime >= this.bulkEndTime) {
+      this.bulkEndTime = opts[opts.indexOf(this.bulkStartTime) + 1] ?? opts[opts.length - 1];
+    }
+  }
+
+  openBulkMonth(): void {
+    const { year, month } = this.exportYearMonth();
+    this.bulkTargetYear.set(year);
+    this.bulkTargetMonth.set(month);
+    this.bulkWeekdays.set(new Set([1, 2, 3, 4, 5]));
+    const users = this.scheduleUsers();
+    this.bulkUserId =
+      this.exportUserId != null && users.some((u) => u.id === this.exportUserId)
+        ? this.exportUserId
+        : (users[0]?.id ?? null);
+    this.bulkTimeStep = 30;
+    this.bulkUseAnyHour = false;
+    this.bulkStartTime = '09:00';
+    this.bulkEndTime = '17:00';
+    this.bulkLabel = '';
+    this.bulkSkipExisting = true;
+    this.bulkFormError.set(null);
+    this.showBulkModal.set(true);
+    this.onBulkTimeOptionsChange();
+  }
+
+  closeBulkModal(): void {
+    this.showBulkModal.set(false);
+    this.bulkFormError.set(null);
+  }
+
+  toggleBulkWeekday(js: number): void {
+    const s = new Set(this.bulkWeekdays());
+    if (s.has(js)) s.delete(js);
+    else s.add(js);
+    this.bulkWeekdays.set(s);
+  }
+
+  saveBulkMonth(): void {
+    this.bulkFormError.set(null);
+    if (this.bulkUserId == null) {
+      this.bulkFormError.set(this.translate.instant('WORKING_PLAN.BULK_ERR_USER'));
+      return;
+    }
+    const wds = Array.from(this.bulkWeekdays()).sort((a, b) => a - b);
+    if (wds.length === 0) {
+      this.bulkFormError.set(this.translate.instant('WORKING_PLAN.BULK_ERR_WEEKDAYS'));
+      return;
+    }
+    if (this.bulkStartTime >= this.bulkEndTime) {
+      this.bulkFormError.set(this.translate.instant('WORKING_PLAN.BULK_ERR_TIMES'));
+      return;
+    }
+    const y = this.bulkTargetYear();
+    const m = this.bulkTargetMonth();
+    if (!y || m < 1 || m > 12) {
+      this.bulkFormError.set(this.translate.instant('WORKING_PLAN.BULK_ERR_MONTH'));
+      return;
+    }
+    const payload: ShiftBulkCreate = {
+      user_id: this.bulkUserId,
+      year: y,
+      month: m,
+      weekdays: wds,
+      start_time: this.bulkStartTime,
+      end_time: this.bulkEndTime,
+      label: this.bulkLabel?.trim() ? this.bulkLabel.trim() : null,
+      skip_days_with_existing_shift: this.bulkSkipExisting,
+    };
+    this.bulkSaving.set(true);
+    this.api.bulkCreateShifts(payload).subscribe({
+      next: (res) => {
+        this.bulkSaving.set(false);
+        this.closeBulkModal();
+        this.focusScheduleOnDate(`${y}-${String(m).padStart(2, '0')}-01`);
+        this.load();
+        const msg = this.translate.instant('WORKING_PLAN.BULK_DONE', {
+          created: res.created_count,
+          skipped: res.skipped_existing_count,
+        });
+        this.showToast(msg, 'success');
+      },
+      error: (err) => {
+        this.bulkSaving.set(false);
+        const msg = this.getApiErrorMessage(err);
+        this.bulkFormError.set(msg);
+        this.showToast(msg, 'error');
+      },
+    });
   }
 
   /** Required headcount for a role on a day (from opening hours personnel settings). */
@@ -726,6 +1026,43 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
   private monthShort(m: number): string {
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     return months[m] ?? '';
+  }
+
+  /** Calendar year/month (1–12) used for Excel export. */
+  private exportYearMonth(): { year: number; month: number } {
+    if (this.viewMode() === 'calendar') {
+      const d = this.calendarMonth();
+      return { year: d.getFullYear(), month: d.getMonth() + 1 };
+    }
+    const from = this.weekRange().from;
+    const parts = from.split('-').map((x) => parseInt(x, 10));
+    return { year: parts[0], month: parts[1] };
+  }
+
+  exportExcel(): void {
+    const uid = this.exportUserId;
+    if (uid == null) return;
+    const { year, month } = this.exportYearMonth();
+    this.exportLoading.set(true);
+    this.api.getScheduleExport(uid, year, month, this.languageService.getLanguage()).subscribe({
+      next: (blob) => {
+        this.exportLoading.set(false);
+        if (!blob || blob.size === 0) {
+          this.showToast(this.translate.instant('WORKING_PLAN.EXPORT_FAILED'), 'error');
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `working-plan-${uid}-${year}-${String(month).padStart(2, '0')}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.exportLoading.set(false);
+        this.showToast(this.translate.instant('WORKING_PLAN.EXPORT_FAILED'), 'error');
+      },
+    });
   }
 
   load(): void {

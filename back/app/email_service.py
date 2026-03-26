@@ -12,7 +12,17 @@ from typing import TYPE_CHECKING, Any, Optional
 
 import aiosmtplib
 
-from .reservation_email_template import render_confirmation_email, wrap_html_email
+from .messages import get_message
+from .reservation_email_template import (
+    contact_block_html,
+    contact_block_plain,
+    google_maps_link_block_html,
+    openstreetmap_link_block_html,
+    google_maps_link_block_plain,
+    openstreetmap_link_block_plain,
+    render_confirmation_email,
+    wrap_html_email,
+)
 from .settings import settings
 
 if TYPE_CHECKING:
@@ -174,6 +184,64 @@ async def send_verification_email(
     return await send_email(to_email, subject, html_content, text_content, tenant=tenant)
 
 
+async def send_password_reset_email(
+    to_email: str,
+    reset_url: str,
+    tenant: Optional["Tenant"] = None,
+    lang: str = "en",
+) -> bool:
+    """
+    Send password reset link. Uses tenant SMTP when configured; else global.
+
+    `lang` should match the language the user had when requesting reset (same source as
+    `get_message` for the API), so the email matches the on-screen confirmation.
+    """
+    subject = get_message("email_password_reset_subject", lang)
+    heading = get_message("email_password_reset_heading", lang)
+    intro = get_message("email_password_reset_intro", lang)
+    button = get_message("email_password_reset_button", lang)
+    copy_link = get_message("email_password_reset_copy_link", lang)
+    disclaimer = get_message("email_password_reset_disclaimer", lang)
+    automated = get_message("email_password_reset_automated_footer", lang)
+    safe_url = html.escape(reset_url, quote=True)
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .button {{ display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>{html.escape(heading)}</h1>
+            <p>{html.escape(intro)}</p>
+            <p style="text-align: center;">
+                <a href="{safe_url}" class="button">{html.escape(button)}</a>
+            </p>
+            <p>{html.escape(copy_link)}</p>
+            <p style="word-break: break-all; color: #666;">{safe_url}</p>
+            <p>{html.escape(disclaimer)}</p>
+            <hr>
+            <p style="color: #666; font-size: 12px;">{html.escape(automated)}</p>
+        </div>
+    </body>
+    </html>
+    """
+    text_content = f"""{heading}
+
+{intro}
+
+{reset_url}
+
+{disclaimer}
+"""
+    return await send_email(to_email, subject, html_content, text_content, tenant=tenant)
+
+
 async def send_reservation_confirmation(
     to_email: str,
     customer_name: str,
@@ -222,6 +290,20 @@ async def send_reservation_reminder(
         safe_href = html.escape(view_url, quote=True)
         view_block = f'<p><a href="{safe_href}">View or change your reservation online</a></p>'
 
+    maps_html = ""
+    maps_plain = ""
+    if tenant:
+        maps_html = google_maps_link_block_html(tenant) + openstreetmap_link_block_html(tenant)
+        gp = google_maps_link_block_plain(tenant)
+        op = openstreetmap_link_block_plain(tenant)
+        if gp:
+            maps_plain += f"\n{gp}\n"
+        if op:
+            maps_plain += f"\n{op}\n"
+
+    contact_html = contact_block_html(tenant) if tenant else ""
+    contact_plain = contact_block_plain(tenant) if tenant else ""
+
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -245,6 +327,8 @@ async def send_reservation_reminder(
             </div>
             <p>We look forward to seeing you. Please contact us if you need to change or cancel.</p>
             {view_block}
+            {maps_html}
+            {contact_html}
             <hr>
             <p style="color: #666; font-size: 12px;">This is an automated reminder from {tenant_name}.</p>
         </div>
@@ -267,6 +351,10 @@ async def send_reservation_reminder(
     """
     if view_url:
         text_content += f"\nView or change your reservation online:\n{view_url}\n"
+    if maps_plain.strip():
+        text_content += maps_plain
+    if contact_plain:
+        text_content += f"\n{contact_plain}\n"
     text_content += f"\n---\nAutomated reminder from {tenant_name}."
 
     return await send_email(to_email, subject, html_content, text_content, tenant=tenant)

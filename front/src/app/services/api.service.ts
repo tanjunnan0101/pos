@@ -13,6 +13,7 @@ import {
   take,
 } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { LanguageService } from './language.service';
 
 // Interfaces
 export type UserRole = 'owner' | 'admin' | 'kitchen' | 'bartender' | 'waiter' | 'receptionist' | 'provider';
@@ -56,6 +57,99 @@ export interface UserUpdate {
   full_name?: string;
   role?: UserRole;
   password?: string;
+  /** Required when setting password: caller's current password (re-auth). */
+  actor_current_password?: string;
+}
+
+export type StaffContractKind = 'employee' | 'freelancer';
+export type StaffContractStatus =
+  | 'draft'
+  | 'pending_signature'
+  | 'active'
+  | 'expired'
+  | 'superseded';
+export type StaffContractPaymentStructure = 'payroll' | 'invoice';
+
+export interface StaffContract {
+  id: number;
+  tenant_id: number;
+  contract_group_id: string;
+  version: number;
+  subject_user_id: number;
+  subject_email?: string | null;
+  subject_full_name?: string | null;
+  kind: StaffContractKind;
+  status: StaffContractStatus;
+  role_title: string;
+  start_date?: string | null;
+  end_date?: string | null;
+  compensation_summary?: string | null;
+  tax_identifier_subject?: string | null;
+  payment_structure: StaffContractPaymentStructure;
+  payment_terms?: string | null;
+  jurisdiction_note?: string | null;
+  template_key?: string | null;
+  notes_internal?: string | null;
+  has_document: boolean;
+  document_uploaded_at?: string | null;
+  created_by_user_id?: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StaffContractCreate {
+  subject_user_id: number;
+  kind: StaffContractKind;
+  status?: StaffContractStatus;
+  role_title?: string;
+  start_date?: string | null;
+  end_date?: string | null;
+  compensation_summary?: string | null;
+  tax_identifier_subject?: string | null;
+  payment_structure?: StaffContractPaymentStructure | null;
+  payment_terms?: string | null;
+  jurisdiction_note?: string | null;
+  template_key?: string | null;
+  notes_internal?: string | null;
+}
+
+export interface StaffContractUpdate {
+  kind?: StaffContractKind;
+  status?: StaffContractStatus;
+  role_title?: string;
+  start_date?: string | null;
+  end_date?: string | null;
+  compensation_summary?: string | null;
+  tax_identifier_subject?: string | null;
+  payment_structure?: StaffContractPaymentStructure | null;
+  payment_terms?: string | null;
+  jurisdiction_note?: string | null;
+  template_key?: string | null;
+  notes_internal?: string | null;
+}
+
+export interface StaffContractTemplate {
+  id: number;
+  tenant_id: number;
+  template_key: string;
+  name: string;
+  body: string;
+  kind?: StaffContractKind | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StaffContractTemplateCreate {
+  template_key: string;
+  name: string;
+  body?: string;
+  kind?: StaffContractKind | null;
+}
+
+export interface StaffContractTemplateUpdate {
+  name?: string;
+  body?: string;
+  kind?: StaffContractKind | null;
 }
 
 export interface Shift {
@@ -88,6 +182,23 @@ export interface ShiftUpdate {
   label?: string | null;
 }
 
+/** Same as backend ShiftBulkCreate: weekdays 0=Sunday .. 6=Saturday (Date.getDay()). */
+export interface ShiftBulkCreate {
+  user_id: number;
+  year: number;
+  month: number;
+  weekdays: number[];
+  start_time: string;
+  end_time: string;
+  label?: string | null;
+  skip_days_with_existing_shift?: boolean;
+}
+
+export interface ShiftBulkResult {
+  created_count: number;
+  skipped_existing_count: number;
+}
+
 /** Recorded clock-in/out (attendance), not the planned working plan shift. */
 export interface WorkSession {
   id: number;
@@ -97,8 +208,23 @@ export interface WorkSession {
   started_at: string;
   ended_at: string | null;
   duration_minutes: number | null;
+  /** Elapsed minutes while session is open; null when ended. */
+  open_duration_minutes?: number | null;
+  /** Server default for “normal” shift length (minutes); UI may compare locally to `started_at`. */
+  contract_threshold_minutes?: number;
+  /** True when open elapsed time >= threshold (server time at last response). */
+  over_contract?: boolean;
   start_ip: string | null;
   end_ip: string | null;
+}
+
+/** Whether an open work session has reached the contract-length threshold (client clock). */
+export function workSessionOpenExceedsContract(ws: WorkSession | null | undefined): boolean {
+  if (!ws || ws.ended_at) return false;
+  const threshold = ws.contract_threshold_minutes ?? 480;
+  const start = new Date(ws.started_at).getTime();
+  if (Number.isNaN(start)) return false;
+  return Date.now() - start >= threshold * 60 * 1000;
 }
 
 export interface AuthResponse {
@@ -271,6 +397,8 @@ export interface TenantSummary {
   public_google_review_url?: string | null;
   /** Google Maps place or directions URL (Share link). */
   public_google_maps_url?: string | null;
+  /** OpenStreetMap share URL (openstreetmap.org). */
+  public_openstreetmap_url?: string | null;
   /** IANA timezone for reservation date/time UX (e.g. Europe/Madrid). */
   timezone?: string | null;
 }
@@ -746,6 +874,8 @@ export interface TenantSettings {
   reservation_arrival_tolerance_minutes?: number | null;
   /** Average seated session length (minutes); null = same-day block without turn window */
   reservation_average_table_turn_minutes?: number | null;
+  /** Minutes between bookable start times on public grid; null = 15 */
+  reservation_slot_minutes?: number | null;
   /** Tables kept out of the reservation pool for walk-ins (smallest tables first) */
   reservation_walk_in_tables_reserved?: number | null;
   reservation_dress_code?: string | null;
@@ -753,6 +883,7 @@ export interface TenantSettings {
   reservation_reminder_2h_enabled?: boolean | null;
   public_google_review_url?: string | null;
   public_google_maps_url?: string | null;
+  public_openstreetmap_url?: string | null;
   /** Up to 4 tip percentages for POS checkout; empty array disables tips; omit/null = default 5/10/15/20 */
   tip_preset_percents?: number[] | null;
   /** VAT rate 0–100 on tip for invoice breakdown (tax-inclusive tip) */
@@ -926,6 +1057,7 @@ export interface TenantProduct {
 })
 export class ApiService {
   private http = inject(HttpClient);
+  private language = inject(LanguageService);
   private apiUrl = environment.apiUrl;
   private wsUrl = environment.wsUrl;
 
@@ -1021,6 +1153,35 @@ export class ApiService {
       tap(() => {
         this.checkAuth().subscribe();
       })
+    );
+  }
+
+  requestPasswordReset(
+    email: string,
+    tenantId?: number,
+    scope?: 'provider',
+  ): Observable<{ status: string; message: string }> {
+    const params = new HttpParams().set('lang', this.language.getLanguage());
+    return this.http.post<{ status: string; message: string }>(
+      `${this.apiUrl}/password-reset/request`,
+      {
+        email,
+        tenant_id: tenantId ?? null,
+        scope: scope ?? null,
+      },
+      { params },
+    );
+  }
+
+  confirmPasswordReset(token: string, newPassword: string): Observable<{ status: string }> {
+    const params = new HttpParams().set('lang', this.language.getLanguage());
+    return this.http.post<{ status: string }>(
+      `${this.apiUrl}/password-reset/confirm`,
+      {
+        token,
+        new_password: newPassword,
+      },
+      { params },
     );
   }
 
@@ -1332,13 +1493,17 @@ export class ApiService {
   getReservationBookWeekSlots(
     tenantId: number,
     partySize: number,
-    weekAnchor?: string | null
+    weekAnchor?: string | null,
+    excludeReservationId?: number | null
   ): Observable<ReservationBookWeekSlotsResponse> {
     const params: Record<string, string> = {
       tenant_id: String(tenantId),
       party_size: String(partySize),
     };
     if (weekAnchor?.trim()) params['week_anchor'] = weekAnchor.trim();
+    if (excludeReservationId != null && excludeReservationId > 0) {
+      params['exclude_reservation_id'] = String(excludeReservationId);
+    }
     return this.http.get<ReservationBookWeekSlotsResponse>(`${this.apiUrl}/reservations/book-week-slots`, {
       params,
     });
@@ -1792,6 +1957,10 @@ export class ApiService {
     return this.http.post<TenantSettings>(`${this.apiUrl}/tenant/logo`, formData);
   }
 
+  deleteTenantLogo(): Observable<TenantSettings> {
+    return this.http.delete<TenantSettings>(`${this.apiUrl}/tenant/logo`);
+  }
+
   getTenantLogoUrl(logoFilename: string | null | undefined, tenantId: number | null | undefined): string | null {
     if (!logoFilename || !tenantId) return null;
     return `${this.apiUrl}/uploads/${tenantId}/logo/${logoFilename}`;
@@ -2068,6 +2237,71 @@ export class ApiService {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/users/${userId}`);
   }
 
+  listStaffContracts(): Observable<StaffContract[]> {
+    return this.http.get<StaffContract[]>(`${this.apiUrl}/staff-contracts`);
+  }
+
+  getStaffContract(id: number): Observable<StaffContract> {
+    return this.http.get<StaffContract>(`${this.apiUrl}/staff-contracts/${id}`);
+  }
+
+  createStaffContract(body: StaffContractCreate): Observable<StaffContract> {
+    return this.http.post<StaffContract>(`${this.apiUrl}/staff-contracts`, body);
+  }
+
+  updateStaffContract(id: number, body: StaffContractUpdate): Observable<StaffContract> {
+    return this.http.patch<StaffContract>(`${this.apiUrl}/staff-contracts/${id}`, body);
+  }
+
+  newStaffContractVersion(id: number): Observable<StaffContract> {
+    return this.http.post<StaffContract>(`${this.apiUrl}/staff-contracts/${id}/new-version`, {});
+  }
+
+  uploadStaffContractDocument(id: number, file: File): Observable<StaffContract> {
+    const fd = new FormData();
+    fd.append('file', file, file.name);
+    return this.http.post<StaffContract>(`${this.apiUrl}/staff-contracts/${id}/document`, fd);
+  }
+
+  downloadStaffContractDocument(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/staff-contracts/${id}/document`, { responseType: 'blob' });
+  }
+
+  getStaffContractPrintHtml(id: number): Observable<string> {
+    return this.http.get(`${this.apiUrl}/staff-contracts/${id}/print`, { responseType: 'text' });
+  }
+
+  listStaffContractTemplates(): Observable<StaffContractTemplate[]> {
+    return this.http.get<StaffContractTemplate[]>(`${this.apiUrl}/staff-contract-templates`);
+  }
+
+  createStaffContractTemplate(body: StaffContractTemplateCreate): Observable<StaffContractTemplate> {
+    return this.http.post<StaffContractTemplate>(`${this.apiUrl}/staff-contract-templates`, body);
+  }
+
+  updateStaffContractTemplate(
+    id: number,
+    body: StaffContractTemplateUpdate,
+  ): Observable<StaffContractTemplate> {
+    return this.http.patch<StaffContractTemplate>(`${this.apiUrl}/staff-contract-templates/${id}`, body);
+  }
+
+  deleteStaffContractTemplate(id: number): Observable<{ ok: boolean }> {
+    return this.http.delete<{ ok: boolean }>(`${this.apiUrl}/staff-contract-templates/${id}`);
+  }
+
+  /** Owner only: ZIP with tenant-export.json (secrets redacted server-side). */
+  downloadTenantDataExport(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/tenant/data-export`, { responseType: 'blob' });
+  }
+
+  /** Owner only: irreversible delete of tenant and all data; session invalid after success. */
+  purgeTenant(confirmTenantName: string): Observable<{ message: string; tenant_id: number }> {
+    return this.http.post<{ message: string; tenant_id: number }>(`${this.apiUrl}/tenant/purge`, {
+      confirm_tenant_name: confirmTenantName,
+    });
+  }
+
   // Working plan (schedule)
   getSchedule(fromDate: string, toDate: string): Observable<Shift[]> {
     const params = new HttpParams().set('from_date', fromDate).set('to_date', toDate);
@@ -2087,6 +2321,10 @@ export class ApiService {
     return this.http.post<Shift>(`${this.apiUrl}/schedule`, data);
   }
 
+  bulkCreateShifts(data: ShiftBulkCreate): Observable<ShiftBulkResult> {
+    return this.http.post<ShiftBulkResult>(`${this.apiUrl}/schedule/bulk`, data);
+  }
+
   updateShift(shiftId: number, data: ShiftUpdate): Observable<Shift> {
     return this.http.put<Shift>(`${this.apiUrl}/schedule/${shiftId}`, data);
   }
@@ -2095,13 +2333,21 @@ export class ApiService {
     return this.http.delete<{ deleted: boolean; id: number }>(`${this.apiUrl}/schedule/${shiftId}`);
   }
 
+  /** One worker's shifts for a calendar month as Excel (.xlsx). */
+  getScheduleExport(userId: number, year: number, month: number, lang: string): Observable<Blob> {
+    let params = new HttpParams()
+      .set('user_id', String(userId))
+      .set('year', String(year))
+      .set('month', String(month));
+    if (lang?.trim()) {
+      params = params.set('lang', lang.trim());
+    }
+    return this.http.get(`${this.apiUrl}/schedule/export`, { params, responseType: 'blob' });
+  }
+
+  /** Users who may appear on the working plan (backend filters by schedulable roles; SCHEDULE_READ only). */
   getUsersForSchedule(): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/users`).pipe(
-      map((users: User[]) => users.filter(u => {
-        const r = (u.role ?? '').toLowerCase();
-        return r === 'owner' || r === 'admin' || r === 'kitchen' || r === 'bartender' || r === 'waiter' || r === 'receptionist';
-      }))
-    );
+    return this.http.get<User[]>(`${this.apiUrl}/schedule/plan-users`);
   }
 
   /** Current open work session, or null. */

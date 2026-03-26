@@ -1,11 +1,16 @@
-import { Component, inject, OnInit, computed, signal, HostListener } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, computed, signal, HostListener } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { SidebarComponent } from '../shared/sidebar.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { PermissionService } from '../services/permission.service';
-import { ApiService, TenantUiModuleKey, WorkSession } from '../services/api.service';
+import {
+  ApiService,
+  TenantUiModuleKey,
+  WorkSession,
+  workSessionOpenExceedsContract,
+} from '../services/api.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -45,8 +50,13 @@ import { ApiService, TenantUiModuleKey, WorkSession } from '../services/api.serv
               <span class="action-label">{{ 'DASHBOARD.MY_SHIFT_TITLE' | translate }}</span>
               @if (shiftStatusLoading()) {
                 <span class="action-desc">{{ 'DASHBOARD.MY_SHIFT_LOADING' | translate }}</span>
-              } @else if (shiftOpen()) {
+              } @else if (shiftOpen(); as sh) {
                 <span class="action-desc action-desc-shift-on">{{ 'DASHBOARD.MY_SHIFT_DESC_ON' | translate }}</span>
+                @if (shiftExceedsContract()) {
+                  <span class="action-desc action-desc-shift-overtime" data-testid="dashboard-my-shift-overtime">{{
+                    'DASHBOARD.MY_SHIFT_OVERTIME' | translate
+                  }}</span>
+                }
               } @else {
                 <span class="action-desc">{{ 'DASHBOARD.MY_SHIFT_DESC_OFF' | translate }}</span>
               }
@@ -324,6 +334,13 @@ import { ApiService, TenantUiModuleKey, WorkSession } from '../services/api.serv
       font-weight: 500;
     }
 
+    .action-desc-shift-overtime {
+      display: block;
+      margin-top: var(--space-1);
+      color: var(--color-warning-strong, #b45309);
+      font-weight: 500;
+    }
+
     @media (max-width: 768px) {
       .quick-actions {
         grid-template-columns: 1fr;
@@ -515,7 +532,7 @@ import { ApiService, TenantUiModuleKey, WorkSession } from '../services/api.serv
     }
   `]
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   private permissions = inject(PermissionService);
   private api = inject(ApiService);
   private sanitizer = inject(DomSanitizer);
@@ -530,6 +547,13 @@ export class DashboardComponent implements OnInit {
   /** Open work session when clocked in; null when not; only loaded when `canViewMyShift`. */
   shiftOpen = signal<WorkSession | null>(null);
   shiftStatusLoading = signal(false);
+  private shiftUiTick = signal(0);
+  private shiftTicker: ReturnType<typeof setInterval> | null = null;
+
+  shiftExceedsContract = computed(() => {
+    this.shiftUiTick();
+    return workSessionOpenExceedsContract(this.shiftOpen());
+  });
 
   showChangelogModal = signal(false);
   changelogHtml = signal<SafeHtml | null>(null);
@@ -546,12 +570,30 @@ export class DashboardComponent implements OnInit {
         next: (s) => {
           this.shiftOpen.set(s);
           this.shiftStatusLoading.set(false);
+          if (this.shiftTicker != null) {
+            clearInterval(this.shiftTicker);
+            this.shiftTicker = null;
+          }
+          if (s) {
+            this.shiftTicker = setInterval(() => this.shiftUiTick.update((x) => x + 1), 60_000);
+          }
         },
         error: () => {
           this.shiftOpen.set(null);
           this.shiftStatusLoading.set(false);
+          if (this.shiftTicker != null) {
+            clearInterval(this.shiftTicker);
+            this.shiftTicker = null;
+          }
         },
       });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.shiftTicker != null) {
+      clearInterval(this.shiftTicker);
+      this.shiftTicker = null;
     }
   }
 

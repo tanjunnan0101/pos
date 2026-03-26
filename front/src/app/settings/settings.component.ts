@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -19,6 +19,8 @@ import { SidebarComponent } from '../shared/sidebar.component';
 import { FocusFirstInputDirective } from '../shared/focus-first-input.directive';
 import { TranslationsComponent } from '../translations/translations.component';
 import { KitchenStationsSettingsComponent } from './kitchen-stations-settings.component';
+import { ContractTemplatesSettingsComponent } from './contract-templates-settings.component';
+import { PermissionService } from '../services/permission.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
@@ -32,6 +34,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     TranslateModule,
     TranslationsComponent,
     KitchenStationsSettingsComponent,
+    ContractTemplatesSettingsComponent,
   ],
   template: `
     <app-sidebar>
@@ -126,6 +129,20 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             </svg>
             <span>{{ 'SETTINGS.RESERVATIONS' | translate }}</span>
           </button>
+          @if (contractTemplatesTabVisible()) {
+          <button
+            type="button"
+            class="tab"
+            data-testid="settings-contract-templates-tab"
+            [class.active]="activeSection() === 'contract-templates'"
+            (click)="activeSection.set('contract-templates')">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            <span>{{ 'SETTINGS.CONTRACT_TEMPLATES_TAB' | translate }}</span>
+          </button>
+          }
           
           <button 
             type="button" 
@@ -187,6 +204,19 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             </svg>
             <span>{{ 'SETTINGS.SECURITY' | translate }}</span>
           </button>
+          @if (isTenantOwner()) {
+          <button
+            type="button"
+            class="tab"
+            data-testid="settings-data-privacy-tab"
+            [class.active]="activeSection() === 'data-privacy'"
+            (click)="activeSection.set('data-privacy')">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>{{ 'SETTINGS.DATA_AND_PRIVACY_TAB' | translate }}</span>
+          </button>
+          }
         </div>
       </div>
 
@@ -235,7 +265,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
               @if (success()) {
                 <div class="toast success">
                   <span>{{ success() }}</span>
-                  <button type="button" class="toast-close" (click)="success.set(null)" aria-label="Dismiss">×</button>
+                  <button type="button" class="toast-close" (click)="dismissSuccessToast()" aria-label="Dismiss">×</button>
                 </div>
               }
             </form>
@@ -465,6 +495,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           }
         } @else if (activeSection() === 'kitchen-stations') {
           <app-kitchen-stations-settings />
+        } @else if (activeSection() === 'contract-templates') {
+          <app-contract-templates-settings />
         } @else if (activeSection() === 'translations') {
           <!-- Translations Section (Independent) -->
             <div class="section">
@@ -528,6 +560,50 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                 }
               </div>
             }
+          </div>
+          } @else if (activeSection() === 'data-privacy') {
+          <div class="section" data-testid="settings-data-privacy-section">
+            <div class="section-header">
+              <h2>{{ 'SETTINGS.DATA_EXPORT_TITLE' | translate }}</h2>
+              <p>{{ 'SETTINGS.DATA_EXPORT_DESC' | translate }}</p>
+            </div>
+            <div class="form-card data-export-card">
+              <button
+                type="button"
+                class="btn btn-primary"
+                data-testid="settings-download-export"
+                (click)="downloadTenantDataExport()"
+                [disabled]="dataExporting()">
+                {{ dataExporting() ? ('SETTINGS.DATA_EXPORTING' | translate) : ('SETTINGS.DATA_EXPORT_BUTTON' | translate) }}
+              </button>
+            </div>
+            <div class="danger-zone">
+              <h2>{{ 'SETTINGS.DANGER_ZONE_TITLE' | translate }}</h2>
+              <p class="danger-lede">{{ 'SETTINGS.DANGER_ZONE_DESC' | translate }}</p>
+              <div class="form-group">
+                <label for="purge-confirm-name">{{ 'SETTINGS.PURGE_CONFIRM_LABEL' | translate }}</label>
+                <input
+                  id="purge-confirm-name"
+                  type="text"
+                  name="purgeConfirmName"
+                  [(ngModel)]="purgeConfirmTenantName"
+                  [placeholder]="settings()?.name || ('SETTINGS.PURGE_PLACEHOLDER' | translate)"
+                  autocomplete="off"
+                  data-testid="settings-purge-confirm-input"
+                />
+              </div>
+              @if (purgeError()) {
+                <p class="field-error">{{ purgeError() }}</p>
+              }
+              <button
+                type="button"
+                class="btn btn-danger-outline"
+                data-testid="settings-purge-button"
+                (click)="purgeTenantForever()"
+                [disabled]="purging() || !purgeConfirmTenantName.trim()">
+                {{ purging() ? ('SETTINGS.PURGING' | translate) : ('SETTINGS.PURGE_BUTTON' | translate) }}
+              </button>
+            </div>
           </div>
           } @else {
             <!-- Tenant Settings Sections (Shared Form) -->
@@ -735,6 +811,18 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                     <small class="field-hint">{{ 'SETTINGS.PUBLIC_GOOGLE_MAPS_HINT' | translate }}</small>
                   </div>
 
+                  <div class="form-group">
+                    <label for="public_openstreetmap_url">{{ 'SETTINGS.PUBLIC_OPENSTREETMAP_URL' | translate }}</label>
+                    <input
+                      type="url"
+                      id="public_openstreetmap_url"
+                      [(ngModel)]="formData.public_openstreetmap_url"
+                      name="public_openstreetmap_url"
+                      [placeholder]="'SETTINGS.PUBLIC_OPENSTREETMAP_PLACEHOLDER' | translate"
+                    />
+                    <small class="field-hint">{{ 'SETTINGS.PUBLIC_OPENSTREETMAP_HINT' | translate }}</small>
+                  </div>
+
                   <div class="form-row">
                     <div class="form-group">
                       <label for="tax_id">{{ 'SETTINGS.TAX_ID' | translate }}</label>
@@ -890,7 +978,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                   
                   <div class="form-group">
                     <label for="currency_code">{{ 'SETTINGS.SELECT_CURRENCY' | translate }}</label>
-                    <select id="currency_code" [(ngModel)]="formData.currency_code" name="currency_code" class="input-medium">
+                    <select
+                      id="currency_code"
+                      [(ngModel)]="formData.currency_code"
+                      (ngModelChange)="onTenantCurrencyCodeChange()"
+                      name="currency_code"
+                      class="input-medium">
                       @for (c of currencySelectOptions(); track c) {
                         <option [value]="c">{{ c }}</option>
                       }
@@ -1015,8 +1108,53 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                     <p>{{ 'SETTINGS.RESERVATIONS_SUBTITLE' | translate }}</p>
                   </div>
                   <div class="form-group">
-                    <label for="reservation_prepayment_cents">{{ 'SETTINGS.RESERVATION_PREPAYMENT' | translate }}</label>
-                    <input type="number" id="reservation_prepayment_cents" min="0" step="1" [(ngModel)]="formData.reservation_prepayment_cents" name="reservation_prepayment_cents" [placeholder]="'SETTINGS.RESERVATION_PREPAYMENT_PLACEHOLDER' | translate" />
+                    <label>{{ 'SETTINGS.RESERVATION_PREPAYMENT' | translate }}</label>
+                    <div class="form-row prepayment-amount-row">
+                      @if (getPrepaymentMinorDigits() === 0) {
+                        <div class="form-group">
+                          <label for="reservation_prepayment_major">{{ 'SETTINGS.PREPAYMENT_WHOLE_AMOUNT_LABEL' | translate }}</label>
+                          <input
+                            type="number"
+                            id="reservation_prepayment_major"
+                            min="0"
+                            step="1"
+                            [(ngModel)]="prepaymentMajorUnits"
+                            name="reservation_prepayment_major"
+                            (ngModelChange)="applyPrepaymentPartsToCents()"
+                          />
+                          <span class="prepayment-currency-hint">{{ getPrepaymentCurrencyLabel() }}</span>
+                        </div>
+                      } @else {
+                        <div class="form-group">
+                          <label for="reservation_prepayment_major">{{ 'SETTINGS.PREPAYMENT_MAJOR_LABEL' | translate }}</label>
+                          <input
+                            type="number"
+                            id="reservation_prepayment_major"
+                            min="0"
+                            step="1"
+                            [(ngModel)]="prepaymentMajorUnits"
+                            name="reservation_prepayment_major"
+                            (ngModelChange)="applyPrepaymentPartsToCents()"
+                          />
+                          <span class="prepayment-currency-hint">{{ getPrepaymentCurrencyLabel() }}</span>
+                        </div>
+                        <div class="form-group">
+                          <label for="reservation_prepayment_minor">{{
+                            'SETTINGS.PREPAYMENT_MINOR_LABEL' | translate: { max: prepaymentMinorMax() }
+                          }}</label>
+                          <input
+                            type="number"
+                            id="reservation_prepayment_minor"
+                            min="0"
+                            [max]="prepaymentMinorMax()"
+                            step="1"
+                            [(ngModel)]="prepaymentMinorUnits"
+                            name="reservation_prepayment_minor"
+                            (ngModelChange)="applyPrepaymentPartsToCents()"
+                          />
+                        </div>
+                      }
+                    </div>
                     <small class="field-hint">{{ 'SETTINGS.RESERVATION_PREPAYMENT_HINT' | translate }}</small>
                   </div>
                   <div class="form-group">
@@ -1037,6 +1175,11 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                     <label for="reservation_average_table_turn_minutes">{{ 'SETTINGS.RESERVATION_AVG_TABLE_TURN' | translate }}</label>
                     <input type="number" id="reservation_average_table_turn_minutes" min="0" max="1440" [(ngModel)]="formData.reservation_average_table_turn_minutes" name="reservation_average_table_turn_minutes" placeholder="60" />
                     <small class="field-hint">{{ 'SETTINGS.RESERVATION_AVG_TABLE_TURN_HINT' | translate }}</small>
+                  </div>
+                  <div class="form-group">
+                    <label for="reservation_slot_minutes">{{ 'SETTINGS.RESERVATION_SLOT_MINUTES' | translate }}</label>
+                    <input type="number" id="reservation_slot_minutes" min="0" max="120" [(ngModel)]="formData.reservation_slot_minutes" name="reservation_slot_minutes" placeholder="15" />
+                    <small class="field-hint">{{ 'SETTINGS.RESERVATION_SLOT_MINUTES_HINT' | translate }}</small>
                   </div>
                   <div class="form-group">
                     <label for="reservation_walk_in_tables_reserved">{{ 'SETTINGS.RESERVATION_WALK_IN_TABLES' | translate }}</label>
@@ -1086,7 +1229,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                   <div class="form-row">
                     <div class="form-group">
                       <label for="smtp_port">{{ 'SETTINGS.SMTP_PORT' | translate }}</label>
-                      <input type="number" id="smtp_port" [(ngModel)]="formData.smtp_port" name="smtp_port" placeholder="587" min="1" max="65535" />
+                      <input type="number" id="smtp_port" [(ngModel)]="formData.smtp_port" name="smtp_port" [placeholder]="'SETTINGS.SMTP_PORT_PLACEHOLDER' | translate" min="1" max="65535" />
                     </div>
                     <div class="form-group checkbox-row">
                       <label class="switch">
@@ -1100,7 +1243,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                   </div>
                   <div class="form-group">
                     <label for="smtp_user">{{ 'SETTINGS.SMTP_USER' | translate }}</label>
-                    <input type="text" id="smtp_user" [(ngModel)]="formData.smtp_user" name="smtp_user" placeholder="you@your-mail.com" />
+                    <input type="text" id="smtp_user" [(ngModel)]="formData.smtp_user" name="smtp_user" [placeholder]="'SETTINGS.SMTP_USER_PLACEHOLDER' | translate" />
                   </div>
                   <div class="form-group">
                     <label for="smtp_password">{{ 'SETTINGS.SMTP_PASSWORD' | translate }}</label>
@@ -1147,7 +1290,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
               @if (success()) {
                 <div class="toast success">
                   <span>{{ success() }}</span>
-                  <button type="button" class="toast-close" (click)="success.set(null)" aria-label="Dismiss">×</button>
+                  <button type="button" class="toast-close" (click)="dismissSuccessToast()" aria-label="Dismiss">×</button>
                 </div>
               }
               
@@ -1332,6 +1475,15 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       .form-row .form-group {
         flex: 1;
       }
+    }
+
+    .prepayment-amount-row .form-group {
+      margin-bottom: 0;
+    }
+
+    .prepayment-currency-hint {
+      font-size: 0.8125rem;
+      color: var(--color-text-muted);
     }
 
     .form-group {
@@ -1963,6 +2115,41 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       }
     }
 
+    .data-export-card {
+      margin-bottom: var(--space-8);
+    }
+
+    .danger-zone {
+      margin-top: var(--space-8);
+      padding: var(--space-5);
+      border: 2px solid #dc2626;
+      border-radius: var(--radius-md);
+      background: #fef2f2;
+    }
+
+    .danger-zone h2 {
+      color: #991b1b;
+      font-size: 1.125rem;
+      margin: 0 0 var(--space-2);
+    }
+
+    .danger-lede {
+      color: #7f1d1d;
+      margin: 0 0 var(--space-4);
+      line-height: 1.5;
+    }
+
+    .btn-danger-outline {
+      margin-top: var(--space-3);
+      background: #dc2626;
+      color: #fff;
+      border: 1px solid #b91c1c;
+
+      &:hover:not(:disabled) {
+        background: #b91c1c;
+      }
+    }
+
     /* ==========================================
        FORM ACTIONS - Mobile First
        ========================================== */
@@ -2021,19 +2208,24 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
        ========================================== */
     .toast {
       position: fixed;
-      bottom: env(safe-area-inset-bottom, 16px);
-      right: var(--space-4);
-      left: var(--space-4);
+      top: calc(env(safe-area-inset-top, 0px) + var(--space-4));
+      left: 50%;
+      right: auto;
+      bottom: auto;
+      width: min(400px, calc(100% - 2 * var(--space-4)));
+      max-width: 400px;
       padding: var(--space-4);
       border-radius: var(--radius-md);
       color: white;
       font-weight: 500;
-      animation: slideUp 0.3s ease;
+      transform: translateX(-50%);
+      animation: settingsToastEnter 0.3s ease;
       z-index: 100;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: var(--space-3);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
 
       &.success {
         background: var(--color-success);
@@ -2056,13 +2248,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
     .toast-close:hover {
       color: white;
-    }
-
-    @media (min-width: 640px) {
-      .toast {
-        left: auto;
-        max-width: 400px;
-      }
     }
 
     .timezone-select-wrapper {
@@ -2176,24 +2361,30 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
       color: var(--color-text);
     }
 
-    @keyframes slideUp {
+    /* Security / OTP: separate explanatory copy from actions (GitHub #83) */
+    [data-testid='settings-security-section'] .form-card > p.hint {
+      margin-bottom: var(--space-4);
+    }
+
+    @keyframes settingsToastEnter {
       from {
-        transform: translateY(100%);
+        transform: translate(-50%, calc(-100% - 12px));
         opacity: 0;
       }
       to {
-        transform: translateY(0);
+        transform: translate(-50%, 0);
         opacity: 1;
       }
     }
   `]
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private translate = inject(TranslateService);
   private sanitizer = inject(DomSanitizer);
+  private permissions = inject(PermissionService);
 
   /** ISO 4217 codes for per-tenant prices (GitHub #41). */
   readonly tenantCurrencyCodes: string[] = [
@@ -2227,6 +2418,86 @@ export class SettingsComponent implements OnInit {
     return base;
   }
 
+  /** Split UI for `reservation_prepayment_cents` (major + minor units per ISO 4217 / Intl). */
+  prepaymentMajorUnits = 0;
+  prepaymentMinorUnits = 0;
+
+  getPrepaymentMinorDigits(): number {
+    const raw = (this.formData.currency_code || 'EUR').trim().toUpperCase();
+    if (!raw || raw.length !== 3) {
+      return 2;
+    }
+    try {
+      const opts = new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency: raw,
+      }).resolvedOptions();
+      const n = opts.maximumFractionDigits ?? 2;
+      return Math.min(6, Math.max(0, n));
+    } catch {
+      return 2;
+    }
+  }
+
+  prepaymentMinorMax(): number {
+    const d = this.getPrepaymentMinorDigits();
+    if (d <= 0) {
+      return 0;
+    }
+    return 10 ** d - 1;
+  }
+
+  getPrepaymentCurrencySymbol(): string {
+    const raw = (this.formData.currency_code || 'EUR').trim().toUpperCase();
+    const code = raw.length === 3 ? raw : 'EUR';
+    try {
+      const parts = new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency: code,
+      }).formatToParts(0);
+      return parts.find((p) => p.type === 'currency')?.value || code;
+    } catch {
+      return code;
+    }
+  }
+
+  getPrepaymentCurrencyLabel(): string {
+    const raw = (this.formData.currency_code || 'EUR').trim().toUpperCase();
+    const code = raw.length === 3 ? raw : 'EUR';
+    const sym = this.getPrepaymentCurrencySymbol();
+    return sym && sym !== code ? `${code} (${sym})` : code;
+  }
+
+  onTenantCurrencyCodeChange(): void {
+    this.syncPrepaymentFieldsFromCents();
+  }
+
+  syncPrepaymentFieldsFromCents(): void {
+    const rawTotal = this.formData.reservation_prepayment_cents;
+    const total =
+      rawTotal == null || rawTotal === 0 || Number.isNaN(Number(rawTotal))
+        ? 0
+        : Math.max(0, Math.floor(Number(rawTotal)));
+    const d = this.getPrepaymentMinorDigits();
+    const mod = 10 ** d;
+    this.prepaymentMajorUnits = Math.floor(total / mod);
+    this.prepaymentMinorUnits = d > 0 ? total % mod : 0;
+  }
+
+  applyPrepaymentPartsToCents(): void {
+    const d = this.getPrepaymentMinorDigits();
+    const mod = 10 ** d;
+    let maj = Math.max(0, Math.floor(Number(this.prepaymentMajorUnits) || 0));
+    let min = d === 0 ? 0 : Math.max(0, Math.floor(Number(this.prepaymentMinorUnits) || 0));
+    if (d > 0 && min >= mod) {
+      maj += Math.floor(min / mod);
+      min = min % mod;
+    }
+    this.prepaymentMajorUnits = maj;
+    this.prepaymentMinorUnits = min;
+    this.formData.reservation_prepayment_cents = maj * mod + min;
+  }
+
   settings = signal<TenantSettings | null>(null);
   taxes = signal<Tax[]>([]);
   taxError = signal('');
@@ -2244,9 +2515,11 @@ export class SettingsComponent implements OnInit {
     | 'reservations'
     | 'taxes'
     | 'kitchen-stations'
+    | 'contract-templates'
     | 'providers'
     | 'translations'
     | 'security'
+    | 'data-privacy'
   >('general');
 
   readonly uiModuleRows: { key: TenantUiModuleKey; labelKey: string; descKey: string }[] = [
@@ -2273,6 +2546,9 @@ export class SettingsComponent implements OnInit {
   saving = signal<boolean>(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null);
+  /** Auto-hide save success toast (GitHub #80); manual dismiss still works. */
+  private static readonly SETTINGS_SUCCESS_TOAST_MS = 60_000;
+  private successDismissTimer?: ReturnType<typeof setTimeout>;
   logoPreview = signal<string | null>(null);
   logoFile: File | null = null;
   headerBackgroundPreview = signal<string | null>(null);
@@ -2313,6 +2589,11 @@ export class SettingsComponent implements OnInit {
   otpDisableCode = '';
   otpDisabling = signal(false);
   otpSettingUp = signal(false);
+
+  purgeConfirmTenantName = '';
+  dataExporting = signal(false);
+  purging = signal(false);
+  purgeError = signal<string | null>(null);
 
   daysOfWeek = [
     { key: 'monday', label: 'SETTINGS.DAY_MONDAY' },
@@ -2397,12 +2678,14 @@ export class SettingsComponent implements OnInit {
     reservation_cancellation_policy: null,
     reservation_arrival_tolerance_minutes: null,
     reservation_average_table_turn_minutes: null,
+    reservation_slot_minutes: null,
     reservation_walk_in_tables_reserved: 0,
     reservation_dress_code: null,
     reservation_reminder_24h_enabled: false,
     reservation_reminder_2h_enabled: false,
     public_google_review_url: null,
     public_google_maps_url: null,
+    public_openstreetmap_url: null,
     tip_tax_rate_percent: 0,
     ui_modules: { ...DEFAULT_TENANT_UI_MODULES },
   };
@@ -2423,10 +2706,16 @@ export class SettingsComponent implements OnInit {
     if (section === 'reservations') {
       this.activeSection.set('reservations');
     }
+    if (section === 'contract-templates') {
+      this.activeSection.set('contract-templates');
+    }
     this.route.queryParams.subscribe((params) => {
       const s = params['section'];
       if (s === 'reservations') {
         this.activeSection.set('reservations');
+      }
+      if (s === 'contract-templates') {
+        this.activeSection.set('contract-templates');
       }
     });
     this.loadSettings();
@@ -2436,6 +2725,12 @@ export class SettingsComponent implements OnInit {
     const s = this.settings();
     if (!s?.ui_modules) return true;
     return s.ui_modules[key] !== false;
+  }
+
+  contractTemplatesTabVisible(): boolean {
+    const u = this.api.getCurrentUser();
+    if (!u) return false;
+    return this.permissions.hasPermission(u, 'staff_contract:manage');
   }
 
   loadSettings() {
@@ -2477,12 +2772,14 @@ export class SettingsComponent implements OnInit {
           reservation_cancellation_policy: settings.reservation_cancellation_policy ?? null,
           reservation_arrival_tolerance_minutes: settings.reservation_arrival_tolerance_minutes ?? null,
           reservation_average_table_turn_minutes: settings.reservation_average_table_turn_minutes ?? null,
+          reservation_slot_minutes: settings.reservation_slot_minutes ?? null,
           reservation_walk_in_tables_reserved: settings.reservation_walk_in_tables_reserved ?? 0,
           reservation_dress_code: settings.reservation_dress_code ?? null,
           reservation_reminder_24h_enabled: settings.reservation_reminder_24h_enabled ?? false,
           reservation_reminder_2h_enabled: settings.reservation_reminder_2h_enabled ?? false,
           public_google_review_url: settings.public_google_review_url ?? null,
           public_google_maps_url: settings.public_google_maps_url ?? null,
+          public_openstreetmap_url: settings.public_openstreetmap_url ?? null,
           tip_tax_rate_percent: settings.tip_tax_rate_percent ?? 0,
           ui_modules: {
             ...DEFAULT_TENANT_UI_MODULES,
@@ -2503,6 +2800,7 @@ export class SettingsComponent implements OnInit {
         }
         this.timezoneSearch = settings.timezone || '';
         this.parseOpeningHours(settings.opening_hours);
+        this.syncPrepaymentFieldsFromCents();
         this.loadTaxes();
         this.loading.set(false);
       },
@@ -2808,6 +3106,48 @@ export class SettingsComponent implements OnInit {
     });
   }
 
+  isTenantOwner(): boolean {
+    return this.api.getCurrentUser()?.role === 'owner';
+  }
+
+  downloadTenantDataExport(): void {
+    this.purgeError.set(null);
+    this.dataExporting.set(true);
+    this.api.downloadTenantDataExport().subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'tenant-data-export.zip';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.dataExporting.set(false);
+      },
+      error: () => {
+        this.purgeError.set(this.translate.instant('SETTINGS.DATA_EXPORT_FAILED'));
+        this.dataExporting.set(false);
+      },
+    });
+  }
+
+  purgeTenantForever(): void {
+    this.purgeError.set(null);
+    const name = this.purgeConfirmTenantName.trim();
+    this.purging.set(true);
+    this.api.purgeTenant(name).subscribe({
+      next: () => {
+        this.api.logout().subscribe(() => this.router.navigateByUrl('/login'));
+      },
+      error: (err) => {
+        const detail = err?.error?.detail;
+        this.purgeError.set(
+          typeof detail === 'string' ? detail : this.translate.instant('SETTINGS.PURGE_FAILED'),
+        );
+        this.purging.set(false);
+      },
+    });
+  }
+
   filterTimezones() {
     const q = this.timezoneSearch.toLowerCase();
     this.filteredTimezones = q
@@ -3057,8 +3397,12 @@ export class SettingsComponent implements OnInit {
   removeLogo() {
     this.logoFile = null;
     this.logoPreview.set(null);
-    // Note: To actually remove from server, we'd need a DELETE endpoint
-    // For now, just clear the preview
+    this.api.deleteTenantLogo().subscribe({
+      next: (updated) => {
+        this.settings.set(updated);
+      },
+      error: () => {},
+    });
   }
 
   onHeaderBackgroundSelected(event: Event) {
@@ -3127,9 +3471,34 @@ export class SettingsComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.clearSuccessDismissTimer();
+  }
+
+  private clearSuccessDismissTimer(): void {
+    if (this.successDismissTimer !== undefined) {
+      clearTimeout(this.successDismissTimer);
+      this.successDismissTimer = undefined;
+    }
+  }
+
+  private scheduleSuccessDismiss(): void {
+    this.clearSuccessDismissTimer();
+    this.successDismissTimer = setTimeout(() => {
+      this.successDismissTimer = undefined;
+      this.success.set(null);
+    }, SettingsComponent.SETTINGS_SUCCESS_TOAST_MS);
+  }
+
+  dismissSuccessToast(): void {
+    this.clearSuccessDismissTimer();
+    this.success.set(null);
+  }
+
   saveSettings() {
     this.saving.set(true);
     this.error.set(null);
+    this.clearSuccessDismissTimer();
     this.success.set(null);
 
     const doLogoUpload = () => {
@@ -3220,6 +3589,7 @@ export class SettingsComponent implements OnInit {
         this.settings.set(updatedSettings);
         this.api.applyTenantUiModulesFromSettings(updatedSettings);
         this.success.set('Settings saved successfully!');
+        this.scheduleSuccessDismiss();
         this.saving.set(false);
       },
       error: (err) => {

@@ -10,7 +10,7 @@ This document defines a **multi-agent workflow** for this repository, modeled on
 
 - **Traceable work:** Each change flows through named stages (task file renames), like mac-stats-reviewer’s inbox pipeline.
 - **Separation of concerns:** Review/analysis agents do not implement; coders implement; testers verify with evidence; closing reviewer archives; committer handles changelog/version only.
-- **POS alignment:** Follow **`AGENTS.md`**, **`.cursor/rules/`**, Docker-based backend tests, Puppeteer smokes (**`docs/testing.md`**), and **no new host installs** (see user/project rules).
+- **POS alignment:** Follow **`AGENTS.md`**, **`.cursor/rules/`** (catalog: **`docs/agent-cursor-rules.md`**), Docker-based backend tests, Puppeteer smokes (**`docs/testing.md`**), and **no new host installs** (see user/project rules).
 
 ---
 

@@ -6,6 +6,7 @@ import hmac
 import json
 import logging
 import os
+import secrets
 import time as _time
 from calendar import monthrange
 from datetime import date, timedelta, datetime, time, timezone
@@ -15,6 +16,7 @@ from zoneinfo import ZoneInfo
 from io import BytesIO
 from pathlib import Path
 from typing import Annotated, Any, Dict, List, Tuple
+from urllib.parse import quote
 from uuid import uuid4
 
 from PIL import Image
@@ -22,10 +24,10 @@ import redis
 import stripe
 from fastapi import BackgroundTasks, Body, Depends, FastAPI, HTTPException, UploadFile, File, status, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response, StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel as _BaseModel
+from pydantic import BaseModel as _BaseModel, Field
 from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from sqlmodel import Session, select
@@ -35,6 +37,10 @@ from .db import check_db_connection, create_db_and_tables, get_session, engine
 from .settings import settings
 from .inventory_routes import router as inventory_router
 from .reports_routes import router as reports_router
+from .tenant_lifecycle_routes import router as tenant_lifecycle_router
+from .staff_contract_routes import router as staff_contract_router
+from .staff_contract_template_routes import router as staff_contract_template_router
+from .work_session_serialization import serialize_work_session
 from .inventory_service import deduct_inventory_for_order
 from . import inventory_models
 from .translation_service import TranslationService
@@ -68,6 +74,7 @@ from .kitchen_stations_util import (
     resolve_order_item_kds,
     validate_kitchen_station_belongs,
 )
+from .schedule_export_i18n import schedule_export_labels
 
 # Rate limiting (slowapi)
 try:
@@ -444,6 +451,14 @@ app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 app.include_router(inventory_router, prefix="/inventory", tags=["Inventory"])
 # Reports (sales / revenue analysis)
 app.include_router(reports_router, prefix="/reports", tags=["Reports"])
+# Owner-only data export & tenant purge (GitHub #96)
+app.include_router(tenant_lifecycle_router, prefix="/tenant", tags=["Tenant lifecycle"])
+app.include_router(staff_contract_router, prefix="/staff-contracts", tags=["Staff contracts"])
+app.include_router(
+    staff_contract_template_router,
+    prefix="/staff-contract-templates",
+    tags=["Staff contract templates"],
+)
 
 
 # ============ IMAGE OPTIMIZATION ============
@@ -694,6 +709,7 @@ class TenantSummary(_BaseModel):
     reservation_dress_code: str | None = None
     public_google_review_url: str | None = None
     public_google_maps_url: str | None = None
+    public_openstreetmap_url: str | None = None
     # IANA timezone (e.g. Europe/Madrid) for public book page date/time UX
     timezone: str | None = None
 
@@ -784,6 +800,7 @@ def _tenant_to_summary(t: models.Tenant, session: Session) -> TenantSummary:
         reservation_dress_code=t.reservation_dress_code,
         public_google_review_url=t.public_google_review_url,
         public_google_maps_url=t.public_google_maps_url,
+        public_openstreetmap_url=t.public_openstreetmap_url,
         timezone=t.timezone,
     )
 
@@ -844,6 +861,7 @@ def get_public_tenant(
         "reservation_dress_code": summary.reservation_dress_code,
         "public_google_review_url": summary.public_google_review_url,
         "public_google_maps_url": summary.public_google_maps_url,
+        "public_openstreetmap_url": summary.public_openstreetmap_url,
         "timezone": summary.timezone,
     }
     return JSONResponse(content=body)
@@ -1312,6 +1330,130 @@ def logout():
     return response
 
 
+def _password_reset_token_hash(raw_token: str) -> str:
+    return hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+
+
+def _resolve_user_for_password_reset(
+    session: Session,
+    email: str,
+    tenant_id: int | None,
+    scope: str | None,
+) -> models.User | None:
+    statement = select(models.User).where(models.User.email == email)
+    if scope == "provider":
+        statement = statement.where(
+            models.User.provider_id.is_not(None),
+            models.User.tenant_id.is_(None),
+        )
+    elif tenant_id is not None:
+        statement = statement.where(models.User.tenant_id == tenant_id)
+    return session.exec(statement).first()
+
+
+class PasswordResetRequestBody(_BaseModel):
+    email: str
+    tenant_id: int | None = None
+    scope: str | None = None
+
+
+class PasswordResetConfirmBody(_BaseModel):
+    token: str = Field(..., min_length=16, max_length=256)
+    new_password: str = Field(..., min_length=8, max_length=256)
+
+
+@app.post("/password-reset/request")
+@limiter.limit(f"{getattr(settings, 'rate_limit_password_reset_per_hour', 5)}/hour")
+async def password_reset_request(
+    request: Request,
+    body: PasswordResetRequestBody,
+    lang: str = Depends(_get_requested_language),
+    session: Session = Depends(get_session),
+) -> JSONResponse:
+    """Request a password reset email. Response is always generic (no email enumeration)."""
+    if body.scope is not None and body.scope != "provider":
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Invalid scope",
+        )
+    try:
+        email = normalize_email_address(body.email)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=get_message("invalid_email", lang))
+    user = _resolve_user_for_password_reset(session, email, body.tenant_id, body.scope)
+    msg = get_message("password_reset_sent", lang)
+    if not user:
+        return JSONResponse({"status": "ok", "message": msg})
+    base = (settings.public_app_base_url or "").strip().rstrip("/")
+    if not base:
+        logger.warning("password reset: PUBLIC_APP_BASE_URL is not set; cannot send reset email")
+        return JSONResponse({"status": "ok", "message": msg})
+    pending = session.exec(
+        select(models.PasswordResetToken).where(
+            models.PasswordResetToken.user_id == user.id,
+            models.PasswordResetToken.used_at.is_(None),
+        )
+    ).all()
+    for pr in pending:
+        session.delete(pr)
+    raw = secrets.token_urlsafe(32)
+    th = _password_reset_token_hash(raw)
+    exp = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.password_reset_token_expire_minutes
+    )
+    prt = models.PasswordResetToken(user_id=user.id, token_hash=th, expires_at=exp)
+    session.add(prt)
+    session.flush()
+    reset_url = f"{base}/reset-password?token={quote(raw, safe='')}"
+    tenant_for_smtp = None
+    if user.tenant_id is not None:
+        tenant_for_smtp = session.get(models.Tenant, user.tenant_id)
+    sent = await email_svc.send_password_reset_email(
+        user.email, reset_url, tenant=tenant_for_smtp, lang=lang
+    )
+    if not sent:
+        session.delete(prt)
+    session.commit()
+    return JSONResponse({"status": "ok", "message": msg})
+
+
+@app.post("/password-reset/confirm")
+@limiter.limit(f"{getattr(settings, 'rate_limit_password_reset_per_hour', 5)}/hour")
+def password_reset_confirm(
+    request: Request,
+    body: PasswordResetConfirmBody,
+    lang: str = Depends(_get_requested_language),
+    session: Session = Depends(get_session),
+) -> dict:
+    """Set a new password using a one-time token from the reset email."""
+    raw = (body.token or "").strip()
+    th = _password_reset_token_hash(raw)
+    row = session.exec(
+        select(models.PasswordResetToken).where(
+            models.PasswordResetToken.token_hash == th
+        )
+    ).first()
+    now = datetime.now(timezone.utc)
+    if row is None or row.used_at is not None or row.expires_at < now:
+        raise HTTPException(
+            status_code=400,
+            detail=get_message("password_reset_invalid", lang),
+        )
+    user = session.get(models.User, row.user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=400,
+            detail=get_message("password_reset_invalid", lang),
+        )
+    row.used_at = now
+    user.hashed_password = security.get_password_hash(body.new_password)
+    user.token_version = (user.token_version or 0) + 1
+    session.add(row)
+    session.add(user)
+    session.commit()
+    return {"status": "ok"}
+
+
 @app.post("/refresh")
 def refresh_access_token(
     request: Request,
@@ -1461,23 +1603,6 @@ def _require_tenant_staff_for_work_session(user: models.User) -> None:
         )
 
 
-def _work_session_to_dict(ws: models.WorkSession, user_name: str) -> dict:
-    duration_minutes: int | None = None
-    if ws.ended_at is not None and ws.started_at is not None:
-        duration_minutes = max(0, int((ws.ended_at - ws.started_at).total_seconds() // 60))
-    return {
-        "id": ws.id,
-        "tenant_id": ws.tenant_id,
-        "user_id": ws.user_id,
-        "user_name": user_name,
-        "started_at": ws.started_at.isoformat() if ws.started_at else None,
-        "ended_at": ws.ended_at.isoformat() if ws.ended_at else None,
-        "duration_minutes": duration_minutes,
-        "start_ip": ws.start_ip,
-        "end_ip": ws.end_ip,
-    }
-
-
 @app.get("/users/me/work-session")
 def get_my_open_work_session(
     current_user: Annotated[models.User, Depends(security.get_current_user)],
@@ -1494,7 +1619,7 @@ def get_my_open_work_session(
     if not open_row:
         return None
     name = current_user.full_name or current_user.email or ""
-    return _work_session_to_dict(open_row, name)
+    return serialize_work_session(open_row, name)
 
 
 @app.post("/users/me/work-session/start")
@@ -1535,7 +1660,7 @@ def start_my_work_session(
         )
     session.refresh(ws)
     name = current_user.full_name or current_user.email or ""
-    return _work_session_to_dict(ws, name)
+    return serialize_work_session(ws, name)
 
 
 @app.post("/users/me/work-session/end")
@@ -1563,7 +1688,7 @@ def end_my_work_session(
     session.commit()
     session.refresh(open_row)
     name = current_user.full_name or current_user.email or ""
-    return _work_session_to_dict(open_row, name)
+    return serialize_work_session(open_row, name)
 
 
 @app.get("/users/me/work-sessions")
@@ -1592,7 +1717,7 @@ def list_my_work_sessions(
         .order_by(models.WorkSession.started_at.desc())
     ).all()
     name = current_user.full_name or current_user.email or ""
-    return [_work_session_to_dict(r, name) for r in rows]
+    return [serialize_work_session(r, name) for r in rows]
 
 
 # ============ USER MANAGEMENT ============
@@ -1682,6 +1807,7 @@ def update_user(
     user_data: models.UserUpdate,
     current_user: Annotated[models.User, Depends(require_permission(Permission.USER_UPDATE))],
     session: Session = Depends(get_session),
+    lang: str = Depends(_get_requested_language),
 ) -> models.UserResponse:
     """Update a user's details."""
     from .permissions import can_modify_user, can_manage_user
@@ -1747,9 +1873,27 @@ def update_user(
     
     if user_data.full_name is not None:
         target_user.full_name = user_data.full_name
-    
-    if user_data.password is not None:
-        target_user.hashed_password = security.get_password_hash(user_data.password)
+
+    new_password = (
+        user_data.password.strip() if user_data.password is not None else None
+    )
+    if new_password:
+        actor_pw = (
+            (user_data.actor_current_password or "").strip()
+            if user_data.actor_current_password is not None
+            else ""
+        )
+        if not actor_pw:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=get_message("actor_current_password_required", lang),
+            )
+        if not security.verify_password(actor_pw, current_user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=get_message("incorrect_actor_password", lang),
+            )
+        target_user.hashed_password = security.get_password_hash(new_password)
         # Increment token version to invalidate existing tokens
         target_user.token_version += 1
     
@@ -2202,6 +2346,10 @@ def update_tenant_settings(
         tenant.public_google_maps_url = _normalize_public_http_url(
             tenant_update.public_google_maps_url
         )
+    if tenant_update.public_openstreetmap_url is not None:
+        tenant.public_openstreetmap_url = _normalize_public_http_url(
+            tenant_update.public_openstreetmap_url
+        )
 
     # Reservation options (pre-payment, policies, reminders)
     if tenant_update.reservation_prepayment_cents is not None:
@@ -2235,6 +2383,17 @@ def update_tenant_settings(
             )
         else:
             tenant.reservation_average_table_turn_minutes = v
+    if tenant_update.reservation_slot_minutes is not None:
+        v = tenant_update.reservation_slot_minutes
+        if v <= 0:
+            tenant.reservation_slot_minutes = None
+        elif v < 5 or v > 120:
+            raise HTTPException(
+                status_code=400,
+                detail="reservation_slot_minutes must be between 5 and 120, or 0 to use default (15)",
+            )
+        else:
+            tenant.reservation_slot_minutes = int(v)
     if tenant_update.reservation_walk_in_tables_reserved is not None:
         w = tenant_update.reservation_walk_in_tables_reserved
         tenant.reservation_walk_in_tables_reserved = max(0, int(w))
@@ -2849,6 +3008,54 @@ async def upload_tenant_logo(
         tenant_dict["smtp_password"] = "********"
 
     return tenant_dict
+
+
+@app.delete("/tenant/logo")
+@limiter.limit(
+    f"{getattr(settings, 'rate_limit_admin_per_minute', 30)}/minute",
+    key_func=_rate_limit_key_user,
+)
+def delete_tenant_logo(
+    request: Request,
+    current_user: Annotated[models.User, Depends(require_permission(Permission.SETTINGS_UPDATE))],
+    session: Session = Depends(get_session),
+) -> dict:
+    """Remove the tenant logo image."""
+    tenant = session.exec(
+        select(models.Tenant).where(models.Tenant.id == current_user.tenant_id)
+    ).first()
+
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    if tenant.logo_filename:
+        tenant_dir = UPLOADS_DIR / str(current_user.tenant_id) / "logo"
+        path = tenant_dir / tenant.logo_filename
+        if path.exists():
+            path.unlink()
+        tenant.logo_filename = None
+        session.add(tenant)
+        session.commit()
+        session.refresh(tenant)
+
+    tenant_dict = tenant.model_dump(mode="json", exclude={"users"})
+    tenant_dict["id"] = tenant.id
+    tenant_dict["logo_size_bytes"] = None
+    tenant_dict["logo_size_formatted"] = format_file_size(None)
+
+    if tenant_dict.get("stripe_secret_key"):
+        secret_key = tenant_dict["stripe_secret_key"]
+        tenant_dict["stripe_secret_key"] = (
+            f"{secret_key[:7]}...{secret_key[-4:]}" if len(secret_key) > 11 else "***"
+        )
+    if tenant_dict.get("revolut_merchant_secret"):
+        sk = tenant_dict["revolut_merchant_secret"]
+        tenant_dict["revolut_merchant_secret"] = (
+            f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
+        )
+    if tenant_dict.get("smtp_password"):
+        tenant_dict["smtp_password"] = "********"
+    return JSONResponse(content=tenant_dict)
 
 
 @app.post("/tenant/header-background")
@@ -5067,6 +5274,121 @@ def list_schedule(
     return [_shift_to_dict(s, user_map.get(s.user_id, ("", ""))[0], user_map.get(s.user_id, ("", ""))[1]) for s in shifts]
 
 
+_SCHEDULE_PLAN_USER_ROLES = frozenset(
+    {
+        models.UserRole.owner,
+        models.UserRole.admin,
+        models.UserRole.kitchen,
+        models.UserRole.bartender,
+        models.UserRole.waiter,
+        models.UserRole.receptionist,
+    }
+)
+
+
+@app.get("/schedule/export")
+def export_schedule_month(
+    current_user: Annotated[models.User, Depends(require_permission(Permission.SCHEDULE_READ))],
+    session: Session = Depends(get_session),
+    user_id: int = Query(..., description="Scheduled worker (must belong to tenant)"),
+    year: int = Query(..., ge=2000, le=2100),
+    month: int = Query(..., ge=1, le=12),
+    lang: str | None = Query(None, description="UI language for column headers (e.g. en, de, es)"),
+) -> StreamingResponse:
+    """Export one worker's shifts for a calendar month as Excel. Dates/times match the schedule API (tenant calendar day + local times)."""
+    if current_user.tenant_id is None:
+        raise HTTPException(status_code=403, detail="Tenant required")
+    target = session.exec(
+        select(models.User).where(
+            models.User.id == user_id,
+            models.User.tenant_id == current_user.tenant_id,
+        )
+    ).first()
+    if not target:
+        raise HTTPException(status_code=400, detail="User not found")
+    if target.role not in _SCHEDULE_PLAN_USER_ROLES:
+        raise HTTPException(status_code=400, detail="User cannot be scheduled on the working plan")
+    fd = date(year, month, 1)
+    ld = date(year, month, monthrange(year, month)[1])
+    shifts = session.exec(
+        select(models.Shift)
+        .where(models.Shift.tenant_id == current_user.tenant_id)
+        .where(models.Shift.user_id == user_id)
+        .where(models.Shift.shift_date >= fd)
+        .where(models.Shift.shift_date <= ld)
+        .order_by(models.Shift.shift_date.asc(), models.Shift.start_time.asc())
+    ).all()
+    L = schedule_export_labels(lang)
+    try:
+        from openpyxl import Workbook
+    except ImportError:
+        raise HTTPException(status_code=500, detail="Excel export requires openpyxl")
+    wb = Workbook()
+    ws = wb.active
+    title_base = f"{L['sheet']} {year}-{month:02d}"
+    ws.title = title_base[:31]
+    worker_name = target.full_name or target.email or str(user_id)
+    user_role = target.role.value if target.role else ""
+    ws.append(
+        [
+            L["date"],
+            L["start_time"],
+            L["end_time"],
+            L["label"],
+            L["employee"],
+            L["role"],
+        ]
+    )
+    for s in shifts:
+        ws.append(
+            [
+                s.shift_date.isoformat(),
+                s.start_time.strftime("%H:%M") if s.start_time else "",
+                s.end_time.strftime("%H:%M") if s.end_time else "",
+                (s.label or ""),
+                worker_name,
+                user_role,
+            ]
+        )
+    buf = BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    fn = f"working-plan-{user_id}-{year}-{month:02d}.xlsx"
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{fn}"'},
+    )
+
+
+@app.get("/schedule/plan-users", response_model=list[models.UserResponse])
+def list_schedule_plan_users(
+    current_user: Annotated[models.User, Depends(require_permission(Permission.SCHEDULE_READ))],
+    session: Session = Depends(get_session),
+) -> list[models.UserResponse]:
+    """Staff who may be assigned shifts (same role set as Excel export). Uses SCHEDULE_READ only so kitchen/bar/waiters can load the worker list without user:read."""
+    if current_user.tenant_id is None:
+        raise HTTPException(status_code=403, detail="Tenant required")
+    rows = session.exec(
+        select(models.User).where(models.User.tenant_id == current_user.tenant_id)
+    ).all()
+    out: list[models.UserResponse] = []
+    for u in rows:
+        if u.role in _SCHEDULE_PLAN_USER_ROLES:
+            out.append(
+                models.UserResponse(
+                    id=u.id,
+                    email=u.email,
+                    full_name=u.full_name,
+                    role=u.role,
+                    tenant_id=u.tenant_id,
+                    provider_id=getattr(u, "provider_id", None),
+                )
+            )
+    out.sort(key=lambda r: ((r.full_name or r.email or "").lower(), r.id))
+    return out
+
+
 @app.get("/schedule/{shift_id}")
 def get_shift(
     shift_id: int,
@@ -5130,6 +5452,97 @@ def create_shift(
     session.refresh(shift)
     user_name = user.full_name or user.email or ""
     return _shift_to_dict(shift, user_name, user.role.value)
+
+
+def _date_to_js_weekday(d: date) -> int:
+    """Match JavaScript Date.getDay(): Sunday=0 .. Saturday=6."""
+    return (d.weekday() + 1) % 7
+
+
+@app.post("/schedule/bulk")
+def create_shifts_bulk(
+    body: models.ShiftBulkCreate,
+    current_user: Annotated[models.User, Depends(require_permission(Permission.SCHEDULE_WRITE))],
+    session: Session = Depends(get_session),
+) -> dict:
+    """Create the same shift on selected weekdays for every day in a calendar month.
+
+    When skip_days_with_existing_shift is true, days where the user already has any shift are left unchanged
+    so single-day edits and exceptions stay intact.
+    """
+    from datetime import datetime as dt_parse
+
+    if current_user.tenant_id is None:
+        raise HTTPException(status_code=403, detail="Tenant required")
+    weekday_set = set(body.weekdays)
+    if not weekday_set.issubset(range(7)):
+        raise HTTPException(status_code=400, detail="weekdays must be integers 0–6 (Sunday=0 .. Saturday=6)")
+    user = session.exec(
+        select(models.User).where(
+            models.User.id == body.user_id,
+            models.User.tenant_id == current_user.tenant_id,
+        )
+    ).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found")
+    if user.role not in (
+        models.UserRole.owner,
+        models.UserRole.admin,
+        models.UserRole.kitchen,
+        models.UserRole.bartender,
+        models.UserRole.waiter,
+        models.UserRole.receptionist,
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="User must have role owner, admin, kitchen, bartender, waiter, or receptionist",
+        )
+    try:
+        start_time = dt_parse.strptime(body.start_time[:5], "%H:%M").time()
+        end_time = dt_parse.strptime(body.end_time[:5], "%H:%M").time()
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="Invalid start_time or end_time; use HH:MM")
+    if start_time >= end_time:
+        raise HTTPException(status_code=400, detail="start_time must be before end_time")
+
+    first = date(body.year, body.month, 1)
+    last_day = monthrange(body.year, body.month)[1]
+    created_count = 0
+    skipped_existing_count = 0
+
+    for dom in range(1, last_day + 1):
+        shift_date = date(body.year, body.month, dom)
+        if _date_to_js_weekday(shift_date) not in weekday_set:
+            continue
+        if body.skip_days_with_existing_shift:
+            existing = session.exec(
+                select(models.Shift)
+                .where(models.Shift.tenant_id == current_user.tenant_id)
+                .where(models.Shift.user_id == body.user_id)
+                .where(models.Shift.shift_date == shift_date)
+                .limit(1)
+            ).first()
+            if existing is not None:
+                skipped_existing_count += 1
+                continue
+        shift = models.Shift(
+            tenant_id=current_user.tenant_id,
+            user_id=body.user_id,
+            shift_date=shift_date,
+            start_time=start_time,
+            end_time=end_time,
+            label=body.label,
+        )
+        session.add(shift)
+        created_count += 1
+
+    if created_count:
+        _mark_working_plan_updated(session, current_user.tenant_id)
+    session.commit()
+    return {
+        "created_count": created_count,
+        "skipped_existing_count": skipped_existing_count,
+    }
 
 
 @app.put("/schedule/{shift_id}")
@@ -5642,14 +6055,25 @@ def _raise_if_reservation_time_invalid_for_opening_hours(
     )
 
 
-def _quarter_slot_times_for_windows(windows: List[Tuple[time, time]]) -> List[time]:
-    """15-minute start times within each window, strictly before close, respecting 1h-before-close rule."""
+def _effective_reservation_slot_minutes(tenant: models.Tenant) -> int:
+    """Minutes between bookable start times on the public grid; null/invalid → 15 (legacy)."""
+    v = tenant.reservation_slot_minutes
+    if v is None or v <= 0:
+        return 15
+    return int(v)
+
+
+def _grid_slot_times_for_windows(
+    windows: List[Tuple[time, time]], slot_step_minutes: int
+) -> List[time]:
+    """Start times on a fixed minute grid within each window, strictly before close, respecting 1h-before-close rule."""
+    step = max(1, min(120, int(slot_step_minutes)))
     seen: set[int] = set()
     out: List[time] = []
     for open_t, close_t in windows:
         om = open_t.hour * 60 + open_t.minute
         cm = close_t.hour * 60 + close_t.minute
-        t = ((om + 14) // 15) * 15
+        t = ((om + step - 1) // step) * step
         while t < cm:
             slot = time(t // 60, t % 60)
             if _reservation_time_allowed_before_closing(slot, close_t):
@@ -5657,7 +6081,7 @@ def _quarter_slot_times_for_windows(windows: List[Tuple[time, time]]) -> List[ti
                 if key not in seen:
                     seen.add(key)
                     out.append(slot)
-            t += 15
+            t += step
     out.sort(key=lambda x: x.hour * 60 + x.minute)
     return out
 
@@ -5993,9 +6417,9 @@ def get_reservations_overbooking_report(
     ).all()
     slot_times_set: set[time] = set(reservations_on_date)
     if not slot_times_set:
-        for h in range(8, 23):
-            for m in (0, 15, 30, 45):
-                slot_times_set.add(time(h, m))
+        slot_step = _effective_reservation_slot_minutes(tenant)
+        for st in _grid_slot_times_for_windows([(time(8, 0), time(23, 0))], slot_step):
+            slot_times_set.add(st)
     slot_times = sorted(slot_times_set)
 
     time_from_parsed: time | None = None
@@ -6292,6 +6716,10 @@ def get_reservation_book_week_slots(
         description="Any date YYYY-MM-DD in the target week; Mon–Sun grid (tenant calendar). Omit = week containing today",
     ),
     party_size: int = Query(2, ge=1, le=100),
+    exclude_reservation_id: int | None = Query(
+        None,
+        description="Exclude this reservation from demand (staff edit: current booking)",
+    ),
     session: Session = Depends(get_session),
 ) -> dict:
     """Public: per-slot availability for a Mon–Sun grid (party size and capacity)."""
@@ -6315,6 +6743,7 @@ def get_reservation_book_week_slots(
 
     anchor_monday = _monday_on_or_before(anchor_day)
 
+    slot_step = _effective_reservation_slot_minutes(tenant)
     all_slot_times: set[time] = set()
     for i in range(7):
         d = anchor_monday + timedelta(days=i)
@@ -6323,7 +6752,7 @@ def get_reservation_book_week_slots(
             windows = [(time(8, 0), time(23, 0))]
         if len(windows) == 0:
             continue
-        for st in _quarter_slot_times_for_windows(windows):
+        for st in _grid_slot_times_for_windows(windows, slot_step):
             all_slot_times.add(st)
 
     times_sorted = sorted(all_slot_times, key=lambda x: x.hour * 60 + x.minute)
@@ -6339,7 +6768,7 @@ def get_reservation_book_week_slots(
         day_closed = len(windows) == 0
         allowed_times = set()
         if not day_closed:
-            allowed_times = set(_quarter_slot_times_for_windows(windows))
+            allowed_times = set(_grid_slot_times_for_windows(windows, slot_step))
 
         for st in times_sorted:
             key = st.strftime("%H:%M")
@@ -6368,7 +6797,7 @@ def get_reservation_book_week_slots(
                 continue
 
             reserved_guests, reserved_parties = _demand_for_slot(
-                session, tenant_id, d, st, exclude_reservation_id=None
+                session, tenant_id, d, st, exclude_reservation_id=exclude_reservation_id
             )
             if reserved_guests + party_size <= total_seats and reserved_parties + 1 <= total_tables:
                 cells[key] = "available"
@@ -6414,6 +6843,7 @@ def get_next_available_reservation_time(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+    slot_step = _effective_reservation_slot_minutes(tenant)
     for day_offset in range(8):
         d = check_date + timedelta(days=day_offset)
         windows = _opening_service_windows_for_date(tenant, d)
@@ -6422,7 +6852,7 @@ def get_next_available_reservation_time(
         if len(windows) == 0:
             continue
 
-        for slot_time in _quarter_slot_times_for_windows(windows):
+        for slot_time in _grid_slot_times_for_windows(windows, slot_step):
             slot_dt = datetime.combine(d, slot_time, tzinfo=tz)
             if slot_dt < min_dt:
                 continue

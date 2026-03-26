@@ -1,10 +1,10 @@
 from datetime import date, datetime, time, timezone
 from enum import Enum
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
-from sqlalchemy import Column, Date, DateTime, Enum as SAEnum, Time
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Column, Date, DateTime, Enum as SAEnum, Text, Time, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -140,7 +140,8 @@ class Tenant(SQLModel, table=True):
     smtp_password: str | None = Field(default=None)
     email_from: str | None = Field(default=None)
     email_from_name: str | None = Field(default=None)
-    # Reservation confirmation email (plain text with {{placeholders}}; see reservation_email_template.py)
+    # Reservation confirmation email (plain text with {{placeholders}} incl. reservation_link_block_html,
+    # restaurant_contact_block_html; see reservation_email_template.py)
     reservation_confirmation_email_subject: str | None = Field(default=None)
     reservation_confirmation_email_body: str | None = Field(default=None)
 
@@ -155,6 +156,8 @@ class Tenant(SQLModel, table=True):
     reservation_arrival_tolerance_minutes: int | None = Field(default=None)  # e.g. 15
     # Planning: average seated session length; used to free tables for later reservation slots (null = legacy same-day block)
     reservation_average_table_turn_minutes: int | None = Field(default=None)
+    # Interval between bookable start times on public grid (null or unset = 15 minutes)
+    reservation_slot_minutes: int | None = Field(default=None)
     # Tables kept out of reservation pool so walk-ins can be seated (smallest tables dropped first from pool)
     reservation_walk_in_tables_reserved: int = Field(default=0)
     reservation_dress_code: str | None = Field(default=None)
@@ -165,6 +168,8 @@ class Tenant(SQLModel, table=True):
     public_google_review_url: str | None = Field(default=None, max_length=2048)
     # Public pages: optional Google Maps place or directions URL (Share link from Maps)
     public_google_maps_url: str | None = Field(default=None, max_length=2048)
+    # Public pages: optional OpenStreetMap URL (share link from openstreetmap.org)
+    public_openstreetmap_url: str | None = Field(default=None, max_length=2048)
 
     # Kitchen/Bar display: wait-time thresholds (minutes) for card color (green -> yellow -> orange -> red)
     kitchen_display_timer_yellow_minutes: int | None = Field(default=5)
@@ -223,6 +228,22 @@ class User(SQLModel, table=True):
     # Optional TOTP (one-time password) for two-factor authentication
     otp_secret: str | None = Field(default=None, exclude=True)  # Never serialized in API responses
     otp_enabled: bool = Field(default=False)
+
+
+class PasswordResetToken(SQLModel, table=True):
+    """Single-use token for self-service password reset (raw token is emailed; only hash is stored)."""
+
+    __tablename__ = "password_reset_token"
+
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True)
+    token_hash: str = Field(max_length=64, index=True)
+    expires_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    used_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
 
 
 class TenantMixin(SQLModel):
@@ -702,6 +723,8 @@ class UserUpdate(SQLModel):
     full_name: str | None = None
     role: UserRole | None = None
     password: str | None = None  # Optional: only update if provided
+    # Required (non-empty) when password is set: authenticates the caller before changing a password.
+    actor_current_password: str | None = None
 
 
 class UserResponse(SQLModel):
@@ -841,6 +864,19 @@ class ShiftUpdate(SQLModel):
     start_time: str | None = None
     end_time: str | None = None
     label: str | None = None
+
+
+class ShiftBulkCreate(SQLModel):
+    """Create the same shift on many days in a month (e.g. Mon–Fri). Weekdays use JS convention: 0=Sunday .. 6=Saturday."""
+
+    user_id: int
+    year: int = Field(ge=2000, le=2100)
+    month: int = Field(ge=1, le=12)
+    weekdays: list[int] = Field(min_length=1)
+    start_time: str
+    end_time: str
+    label: str | None = None
+    skip_days_with_existing_shift: bool = True
 
 
 class OrderItemCreate(SQLModel):
@@ -983,6 +1019,7 @@ class TenantUpdate(SQLModel):
     reservation_cancellation_policy: str | None = None
     reservation_arrival_tolerance_minutes: int | None = None
     reservation_average_table_turn_minutes: int | None = None
+    reservation_slot_minutes: int | None = None
     reservation_walk_in_tables_reserved: int | None = None
     reservation_dress_code: str | None = None
     reservation_reminder_24h_enabled: bool | None = None
@@ -992,6 +1029,7 @@ class TenantUpdate(SQLModel):
     public_google_review_url: str | None = None
     # Google Maps place or directions URL (book, reservation view, feedback)
     public_google_maps_url: str | None = None
+    public_openstreetmap_url: str | None = None
 
     # Kitchen/Bar display timer thresholds (minutes)
     kitchen_display_timer_yellow_minutes: int | None = None
@@ -1141,3 +1179,214 @@ class I18nText(SQLModel, table=True):
     lang: str = Field(index=True)  # e.g. "en", "es", "zh-CN"
 
     text: str
+
+
+# ============ STAFF CONTRACTS (HR / legal metadata; files via API only) ============
+
+
+class StaffContractKind(str, Enum):
+    employee = "employee"
+    freelancer = "freelancer"
+
+
+class StaffContractStatus(str, Enum):
+    draft = "draft"
+    pending_signature = "pending_signature"
+    active = "active"
+    expired = "expired"
+    superseded = "superseded"
+
+
+class StaffContractPaymentStructure(str, Enum):
+    """Employee payroll vs freelancer invoicing (tax handling differs by jurisdiction)."""
+
+    payroll = "payroll"
+    invoice = "invoice"
+
+
+class StaffContract(SQLModel, table=True):
+    __tablename__ = "staff_contract"
+
+    id: int | None = Field(default=None, primary_key=True)
+    tenant_id: int = Field(foreign_key="tenant.id", index=True)
+    contract_group_id: UUID = Field(sa_column=Column(PGUUID(as_uuid=True), nullable=False, index=True))
+    version: int = Field(default=1, ge=1)
+    subject_user_id: int = Field(foreign_key="user.id", index=True)
+    kind: StaffContractKind = Field(
+        sa_column=Column(
+            SAEnum(
+                StaffContractKind,
+                name="staff_contract_kind",
+                native_enum=True,
+                create_type=False,
+                values_callable=lambda cls: [m.value for m in cls],
+            ),
+            nullable=False,
+        ),
+    )
+    status: StaffContractStatus = Field(
+        default=StaffContractStatus.draft,
+        sa_column=Column(
+            SAEnum(
+                StaffContractStatus,
+                name="staff_contract_status",
+                native_enum=True,
+                create_type=False,
+                values_callable=lambda cls: [m.value for m in cls],
+            ),
+            nullable=False,
+        ),
+    )
+    role_title: str = Field(default="", max_length=256)
+    start_date: date | None = Field(default=None, sa_column=Column(Date, nullable=True))
+    end_date: date | None = Field(default=None, sa_column=Column(Date, nullable=True))
+    compensation_summary: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    tax_identifier_subject: str | None = Field(default=None, max_length=128)
+    payment_structure: StaffContractPaymentStructure = Field(
+        default=StaffContractPaymentStructure.payroll,
+        sa_column=Column(
+            SAEnum(
+                StaffContractPaymentStructure,
+                name="staff_contract_payment_structure",
+                native_enum=True,
+                create_type=False,
+                values_callable=lambda cls: [m.value for m in cls],
+            ),
+            nullable=False,
+        ),
+    )
+    payment_terms: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    jurisdiction_note: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    template_key: str | None = Field(default=None, max_length=64)
+    notes_internal: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    document_filename: str | None = Field(default=None, max_length=512)
+    document_uploaded_at: datetime | None = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
+    created_by_user_id: int | None = Field(default=None, foreign_key="user.id")
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
+    updated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
+
+
+class StaffContractCreate(SQLModel):
+    subject_user_id: int
+    kind: StaffContractKind
+    status: StaffContractStatus = StaffContractStatus.draft
+    role_title: str = Field(default="", max_length=256)
+    start_date: date | None = None
+    end_date: date | None = None
+    compensation_summary: str | None = None
+    tax_identifier_subject: str | None = Field(default=None, max_length=128)
+    payment_structure: StaffContractPaymentStructure | None = None
+    payment_terms: str | None = None
+    jurisdiction_note: str | None = None
+    template_key: str | None = Field(default=None, max_length=64)
+    notes_internal: str | None = None
+
+
+class StaffContractUpdate(SQLModel):
+    kind: StaffContractKind | None = None
+    status: StaffContractStatus | None = None
+    role_title: str | None = Field(default=None, max_length=256)
+    start_date: date | None = None
+    end_date: date | None = None
+    compensation_summary: str | None = None
+    tax_identifier_subject: str | None = Field(default=None, max_length=128)
+    payment_structure: StaffContractPaymentStructure | None = None
+    payment_terms: str | None = None
+    jurisdiction_note: str | None = None
+    template_key: str | None = Field(default=None, max_length=64)
+    notes_internal: str | None = None
+
+
+class StaffContractRead(SQLModel):
+    """API shape; sensitive fields omitted by router when caller is not management."""
+
+    id: int
+    tenant_id: int
+    contract_group_id: str
+    version: int
+    subject_user_id: int
+    subject_email: str | None = None
+    subject_full_name: str | None = None
+    kind: StaffContractKind
+    status: StaffContractStatus
+    role_title: str
+    start_date: date | None
+    end_date: date | None
+    compensation_summary: str | None
+    tax_identifier_subject: str | None = None
+    payment_structure: StaffContractPaymentStructure
+    payment_terms: str | None
+    jurisdiction_note: str | None
+    template_key: str | None
+    notes_internal: str | None = None
+    has_document: bool = False
+    document_uploaded_at: datetime | None = None
+    created_by_user_id: int | None
+    created_at: datetime
+    updated_at: datetime
+
+
+class StaffContractTemplate(SQLModel, table=True):
+    """Per-tenant contract document body with {{placeholders}}; key matches staff_contract.template_key."""
+
+    __tablename__ = "staff_contract_template"
+    __table_args__ = (UniqueConstraint("tenant_id", "template_key", name="uq_staff_contract_template_tenant_key"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    tenant_id: int = Field(foreign_key="tenant.id", index=True)
+    template_key: str = Field(max_length=64)
+    name: str = Field(max_length=256)
+    body: str = Field(default="", sa_column=Column(Text, nullable=False))
+    kind: StaffContractKind | None = Field(
+        default=None,
+        sa_column=Column(
+            SAEnum(
+                StaffContractKind,
+                name="staff_contract_kind",
+                native_enum=True,
+                create_type=False,
+                values_callable=lambda cls: [m.value for m in cls],
+            ),
+            nullable=True,
+        ),
+    )
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
+    updated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
+
+
+class StaffContractTemplateCreate(SQLModel):
+    template_key: str = Field(max_length=64, min_length=1)
+    name: str = Field(max_length=256, min_length=1)
+    body: str = ""
+    kind: StaffContractKind | None = None
+
+
+class StaffContractTemplateUpdate(SQLModel):
+    name: str | None = Field(default=None, max_length=256)
+    body: str | None = None
+    kind: StaffContractKind | None = None
+
+
+class StaffContractTemplateRead(SQLModel):
+    id: int
+    tenant_id: int
+    template_key: str
+    name: str
+    body: str
+    kind: StaffContractKind | None = None
+    created_at: datetime
+    updated_at: datetime

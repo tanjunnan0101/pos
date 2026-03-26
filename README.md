@@ -232,6 +232,12 @@ Migrations live in `back/migrations/` and run automatically on backend startup.
 
 Do not edit existing migration files; add a new migration to change schema.
 
+### PostgreSQL: connecting from your machine
+
+The Compose database publishes **`127.0.0.1:${POSTGRES_PORT:-5433}`** → container port **5432** (see `config.env`). The **superuser name** is **`POSTGRES_USER`** (default **`pos`**), same as **`DB_USER`** for the app — **not** the conventional PostgreSQL role name **`postgres`**.
+
+If **`docker logs pos-postgres`** shows **`FATAL: role "postgres" does not exist`**, a client (GUI, `psql`, or a copy-pasted DSN) is using username **`postgres`**. Point it at **`POSTGRES_USER`** / **`DB_USER`** and **`POSTGRES_PASSWORD`** / **`DB_PASSWORD`** from `config.env` instead.
+
 ### Hot reload
 
 - Frontend and backend both reload on code changes when run via Docker Compose.

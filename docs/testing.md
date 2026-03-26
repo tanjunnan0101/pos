@@ -44,6 +44,9 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml exec -T back sh -
 # One file (anonymous GET /users/me → 200 + null):
 docker compose -f docker-compose.yml -f docker-compose.dev.yml exec -T back python3 -m pytest /app/tests/test_users_me_anonymous.py -q
 
+# Password reset API (GitHub #93; Postgres + rolled-back session):
+docker compose -f docker-compose.yml -f docker-compose.dev.yml exec -T back python3 -m pytest /app/tests/test_password_reset.py -q
+
 # Full suite under tests/ (adjust if some tests need extra env):
 docker compose -f docker-compose.yml -f docker-compose.dev.yml exec -T back python3 -m pytest /app/tests -q --tb=short
 ```
@@ -132,7 +135,7 @@ npm run test:working-plan --prefix front
 ```
 
 - **Env:** `BASE_URL`, `LOGIN_EMAIL`/`LOGIN_PASSWORD` or `ADMIN_EMAIL`/`ADMIN_PASSWORD` or `DEMO_LOGIN_EMAIL`/`DEMO_LOGIN_PASSWORD` (from `.env`). `TENANT_ID` (default `1`) — login uses `/login?tenant=1` so the user is in the correct tenant. User must have schedule access (owner, admin, kitchen, bartender, waiter, receptionist). `HEADLESS`.
-- **Asserts:** After login, `/working-plan` loads; `[data-testid="working-plan-page"]` and `[data-testid="working-plan-add-shift"]` are present; week navigation is present; switching to Calendar view shows `[data-testid="working-plan-calendar-grid"]` with header and day cells; days that do not meet personnel requirements (too many or too few staff) are marked red. The working-plan route is lazy-loaded—if UI changes don’t appear after editing, do a full page refresh or restart the dev server.
+- **Asserts:** After login, `/working-plan` loads; `[data-testid="working-plan-page"]` and `[data-testid="working-plan-add-shift"]` are present; week navigation is present; switching to Calendar view shows `[data-testid="working-plan-calendar-grid"]` with header and day cells; days that do not meet personnel requirements (too many or too few staff) are marked red; **Excel export** controls `[data-testid="working-plan-export-worker"]` and `[data-testid="working-plan-export-excel"]` are present when the tenant has schedulable users. The working-plan route is lazy-loaded—if UI changes don’t appear after editing, do a full page refresh or restart the dev server.
 
 ---
 
@@ -211,7 +214,7 @@ npm run test:landing-provider-links --prefix front
 # Or: node front/scripts/test-landing-provider-links.mjs
 ```
 
-- Asserts footer has provider login and “Register as provider” links; clicks register and checks navigation to `/provider/register` and presence of registration form.
+- Asserts footer has provider login and “Register as provider” links, a **Contact us** link with `mailto:sales@satisfecho.de`, and `data-testid="landing-contact-us"`; clicks register and checks navigation to `/provider/register` and presence of registration form.
 
 ---
 
@@ -219,7 +222,7 @@ npm run test:landing-provider-links --prefix front
 
 Tests for the provider portal: landing links, registration, login, and dashboard (add product).
 
-**Landing → provider links** (see §4): `test-landing-provider-links` checks footer links to `/provider/login` and `/provider/register` and that the register link opens the provider registration form.
+**Landing → provider links** (see §4): `test-landing-provider-links` checks footer links to `/provider/login` and `/provider/register`, the **Contact us** `mailto:sales@satisfecho.de` link, and that the register link opens the provider registration form.
 
 **Provider registration** (creates a new provider account; no cleanup — leaves DB entry):
 
@@ -243,7 +246,7 @@ PROVIDER_TEST_EMAIL=pos-provider@amvara.de PROVIDER_TEST_PASSWORD=secret npm run
 
 | Script | Purpose |
 |--------|---------|
-| `front/scripts/test-landing-provider-links.mjs` | Landing footer provider login/register links and register page load. |
+| `front/scripts/test-landing-provider-links.mjs` | Landing footer provider login/register links, contact mailto link, and register page load. |
 | `front/scripts/test-provider-register.mjs` | Full provider registration flow. |
 | `front/scripts/test-provider-add-product.mjs` | Provider login and add product on dashboard. |
 

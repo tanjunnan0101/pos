@@ -4,15 +4,23 @@ import { roleGuard, adminGuard, tableAccessGuard, orderAccessGuard, scheduleGuar
 import { uiModuleGuard } from './auth/ui-module.guard';
 import { reservationAccessGuard } from './auth/reservation-access.guard';
 import { providerGuard } from './auth/provider.guard';
+import { permissionGuard } from './auth/permission.guard';
 
 export const routes: Routes = [
   // Public routes
   { path: '', loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent) },
   { path: 'login', loadComponent: () => import('./auth/login.component').then(m => m.LoginComponent) },
   { path: 'register', loadComponent: () => import('./auth/register.component').then(m => m.RegisterComponent) },
+  { path: 'forgot-password', loadComponent: () => import('./auth/forgot-password.component').then(m => m.ForgotPasswordComponent) },
+  { path: 'reset-password', loadComponent: () => import('./auth/reset-password.component').then(m => m.ResetPasswordComponent) },
   // Provider portal (public auth pages)
   { path: 'provider/login', loadComponent: () => import('./provider/provider-login.component').then(m => m.ProviderLoginComponent) },
   { path: 'provider/register', loadComponent: () => import('./provider/provider-register.component').then(m => m.ProviderRegisterComponent) },
+  {
+    path: 'provider/forgot-password',
+    loadComponent: () => import('./auth/forgot-password.component').then(m => m.ForgotPasswordComponent),
+    data: { passwordResetScope: 'provider' },
+  },
   // Provider portal (protected)
   { path: 'provider', canActivate: [providerGuard], loadComponent: () => import('./provider/provider-dashboard.component').then(m => m.ProviderDashboardComponent) },
   { path: 'menu/:token', loadComponent: () => import('./menu/menu.component').then(m => m.MenuComponent) },
@@ -50,6 +58,11 @@ export const routes: Routes = [
   { path: 'translations', redirectTo: 'settings', pathMatch: 'full' },
   { path: 'settings', canActivate: [authGuard, adminGuard], loadComponent: () => import('./settings/settings.component').then(m => m.SettingsComponent) },
   { path: 'users', canActivate: [authGuard, adminGuard], loadComponent: () => import('./users/users.component').then(m => m.UsersComponent) },
+  {
+    path: 'contracts',
+    canActivate: [authGuard, permissionGuard('staff_contract:read')],
+    loadComponent: () => import('./staff-contracts/staff-contracts.component').then(m => m.StaffContractsComponent),
+  },
 
   // Inventory module (lazy loaded) - admin only
   { path: 'inventory', canActivate: [authGuard, adminGuard, uiModuleGuard('inventory')], loadChildren: () => import('./inventory/inventory.routes').then(m => m.INVENTORY_ROUTES) },

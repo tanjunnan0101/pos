@@ -19,6 +19,7 @@ from .db import get_session
 from .permissions import Permission, require_permission
 from .report_export_i18n import report_export_labels
 from .security import get_current_user
+from .work_session_serialization import serialize_work_session
 
 router = APIRouter()
 
@@ -540,23 +541,6 @@ def export_report(
     )
 
 
-def _work_session_row_dict(ws: models.WorkSession, user_name: str) -> dict:
-    duration_minutes: int | None = None
-    if ws.ended_at is not None and ws.started_at is not None:
-        duration_minutes = max(0, int((ws.ended_at - ws.started_at).total_seconds() // 60))
-    return {
-        "id": ws.id,
-        "tenant_id": ws.tenant_id,
-        "user_id": ws.user_id,
-        "user_name": user_name,
-        "started_at": ws.started_at.isoformat() if ws.started_at else None,
-        "ended_at": ws.ended_at.isoformat() if ws.ended_at else None,
-        "duration_minutes": duration_minutes,
-        "start_ip": ws.start_ip,
-        "end_ip": ws.end_ip,
-    }
-
-
 @router.get("/work-sessions")
 def report_work_sessions(
     current_user: Annotated[models.User, Depends(require_permission(Permission.REPORT_READ))],
@@ -590,5 +574,5 @@ def report_work_sessions(
     for ws in rows:
         u = session.get(models.User, ws.user_id)
         name = (u.full_name or u.email or "") if u else ""
-        out.append(_work_session_row_dict(ws, name))
+        out.append(serialize_work_session(ws, name))
     return out

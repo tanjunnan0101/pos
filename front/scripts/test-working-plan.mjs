@@ -161,7 +161,15 @@ async function main() {
       await browser.close();
       process.exit(1);
     }
-    console.log('   Working plan page loaded; Add shift button present.');
+    const bulkMonthBtn = await page.$('[data-testid="working-plan-bulk-month"]');
+    if (!bulkMonthBtn) {
+      console.log(
+        '   FAIL: Apply to month button missing (data-testid="working-plan-bulk-month").'
+      );
+      await browser.close();
+      process.exit(1);
+    }
+    console.log('   Working plan page loaded; Add shift and Apply to month buttons present.');
 
     console.log('4. Checking week navigation...');
     const hasWeekNav = await page.evaluate(() => {
@@ -215,8 +223,20 @@ async function main() {
     );
     console.log('   Days with staffing issue (red):', redDayCount);
 
+    console.log('7. Checking Excel export controls...');
+    const exportWorker = await page.$('[data-testid="working-plan-export-worker"]');
+    const exportBtn = await page.$('[data-testid="working-plan-export-excel"]');
+    if (!exportWorker || !exportBtn) {
+      console.log(
+        '   FAIL: Export worker select or Export Excel button missing (data-testid working-plan-export-worker / working-plan-export-excel).'
+      );
+      await browser.close();
+      process.exit(1);
+    }
+    console.log('   Export worker dropdown and Export Excel button present.');
+
     await browser.close();
-    console.log('\n>>> RESULT: Working plan smoke test passed (week + calendar view).');
+    console.log('\n>>> RESULT: Working plan smoke test passed (week + calendar view + export UI).');
     process.exit(0);
   } catch (err) {
     console.error('Error:', err.message);
