@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The tester handed off a closed task to localize **Settings → Data & privacy** for every shipped locale (issue **#108**).
+- **What was done:** Data-export, danger-zone, purge, and tab keys were added or completed in **`es`**, **`fr`**, **`ca`**, **`zh-CN`**, and **`hi`**; **`bg`** had **`PURGE_CONFIRM_LABEL`** translated; **`en`** / **`de`** were already complete. UI already used the `SETTINGS.*` keys in `settings.component.ts`.
+- **What was tested:** All i18n JSON files parse; headless Puppeteer verified tab and section copy for **en, de, es, fr, ca, bg, zh-CN, hi** with **`ALL_LOCALES_PASS`**; **`npm run test:landing-version`** — overall **PASS** per the embedded test report.
+- **Why closed:** All testing instructions satisfied and tester outcome **PASS**; ready to archive.
+- **Closed at (UTC):** 2026-03-26 13:12
+---
+
 # Translation needed for Settings > Data and privacy
 
 ## GitHub
