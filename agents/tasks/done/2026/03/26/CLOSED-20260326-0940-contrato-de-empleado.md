@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue #101 (employment contract templates per tenant) was implemented and verified end-to-end in automated tests.
+- **What was done:** Added `staff_contract_template` migration and APIs, Settings → Contract templates UI, template selection on contracts, merged HTML print view with placeholder merge and delete-when-in-use (409) rules; i18n and release notes in 2.0.60.
+- **What was tested:** Migration, pytest (`test_staff_contract_templates.py`, `test_staff_contracts.py`), clean Angular build logs, and landing Puppeteer smoke — all **PASS** per the embedded test report.
+- **Why closed:** All pass/fail criteria in the task met; closing reviewer archived after tester handoff.
+- **Closed at (UTC):** 2026-03-26 09:54
+---
+
 # Contrato de empleado
 
 ## GitHub
