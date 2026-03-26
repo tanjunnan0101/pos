@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The tester completed verification of the optional tenant OpenStreetMap URL feature against the task’s criteria and reported an overall **PASS**.
+- **What was done:** A persisted `public_openstreetmap_url` on tenant, API/public JSON and settings normalization, staff Settings → Contact field, customer-facing “Open in OpenStreetMap” where applicable, and reservation/reminder email blocks plus i18n (per the implementation summary in this file).
+- **What was tested:** Migration to schema `20260326104500`, targeted pytest (`16 passed`), staff UI save/reload, public book/API presence of the link, email content covered by template tests, and `npm run test:landing-version` — all **PASS** as recorded in the test report below.
+- **Why closed:** All acceptance criteria met; task archived after closing review.
+- **Closed at (UTC):** 2026-03-26 10:59
+---
+
 # Add field for OpenStreet maps link
 
 ## GitHub
