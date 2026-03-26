@@ -134,21 +134,35 @@ export interface StaffContractTemplate {
   template_key: string;
   name: string;
   body: string;
+  locale?: string | null;
   kind?: StaffContractKind | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface StaffContractTemplatePreset {
+  id: number;
+  region_code: string;
+  locale: string;
+  template_key: string;
+  name: string;
+  body: string;
+  kind?: StaffContractKind | null;
+  relevance: string;
 }
 
 export interface StaffContractTemplateCreate {
   template_key: string;
   name: string;
   body?: string;
+  locale?: string | null;
   kind?: StaffContractKind | null;
 }
 
 export interface StaffContractTemplateUpdate {
   name?: string;
   body?: string;
+  locale?: string | null;
   kind?: StaffContractKind | null;
 }
 
@@ -844,6 +858,8 @@ export interface TenantSettings {
   currency_code?: string | null;
   default_language?: string | null;
   timezone?: string | null;
+  /** ISO 3166-1 alpha-2 (e.g. ES, IN); optional, improves contract template suggestions */
+  country_code?: string | null;
   stripe_secret_key?: string | null;
   stripe_publishable_key?: string | null;
   revolut_merchant_secret?: string | null;
@@ -2273,6 +2289,20 @@ export class ApiService {
 
   listStaffContractTemplates(): Observable<StaffContractTemplate[]> {
     return this.http.get<StaffContractTemplate[]>(`${this.apiUrl}/staff-contract-templates`);
+  }
+
+  listStaffContractTemplatePresets(): Observable<StaffContractTemplatePreset[]> {
+    return this.http.get<StaffContractTemplatePreset[]>(`${this.apiUrl}/staff-contract-templates/presets`);
+  }
+
+  importStaffContractTemplateFromPreset(body: {
+    preset_id: number;
+    template_key?: string | null;
+  }): Observable<StaffContractTemplate> {
+    return this.http.post<StaffContractTemplate>(
+      `${this.apiUrl}/staff-contract-templates/import-preset`,
+      body,
+    );
   }
 
   createStaffContractTemplate(body: StaffContractTemplateCreate): Observable<StaffContractTemplate> {

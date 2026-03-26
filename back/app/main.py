@@ -2247,6 +2247,22 @@ def update_tenant_settings(
         else:
             tenant.timezone = None
 
+    if tenant_update.country_code is not None:
+        cc_raw = (
+            tenant_update.country_code.strip().upper()
+            if isinstance(tenant_update.country_code, str)
+            else None
+        )
+        if cc_raw:
+            if len(cc_raw) != 2 or not cc_raw.isalpha():
+                raise HTTPException(
+                    status_code=400,
+                    detail="country_code must be a 2-letter ISO 3166-1 code (e.g. ES, IN)",
+                )
+            tenant.country_code = cc_raw
+        else:
+            tenant.country_code = None
+
     if tenant_update.stripe_secret_key is not None:
         # Only update if a non-empty value is provided
         # Empty string or None means don't change the existing value

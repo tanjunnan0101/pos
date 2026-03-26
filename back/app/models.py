@@ -110,6 +110,9 @@ class Tenant(SQLModel, table=True):
     # IANA timezone for this tenant (e.g. America/Mazatlan, Europe/Madrid)
     timezone: str | None = Field(default=None)
 
+    # ISO 3166-1 alpha-2 (e.g. ES, IN); used for contract-template presets and similar locale rules
+    country_code: str | None = Field(default=None, max_length=2)
+
     stripe_secret_key: str | None = Field(
         default=None
     )  # Stripe secret key for this tenant
@@ -985,6 +988,7 @@ class TenantUpdate(SQLModel):
 
     default_language: str | None = None
     timezone: str | None = None
+    country_code: str | None = Field(default=None, max_length=2)
 
     default_tax_id: int | None = None  # FK to tax.id; system-wide default IVA
 
@@ -1345,6 +1349,8 @@ class StaffContractTemplate(SQLModel, table=True):
     template_key: str = Field(max_length=64)
     name: str = Field(max_length=256)
     body: str = Field(default="", sa_column=Column(Text, nullable=False))
+    # BCP 47 language tag (e.g. es, en-IN); optional for legacy rows
+    locale: str | None = Field(default=None, max_length=16)
     kind: StaffContractKind | None = Field(
         default=None,
         sa_column=Column(
@@ -1372,12 +1378,14 @@ class StaffContractTemplateCreate(SQLModel):
     template_key: str = Field(max_length=64, min_length=1)
     name: str = Field(max_length=256, min_length=1)
     body: str = ""
+    locale: str | None = Field(default=None, max_length=16)
     kind: StaffContractKind | None = None
 
 
 class StaffContractTemplateUpdate(SQLModel):
     name: str | None = Field(default=None, max_length=256)
     body: str | None = None
+    locale: str | None = Field(default=None, max_length=16)
     kind: StaffContractKind | None = None
 
 
@@ -1387,6 +1395,57 @@ class StaffContractTemplateRead(SQLModel):
     template_key: str
     name: str
     body: str
+    locale: str | None = None
     kind: StaffContractKind | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class StaffContractTemplatePreset(SQLModel, table=True):
+    """System-wide contract template catalog (region + locale); copied into tenant templates on import."""
+
+    __tablename__ = "staff_contract_template_preset"
+
+    id: int | None = Field(default=None, primary_key=True)
+    region_code: str = Field(max_length=8)
+    locale: str = Field(max_length=16)
+    template_key: str = Field(max_length=64)
+    name: str = Field(max_length=256)
+    body: str = Field(default="", sa_column=Column(Text, nullable=False))
+    kind: StaffContractKind | None = Field(
+        default=None,
+        sa_column=Column(
+            SAEnum(
+                StaffContractKind,
+                name="staff_contract_kind",
+                native_enum=True,
+                create_type=False,
+                values_callable=lambda cls: [m.value for m in cls],
+            ),
+            nullable=True,
+        ),
+    )
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
+    updated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
+
+
+class StaffContractTemplatePresetRead(SQLModel):
+    id: int
+    region_code: str
+    locale: str
+    template_key: str
+    name: str
+    body: str
+    kind: StaffContractKind | None = None
+    relevance: str  # e.g. region_language, region, global_language, global, other
+
+
+class StaffContractTemplateImportPreset(SQLModel):
+    preset_id: int = Field(ge=1)
+    template_key: str | None = Field(default=None, max_length=64)

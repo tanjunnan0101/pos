@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.0.62] - 2026-03-26
+
+### Added
+
+- **Contract template catalog & locale (GitHub #106):** Per-tenant templates gain optional **locale** (BCP 47). New table **`staff_contract_template_preset`** seeded by migration with regional outlines (ES/es, IN/en, global en). **`GET /staff-contract-templates/presets`** returns presets ranked by tenant **`country_code`**, **`default_language`**, and fallbacks (currency CIF/timezone heuristics when country unset). **`POST /staff-contract-templates/import-preset`** copies a preset into the tenant (same RBAC as template CRUD). Tenant **`country_code`** (ISO 3166-1 alpha-2) in Business settings. Settings → Contract templates: catalog table with **Import** / preview; i18n in all shipped locales. Migration `20260326133000_contract_template_locale_presets.sql`. Tests: `tests/test_staff_contract_templates.py`.
+
 ## [2.0.61] - 2026-03-26
 
 ### Added

@@ -750,6 +750,21 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                       <small class="field-hint field-warning">{{ 'SETTINGS.TIMEZONE_NOT_SET' | translate }}</small>
                     }
                   </div>
+
+                  <div class="form-group">
+                    <label for="country_code">{{ 'SETTINGS.COUNTRY_CODE' | translate }}</label>
+                    <input
+                      type="text"
+                      id="country_code"
+                      name="country_code"
+                      [(ngModel)]="formData.country_code"
+                      maxlength="2"
+                      [placeholder]="'ES'"
+                      class="country-code-input"
+                      autocomplete="off"
+                    />
+                    <small class="field-hint">{{ 'SETTINGS.COUNTRY_CODE_HINT' | translate }}</small>
+                  </div>
                 </div>
               }
 
@@ -2663,6 +2678,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     revolut_merchant_secret: null,
     immediate_payment_required: false,
     timezone: null,
+    country_code: null,
     smtp_host: null,
     smtp_port: null,
     smtp_use_tls: null,
@@ -2757,6 +2773,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
           revolut_merchant_secret: null,
           immediate_payment_required: settings.immediate_payment_required || false,
           timezone: settings.timezone || null,
+          country_code: settings.country_code ?? null,
           smtp_host: settings.smtp_host ?? null,
           smtp_port: settings.smtp_port ?? null,
           smtp_use_tls: settings.smtp_use_tls ?? null,
