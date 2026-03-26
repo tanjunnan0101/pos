@@ -26,6 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Docs — PostgreSQL username:** Clarified in `README.md`, `config.env.example`, and `docker-compose.yml` that the container superuser is **`POSTGRES_USER`** (default `pos`), not `postgres`, so IDE/`psql` defaults do not cause **`FATAL: role "postgres" does not exist`** confusion.
+
 - **Password reset email i18n (GitHub #97):** Reset email subject/body use `messages.py` translations for all backend-supported locales; language matches `POST /password-reset/request` (`?lang` / `Accept-Language`, same as API message). Forgot/reset flows send `lang` from the in-app language picker (`ApiService`). Tests: `tests/test_password_reset.py`.
 
 ### Added
