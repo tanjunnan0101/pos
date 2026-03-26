@@ -20,3 +20,24 @@ With Bulgarian selected and after login, the internal dashboard still shows the 
 1. **Manual:** Open the app, use the header **language** dropdown and choose **Български** (`bg`). Log in as staff and open `/dashboard`. The line under **„Добре дошли отново“** must show the Bulgarian sentence above, not **"Manage your business operations from here"**.
 2. **Build:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml logs --tail=80 front` — no Angular/TS errors after reload.
 3. **Smoke:** With stack up, `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` (exit 0).
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-03-26T12:46:02Z (verification run). Log window reviewed: `pos-front` lines through ~2026-03-26T12:41:33Z (compose log timestamps).
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202` (HAProxy); branch `development` @ `8f38961`.
+3. **What was tested:** Items 1–3 under **Testing instructions** (Bulgarian dashboard subtitle, front build log, landing smoke).
+4. **Results:**
+   - **Manual (bg + staff `/dashboard` subtitle):** **PASS** — Puppeteer: `/login?tenant=1` → `select.language-select` = `bg` → staff login → `/dashboard`; `p.welcome-text` text exactly `Управлявайте бизнес операциите си оттук`; English string absent. Served JSON check: `curl http://127.0.0.1:4202/i18n/bg.json` → `DASHBOARD.WELCOME_TEXT` resolves to same Bulgarian string.
+   - **Build (front logs):** **PASS** — No `error`/`TS[0-9]`/`NG[0-9]` in last 80 lines; ends with `Application bundle generation complete. [0.013 seconds] - 2026-03-26T12:41:33.937Z`.
+   - **Smoke (`test:landing-version`):** **PASS** — Exit code 0; demo login and sidebar nav completed.
+5. **Overall:** **PASS**
+6. **Product owner feedback:** The internal dashboard welcome line now follows the selected Bulgarian locale instead of staying in English, which matches staff expectations for a fully localized UI. No regressions observed in the quick landing/login navigation smoke. Ready to ship with the rest of the Bulgarian rollout.
+7. **URLs tested:**
+   1. `http://127.0.0.1:4202/`
+   2. `http://127.0.0.1:4202/login?tenant=1`
+   3. `http://127.0.0.1:4202/dashboard`
+   4. `http://127.0.0.1:4202/i18n/bg.json` (HTTP fetch for `DASHBOARD.WELCOME_TEXT` verification)
+8. **Relevant log excerpts (last section):**
+   - `pos-front`: `Application bundle generation complete. [0.013 seconds] - 2026-03-26T12:41:33.937Z` / `Page reload sent to client(s).`
