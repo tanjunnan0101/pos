@@ -796,7 +796,7 @@
     "TITLE": "Plan de travail",
     "VIEW_WEEK": "Semaine",
     "VIEW_CALENDAR": "Calendrier",
-    "CALENDAR_LEGEND": "Gris = fermé. Rouge = problème d'effectifs. Vert = conforme au plan. Les shifts sont listés sous chaque date.",
+    "CALENDAR_LEGEND": "Gris = fermé. Rouge = problème d'effectifs. Vert = conforme au plan. Chaque ligne de shift reprend la couleur du membre d'équipe. Les shifts sont listés sous chaque date.",
     "CLOSED_DAY": "Fermé",
     "CALENDAR_MORE_SHIFTS": "+{{count}} de plus",
     "MON": "Lun",

@@ -769,7 +769,7 @@
     "TITLE": "Pla de treball",
     "VIEW_WEEK": "Setmana",
     "VIEW_CALENDAR": "Calendari",
-    "CALENDAR_LEGEND": "Gris = tancat. Vermell = problema de personal. Verd = coincideix amb el pla. Els torns es mostren sota cada data.",
+    "CALENDAR_LEGEND": "Gris = tancat. Vermell = problema de personal. Verd = coincideix amb el pla. Cada línia de torn usa el color d'aquell membre de l'equip. Els torns es mostren sota cada data.",
     "CLOSED_DAY": "Tancat",
     "CALENDAR_MORE_SHIFTS": "+{{count}} més",
     "MON": "Dl",

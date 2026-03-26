@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Working plan — per-user colors (GitHub #109):** Calendar shift lines use a stable hue from `user_id` (HSL chips + `@media (prefers-color-scheme: dark)`). Week list shift cards get a matching left border. Legend text updated in all shipped i18n files. Color hash helper: `front/src/app/working-plan/working-plan-shift-colors.ts` (+ `working-plan-shift-colors.spec.ts`).
+
 ### Changed
 
 - **Agent loop:** Main **coder** step runs when **`WIP-*.md`** exists as well as **`NEW-*.md`**, so tasks are not stuck after **NEW → WIP** (`agents/pos-agent-loop.sh`, `agents/002-coder/CODER.md`, `docs/agent-loop.md`).

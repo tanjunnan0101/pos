@@ -772,7 +772,7 @@
     "TITLE": "排班计划",
     "VIEW_WEEK": "周",
     "VIEW_CALENDAR": "日历",
-    "CALENDAR_LEGEND": "灰色 = 休息日。红色 = 人员配置异常。绿色 = 符合计划。每个日期下显示排班。",
+    "CALENDAR_LEGEND": "灰色 = 休息日。红色 = 人员配置异常。绿色 = 符合计划。每条排班行使用该成员专属颜色。每个日期下显示排班。",
     "CLOSED_DAY": "休息",
     "CALENDAR_MORE_SHIFTS": "另 {{count}} 条",
     "MON": "一",

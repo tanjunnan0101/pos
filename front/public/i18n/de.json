@@ -814,7 +814,7 @@
     "TITLE": "Schichtplan",
     "VIEW_WEEK": "Woche",
     "VIEW_CALENDAR": "Kalender",
-    "CALENDAR_LEGEND": "Grau = geschlossen. Rot = Personalabweichung. Grün = entspricht dem Plan. Schichten stehen unter dem Datum.",
+    "CALENDAR_LEGEND": "Grau = geschlossen. Rot = Personalabweichung. Grün = entspricht dem Plan. Jede Schichtzeile hat die Farbe des Mitarbeiters. Schichten stehen unter dem Datum.",
     "CLOSED_DAY": "Geschlossen",
     "CALENDAR_MORE_SHIFTS": "+{{count}} weitere",
     "MON": "Mo",
