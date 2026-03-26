@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub #105 — owner/admin could set another user’s new password from `/users` without re-entering their own current password, which weakened re-authentication for that action.
+- **What was done:** Backend now requires `actor_current_password` when a new `password` is supplied on user update, verified against the JWT user; edit-user UI shows “your current password” before new/confirm fields; i18n and API messages added; `back/tests/test_user_password_update.py` covers success and failure paths.
+- **What was tested:** Pytest (`test_user_password_update.py`), frontend build health, `npm run test:landing-version`, and manual/Puppeteer checks for field visibility and error text — **PASS** per the embedded test report.
+- **Why closed:** All stated pass/fail criteria met; security goal enforced in API and UI with documented verification.
+- **Closed at (UTC):** 2026-03-26 12:05
+---
+
 # Users — password modification
 
 ## GitHub
