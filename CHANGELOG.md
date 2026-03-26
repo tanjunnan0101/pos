@@ -6,9 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.0.63] - 2026-03-26
+
+### Added
+
+- **Docs — working plan:** `docs/0021-working-plan-implementation-plan.md` describes goals, scope, BetterShift evaluation, and an in-house direction for kitchen/bar/waiter shift scheduling.
+
 ### Changed
 
-- **Agent / git workflow:** Documented and automated **sync before edits** for multi-agent work on **`development`**: new **`scripts/git-sync-development.sh`**, **`agents/pos-agent-loop.sh`** runs it at each step (disable with **`AGENT_GIT_SYNC=0`**), updates to **`.cursor/rules/git-development-branch-workflow.mdc`**, **`AGENTS.md`**, **`docs/agent-loop.md`**, and agent prompts under **`agents/`**.
+- **Agent / git workflow:** Documented and automated **sync before edits** for multi-agent work on **`development`**: new **`scripts/git-sync-development.sh`**, **`agents/pos-agent-loop.sh`** runs it at each step (disable with **`AGENT_GIT_SYNC=0`**), updates to **`.cursor/rules/git-development-branch-workflow.mdc`**, **`AGENTS.md`**, **`docs/agent-loop.md`**, **`docs/agent-cursor-rules.md`**, and agent prompts under **`agents/`**.
 
 ### Security
 
