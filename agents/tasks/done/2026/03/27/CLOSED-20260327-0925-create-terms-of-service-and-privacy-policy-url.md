@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Tester signed off on GitHub issue [#110](https://github.com/satisfecho/pos/issues/110) (tenant-configurable Terms of Service and Privacy Policy URLs with global fallbacks) with an overall **PASS** test report.
+- **What was done:** Schema fields and migration, `PUBLIC_*` settings, `GET /public/legal-urls`, effective URLs on public tenant payloads and `PUT /tenant/settings`, Angular `LegalLinksComponent` wired across landing, auth, booking, public feedback, and Settings → Data & privacy, plus i18n and front **2.0.64**.
+- **What was tested:** Migration to `20260327100000`, `pytest tests/test_guest_feedback.py` (**8 passed**), front build tail clean, `npm run test:landing-version` OK, `curl /api/public/legal-urls` OK; optional global env vars not exercised; full manual “Settings UI → visible footer links with real URLs” left as a PO spot-check per report.
+- **Why closed:** Verification criteria met per tester **Overall: PASS**; task archived per agent loop.
+- **Closed at (UTC):** 2026-03-27 09:36
+---
+
 # Create Terms of Service URL and a Privacy Policy URL
 
 ## GitHub
