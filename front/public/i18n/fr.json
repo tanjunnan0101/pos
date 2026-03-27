@@ -186,6 +186,10 @@
     "CHANGELOG_TITLE": "Journal des modifications",
     "CHANGELOG_LOADING": "Chargement…"
   },
+  "PROVIDER_AUTH": {
+    "NO_ACCOUNT": "Pas encore de compte fournisseur ?",
+    "BACK_STAFF_LOGIN": "Retour à la connexion équipe"
+  },
   "AUTH": {
     "LOGIN": "Connexion",
     "REGISTER": "S'inscrire",

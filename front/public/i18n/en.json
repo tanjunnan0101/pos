@@ -186,6 +186,10 @@
     "CHANGELOG_TITLE": "Changelog",
     "CHANGELOG_LOADING": "Loading…"
   },
+  "PROVIDER_AUTH": {
+    "NO_ACCOUNT": "Don't have a provider account?",
+    "BACK_STAFF_LOGIN": "Back to staff login"
+  },
   "AUTH": {
     "LOGIN": "Login",
     "REGISTER": "Register",

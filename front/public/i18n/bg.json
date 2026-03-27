@@ -186,6 +186,10 @@
     "CHANGELOG_TITLE": "Списък с промените (changelog)",
     "CHANGELOG_LOADING": "Зареждане..."
   },
+  "PROVIDER_AUTH": {
+    "NO_ACCOUNT": "Нямате акаунт на доставчик?",
+    "BACK_STAFF_LOGIN": "Към вход за персонал"
+  },
   "AUTH": {
     "LOGIN": "Вход",
     "REGISTER": "Регистрация",

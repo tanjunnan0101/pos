@@ -179,6 +179,10 @@
     "CHANGELOG_TITLE": "更新日志",
     "CHANGELOG_LOADING": "加载中…"
   },
+  "PROVIDER_AUTH": {
+    "NO_ACCOUNT": "还没有供应商账户？",
+    "BACK_STAFF_LOGIN": "返回员工登录"
+  },
   "AUTH": {
     "LOGIN": "登录",
     "REGISTER": "注册",

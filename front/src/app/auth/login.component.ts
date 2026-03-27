@@ -97,11 +97,20 @@ import { LegalLinksComponent } from '../shared/legal-links.component';
         </form>
         }
 
-        <div class="auth-footer">
+        <div class="auth-actions-foot">
           <span>{{ 'AUTH.DONT_HAVE_ACCOUNT' | translate }}</span>
           <a routerLink="/register">{{ 'AUTH.CREATE_ACCOUNT' | translate }}</a>
+          <span class="auth-foot-sep" aria-hidden="true">·</span>
+          <a routerLink="/provider/login" data-testid="login-provider-login">{{ 'LANDING.PROVIDER_LOGIN' | translate }}</a>
+          <span class="auth-foot-sep" aria-hidden="true">·</span>
+          <a routerLink="/provider/register" data-testid="login-provider-register">{{ 'LANDING.REGISTER_AS_PROVIDER' | translate }}</a>
+          <span class="auth-foot-sep" aria-hidden="true">·</span>
+          <a href="mailto:sales@satisfecho.de" data-testid="login-contact-us">{{ 'LANDING.CONTACT_US' | translate }}</a>
+          @if (legalTermsUrl() || legalPrivacyUrl()) {
+            <span class="auth-foot-sep" aria-hidden="true">·</span>
+            <app-legal-links [inline]="true" [termsUrl]="legalTermsUrl()" [privacyUrl]="legalPrivacyUrl()" />
+          }
         </div>
-        <app-legal-links [termsUrl]="legalTermsUrl()" [privacyUrl]="legalPrivacyUrl()" />
       </div>
     </div>
   `,
@@ -204,22 +213,31 @@ import { LegalLinksComponent } from '../shared/legal-links.component';
       }
     }
 
-    .auth-footer {
+    .auth-actions-foot {
       margin-top: var(--space-5);
       text-align: center;
       font-size: 0.9375rem;
       color: var(--color-text-muted);
-
-      a {
-        color: var(--color-primary);
-        font-weight: 500;
-        margin-left: var(--space-2);
-        text-decoration: none;
-
-        &:hover {
-          text-decoration: underline;
-        }
-      }
+      line-height: 1.6;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: baseline;
+      column-gap: 0;
+      row-gap: var(--space-2);
+    }
+    .auth-actions-foot > a {
+      color: var(--color-primary);
+      font-weight: 500;
+      margin-left: var(--space-2);
+      text-decoration: none;
+    }
+    .auth-actions-foot > a:hover {
+      text-decoration: underline;
+    }
+    .auth-foot-sep {
+      margin: 0 var(--space-2);
+      user-select: none;
     }
 
     .otp-prompt {

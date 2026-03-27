@@ -186,6 +186,10 @@
     "CHANGELOG_TITLE": "Registre de canvis",
     "CHANGELOG_LOADING": "Carregant…"
   },
+  "PROVIDER_AUTH": {
+    "NO_ACCOUNT": "Encara no teniu compte de proveïdor?",
+    "BACK_STAFF_LOGIN": "Tornar a l'inici de sessió de l'equip"
+  },
   "AUTH": {
     "LOGIN": "Iniciar sessió",
     "REGISTER": "Registrar-se",

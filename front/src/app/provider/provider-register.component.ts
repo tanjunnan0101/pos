@@ -1,13 +1,15 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { contactEmailValidator, optionalContactPhoneValidator } from '../shared/contact-validators';
 import { Router, RouterLink } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { ApiService } from '../services/api.service';
+import { LegalLinksComponent } from '../shared/legal-links.component';
 
 @Component({
   selector: 'app-provider-register',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslateModule, LegalLinksComponent],
   template: `
     <div class="auth-page">
       <div class="auth-card">
@@ -184,12 +186,17 @@ import { ApiService } from '../services/api.service';
           </button>
         </form>
 
-        <div class="auth-footer">
-          <span>Already have an account?</span>
-          <a routerLink="/provider/login">Sign in</a>
-        </div>
-        <div class="auth-footer">
-          <a routerLink="/login">Back to staff login</a>
+        <div class="auth-actions-foot">
+          <span>{{ 'AUTH.ALREADY_HAVE_ACCOUNT' | translate }}</span>
+          <a routerLink="/provider/login">{{ 'AUTH.SIGN_IN_LINK' | translate }}</a>
+          <span class="auth-foot-sep" aria-hidden="true">·</span>
+          <a routerLink="/login">{{ 'PROVIDER_AUTH.BACK_STAFF_LOGIN' | translate }}</a>
+          <span class="auth-foot-sep" aria-hidden="true">·</span>
+          <a href="mailto:sales@satisfecho.de">{{ 'LANDING.CONTACT_US' | translate }}</a>
+          @if (legalTermsUrl() || legalPrivacyUrl()) {
+            <span class="auth-foot-sep" aria-hidden="true">·</span>
+            <app-legal-links [inline]="true" [termsUrl]="legalTermsUrl()" [privacyUrl]="legalPrivacyUrl()" />
+          }
         </div>
       </div>
     </div>
@@ -267,20 +274,45 @@ import { ApiService } from '../services/api.service';
       cursor: pointer;
     }
     .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-    .auth-footer {
+    .auth-actions-foot {
       margin-top: var(--space-5);
       text-align: center;
       font-size: 0.9375rem;
       color: var(--color-text-muted);
+      line-height: 1.6;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: baseline;
+      row-gap: var(--space-2);
     }
-    .auth-footer a { color: var(--color-primary); font-weight: 500; margin-left: var(--space-2); text-decoration: none; }
-    .auth-footer a:hover { text-decoration: underline; }
+    .auth-actions-foot > a {
+      color: var(--color-primary);
+      font-weight: 500;
+      margin-left: var(--space-2);
+      text-decoration: none;
+    }
+    .auth-actions-foot > a:hover { text-decoration: underline; }
+    .auth-foot-sep { margin: 0 var(--space-2); user-select: none; }
   `]
 })
-export class ProviderRegisterComponent {
+export class ProviderRegisterComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private router = inject(Router);
+
+  legalTermsUrl = signal<string | null>(null);
+  legalPrivacyUrl = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.api.getPublicLegalUrls().subscribe({
+      next: (u) => {
+        this.legalTermsUrl.set(u.terms_of_service_url ?? null);
+        this.legalPrivacyUrl.set(u.privacy_policy_url ?? null);
+      },
+      error: () => {},
+    });
+  }
 
   error = signal<string>('');
   success = signal<string>('');

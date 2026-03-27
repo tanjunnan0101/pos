@@ -186,6 +186,10 @@
     "CHANGELOG_TITLE": "Registro de cambios",
     "CHANGELOG_LOADING": "Cargando…"
   },
+  "PROVIDER_AUTH": {
+    "NO_ACCOUNT": "¿No tiene cuenta de proveedor?",
+    "BACK_STAFF_LOGIN": "Volver al inicio de sesión del personal"
+  },
   "AUTH": {
     "LOGIN": "Iniciar sesión",
     "REGISTER": "Registrarse",

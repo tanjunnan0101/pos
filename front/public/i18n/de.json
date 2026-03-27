@@ -186,6 +186,10 @@
     "CHANGELOG_TITLE": "Changelog",
     "CHANGELOG_LOADING": "Wird geladen…"
   },
+  "PROVIDER_AUTH": {
+    "NO_ACCOUNT": "Noch kein Anbieterkonto?",
+    "BACK_STAFF_LOGIN": "Zur Mitarbeiter-Anmeldung"
+  },
   "AUTH": {
     "LOGIN": "Anmelden",
     "REGISTER": "Registrieren",

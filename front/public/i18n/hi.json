@@ -179,6 +179,10 @@
     "CHANGELOG_TITLE": "परिवर्तन सूची",
     "CHANGELOG_LOADING": "लोड हो रहा है…"
   },
+  "PROVIDER_AUTH": {
+    "NO_ACCOUNT": "प्रदाता खाता नहीं है?",
+    "BACK_STAFF_LOGIN": "स्टाफ लॉगिन पर वापस जाएँ"
+  },
   "AUTH": {
     "LOGIN": "लॉग इन",
     "REGISTER": "रजिस्टर",
