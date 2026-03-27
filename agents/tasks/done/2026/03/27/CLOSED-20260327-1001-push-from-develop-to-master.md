@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** La tarea cubría la promoción explícita de **`development` → `master`** por [GitHub #111](https://github.com/satisfecho/pos/issues/111); el implementador documentó merge y push; el tester entregó informe con **Overall: PASS**.
+- **What was done:** Merge de **`origin/development`** en **`master`** con mensaje acordado, push a **`origin/master`** hasta **`bad16c9`** (rango desde **`445888a`**); alineación local de ramas descrita; verificación remota de **`origin/master`** y checkout en amvara9 al mismo commit.
+- **What was tested:** **`git rev-parse origin/master`** coincide con **`bad16c9`**; en amvara9 **`HEAD`** alineado con **`origin/master`**; humo local **`http://127.0.0.1:4202/`** → 200 y **`npm run test:landing-version`** OK; intento **`https://satisfecho.de/`** falló por conectividad desde el entorno del tester (documentado).
+- **Why closed:** Criterios de verificación cumplidos según informe del tester (**PASS**); archivo archivado según el bucle de agentes.
+- **Closed at (UTC):** 2026-03-27 10:18
+---
+
 # Push from develop to master
 
 ## GitHub
