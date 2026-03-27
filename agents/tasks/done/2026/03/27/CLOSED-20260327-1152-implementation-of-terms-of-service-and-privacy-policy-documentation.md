@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** La tarea **#113** pedía formalizar **Términos de servicio** y **Política de privacidad** para `satisfecho.de`, con rutas públicas y URLs utilizables en configuración OAuth (“Global Config”), alineadas con GDPR y el branding.
+- **What was done:** Se añadieron rutas públicas **`/terms`** y **`/privacy`** en el front (`legal-document`, i18n), y en el back **`_global_terms_url()` / `_global_privacy_url()`** con fallback a `{PUBLIC_APP_BASE_URL}/terms` y `/privacy` cuando las env explícitas van vacías; tests en **`tests/test_guest_feedback.py`** y documentación de **`config.env.example`**.
+- **What was tested:** **PASS** — HTTP **200** en `/terms` y `/privacy`, comprobación UI (título, secciones, enlaces cruzados, volver al inicio), **`GET /api/public/legal-urls`** según entorno, **pytest** `10 passed`, smoke **`test:landing-version`**, logs del contenedor **front** sin errores de compilación.
+- **Why closed:** El informe del tester da **Overall: PASS** y se cumplen los criterios de aceptación descritos en la tarea.
+- **Closed at (UTC):** 2026-03-27 12:30
+---
+
 # feat: implementation of Terms of Service and Privacy Policy documentation
 
 ## GitHub
