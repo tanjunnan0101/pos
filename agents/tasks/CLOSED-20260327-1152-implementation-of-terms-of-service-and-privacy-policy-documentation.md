@@ -36,3 +36,32 @@ Formalizar documentación legal para cumplir requisitos de APIs externas (p. ej.
 ### Pass / fail criteria
 - **Pass:** Las cuatro comprobaciones anteriores OK; sin errores de compilación en logs del contenedor `front`.
 - **Fail:** 404 en `/terms` o `/privacy`, JSON `legal-urls` sin fallback cuando toca, o tests en rojo.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-03-27T12:00–12:05 approx. Log window reviewed: `docker compose … logs --tail=80 front` and `--tail=25 front` (no TS/NG errors in grep scan).
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; **`BASE_URL`** `http://127.0.0.1:4202` (HAProxy); branch **`development`** @ `8c013b4`.
+3. **What was tested:** Criterios de “What to verify” e instrucciones “How to test”.
+4. **Results:**
+   - **HTTP `/terms` y `/privacy` (200):** **PASS** — `curl -s -o /dev/null -w "%{http_code}\n"` → `200` / `200`.
+   - **Contenido UI (título, secciones, enlace cruzado, volver al inicio):** **PASS** — Puppeteer (`puppeteer-core` + Chrome del host, script temporal en `/tmp`): `/terms` → h1 “Terms of service — Satisfecho”, 6 bloques `.legal-doc-section`, enlace cruzado `href="/privacy"`, `a.legal-doc-back` → `/`; `/privacy` → h1 “Privacy policy — Satisfecho”, 7 secciones, cruce `href="/terms"`, back `/`.
+   - **`GET /api/public/legal-urls` con fallback https:** **PASS** — En runtime local sin `PUBLIC_APP_BASE_URL` en `config.env`, `curl` devuelve `{"terms_of_service_url":null,"privacy_policy_url":null}` (esperado). La lógica de fallback a `{base}/terms` y `/privacy` con base https queda cubierta por **`test_public_legal_urls_fallback_to_app_base`** en pytest (ver abajo).
+   - **`pytest tests/test_guest_feedback.py`:** **PASS** — `10 passed in 0.93s` (`docker compose … exec -T back python3 -m pytest tests/test_guest_feedback.py -q`).
+   - **Smoke `npm run test:landing-version`:** **PASS** — `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.` (exit 0).
+   - **Logs contenedor `front` (compilación):** **PASS** — Últimas líneas muestran `Application bundle generation complete.` sin errores; grep a logs recientes sin coincidencias `error|TS2345|NG8002|bundle generation failed`.
+5. **Overall:** **PASS**
+6. **Product owner feedback:** Las rutas públicas `/terms` y `/privacy` responden correctamente detrás del puerto de desarrollo y muestran documentos estructurados con enlaces cruzados y retorno al inicio. El API expone URLs legales nulas cuando no hay base pública configurada; en producción, con `PUBLIC_APP_BASE_URL` https y sin overrides, los tests automatizados confirman el fallback a `/terms` y `/privacy`. Conviene validar en satisfecho.de tras despliegue con la misma configuración de env.
+7. **URLs tested:**
+   1. `http://127.0.0.1:4202/terms`
+   2. `http://127.0.0.1:4202/privacy`
+   3. `http://127.0.0.1:4202/api/public/legal-urls`
+   4. `http://127.0.0.1:4202/` (smoke landing)
+   5. `http://127.0.0.1:4202/dashboard` y demás rutas del sidebar (smoke landing)
+8. **Relevant log excerpts:**
+   - Front: `Application bundle generation complete. [0.009 seconds] - 2026-03-27T11:57:09.080Z`
+   - Pytest: `.......... [100%] 10 passed in 0.93s`
+   - Smoke: `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.`
+
+**GitHub:** Comentario añadido en #113 al finalizar verificación. Etiquetas: ajustar según `docs/agent-loop.md` (p. ej. quitar `agent:testing` cuando el closer archive).
