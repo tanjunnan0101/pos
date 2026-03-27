@@ -62,6 +62,11 @@
     "LOGOUT": "Logout",
     "CONTRACTS": "Contracts"
   },
+  "LEGAL": {
+    "TERMS_OF_SERVICE": "Terms of service",
+    "PRIVACY_POLICY": "Privacy policy",
+    "LINKS_NAV": "Legal information"
+  },
   "LANDING": {
     "TITLE": "Your restaurant, connected",
     "SUBTITLE": "Guests book and order at the table; teams run service from one place.",
@@ -1023,6 +1028,12 @@
     "PUBLIC_OPENSTREETMAP_URL": "OpenStreetMap link",
     "PUBLIC_OPENSTREETMAP_PLACEHOLDER": "https://www.openstreetmap.org/... (share link from OpenStreetMap)",
     "PUBLIC_OPENSTREETMAP_HINT": "Optional. Same places as the Google Maps link, for guests who prefer OpenStreetMap. Paste the URL from the Share button on openstreetmap.org.",
+    "PUBLIC_TERMS_OF_SERVICE_URL": "Terms of service URL",
+    "PUBLIC_TERMS_OF_SERVICE_PLACEHOLDER": "https://… (link to your terms)",
+    "PUBLIC_TERMS_OF_SERVICE_HINT": "Optional. Shown on public pages (book, feedback). If empty, the server default from config (PUBLIC_TERMS_OF_SERVICE_URL) is used when set.",
+    "PUBLIC_PRIVACY_POLICY_URL": "Privacy policy URL",
+    "PUBLIC_PRIVACY_POLICY_PLACEHOLDER": "https://… (link to your privacy policy)",
+    "PUBLIC_PRIVACY_POLICY_HINT": "Optional. Same behavior as terms of service (fallback: PUBLIC_PRIVACY_POLICY_URL in server config).",
     "TAX_ID": "Tax ID / VAT",
     "TAX_ID_PLACEHOLDER": "e.g. DE123456789",
     "CIF": "CIF / NIF",

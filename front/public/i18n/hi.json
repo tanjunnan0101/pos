@@ -62,6 +62,11 @@
     "LOGOUT": "लॉग आउट",
     "CONTRACTS": "अनुबंध"
   },
+  "LEGAL": {
+    "TERMS_OF_SERVICE": "सेवा की शर्तें",
+    "PRIVACY_POLICY": "गोपनीयता नीति",
+    "LINKS_NAV": "कानूनी जानकारी"
+  },
   "LANDING": {
     "TITLE": "आपका रेस्तरां, जुड़ा हुआ",
     "SUBTITLE": "मेहमान टेबल पर बुक और ऑर्डर करते हैं; टीम एक ही जगह से सेवा चलाती है।",
@@ -990,6 +995,12 @@
     "PUBLIC_OPENSTREETMAP_URL": "OpenStreetMap लिंक",
     "PUBLIC_OPENSTREETMAP_PLACEHOLDER": "https://www.openstreetmap.org/... (OpenStreetMap से साझा लिंक)",
     "PUBLIC_OPENSTREETMAP_HINT": "वैकल्पिक। Google Maps लिंक जैसी ही जगहों पर दिखता है। openstreetmap.org पर साझा करें से कॉपि किया गया URL चिपकाएँ।",
+    "PUBLIC_TERMS_OF_SERVICE_URL": "सेवा की शर्तों का URL",
+    "PUBLIC_TERMS_OF_SERVICE_PLACEHOLDER": "https://… (आपकी शर्तों का लिंक)",
+    "PUBLIC_TERMS_OF_SERVICE_HINT": "वैकल्पिक। सार्वजनिक पृष्ठों (बुकिंग, फीडबैक) पर दिखता है। खाली होने पर सर्वर कॉन्फ़िगरेशन में PUBLIC_TERMS_OF_SERVICE_URL उपयोग हो सकता है।",
+    "PUBLIC_PRIVACY_POLICY_URL": "गोपनीयता नीति का URL",
+    "PUBLIC_PRIVACY_POLICY_PLACEHOLDER": "https://… (गोपनीयता नीति लिंक)",
+    "PUBLIC_PRIVACY_POLICY_HINT": "वैकल्पिक। शर्तों जैसा; फॉलबैक: सर्वर में PUBLIC_PRIVACY_POLICY_URL।",
     "EMAIL_SETTINGS": "ईमेल (SMTP)",
     "EMAIL_SETTINGS_SUBTITLE": "लेनदेन ईमेल (जैसे आरक्षण पुष्टि) के लिए SMTP कॉन्फ़िगर करें। वैश्विक सर्वर कॉन्फ़िगरेशन उपयोग करने के लिए खाली छोड़ें।",
     "SMTP_HOST": "SMTP होस्ट",

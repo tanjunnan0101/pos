@@ -62,6 +62,11 @@
     "LOGOUT": "Cerrar sesión",
     "CONTRACTS": "Contratos"
   },
+  "LEGAL": {
+    "TERMS_OF_SERVICE": "Términos del servicio",
+    "PRIVACY_POLICY": "Política de privacidad",
+    "LINKS_NAV": "Información legal"
+  },
   "LANDING": {
     "TITLE": "Tu restaurante, conectado",
     "SUBTITLE": "Los clientes reservan y piden en la mesa; el equipo gestiona el servicio desde un solo lugar.",
@@ -982,6 +987,12 @@
     "PUBLIC_OPENSTREETMAP_URL": "Enlace de OpenStreetMap",
     "PUBLIC_OPENSTREETMAP_PLACEHOLDER": "https://www.openstreetmap.org/... (enlace Compartir de OpenStreetMap)",
     "PUBLIC_OPENSTREETMAP_HINT": "Opcional. Mismas pantallas que el enlace de Google Maps, para quien prefiera OpenStreetMap. Pega la URL del botón Compartir en openstreetmap.org.",
+    "PUBLIC_TERMS_OF_SERVICE_URL": "URL de términos del servicio",
+    "PUBLIC_TERMS_OF_SERVICE_PLACEHOLDER": "https://… (enlace a tus términos)",
+    "PUBLIC_TERMS_OF_SERVICE_HINT": "Opcional. Se muestra en páginas públicas (reserva, feedback). Si está vacío, se usa el valor del servidor (PUBLIC_TERMS_OF_SERVICE_URL) si existe.",
+    "PUBLIC_PRIVACY_POLICY_URL": "URL de política de privacidad",
+    "PUBLIC_PRIVACY_POLICY_PLACEHOLDER": "https://… (enlace a tu política de privacidad)",
+    "PUBLIC_PRIVACY_POLICY_HINT": "Opcional. Mismo criterio que los términos; respaldo: PUBLIC_PRIVACY_POLICY_URL en la configuración del servidor.",
     "LOGO": "Logo",
     "UPLOAD_LOGO": "Subir Logo",
     "UPLOAD_LOGO_HINT": "Imagen cuadrada, máx 2MB (JPG, PNG, WebP, AVIF, SVG)",

@@ -838,6 +838,30 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                     <small class="field-hint">{{ 'SETTINGS.PUBLIC_OPENSTREETMAP_HINT' | translate }}</small>
                   </div>
 
+                  <div class="form-group">
+                    <label for="public_terms_of_service_url">{{ 'SETTINGS.PUBLIC_TERMS_OF_SERVICE_URL' | translate }}</label>
+                    <input
+                      type="url"
+                      id="public_terms_of_service_url"
+                      [(ngModel)]="formData.public_terms_of_service_url"
+                      name="public_terms_of_service_url"
+                      [placeholder]="'SETTINGS.PUBLIC_TERMS_OF_SERVICE_PLACEHOLDER' | translate"
+                    />
+                    <small class="field-hint">{{ 'SETTINGS.PUBLIC_TERMS_OF_SERVICE_HINT' | translate }}</small>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="public_privacy_policy_url">{{ 'SETTINGS.PUBLIC_PRIVACY_POLICY_URL' | translate }}</label>
+                    <input
+                      type="url"
+                      id="public_privacy_policy_url"
+                      [(ngModel)]="formData.public_privacy_policy_url"
+                      name="public_privacy_policy_url"
+                      [placeholder]="'SETTINGS.PUBLIC_PRIVACY_POLICY_PLACEHOLDER' | translate"
+                    />
+                    <small class="field-hint">{{ 'SETTINGS.PUBLIC_PRIVACY_POLICY_HINT' | translate }}</small>
+                  </div>
+
                   <div class="form-row">
                     <div class="form-group">
                       <label for="tax_id">{{ 'SETTINGS.TAX_ID' | translate }}</label>
@@ -2702,6 +2726,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     public_google_review_url: null,
     public_google_maps_url: null,
     public_openstreetmap_url: null,
+    public_terms_of_service_url: null,
+    public_privacy_policy_url: null,
     tip_tax_rate_percent: 0,
     ui_modules: { ...DEFAULT_TENANT_UI_MODULES },
   };
@@ -2797,6 +2823,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
           public_google_review_url: settings.public_google_review_url ?? null,
           public_google_maps_url: settings.public_google_maps_url ?? null,
           public_openstreetmap_url: settings.public_openstreetmap_url ?? null,
+          public_terms_of_service_url: settings.public_terms_of_service_url ?? null,
+          public_privacy_policy_url: settings.public_privacy_policy_url ?? null,
           tip_tax_rate_percent: settings.tip_tax_rate_percent ?? 0,
           ui_modules: {
             ...DEFAULT_TENANT_UI_MODULES,

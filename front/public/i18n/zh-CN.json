@@ -62,6 +62,11 @@
     "LOGOUT": "退出登录",
     "CONTRACTS": "合同"
   },
+  "LEGAL": {
+    "TERMS_OF_SERVICE": "服务条款",
+    "PRIVACY_POLICY": "隐私政策",
+    "LINKS_NAV": "法律信息"
+  },
   "LANDING": {
     "TITLE": "餐厅一站连通",
     "SUBTITLE": "顾客可预订、在桌点餐；团队在同一处管理运营。",
@@ -990,6 +995,12 @@
     "PUBLIC_OPENSTREETMAP_URL": "OpenStreetMap 链接",
     "PUBLIC_OPENSTREETMAP_PLACEHOLDER": "https://www.openstreetmap.org/...（从 OpenStreetMap 复制的分享链接）",
     "PUBLIC_OPENSTREETMAP_HINT": "可选。与 Google 地图链接显示位置相同，供偏好 OpenStreetMap 的客人使用。粘贴 openstreetmap.org 上「分享」生成的链接。",
+    "PUBLIC_TERMS_OF_SERVICE_URL": "服务条款链接",
+    "PUBLIC_TERMS_OF_SERVICE_PLACEHOLDER": "https://…（条款页面）",
+    "PUBLIC_TERMS_OF_SERVICE_HINT": "可选。显示在公开页面（预订、反馈）。留空时若服务器配置了 PUBLIC_TERMS_OF_SERVICE_URL 则使用该地址。",
+    "PUBLIC_PRIVACY_POLICY_URL": "隐私政策链接",
+    "PUBLIC_PRIVACY_POLICY_PLACEHOLDER": "https://…（隐私政策页面）",
+    "PUBLIC_PRIVACY_POLICY_HINT": "可选。与服务条款相同；回退使用服务器配置中的 PUBLIC_PRIVACY_POLICY_URL。",
     "EMAIL_SETTINGS": "电子邮件（SMTP）",
     "EMAIL_SETTINGS_SUBTITLE": "配置用于事务性邮件的 SMTP（例如预订确认）。留空则使用全局服务器配置。",
     "SMTP_HOST": "SMTP 主机",

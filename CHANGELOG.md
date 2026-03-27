@@ -20,6 +20,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Bulgarian staff dashboard subtitle (GitHub #107):** `DASHBOARD.WELCOME_TEXT` in `front/public/i18n/bg.json` was still English; translated to match the rest of the Bulgarian staff UI.
 
+## [2.0.64] - 2026-03-27
+
+### Added
+
+- **Terms of service & privacy URLs (GitHub #110):** Optional per-tenant URLs in settings; global fallbacks in `config.env`; **`GET /public/legal-urls`**; links on landing, auth, book, and public feedback. Migration `20260327100000_public_terms_privacy_urls.sql`.
+
 ## [2.0.63] - 2026-03-26
 
 ### Added

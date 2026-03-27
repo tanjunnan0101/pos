@@ -62,6 +62,11 @@
     "LOGOUT": "Déconnexion",
     "CONTRACTS": "Contrats"
   },
+  "LEGAL": {
+    "TERMS_OF_SERVICE": "Conditions d’utilisation",
+    "PRIVACY_POLICY": "Politique de confidentialité",
+    "LINKS_NAV": "Informations légales"
+  },
   "LANDING": {
     "TITLE": "Votre restaurant, connecté",
     "SUBTITLE": "Les clients réservent et commandent à table ; les équipes gèrent le service au même endroit.",
@@ -1056,7 +1061,13 @@
     "PUBLIC_GOOGLE_MAPS_HINT": "Facultatif. Affiché sur la réservation et l’avis pour ouvrir l’emplacement dans Google Maps. Utilisez Partager → Copier le lien (différent du lien d’avis).",
     "PUBLIC_OPENSTREETMAP_URL": "Lien OpenStreetMap",
     "PUBLIC_OPENSTREETMAP_PLACEHOLDER": "https://www.openstreetmap.org/... (lien Partager depuis OpenStreetMap)",
-    "PUBLIC_OPENSTREETMAP_HINT": "Facultatif. Mêmes pages que le lien Google Maps, pour les invités qui préfèrent OpenStreetMap. Collez l’URL du bouton Partager sur openstreetmap.org."
+    "PUBLIC_OPENSTREETMAP_HINT": "Facultatif. Mêmes pages que le lien Google Maps, pour les invités qui préfèrent OpenStreetMap. Collez l’URL du bouton Partager sur openstreetmap.org.",
+    "PUBLIC_TERMS_OF_SERVICE_URL": "URL des conditions d’utilisation",
+    "PUBLIC_TERMS_OF_SERVICE_PLACEHOLDER": "https://… (lien vers vos conditions)",
+    "PUBLIC_TERMS_OF_SERVICE_HINT": "Facultatif. Affiché sur les pages publiques (réservation, avis). Si vide, la valeur serveur (PUBLIC_TERMS_OF_SERVICE_URL) est utilisée si elle est définie.",
+    "PUBLIC_PRIVACY_POLICY_URL": "URL de la politique de confidentialité",
+    "PUBLIC_PRIVACY_POLICY_PLACEHOLDER": "https://… (lien vers votre politique)",
+    "PUBLIC_PRIVACY_POLICY_HINT": "Facultatif. Même logique que les conditions ; repli : PUBLIC_PRIVACY_POLICY_URL dans la configuration serveur."
   },
   "PAYMENTS": {
     "PAYMENT": "Paiement",

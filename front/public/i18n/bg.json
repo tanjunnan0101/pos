@@ -62,6 +62,11 @@
     "LOGOUT": "Изход",
     "CONTRACTS": "Договори"
   },
+  "LEGAL": {
+    "TERMS_OF_SERVICE": "Общи условия",
+    "PRIVACY_POLICY": "Политика за поверителност",
+    "LINKS_NAV": "Правна информация"
+  },
   "LANDING": {
     "TITLE": "Вашият ресторант, свързан",
     "SUBTITLE": "Гостите резервират и поръчват на маса; екипът управлява обслужването от едно място.",
@@ -1023,6 +1028,12 @@
     "PUBLIC_OPENSTREETMAP_URL": "Връзка към OpenStreetMap",
     "PUBLIC_OPENSTREETMAP_PLACEHOLDER": "https://www.openstreetmap.org/... (линк за споделяне от OpenStreetMap)",
     "PUBLIC_OPENSTREETMAP_HINT": "По желание. Същите места като линка към Google Maps, за предпочитащи OpenStreetMap. Поставете URL от бутона Share на openstreetmap.org.",
+    "PUBLIC_TERMS_OF_SERVICE_URL": "URL на общите условия",
+    "PUBLIC_TERMS_OF_SERVICE_PLACEHOLDER": "https://… (линк към условията)",
+    "PUBLIC_TERMS_OF_SERVICE_HINT": "По желание. Показва се на публични страници (резервация, обратна връзка). Ако е празно, може да се използва PUBLIC_TERMS_OF_SERVICE_URL от сървъра.",
+    "PUBLIC_PRIVACY_POLICY_URL": "URL на политиката за поверителност",
+    "PUBLIC_PRIVACY_POLICY_PLACEHOLDER": "https://… (линк към политиката)",
+    "PUBLIC_PRIVACY_POLICY_HINT": "По желание. Същата логика като условията; резерв: PUBLIC_PRIVACY_POLICY_URL в конфигурацията на сървъра.",
     "TAX_ID": "Данъчен идентификатор / ДДС",
     "TAX_ID_PLACEHOLDER": "напр. DE123456789",
     "CIF": "CIF / NIF",

@@ -62,6 +62,11 @@
     "LOGOUT": "Abmelden",
     "CONTRACTS": "Verträge"
   },
+  "LEGAL": {
+    "TERMS_OF_SERVICE": "Nutzungsbedingungen",
+    "PRIVACY_POLICY": "Datenschutzerklärung",
+    "LINKS_NAV": "Rechtliche Hinweise"
+  },
   "LANDING": {
     "TITLE": "Ihr Restaurant, vernetzt",
     "SUBTITLE": "Gäste reservieren und bestellen am Tisch; Teams steuern den Service von einer Stelle aus.",
@@ -902,6 +907,12 @@
     "PUBLIC_OPENSTREETMAP_URL": "OpenStreetMap-Link",
     "PUBLIC_OPENSTREETMAP_PLACEHOLDER": "https://www.openstreetmap.org/... (Teilen-Link von openstreetmap.org)",
     "PUBLIC_OPENSTREETMAP_HINT": "Optional. Dieselben Seiten wie der Google-Maps-Link, für Gäste mit OpenStreetMap. Link aus „Teilen“ auf openstreetmap.org einfügen.",
+    "PUBLIC_TERMS_OF_SERVICE_URL": "URL der Nutzungsbedingungen",
+    "PUBLIC_TERMS_OF_SERVICE_PLACEHOLDER": "https://… (Link zu Ihren AGB)",
+    "PUBLIC_TERMS_OF_SERVICE_HINT": "Optional. Wird auf öffentlichen Seiten (Buchung, Feedback) angezeigt. Wenn leer, gilt ggf. PUBLIC_TERMS_OF_SERVICE_URL aus der Server-Konfiguration.",
+    "PUBLIC_PRIVACY_POLICY_URL": "URL der Datenschutzerklärung",
+    "PUBLIC_PRIVACY_POLICY_PLACEHOLDER": "https://… (Link zur Datenschutzerklärung)",
+    "PUBLIC_PRIVACY_POLICY_HINT": "Optional. Wie Nutzungsbedingungen; Fallback: PUBLIC_PRIVACY_POLICY_URL in der Server-Konfiguration.",
     "LOGO": "Logo",
     "OPENING_HOURS": "Öffnungszeiten",
     "PAYMENT_SETTINGS": "Zahlungseinstellungen",

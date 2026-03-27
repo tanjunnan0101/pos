@@ -724,6 +724,9 @@ class TenantSummary(_BaseModel):
     public_google_review_url: str | None = None
     public_google_maps_url: str | None = None
     public_openstreetmap_url: str | None = None
+    # Effective legal links: tenant URL if set, else PUBLIC_* from server config
+    terms_of_service_url: str | None = None
+    privacy_policy_url: str | None = None
     # IANA timezone (e.g. Europe/Madrid) for public book page date/time UX
     timezone: str | None = None
 
@@ -792,8 +795,25 @@ def _take_away_table_token(session: Session, tenant_id: int) -> str | None:
     return None
 
 
+def _config_public_http_url(raw: str | None) -> str | None:
+    """Normalize optional legal URL from app settings (env)."""
+    if not raw or not isinstance(raw, str):
+        return None
+    s = raw.replace("\x00", "").strip()
+    return _normalize_public_http_url(s) if s else None
+
+
+def _legal_urls_effective(tenant: models.Tenant) -> tuple[str | None, str | None]:
+    g_tos = _config_public_http_url(settings.public_terms_of_service_url)
+    g_priv = _config_public_http_url(settings.public_privacy_policy_url)
+    t_tos = _normalize_public_http_url(tenant.public_terms_of_service_url)
+    t_priv = _normalize_public_http_url(tenant.public_privacy_policy_url)
+    return (t_tos or g_tos, t_priv or g_priv)
+
+
 def _tenant_to_summary(t: models.Tenant, session: Session) -> TenantSummary:
     take_away_token = _take_away_table_token(session, t.id)
+    tos, priv = _legal_urls_effective(t)
     return TenantSummary(
         id=t.id,
         name=t.name,
@@ -815,6 +835,8 @@ def _tenant_to_summary(t: models.Tenant, session: Session) -> TenantSummary:
         public_google_review_url=t.public_google_review_url,
         public_google_maps_url=t.public_google_maps_url,
         public_openstreetmap_url=t.public_openstreetmap_url,
+        terms_of_service_url=tos,
+        privacy_policy_url=priv,
         timezone=t.timezone,
     )
 
@@ -841,6 +863,15 @@ def list_public_tenants(session: Session = Depends(get_session)) -> list:
     """List all tenants (id, name, logo, description, phone, email). Public, no authentication."""
     tenants = session.exec(select(models.Tenant).order_by(models.Tenant.name)).all()
     return [_tenant_to_summary(t, session) for t in tenants]
+
+
+@app.get("/public/legal-urls")
+def get_public_legal_urls() -> dict[str, str | None]:
+    """Product-wide terms and privacy URLs from server config (for landing/auth when no tenant context)."""
+    return {
+        "terms_of_service_url": _config_public_http_url(settings.public_terms_of_service_url),
+        "privacy_policy_url": _config_public_http_url(settings.public_privacy_policy_url),
+    }
 
 
 @app.get("/public/tenants/{tenant_id}")
@@ -876,6 +907,8 @@ def get_public_tenant(
         "public_google_review_url": summary.public_google_review_url,
         "public_google_maps_url": summary.public_google_maps_url,
         "public_openstreetmap_url": summary.public_openstreetmap_url,
+        "terms_of_service_url": summary.terms_of_service_url,
+        "privacy_policy_url": summary.privacy_policy_url,
         "timezone": summary.timezone,
     }
     return JSONResponse(content=body)
@@ -2379,6 +2412,14 @@ def update_tenant_settings(
     if tenant_update.public_openstreetmap_url is not None:
         tenant.public_openstreetmap_url = _normalize_public_http_url(
             tenant_update.public_openstreetmap_url
+        )
+    if tenant_update.public_terms_of_service_url is not None:
+        tenant.public_terms_of_service_url = _normalize_public_http_url(
+            tenant_update.public_terms_of_service_url
+        )
+    if tenant_update.public_privacy_policy_url is not None:
+        tenant.public_privacy_policy_url = _normalize_public_http_url(
+            tenant_update.public_privacy_policy_url
         )
 
     # Reservation options (pre-payment, policies, reminders)

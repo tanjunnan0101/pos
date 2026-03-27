@@ -413,8 +413,17 @@ export interface TenantSummary {
   public_google_maps_url?: string | null;
   /** OpenStreetMap share URL (openstreetmap.org). */
   public_openstreetmap_url?: string | null;
+  /** Effective legal URLs (tenant-specific or server default). */
+  terms_of_service_url?: string | null;
+  privacy_policy_url?: string | null;
   /** IANA timezone for reservation date/time UX (e.g. Europe/Madrid). */
   timezone?: string | null;
+}
+
+/** GET /public/legal-urls — product-wide defaults from server config. */
+export interface PublicLegalUrls {
+  terms_of_service_url: string | null;
+  privacy_policy_url: string | null;
 }
 
 /** GET /reservations/book-calendar — one month of open/closed days from opening hours. */
@@ -900,6 +909,8 @@ export interface TenantSettings {
   public_google_review_url?: string | null;
   public_google_maps_url?: string | null;
   public_openstreetmap_url?: string | null;
+  public_terms_of_service_url?: string | null;
+  public_privacy_policy_url?: string | null;
   /** Up to 4 tip percentages for POS checkout; empty array disables tips; omit/null = default 5/10/15/20 */
   tip_preset_percents?: number[] | null;
   /** VAT rate 0–100 on tip for invoice breakdown (tax-inclusive tip) */
@@ -2000,6 +2011,11 @@ export class ApiService {
   /** List all tenants (public, no auth). For landing page tenant picker. */
   getPublicTenants(): Observable<TenantSummary[]> {
     return this.http.get<TenantSummary[]>(`${this.apiUrl}/public/tenants`);
+  }
+
+  /** Product-wide legal URLs from server config (landing, auth). Public, no auth. */
+  getPublicLegalUrls(): Observable<PublicLegalUrls> {
+    return this.http.get<PublicLegalUrls>(`${this.apiUrl}/public/legal-urls`);
   }
 
   /** Resolve QR/menu token or printed table name (e.g. T01) to menu token. Public, no auth. */
