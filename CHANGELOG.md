@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Public terms & privacy pages (GitHub #113):** SPA routes `/terms` and `/privacy` (`LegalDocumentComponent`, i18n `LEGAL.DOC.*` in all shipped locales). `GET /public/legal-urls` and tenant effective URLs fall back to `{PUBLIC_APP_BASE_URL}/terms` and `/privacy` when `PUBLIC_TERMS_OF_SERVICE_URL` / `PUBLIC_PRIVACY_POLICY_URL` are unset. `config.env.example` documents the fallback.
+
 - **Working plan — per-user colors (GitHub #109):** Calendar shift lines use a stable hue from `user_id` (HSL chips + `@media (prefers-color-scheme: dark)`). Week list shift cards get a matching left border. Legend text updated in all shipped i18n files. Color hash helper: `front/src/app/working-plan/working-plan-shift-colors.ts` (+ `working-plan-shift-colors.spec.ts`).
 
 ### Changed

@@ -803,9 +803,35 @@ def _config_public_http_url(raw: str | None) -> str | None:
     return _normalize_public_http_url(s) if s else None
 
 
+def _public_url_from_app_base(suffix: str) -> str | None:
+    """If PUBLIC_APP_BASE_URL is a valid http(s) URL, return it joined with suffix (e.g. /terms)."""
+    raw = settings.public_app_base_url
+    if not raw or not isinstance(raw, str):
+        return None
+    base = _normalize_public_http_url(raw.replace("\x00", "").strip())
+    if not base:
+        return None
+    path = suffix if suffix.startswith("/") else f"/{suffix}"
+    return base.rstrip("/") + path
+
+
+def _global_terms_url() -> str | None:
+    explicit = _config_public_http_url(settings.public_terms_of_service_url)
+    if explicit:
+        return explicit
+    return _public_url_from_app_base("/terms")
+
+
+def _global_privacy_url() -> str | None:
+    explicit = _config_public_http_url(settings.public_privacy_policy_url)
+    if explicit:
+        return explicit
+    return _public_url_from_app_base("/privacy")
+
+
 def _legal_urls_effective(tenant: models.Tenant) -> tuple[str | None, str | None]:
-    g_tos = _config_public_http_url(settings.public_terms_of_service_url)
-    g_priv = _config_public_http_url(settings.public_privacy_policy_url)
+    g_tos = _global_terms_url()
+    g_priv = _global_privacy_url()
     t_tos = _normalize_public_http_url(tenant.public_terms_of_service_url)
     t_priv = _normalize_public_http_url(tenant.public_privacy_policy_url)
     return (t_tos or g_tos, t_priv or g_priv)
@@ -869,8 +895,8 @@ def list_public_tenants(session: Session = Depends(get_session)) -> list:
 def get_public_legal_urls() -> dict[str, str | None]:
     """Product-wide terms and privacy URLs from server config (for landing/auth when no tenant context)."""
     return {
-        "terms_of_service_url": _config_public_http_url(settings.public_terms_of_service_url),
-        "privacy_policy_url": _config_public_http_url(settings.public_privacy_policy_url),
+        "terms_of_service_url": _global_terms_url(),
+        "privacy_policy_url": _global_privacy_url(),
     }
 
 

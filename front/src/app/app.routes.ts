@@ -11,6 +11,16 @@ export const routes: Routes = [
   { path: '', loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent) },
   { path: 'login', loadComponent: () => import('./auth/login.component').then(m => m.LoginComponent) },
   { path: 'register', loadComponent: () => import('./auth/register.component').then(m => m.RegisterComponent) },
+  {
+    path: 'terms',
+    loadComponent: () => import('./legal/legal-document.component').then(m => m.LegalDocumentComponent),
+    data: { legalDoc: 'terms' },
+  },
+  {
+    path: 'privacy',
+    loadComponent: () => import('./legal/legal-document.component').then(m => m.LegalDocumentComponent),
+    data: { legalDoc: 'privacy' },
+  },
   { path: 'forgot-password', loadComponent: () => import('./auth/forgot-password.component').then(m => m.ForgotPasswordComponent) },
   { path: 'reset-password', loadComponent: () => import('./auth/reset-password.component').then(m => m.ResetPasswordComponent) },
   // Provider portal (public auth pages)

@@ -64,6 +64,46 @@ class TestGuestFeedback(PgClientTestCase):
             settings.public_terms_of_service_url = prev_t
             settings.public_privacy_policy_url = prev_p
 
+    def test_public_legal_urls_fallback_to_app_base(self):
+        from app.settings import settings
+
+        prev_base = settings.public_app_base_url
+        prev_t = settings.public_terms_of_service_url
+        prev_p = settings.public_privacy_policy_url
+        settings.public_app_base_url = "https://app.example"
+        settings.public_terms_of_service_url = ""
+        settings.public_privacy_policy_url = ""
+        try:
+            r = self.client.get("/public/legal-urls")
+            self.assertEqual(r.status_code, 200, r.text)
+            d = r.json()
+            self.assertEqual(d.get("terms_of_service_url"), "https://app.example/terms")
+            self.assertEqual(d.get("privacy_policy_url"), "https://app.example/privacy")
+        finally:
+            settings.public_app_base_url = prev_base
+            settings.public_terms_of_service_url = prev_t
+            settings.public_privacy_policy_url = prev_p
+
+    def test_public_legal_urls_explicit_overrides_app_base(self):
+        from app.settings import settings
+
+        prev_base = settings.public_app_base_url
+        prev_t = settings.public_terms_of_service_url
+        prev_p = settings.public_privacy_policy_url
+        settings.public_app_base_url = "https://wrong.example"
+        settings.public_terms_of_service_url = "https://right.example/tos"
+        settings.public_privacy_policy_url = "https://right.example/privacy"
+        try:
+            r = self.client.get("/public/legal-urls")
+            self.assertEqual(r.status_code, 200, r.text)
+            d = r.json()
+            self.assertEqual(d.get("terms_of_service_url"), "https://right.example/tos")
+            self.assertEqual(d.get("privacy_policy_url"), "https://right.example/privacy")
+        finally:
+            settings.public_app_base_url = prev_base
+            settings.public_terms_of_service_url = prev_t
+            settings.public_privacy_policy_url = prev_p
+
     def test_public_tenant_legal_urls_tenant_overrides_global(self):
         from app.settings import settings
 

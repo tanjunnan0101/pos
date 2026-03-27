@@ -105,12 +105,12 @@ class Settings(BaseSettings):
     public_terms_of_service_url: str = Field(
         default="",
         validation_alias="PUBLIC_TERMS_OF_SERVICE_URL",
-        description="https://… terms of service; optional",
+        description="https://… terms of service; optional. If empty, /public/legal-urls falls back to PUBLIC_APP_BASE_URL + /terms when base is set.",
     )
     public_privacy_policy_url: str = Field(
         default="",
         validation_alias="PUBLIC_PRIVACY_POLICY_URL",
-        description="https://… privacy policy; optional",
+        description="https://… privacy policy; optional. If empty, legal-urls falls back to PUBLIC_APP_BASE_URL + /privacy when base is set.",
     )
 
     # Password reset links in email point to {PUBLIC_APP_BASE_URL}/reset-password?token=...
