@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Tras promover **`development` → `master`**, el despliegue en amvara9 se detuvo porque **`app.migrate`** fallaba: la tabla legada **`staff_contract_template_preset`** existía sin la restricción UNIQUE esperada por el seed **`ON CONFLICT`**, y el backend ya asumía esquema alineado (p. ej. **`tenant.country_code`**).
+- **What was done:** Se endureció la migración **`back/migrations/20260326133000_contract_template_locale_presets.sql`** con un bloque idempotente que añade **`uq_staff_contract_template_preset_region_locale_key`** si falta y normaliza defaults de **`created_at`/`updated_at`**; en producción se aplicó **`git pull`**, migraciones y **`docker compose … up -d`** (o flujo equivalente de despliegue).
+- **What was tested:** Migración local y en amvara9, **`migrate --sync-idempotent`**, **`docker compose ps`** con stack completo en **Up**, humo **`https://satisfecho.de/` → 200**, y verificación de esquema en BD; informe del tester: **PASS** en todos los criterios.
+- **Why closed:** Criterios de prueba cumplidos y resultado global **PASS** según **Test report (tester 003)**.
+- **Closed at (UTC):** 2026-03-27 11:22
+---
+
 # Push develop to master
 
 ## GitHub
