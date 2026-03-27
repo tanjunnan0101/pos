@@ -43,6 +43,11 @@ BEGIN
 END
 $preset_uq$;
 
+-- Legacy installs may have created_at/updated_at NOT NULL without DEFAULT; omitted columns would be NULL on INSERT.
+ALTER TABLE staff_contract_template_preset
+  ALTER COLUMN created_at SET DEFAULT NOW(),
+  ALTER COLUMN updated_at SET DEFAULT NOW();
+
 -- Seeded presets (idempotent). region_code: ISO 3166-1 alpha-2 or * = global fallback.
 INSERT INTO staff_contract_template_preset (region_code, locale, template_key, name, body, kind) VALUES
 (

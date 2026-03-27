@@ -16,7 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- **Migration `20260326133000` on existing `staff_contract_template_preset` (GitHub #112):** If the preset table already existed without `uq_staff_contract_template_preset_region_locale_key`, `CREATE TABLE IF NOT EXISTS` skipped DDL and the seeded `INSERT … ON CONFLICT (region_code, locale, template_key)` failed. Added an idempotent `DO` block that creates the unique constraint when missing so production migrate can complete and the app tier can run against `tenant.country_code`.
+- **Migration `20260326133000` on existing `staff_contract_template_preset` (GitHub #112):** If the preset table already existed without `uq_staff_contract_template_preset_region_locale_key`, `CREATE TABLE IF NOT EXISTS` skipped DDL and the seeded `INSERT … ON CONFLICT (region_code, locale, template_key)` failed. Added an idempotent `DO` block that creates the unique constraint when missing. If `created_at` / `updated_at` are NOT NULL without server defaults, the seed insert received NULLs; added `ALTER COLUMN … SET DEFAULT NOW()` for those columns before the insert so production migrate can complete and the app tier can run against `tenant.country_code`.
 
 - **Settings → Data & privacy i18n (GitHub #108):** Added missing `SETTINGS.*` export/purge strings for **es**, **fr**, **ca**, **zh-CN**, and **hi**; corrected leftover English `PURGE_CONFIRM_LABEL` in **bg**. UI already used `translate` pipes; missing keys fell back to English.
 
