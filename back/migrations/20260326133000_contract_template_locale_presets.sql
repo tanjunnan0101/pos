@@ -20,6 +20,29 @@ CREATE TABLE IF NOT EXISTS staff_contract_template_preset (
 CREATE INDEX IF NOT EXISTS ix_staff_contract_template_preset_region ON staff_contract_template_preset(region_code);
 CREATE INDEX IF NOT EXISTS ix_staff_contract_template_preset_locale ON staff_contract_template_preset(locale);
 
+-- If the preset table pre-existed without this constraint, CREATE TABLE IF NOT EXISTS skipped DDL and
+-- INSERT ... ON CONFLICT would fail. Ensure the unique target exists before seeding.
+DO $preset_uq$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'staff_contract_template_preset'
+  ) AND NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint c
+    JOIN pg_class t ON c.conrelid = t.oid
+    JOIN pg_namespace n ON t.relnamespace = n.oid
+    WHERE n.nspname = 'public'
+      AND t.relname = 'staff_contract_template_preset'
+      AND c.conname = 'uq_staff_contract_template_preset_region_locale_key'
+  ) THEN
+    ALTER TABLE staff_contract_template_preset
+      ADD CONSTRAINT uq_staff_contract_template_preset_region_locale_key
+      UNIQUE (region_code, locale, template_key);
+  END IF;
+END
+$preset_uq$;
+
 -- Seeded presets (idempotent). region_code: ISO 3166-1 alpha-2 or * = global fallback.
 INSERT INTO staff_contract_template_preset (region_code, locale, template_key, name, body, kind) VALUES
 (
