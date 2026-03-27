@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** El tester dio **PASS** al issue [#114](https://github.com/satisfecho/pos/issues/114): enlaces de Términos y Privacidad junto a las acciones de registro/auth (landing, `/login`, `/register`, portal proveedor).
+- **What was done:** Se unificó el pie con `app-legal-links` (modo inline), filas `.auth-actions-foot` en login/registro público, landing en una sola línea con separadores, y pies de `/provider/login` y `/provider/register` con contacto + legales vía **`getPublicLegalUrls()`** e i18n.
+- **What was tested:** Landing, login, register, provider login/register, `npm run test:landing-version` y `npm run test:landing-provider-links` — **PASS**; enlaces legales omitidos cuando la API devuelve URLs nulas (esperado).
+- **Why closed:** Criterios de aceptación cumplidos según informe de pruebas (**Overall: PASS**); archivo archivado según el bucle de agentes.
+- **Closed at (UTC):** 2026-03-27 13:15
+---
+
 # Terms and privacy links near registration / auth actions
 
 ## GitHub
