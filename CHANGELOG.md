@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **HAProxy production (`haproxy.prod.cfg`):** API backend Layer7 check uses **`GET /health`** instead of **`/docs`** for a lighter, faster probe after container start (reduces **`api_backend/<NOSRV>`** 503 windows). Added **`timeout check`**, default **`retries 3`**, and per-server **`inter` / `downinter` / `rise` / `fall`** (WS, API, front) for more predictable UP/DOWN and quicker recovery while a server is down.
+
 - **Agent loop:** Main **coder** step runs when **`WIP-*.md`** exists as well as **`NEW-*.md`**, so tasks are not stuck after **NEW → WIP** (`agents/pos-agent-loop.sh`, `agents/002-coder/CODER.md`, `docs/agent-loop.md`).
 
 ### Fixed
