@@ -24,7 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Agent loop — token use:** **001** builds a shell preflight digest (GitHub open issues + Docker log heuristics) under **`$AGENT_LOOP_TMP/001-latest-context.txt`** and calls **`cursor-agent`** only when there is likely work (open issue not yet linked from **`agents/tasks/*.md`**, or log incident signals). **FEAT** batch stops early when no **`FEAT-*.md`** (fewer redundant git syncs). Env: **`AGENT_LOG_REVIEWER_ALWAYS`**, **`AGENT_001_SKIP_PREFLIGHT`**, **`AGENT_001_RUN_WHEN_GH_UNKNOWN`**, **`AGENT_GH_REPO`**, **`AGENT_LOOP_TMP`** (`docs/agent-loop.md`).
 
-- **Agent loop — optional Ollama triage:** **`AGENT_001_OLLAMA_LOG_TRIAGE=1`** runs **`scripts/agent-ollama-log-triage.sh`** (local **`ollama`**, default **`OLLAMA_MODEL=qwen2.5:1.5b`**) when only Docker log heuristics would invoke **001** (no untracked issues); model may answer SKIP to avoid a **`cursor-agent`** run on noise. Documented in **`docs/agent-loop.md`**.
+- **Agent loop — Ollama log triage:** **`scripts/agent-ollama-log-triage.sh`** runs automatically when **`ollama list`** works and lists ≥1 model (unless **`AGENT_001_OLLAMA_LOG_TRIAGE=0`**), only for log-only **001** signals (no untracked issues). Default **`OLLAMA_MODEL=qwen2.5:1.5b`**. Documented in **`docs/agent-loop.md`**.
 
 ### Fixed
 

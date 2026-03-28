@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Optional pre-001 filter: local Ollama decides if Docker log heuristics are noise.
-# Used when AGENT_001_OLLAMA_LOG_TRIAGE=1 in pos-agent-loop.sh (issues untouched).
+# Invoked from pos-agent-loop.sh when local ollama is up and has models (unless AGENT_001_OLLAMA_LOG_TRIAGE=0).
 #
 # Usage: scripts/agent-ollama-log-triage.sh /path/to/001-latest-context.txt
 # Env:   OLLAMA_MODEL (default qwen2.5:1.5b), OLLAMA_HOST if daemon is remote

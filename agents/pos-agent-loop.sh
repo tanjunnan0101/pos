@@ -160,14 +160,23 @@ should_run_001_cursor_agent() {
   return 1
 }
 
-# If only Docker heuristics fired (no untracked issues), optional local Ollama may clear G001_LOG_SIGNALS.
+# True when local Ollama is usable: CLI present, daemon responds, at least one model row in `ollama list`.
+# Disable triage entirely with AGENT_001_OLLAMA_LOG_TRIAGE=0 (even if ollama is running).
+ollama_local_triage_available() {
+  [[ "${AGENT_001_OLLAMA_LOG_TRIAGE:-}" != "0" ]] || return 1
+  command -v ollama >/dev/null 2>&1 || return 1
+  ollama list 2>/dev/null | tail -n +2 | head -1 | grep -q '[[:graph:]]'
+}
+
+# If only Docker heuristics fired (no untracked issues), local Ollama may clear G001_LOG_SIGNALS (auto when ollama works).
 maybe_ollama_downgrade_log_signals() {
   local ctx="$1"
-  [[ "${AGENT_001_OLLAMA_LOG_TRIAGE:-0}" == "1" ]] || return 0
+  ollama_local_triage_available || return 0
   [[ "$G001_LOG_SIGNALS" == "1" ]] || return 0
   [[ "${G001_UNTRACKED_ISSUES:-0}" -eq 0 ]] || return 0
   local triage_script="${REPO_ROOT}/scripts/agent-ollama-log-triage.sh"
   [[ -f "$triage_script" ]] || return 0
+  echo "----- 001 ollama log triage: auto (ollama up + models — ${OLLAMA_MODEL:-qwen2.5:1.5b})"
   set +e
   bash "$triage_script" "$ctx"
   local trc=$?
@@ -346,7 +355,7 @@ Environment:
   AGENT_LOG_REVIEWER_ALWAYS  If 1, always invoke 001 cursor-agent (skip preflight gate).
   AGENT_001_SKIP_PREFLIGHT   If 1, always invoke 001 (legacy); digest still written when built.
   AGENT_001_RUN_WHEN_GH_UNKNOWN  If 1, run 001 when gh failed/missing and digest otherwise empty.
-  AGENT_001_OLLAMA_LOG_TRIAGE  If 1 and only Docker heuristics would trigger 001 (no untracked issues), run scripts/agent-ollama-log-triage.sh (local Ollama) to possibly SKIP noise. Env OLLAMA_MODEL (default qwen2.5:1.5b).
+  AGENT_001_OLLAMA_LOG_TRIAGE  If 0, never run local Ollama triage. Otherwise (default) triage runs when ollama list works and shows ≥1 model, only for log-only 001 signals. OLLAMA_MODEL (default qwen2.5:1.5b).
 
 Docker / app stack: start separately from repo root with ./run.sh -dev
 
