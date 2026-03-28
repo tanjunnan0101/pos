@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** La tarea del issue **#115** evaluó la promoción **`development` → `master`**, el despliegue y smoke en **https://satisfecho.de**, con una primera pasada de pruebas bloqueada por falta de conectividad y una segunda pasada exitosa.
+- **What was done:** Se documentó el fast-forward de **`master`** al tip de **`development`**, mejoras en **`test-landing-version.mjs`** (modo solo landing, sonda de alcanzabilidad, variables documentadas) y criterios de PASS/FAIL claros en el handoff al tester.
+- **What was tested:** Tras conectividad OK: **`curl`** a `/` y **`/api/health`** → **200**; Puppeteer **`LANDING_VERSION_ONLY=1`** con **`SKIP_LANDING_PACKAGE_VERSION_CHECK=1`** → **PASS** (pie **2.0.64 00e806f**).
+- **Why closed:** Criterios del handoff cumplidos en la segunda pasada del tester (**Overall: PASS**); el fallo inicial se atribuyó al entorno (*connection refused*), no a regresión de producto.
+- **Closed at (UTC):** 2026-03-28 14:38
+---
+
 # Review version of main/master vs development
 
 ## GitHub
