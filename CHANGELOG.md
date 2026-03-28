@@ -22,6 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Agent loop:** Main **coder** step runs when **`WIP-*.md`** exists as well as **`NEW-*.md`**, so tasks are not stuck after **NEW → WIP** (`agents/pos-agent-loop.sh`, `agents/002-coder/CODER.md`, `docs/agent-loop.md`).
 
+- **Agent loop — token use:** **001** builds a shell preflight digest (GitHub open issues + Docker log heuristics) under **`$AGENT_LOOP_TMP/001-latest-context.txt`** and calls **`cursor-agent`** only when there is likely work (open issue not yet linked from **`agents/tasks/*.md`**, or log incident signals). **FEAT** batch stops early when no **`FEAT-*.md`** (fewer redundant git syncs). Env: **`AGENT_LOG_REVIEWER_ALWAYS`**, **`AGENT_001_SKIP_PREFLIGHT`**, **`AGENT_001_RUN_WHEN_GH_UNKNOWN`**, **`AGENT_GH_REPO`**, **`AGENT_LOOP_TMP`** (`docs/agent-loop.md`).
+
 ### Fixed
 
 - **Migration `20260326133000` on existing `staff_contract_template_preset` (GitHub #112):** If the preset table already existed without `uq_staff_contract_template_preset_region_locale_key`, `CREATE TABLE IF NOT EXISTS` skipped DDL and the seeded `INSERT … ON CONFLICT (region_code, locale, template_key)` failed. Added an idempotent `DO` block that creates the unique constraint when missing. If `created_at` / `updated_at` are NOT NULL without server defaults, the seed insert received NULLs; added `ALTER COLUMN … SET DEFAULT NOW()` for those columns before the insert so production migrate can complete and the app tier can run against `tenant.country_code`.

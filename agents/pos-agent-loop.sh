@@ -17,11 +17,147 @@ REPO_ROOT="$(cd "${SCRIPTDIR}/.." && pwd)"
 sleepminutes="${AGENT_LOOP_SLEEP_MINUTES:-5}"
 # macOS sleep(1) uses seconds only; convert minutes → seconds.
 sleepseconds=$((sleepminutes * 60))
+_tdir="${TMPDIR:-/tmp}"
+_tdir="${_tdir%/}"
+AGENT_LOOP_TMP="${AGENT_LOOP_TMP:-${_tdir}/pos-agent-loop}"
+unset _tdir
+GH_REPO="${AGENT_GH_REPO:-satisfecho/pos}"
+LAST_REVIEW_FILE="${SCRIPTDIR}/001-log-reviewer/time-of-last-review.txt"
 
 cd "$SCRIPTDIR" || exit 1
 
 have_cursor_agent() {
   command -v cursor-agent >/dev/null 2>&1
+}
+
+# True if issue #num is already referenced in a root-level task file (dedupe hint for 001 preflight).
+issue_linked_in_root_tasks() {
+  local num="$1"
+  local f bn
+  shopt -s nullglob
+  for f in "$TASKDIR"/*.md; do
+    bn=$(basename "$f")
+    [[ "$bn" == "README.md" ]] && continue
+    if grep -qE "#${num}([^0-9]|$)|/issues/${num}([^0-9]|$)" "$f" 2>/dev/null; then
+      shopt -u nullglob
+      return 0
+    fi
+  done
+  shopt -u nullglob
+  return 1
+}
+
+# ISO timestamp from first line of time-of-last-review.txt, or empty.
+last_review_iso_utc() {
+  [[ -f "$LAST_REVIEW_FILE" ]] || return 0
+  head -1 "$LAST_REVIEW_FILE" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z' | head -1
+}
+
+# Write GitHub + Docker log digest for 001; set G001_* variables for gating.
+# G001_GH_OK: 1 if gh listed issues successfully; 0 if gh missing or failed.
+# G001_UNTRACKED_ISSUES: count of open issues with no #NN / issues/NN link in root tasks (0 if gh failed).
+# G001_LOG_SIGNALS: 1 if heuristic incident lines found in recent container logs.
+prepare_001_preflight_context() {
+  local ctx="$1"
+  mkdir -p "$(dirname "$ctx")"
+  G001_GH_OK=0
+  G001_UNTRACKED_ISSUES=0
+  G001_LOG_SIGNALS=0
+  local utc
+  utc=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+  {
+    echo "pos-agent-loop 001 preflight — $utc (UTC)"
+    echo "repo: $GH_REPO  tasks: $TASKDIR"
+    echo ""
+    echo "=== GitHub (open issues, limit 40) ==="
+  } >"$ctx"
+
+  if command -v gh >/dev/null 2>&1; then
+    if gh issue list --repo "$GH_REPO" --state open -L 40 --json number,title,labels,url,updatedAt >>"$ctx" 2>/dev/null; then
+      G001_GH_OK=1
+      local num untracked=0
+      while IFS= read -r num; do
+        [[ -z "${num:-}" ]] && continue
+        if ! issue_linked_in_root_tasks "$num"; then
+          untracked=$((untracked + 1))
+          echo "UNTRACKED_IN_TASKS issue #$num" >>"$ctx"
+        fi
+      done < <(gh issue list --repo "$GH_REPO" --state open -L 40 --json number -q '.[].number' 2>/dev/null || true)
+      G001_UNTRACKED_ISSUES=$untracked
+    else
+      echo "(gh issue list failed — auth/network?)" >>"$ctx"
+    fi
+  else
+    echo "(gh not on PATH — cannot list issues)" >>"$ctx"
+  fi
+
+  {
+    echo ""
+    echo "=== Docker log incident heuristics (pos-front, pos-back, pos-haproxy, pos-postgres) ==="
+  } >>"$ctx"
+
+  local last_iso
+  last_iso=$(last_review_iso_utc)
+  local log_args=()
+  if [[ -n "$last_iso" ]]; then
+    log_args=(--since "$last_iso")
+  else
+    log_args=(--tail 800)
+  fi
+
+  if docker info >/dev/null 2>&1; then
+    local c raw hits
+    for c in pos-front pos-back pos-haproxy pos-postgres; do
+      if docker inspect "$c" >/dev/null 2>&1; then
+        echo "" >>"$ctx"
+        echo "--- $c (${log_args[*]}) ---" >>"$ctx"
+        raw=$(docker logs "$c" "${log_args[@]}" 2>&1 || true)
+        hits=$(printf '%s\n' "$raw" | grep -iE \
+          'traceback|Exception in ASGI|Internal Server|Application bundle generation failed|TS[0-9]{4}|NG[0-9]{4}|\bFATAL\b' \
+          | head -n 80 || true)
+        if [[ -z "$hits" ]]; then
+          hits=$(printf '%s\n' "$raw" | grep -E ' [45][0-9][0-9] ' | grep -vE ':[0-9]{5} -' | head -n 80 || true)
+        fi
+        if [[ -n "$hits" ]]; then
+          G001_LOG_SIGNALS=1
+          printf '%s\n' "$hits" >>"$ctx"
+        else
+          echo "(no heuristic matches in sampled window)" >>"$ctx"
+        fi
+      else
+        echo "" >>"$ctx"
+        echo "--- $c (container not present) ---" >>"$ctx"
+      fi
+    done
+  else
+    echo "Docker not available or not running — log pass skipped." >>"$ctx"
+  fi
+
+  {
+    echo ""
+    echo "=== Preflight summary ==="
+    echo "G001_GH_OK=$G001_GH_OK G001_UNTRACKED_ISSUES=$G001_UNTRACKED_ISSUES G001_LOG_SIGNALS=$G001_LOG_SIGNALS"
+  } >>"$ctx"
+}
+
+# After prepare_001_preflight_context: should we invoke cursor-agent for 001?
+should_run_001_cursor_agent() {
+  if [[ "${AGENT_001_SKIP_PREFLIGHT:-0}" == "1" ]]; then
+    return 0
+  fi
+  if [[ "${AGENT_LOG_REVIEWER_ALWAYS:-0}" == "1" ]]; then
+    return 0
+  fi
+  if [[ "$G001_LOG_SIGNALS" == "1" ]]; then
+    return 0
+  fi
+  if [[ "$G001_GH_OK" == "1" ]] && [[ "${G001_UNTRACKED_ISSUES:-0}" -gt 0 ]]; then
+    return 0
+  fi
+  if [[ "$G001_GH_OK" == "0" ]] && [[ "${AGENT_001_RUN_WHEN_GH_UNKNOWN:-0}" == "1" ]]; then
+    return 0
+  fi
+  return 1
 }
 
 # Integrate latest origin/development before any step that may edit the repo.
@@ -62,12 +198,29 @@ run_agent() {
 }
 
 step_log_reviewer() {
-  sync_repo
   echo "-----> log reviewer (001) <----"
-  run_agent "log reviewer (001)" \
-    "true" \
-    "001-log-reviewer/LOG-REVIEWER-PROMPT.md" \
-    "Run 001: (A) GitHub — up to 3 open issues → create FEAT-*.md only (feature coders). (B) Docker logs → NEW-*.md only for real incidents. gh comment/label on issues. Do your job."
+  mkdir -p "$AGENT_LOOP_TMP"
+  local ctx="${AGENT_LOOP_TMP}/001-latest-context.txt"
+  prepare_001_preflight_context "$ctx"
+  echo "----- 001 preflight digest: $ctx"
+  if ! have_cursor_agent; then
+    echo "----- log reviewer (001) (skip: cursor-agent not on PATH)"
+    return 0
+  fi
+  if should_run_001_cursor_agent; then
+    sync_repo
+    prepare_001_preflight_context "$ctx"
+    local msg
+    msg="Run 001: Read the preflight digest first (absolute path): $ctx
+Then follow 001-log-reviewer/LOG-REVIEWER-PROMPT.md — (A) GitHub → up to 3 × FEAT-*.md (dedupe as documented). (B) Docker logs → NEW-*.md only for real standing incidents (digest is heuristic; you may run docker logs yourself). gh comment/label. Do your job."
+    run_agent "log reviewer (001)" \
+      "true" \
+      "001-log-reviewer/LOG-REVIEWER-PROMPT.md" \
+      "$msg"
+  else
+    echo "----- log reviewer (001) (skip: nothing for 001 — no open issues missing a task link, no log incident heuristics)"
+    echo "----- Override: AGENT_LOG_REVIEWER_ALWAYS=1 or AGENT_001_SKIP_PREFLIGHT=1 (always invoke); AGENT_001_RUN_WHEN_GH_UNKNOWN=1 if gh failed but you still want a run."
+  fi
 }
 
 step_feat() {
@@ -118,9 +271,19 @@ step_committer() {
 run_full_cycle() {
   echo "$(date)"
   step_log_reviewer
-  local i
-  for i in 1 2 3 4 5; do
+  local i=0
+  local has_feat
+  while (( i < 5 )); do
+    has_feat=false
+    shopt -s nullglob
+    for _ in "$TASKDIR"/FEAT-*.md; do has_feat=true; break; done
+    shopt -u nullglob
+    if ! $has_feat; then
+      (( i == 0 )) && echo "----- feature coding (FEAT): queue empty, skipping up to 5 batch slots (saves git sync)"
+      break
+    fi
     step_feat
+    ((i++)) || true
   done
   step_coder
   step_tester
@@ -147,6 +310,11 @@ Usage: $(basename "$0") [COMMAND]
 Environment:
   AGENT_LOOP_SLEEP_MINUTES   Sleep between full cycles when looping (default: 5).
   AGENT_GIT_SYNC             If 0, skip git fetch/pull before each step (default: 1).
+  AGENT_LOOP_TMP             Directory for 001 preflight digest (default: \$TMPDIR/pos-agent-loop).
+  AGENT_GH_REPO              Repo for gh issue list (default: satisfecho/pos).
+  AGENT_LOG_REVIEWER_ALWAYS  If 1, always invoke 001 cursor-agent (skip preflight gate).
+  AGENT_001_SKIP_PREFLIGHT   If 1, always invoke 001 (legacy); digest still written when built.
+  AGENT_001_RUN_WHEN_GH_UNKNOWN  If 1, run 001 when gh failed/missing and digest otherwise empty.
 
 Docker / app stack: start separately from repo root with ./run.sh -dev
 

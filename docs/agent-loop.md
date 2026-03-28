@@ -106,12 +106,12 @@ Examples: `FEAT-20260323-1030-github-issue-50.md` (GitHub → feature coder), `N
 
 ## Agent loop script (`agents/pos-agent-loop.sh`)
 
-Same idea as **mac-stats-reviewer** `agents/run.sh`, but named for clarity: one entrypoint to run **log reviewer (001) → feature coder (×5) → coder → tester → closing reviewer → committer** on a timer, or single steps.
+Same idea as **mac-stats-reviewer** `agents/run.sh`, but named for clarity: one entrypoint to run **log reviewer (001) → feature coder (up to ×5) → coder → tester → closing reviewer → committer** on a timer, or single steps.
 
 | Invocation | Behaviour |
 |------------|-----------|
 | **`./agents/pos-agent-loop.sh`** | Full cycle every **`AGENT_LOOP_SLEEP_MINUTES`** (default **5**); requires **`cursor-agent`** on `PATH`. |
-| **`./agents/pos-agent-loop.sh log`** (or **`log-reviewer`**, **`001`**) | Run **001** log / incident reviewer (always invoked when prompt exists; first step in full cycle). |
+| **`./agents/pos-agent-loop.sh log`** (or **`log-reviewer`**, **`001`**) | Run **001** log / incident reviewer **only if** the shell preflight finds work: open GitHub issues not yet linked from a root **`agents/tasks/*.md`** (`#NN` / `issues/NN`), or Docker log lines matching incident heuristics. Otherwise **001** skips **`cursor-agent`** (saves tokens). Digest: **`$AGENT_LOOP_TMP/001-latest-context.txt`** (default **`$TMPDIR/pos-agent-loop/`**). Override: **`AGENT_LOG_REVIEWER_ALWAYS=1`** or **`AGENT_001_SKIP_PREFLIGHT=1`**. |
 | **`./agents/pos-agent-loop.sh coder`** | Run coder step if **`NEW-*.md`** or **`WIP-*.md`** exists (and prompt file present). Prefer finishing **NEW** first; **WIP** continues in-progress work. |
 | **`./agents/pos-agent-loop.sh tester`** | Run tester if **`UNTESTED-*.md`** exists. |
 | **`./agents/pos-agent-loop.sh feat`** | Run feature coder if **`FEAT-*.md`** exists. |
@@ -119,7 +119,9 @@ Same idea as **mac-stats-reviewer** `agents/run.sh`, but named for clarity: one 
 | **`./agents/pos-agent-loop.sh committer`** | Run committer if POS repo has unstaged/staged changes. |
 | **`./agents/pos-agent-loop.sh help`** | Usage. |
 
-**Git:** each step begins with **`scripts/git-sync-development.sh`** (unless **`AGENT_GIT_SYNC=0`**). See **Sync before edits (multi-agent)** above.
+**Git:** each step that may edit the repo begins with **`scripts/git-sync-development.sh`** (unless **`AGENT_GIT_SYNC=0`**). **001** skips sync when it skips **`cursor-agent`** (nothing to do). See **Sync before edits (multi-agent)** above.
+
+**Token-saving gates:** **002 / 003 / 004 / 007** already skip **`cursor-agent`** when there is no matching task file or (committer) no git diff. **006** runs at most five times per cycle but **stops the FEAT batch early** when no **`FEAT-*.md`** remains (avoids redundant syncs). **001** adds a **preflight digest** (issues + log heuristics) and only then invokes the agent.
 
 **Docker / stack:** still start with repo-root **`./run.sh`** or **`./run.sh -dev`** — this script does **not** replace the POS application runner.
 
