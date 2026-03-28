@@ -10,6 +10,8 @@
  *   BASE_URL   App URL (default: auto-detect port 4203, 4202, 4200 or http://satisfecho.de)
  *   HEADLESS   Default headless; set 0, false, or no for a visible browser.
  *   TENANT_ID  Login tenant (default 1). Used with DEMO_LOGIN_* / LOGIN_*.
+ *   SKIP_LANDING_PACKAGE_VERSION_CHECK  Set to 1 to skip comparing footer semver to front/package.json
+ *              (useful when BASE_URL points at a remote host whose deploy differs from this checkout).
  *
  * When LOGIN_EMAIL + LOGIN_PASSWORD or DEMO_LOGIN_EMAIL + DEMO_LOGIN_PASSWORD are set
  * (e.g. from repo root `.env`), after the landing check the script logs in at
@@ -28,6 +30,7 @@ const require = createRequire(import.meta.url);
 const puppeteer = require('puppeteer-core');
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const frontRoot = resolve(__dirname, '..');
 const projectRoot = resolve(__dirname, '../..');
 const envPath = resolve(projectRoot, '.env');
 if (existsSync(envPath)) {
@@ -53,6 +56,30 @@ const CHROME_PATH =
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function readFrontPackageVersion() {
+  try {
+    const pkgPath = resolve(frontRoot, 'package.json');
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
+    return typeof pkg.version === 'string' ? pkg.version.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+function isLocalBaseUrl(baseUrl) {
+  try {
+    const u = new URL(baseUrl);
+    return (
+      u.hostname === '127.0.0.1' ||
+      u.hostname === 'localhost' ||
+      u.hostname === '[::1]' ||
+      u.hostname === '::1'
+    );
+  } catch {
+    return false;
+  }
+}
 
 function pathnameMatches(actual, expected) {
   if (actual === expected) return true;
@@ -236,9 +263,31 @@ async function main() {
       process.exit(1);
     }
 
-    const hasVersionLike = /[\d]+\.[\d]+\.[\d]+/.test(versionVisible.text);
-    if (!versionVisible.text || !hasVersionLike) {
+    const semverMatch = versionVisible.text.match(/(\d+\.\d+\.\d+)/);
+    const semverInFooter = semverMatch ? semverMatch[1] : null;
+    if (!versionVisible.text || !semverInFooter) {
       console.log('   FAIL: Version text missing or invalid:', JSON.stringify(versionVisible.text));
+      await browser.close();
+      process.exit(1);
+    }
+
+    const pkgVersion = readFrontPackageVersion();
+    const skipPkgCheck =
+      process.env.SKIP_LANDING_PACKAGE_VERSION_CHECK === '1' ||
+      process.env.SKIP_LANDING_PACKAGE_VERSION_CHECK === 'true';
+    if (
+      !skipPkgCheck &&
+      pkgVersion &&
+      isLocalBaseUrl(baseUrl) &&
+      semverInFooter !== pkgVersion
+    ) {
+      console.log(
+        '   FAIL: Landing semver',
+        JSON.stringify(semverInFooter),
+        '!== package.json',
+        JSON.stringify(pkgVersion),
+        '(run `node front/scripts/get-commit-hash.js` after bumping version, or rebuild front)'
+      );
       await browser.close();
       process.exit(1);
     }

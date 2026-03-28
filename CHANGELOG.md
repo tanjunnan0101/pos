@@ -42,6 +42,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Bulgarian staff dashboard subtitle (GitHub #107):** `DASHBOARD.WELCOME_TEXT` in `front/public/i18n/bg.json` was still English; translated to match the rest of the Bulgarian staff UI.
 
+- **Landing footer version vs `package.json` (GitHub #70):** `test:landing-version` on localhost requires the landing bar semver to match **`front/package.json`** so bumps are not “green” while the UI still shows an old version (stale **`commit-hash.ts`**). Optional **`SKIP_LANDING_PACKAGE_VERSION_CHECK=1`** when probing a remote host. Refreshed **`front/src/environments/commit-hash.ts`** via **`get-commit-hash.js`**.
+
 ## [2.0.64] - 2026-03-27
 
 ### Added
