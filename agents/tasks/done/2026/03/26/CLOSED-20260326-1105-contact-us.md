@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Tester handed off after verifying the landing footer **Contact us** link and i18n behaviour.
+- **What was done:** Landing footer mailto to `sales@satisfecho.de` with `LANDING.CONTACT_US` across locales; Puppeteer landing script extended to assert the link.
+- **What was tested:** `test-landing-provider-links.mjs`, `test:landing-version`, manual EN/DE checks, and `front` container logs; overall **PASS**.
+- **Why closed:** All test-report criteria passed.
+- **Closed at (UTC):** 2026-03-28 14:16
+---
+
 # Contact us
 
 ## GitHub
