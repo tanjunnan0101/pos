@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, Injector } from '@angular/core';
 import { ApiService, User, UserRole } from './api.service';
 
 /**
@@ -151,7 +151,12 @@ const ROUTE_ROLES: Record<string, UserRole[]> = {
   providedIn: 'root'
 })
 export class PermissionService {
-  private api = inject(ApiService);
+  /** Lazy via Injector so PermissionService is not an eager dep of ApiService (avoids NG0200 cycles with HttpClient/interceptors). */
+  private injector = inject(Injector);
+
+  private get api(): ApiService {
+    return this.injector.get(ApiService);
+  }
 
   /**
    * Check if a user has a specific permission

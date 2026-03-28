@@ -23,7 +23,12 @@ There is no structured way in the staff area to create, store, and manage **empl
 - **API:** Router `back/app/staff_contract_routes.py`, mounted at **`/staff-contracts`** in `main.py`. Permissions: `STAFF_CONTRACT_READ` (all tenant staff), `STAFF_CONTRACT_MANAGE` (owner/admin). Signed PDFs under `uploads/{tenant_id}/contracts/`; **no** public static route — download only via `GET /staff-contracts/{id}/document` with cookie auth.
 - **Front:** Route `/contracts`, sidebar **Contracts**, `staff-contracts.component.ts`, `permission.guard.ts`, `ApiService` methods; i18n keys `CONTRACTS.*` + `NAV.CONTRACTS` in all `public/i18n/*.json`.
 - **Tests:** `back/tests/test_staff_contracts.py` (RBAC, version, PDF upload/download).
-- **Version:** `2.0.57` (see `CHANGELOG.md`, `front/package.json`).
+- **Version:** see `front/package.json` / `CHANGELOG.md` (module landed in **2.0.57**; repo may be newer).
+
+## Coder follow-up (2026-03-28 UTC)
+
+- **NG0200 / staff SPA bootstrap:** `PermissionService` used eager `inject(ApiService)`, which could combine with `HttpClient` + interceptors into **`Circular dependency detected for _ApiService`** (blocked login in QA on **2026-03-25**). **Fix:** resolve `ApiService` lazily with **`Injector.get(ApiService)`** via a private getter in `front/src/app/services/permission.service.ts`.
+- **Coder verification:** `pytest tests/test_staff_contracts.py` → **4 passed**; Docker `front` rebuild without TS/NG errors; `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version` from `front/` → **exit 0** (login + sidebar nav includes **`/contracts`**).
 
 ## Testing instructions
 
@@ -42,14 +47,19 @@ There is no structured way in the staff area to create, store, and manage **empl
 3. **Frontend build:**  
    `docker compose -f docker-compose.yml -f docker-compose.dev.yml logs --tail=80 front` — no TS/Angular errors after changes.
 
-4. **Manual UI:** With stack up (`BASE_URL` e.g. `http://127.0.0.1:4202`), log in as **admin**: open **Contracts**, create contract for a waiter, upload a small PDF, download. Log in as that **waiter**: see only own row(s), download works; create/upload controls absent.
+4. **Staff SPA bootstrap:** In a browser, open `{BASE_URL}/login?tenant=1` (e.g. `http://127.0.0.1:4202`). DevTools console must **not** show **`Circular dependency`** / **NG0200** for `ApiService`. Login form (`input` for email/username) must render.
 
-5. **Smoke (optional):** `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:4202/` → `200`. (`test:landing-version` may fail if `.landing-page` selector/env differs; not specific to this feature.)
+5. **Automated nav smoke (optional but recommended):** From `front/` with stack up and demo credentials in env (see `docs/testing.md` / `test-landing-version.mjs`):  
+   `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version` — expect **exit 0**; script visits **`/contracts`** when logged in as tenant staff.
+
+6. **Manual UI:** With stack up (`BASE_URL` e.g. `http://127.0.0.1:4202`), log in as **admin**: open **Contracts**, create contract for a waiter, upload a small PDF, download. Log in as that **waiter**: see only own row(s), download works; create/upload controls absent.
+
+7. **Smoke (optional):** `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:4202/` → `200`.
 
 ### Pass/fail criteria
 
-- **Pass:** All steps in §2 succeed; RBAC matches tests; no regression in `pytest tests/test_staff_contracts.py`.
-- **Fail:** Migration errors, 500 on contract routes, wrong tenant or cross-user data leakage, or PDF served without auth.
+- **Pass:** Steps 1–4 succeed; RBAC matches tests; no regression in `pytest tests/test_staff_contracts.py`; optional steps 5–7 pass if run.
+- **Fail:** Migration errors, 500 on contract routes, wrong tenant or cross-user data leakage, PDF served without auth, or **NG0200** / empty login outlet on `/login`.
 
 ---
 
