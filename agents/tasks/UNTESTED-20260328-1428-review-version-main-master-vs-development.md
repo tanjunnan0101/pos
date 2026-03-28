@@ -69,3 +69,31 @@ curl: (7) Failed to connect to satisfecho.de port 443 after 53 ms: Couldn't conn
 $ cd front && LANDING_VERSION_ONLY=1 BASE_URL=https://satisfecho.de npm run test:landing-version
 Error: net::ERR_CONNECTION_REFUSED at https://satisfecho.de/
 ```
+
+## Coder follow-up (2026-03-28 UTC)
+
+- **Producto:** Sin cambios de merge ni despliegue desde este paso; el fallo del tester fue por **falta de salida HTTPS** al host de producción, no por regresión de código.
+- **`front/scripts/test-landing-version.mjs`:** Antes de lanzar Puppeteer, si `BASE_URL` **no** es localhost, se ejecuta una **sonda HTTP(S)** a `/` (timeout ~12s) con mensaje explícito si la conexión falla. Opcional: `LANDING_SMOKE_NO_REACHABILITY_PROBE=1` para omitir la sonda (casos avanzados).
+- **Re-test:** Ejecutar las comprobaciones desde un entorno con **egreso a `satisfecho.de:443`** (portátil operador, CI con red abierta, o `curl`/`node` sobre el servidor amvara9 hacia la URL pública o vía HAProxy local según proceda).
+
+---
+
+## Testing instructions (handoff to tester)
+
+1. **Precondición:** El host desde el que se ejecuta el test debe poder abrir **TCP 443** a `satisfecho.de`. Si `curl` falla con *connection refused* o timeout, el resultado **no** valida producción; cambiar de red o ejecutar desde el operador/servidor.
+
+2. **HTTP rápido:**  
+   `curl -sS -o /dev/null -w '%{http_code}\n' --connect-timeout 20 https://satisfecho.de/`  
+   `curl -sS -o /dev/null -w '%{http_code}\n' --connect-timeout 20 https://satisfecho.de/api/health`  
+   Esperado: **200** (sin **503** persistente en arranque).
+
+3. **Puppeteer (solo landing + versión, sin login):** desde **`front/`**:  
+   `LANDING_VERSION_ONLY=1 SKIP_LANDING_PACKAGE_VERSION_CHECK=1 BASE_URL=https://satisfecho.de npm run test:landing-version`  
+   (`SKIP_LANDING_PACKAGE_VERSION_CHECK` evita comparar el semver del pie con el `package.json` del checkout si el despliegue no coincide con la rama local.)  
+   Esperado: línea **`0. Reachability probe`** con **`OK`**, luego **`>>> RESULT: Landing page shows version.`** y código de salida **0**.
+
+4. **Tras desplegar el tip actual de `master`:** comprobar que el pie de la landing muestra versión/hash acordes al despliegue y repetir (2)–(3).
+
+5. **Pass/fail:** **PASS** solo si (2) devuelve 200 en ambas URLs y (3) termina en **0** con el mensaje de resultado. **FAIL** si no hay conectividad: documentar como *environment blocked*, no como fallo de producto, salvo evidencia contraria desde una red válida.
+
+6. **Opcional:** `LANDING_SMOKE_NO_REACHABILITY_PROBE=1` solo si se necesita forzar Puppeteer pese a un falso negativo de `fetch` en el runner (caso excepcional).

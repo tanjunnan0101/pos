@@ -15,6 +15,8 @@
  *   LANDING_VERSION_ONLY  Set to 1 or true to run only the landing/version check (no login/sidebar),
  *              even if `.env` defines DEMO_LOGIN_* / LOGIN_* (useful for production smoke when local
  *              demo credentials would 401 on the remote host).
+ *   LANDING_SMOKE_NO_REACHABILITY_PROBE  Set to 1 to skip the HTTP reachability check before Puppeteer
+ *              when BASE_URL is not localhost (default: probe so connection refused fails fast with a clear message).
  *
  * When LOGIN_EMAIL + LOGIN_PASSWORD or DEMO_LOGIN_EMAIL + DEMO_LOGIN_PASSWORD are set
  * (e.g. from repo root `.env`), after the landing check the script logs in at
@@ -81,6 +83,32 @@ function isLocalBaseUrl(baseUrl) {
     );
   } catch {
     return false;
+  }
+}
+
+/** Quick HTTP GET so sandbox / firewall issues surface before launching Chrome. */
+async function assertRemoteBaseUrlReachable(baseUrl) {
+  const url = new URL('/', baseUrl).href;
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 12000);
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      redirect: 'manual',
+      signal: ac.signal,
+    });
+    res.body?.cancel?.();
+    // Any TCP/TLS success with an HTTP status means the host is reachable for smoke purposes.
+  } catch (e) {
+    const msg = e?.name === 'AbortError' ? 'timeout (12s)' : e?.message || String(e);
+    console.error(
+      `Reachability probe failed for ${url}: ${msg}\n` +
+        'Hint: run this script from a host with outbound HTTPS to BASE_URL (e.g. operator laptop, CI with egress, or curl from the app server). ' +
+        'To skip this probe: LANDING_SMOKE_NO_REACHABILITY_PROBE=1'
+    );
+    process.exit(1);
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -202,6 +230,17 @@ async function main() {
     console.log('Login + sidebar: skip (set DEMO_LOGIN_EMAIL/DEMO_LOGIN_PASSWORD or LOGIN_* in .env)');
   }
   console.log('---');
+
+  const skipReachabilityProbe =
+    process.env.LANDING_SMOKE_NO_REACHABILITY_PROBE === '1' ||
+    process.env.LANDING_SMOKE_NO_REACHABILITY_PROBE === 'true';
+  if (!isLocalBaseUrl(baseUrl) && !skipReachabilityProbe) {
+    console.log('0. Reachability probe (remote BASE_URL)...');
+    await assertRemoteBaseUrlReachable(baseUrl);
+    console.log('   OK: Host responds over HTTP(S).');
+  } else if (!isLocalBaseUrl(baseUrl) && skipReachabilityProbe) {
+    console.log('0. Reachability probe: skipped (LANDING_SMOKE_NO_REACHABILITY_PROBE)');
+  }
 
   const browser = await puppeteer.launch({
     executablePath: CHROME_PATH,
