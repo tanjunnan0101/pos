@@ -40,3 +40,38 @@ The reporter notes many unmerged commits on `development` and asks to bump the v
 
 - Regenerated `commit-hash.ts` (version **2.0.64**, hash **7c920cd** at time of run).
 - `test:landing-version` extended with localhost package-version assertion; full smoke run passed against **4202**.
+
+---
+
+## Test report (tester, 2026-03-28)
+
+1. **Date/time (UTC) and log window:** 2026-03-28 ~09:54–09:56 UTC; HAProxy/front logs sampled for `GET /`, login, `/api/changelog` during Puppeteer runs.
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; **`BASE_URL=http://127.0.0.1:4202`**; branch **`development`** (synced); **`HEADLESS=1`** (default for scripts).
+
+3. **What was tested:** Package version **2.0.64** vs landing footer; `get-commit-hash.js` output; `test:landing-version`; optional `test:changelog`.
+
+4. **Results**
+   - **Step 1 — `package.json` version 2.0.64:** **PASS** — `grep '"version"' front/package.json` → `"version": "2.0.64"`.
+   - **Step 2 — `node front/scripts/get-commit-hash.js`:** **PASS** — wrote `version = '2.0.64'`, `commitHash = '0414761'` (short hash for current `HEAD`). File reverted with `git checkout -- front/src/environments/commit-hash.ts` after verification so the tester leaves no persistent **`front/`** edits.
+   - **Step 3 — `test:landing-version`:** **PASS** — exit **0**; stdout `Version element text: 2.0.64 0414761` (semver prefix matches package.json).
+   - **Step 4 — `test:changelog`:** **PASS** — exit **0**; `Changelog loaded; content length: 77452`; `>>> RESULT: Changelog (What's new) test passed.`
+   - **Step 5 (remote / SKIP check):** **N/A** — not required for pass criteria.
+
+5. **Overall:** **PASS**
+
+6. **Product owner feedback:** La versión mostrada en el pie de la landing coincide con **`package.json`** en localhost y el smoke Puppeteer (landing + navegación + changelog) termina en verde. Tras un bump conviene seguir ejecutando **`get-commit-hash.js`** para alinear hash en el footer con el commit actual.
+
+7. **URLs tested**
+   1. `http://127.0.0.1:4202/` (landing, footer version)
+   2. `http://127.0.0.1:4202/dashboard` y rutas del sidebar ejercidas por el script (ver salida del test)
+   3. Flujo “What’s new” / changelog vía test (sesión autenticada en la misma base URL)
+
+8. **Relevant log excerpts**
+   - **Puppeteer:** `Version element text: 2.0.64 0414761`; cierre `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.`
+   - **pos-haproxy (muestra):** `GET /?token=…` 101/200 durante landing; `GET /api/changelog HTTP/1.1` **200** (~09:55:26Z).
+   - **pos-front:** `Application bundle generation complete. … 2026-03-28T09:54:30.904Z` (build OK en ventana de prueba).
+
+**Loop protection:** N/A
+
+**GitHub (#70):** Si `gh issue comment` / etiquetas fallan por PAT, el closer o un humano pueden sincronizar el issue con este **PASS**.
