@@ -26,6 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Agent loop — Ollama log triage:** **`scripts/agent-ollama-log-triage.sh`** runs automatically when **`ollama list`** works and lists ≥1 model (unless **`AGENT_001_OLLAMA_LOG_TRIAGE=0`**), only for log-only **001** signals (no untracked issues). Default **`OLLAMA_MODEL=qwen2.5:1.5b`**. Documented in **`docs/agent-loop.md`**.
 
+- **Agent loop — run logging:** **`run_agent()`** in **`agents/pos-agent-loop.sh`** prints the **`cursor-agent`** prompt and message before each invocation to simplify orchestrator debugging.
+
 ### Fixed
 
 - **Public feedback tab title with browser locale (GitHub #67):** `FeedbackPublicComponent` sets `document.title` after first render (`afterNextRender`) and uses `translate.stream()` for the title string so Spanish (and other) auto-detected locales do not leave the default `index.html` title on first load.

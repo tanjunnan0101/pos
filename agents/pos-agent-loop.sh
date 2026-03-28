@@ -241,6 +241,9 @@ run_agent() {
   fi
   if eval "$cond" 2>/dev/null; then
     echo "-----> $desc $(date "+%Y-%m-%d %H:%M:%S") <----"
+    echo "starting cursor-agent with prompt: $prompt"
+    echo "msg: $msg"
+    echo "---"
     cursor-agent --yolo -p "$prompt" "$msg"
   else
     echo "----- $desc (skip: nothing to do)"
