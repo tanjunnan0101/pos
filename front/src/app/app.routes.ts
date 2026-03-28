@@ -53,7 +53,7 @@ export const routes: Routes = [
   { path: 'catalog', canActivate: [authGuard, uiModuleGuard('providers')], loadComponent: () => import('./catalog/catalog.component').then(m => m.CatalogComponent) },
 
   // Register `tables/canvas` before `tables` (prefix matching would otherwise match `/tables/canvas` as `/tables`).
-  { path: 'tables/canvas', canActivate: [authGuard, adminGuard, uiModuleGuard('tables')], loadComponent: () => import('./tables/tables-canvas.component').then(m => m.TablesCanvasComponent) },
+  { path: 'tables/canvas', canActivate: [authGuard, uiModuleGuard('tables'), tableAccessGuard], loadComponent: () => import('./tables/tables-canvas.component').then(m => m.TablesCanvasComponent) },
   { path: 'tables', canActivate: [authGuard, uiModuleGuard('tables'), tableAccessGuard], loadComponent: () => import('./tables/tables.component').then(m => m.TablesComponent) },
 
   // Staff orders (list and manage orders)

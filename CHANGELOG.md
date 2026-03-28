@@ -28,6 +28,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Tables floor plan for waiters (GitHub #65):** `/tables/canvas` used `adminGuard`, so waiters were redirected to the dashboard. The route now uses `tableAccessGuard` like `/tables`, and `PermissionService.ROUTE_ROLES['/tables/canvas']` includes waiter and receptionist. `test:tables-waiter-assignment` asserts floor-plan access when `WAITER_LOGIN_EMAIL` / `WAITER_LOGIN_PASSWORD` are set.
+
 - **Staff SPA — `ApiService` circular dependency (GitHub #99):** `PermissionService` no longer eagerly injects `ApiService`; it resolves `ApiService` via `Injector` so Angular does not report **NG0200** (`Circular dependency detected for _ApiService`) when the staff app boots and `HttpClient` runs interceptors.
 
 - **Migration `20260326133000` on existing `staff_contract_template_preset` (GitHub #112):** If the preset table already existed without `uq_staff_contract_template_preset_region_locale_key`, `CREATE TABLE IF NOT EXISTS` skipped DDL and the seeded `INSERT … ON CONFLICT (region_code, locale, template_key)` failed. Added an idempotent `DO` block that creates the unique constraint when missing. If `created_at` / `updated_at` are NOT NULL without server defaults, the seed insert received NULLs; added `ALTER COLUMN … SET DEFAULT NOW()` for those columns before the insert so production migrate can complete and the app tier can run against `tenant.country_code`.

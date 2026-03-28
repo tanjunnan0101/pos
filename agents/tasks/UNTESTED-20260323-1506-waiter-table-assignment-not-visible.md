@@ -22,6 +22,8 @@ Prior work was verified in archive `agents/tasks/done/2026/03/23/CLOSED-20260323
 - **Gap:** Tiles and Table list already used `canManageTableAssignments()` / read-only labels; **Floor plan** (`tables-canvas.component.ts`) still showed an assignment `<select>` fed by `getWaiters()` → empty for waiters (no `user:read`).
 - **Fix:** Same pattern as `tables.component.ts`: `PermissionService` + `canManageTableAssignments()`; load waiters only after auth when `table:write`; properties panel uses read-only block from `assigned_waiter_*` / `effective_waiter_*`; owners keep dropdown + inherited floor-default hint.
 
+- **Routing (coder, 2026-03-28):** `/tables/canvas` still used `adminGuard`, so waiters were sent to `/dashboard` before the canvas UI ran. Aligned with `/tables`: `app.routes.ts` uses `tableAccessGuard` after `uiModuleGuard('tables')`. `PermissionService.ROUTE_ROLES['/tables/canvas']` now lists `waiter` and `receptionist` like `/tables`. Extended `front/scripts/test-tables-waiter-assignment.mjs` with step 3 (floor plan URL + no `select.panel-select`, `.panel-waiter-readonly` after selecting a table).
+
 ---
 
 ## Testing instructions
@@ -73,3 +75,27 @@ Prior work was verified in archive `agents/tasks/done/2026/03/23/CLOSED-20260323
 
 - **Browser / Puppeteer (structured):** Owner canvas: `hasAssignSelect: true`, `selectOptions: 2`. Waiter canvas: final URL `http://127.0.0.1:4202/dashboard`. Waiter tables: `selectCount: 0`, `rowCount: 13`, `readonlyCount: 13`. Owner second floor: `hasAssignSelect: true`.
 - **pos-back (sample):** `GET /users/me HTTP/1.1" 200 OK`, `GET /floors HTTP/1.1" 200 OK`, `GET /tables/with-status` / `GET /tables HTTP/1.1" 200 OK` during the session (no 4xx on these paths in the sampled window).
+
+---
+
+## Testing instructions (handoff 2026-03-28 — use for verification)
+
+**What to verify**
+
+- Waiter (and receptionist) stays on `/tables/canvas` (no redirect to `/dashboard`).
+- With a table selected on the floor plan, assignment is read-only (`.panel-waiter-readonly`), not `select.panel-select`.
+
+**How to test**
+
+- Manual: log in as a `waiter` user → `/tables/canvas` → select a table → confirm read-only assignee UI, no dropdown.
+- Automated (requires waiter credentials):  
+  `BASE_URL=http://127.0.0.1:4202 WAITER_LOGIN_EMAIL=… WAITER_LOGIN_PASSWORD=… npm run test:tables-waiter-assignment --prefix front`  
+  (step 3 covers floor plan; exits 0 with skip message if `WAITER_*` unset).
+- Regression: `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front`.
+
+**Pass / fail**
+
+- **Pass:** Waiter URL remains `/tables/canvas`; no assignment `<select class="panel-select">` in the properties panel; optional Puppeteer script exit 0 when `WAITER_*` set.
+- **Fail:** Redirect to `/dashboard` from canvas, or waiter sees assignment dropdown on floor plan.
+
+**Coder smoke (2026-03-28):** `test:landing-version` exit 0 against `http://127.0.0.1:4202`; front container rebuild OK after route change.

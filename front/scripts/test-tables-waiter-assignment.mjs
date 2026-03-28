@@ -165,6 +165,46 @@ async function main() {
       `   OK: Table view — ${probe.rowCount} rows, ${probe.readonlyCount} read-only waiter cells, 0 assignment selects`
     );
 
+    console.log('3. Opening /tables/canvas (floor plan) as waiter...');
+    await page.goto(new URL('/tables/canvas', baseUrl).href, { waitUntil: 'networkidle2', timeout: 20000 });
+    await sleep(2000);
+    const afterCanvasNav = page.url();
+    if (!afterCanvasNav.includes('/tables/canvas')) {
+      console.log(`   FAIL: Waiter must reach floor plan; redirected to: ${afterCanvasNav}`);
+      await browser.close();
+      process.exit(1);
+    }
+    const firstGroup = await page.$('svg.canvas-svg g.table-group');
+    if (firstGroup) {
+      const box = await firstGroup.boundingBox();
+      if (box) {
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+        await sleep(800);
+      }
+    }
+    const canvasProbe = await page.evaluate(() => {
+      const panelSelect = document.querySelector('select.panel-select');
+      const readonly = document.querySelector('.panel-waiter-readonly');
+      return { hasAssignSelect: !!panelSelect, hasReadonly: !!readonly };
+    });
+    if (canvasProbe.hasAssignSelect) {
+      console.log('   FAIL: Waiter must not see assignment <select> on floor plan properties panel.');
+      await browser.close();
+      process.exit(1);
+    }
+    if (firstGroup && !canvasProbe.hasReadonly) {
+      console.log(
+        '   FAIL: After selecting a table, waiter should see .panel-waiter-readonly (no empty assign dropdown).'
+      );
+      await browser.close();
+      process.exit(1);
+    }
+    if (!firstGroup) {
+      console.log('   NOTE: No g.table-group on canvas (empty floor); URL access check only.');
+    } else {
+      console.log('   OK: Floor plan reachable; properties panel uses read-only waiter block (no assign <select>).');
+    }
+
     await browser.close();
     console.log('\n>>> RESULT: Waiter tables assignment visibility test passed.');
     process.exit(0);
