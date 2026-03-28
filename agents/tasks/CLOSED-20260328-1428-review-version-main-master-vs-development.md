@@ -97,3 +97,43 @@ Error: net::ERR_CONNECTION_REFUSED at https://satisfecho.de/
 5. **Pass/fail:** **PASS** solo si (2) devuelve 200 en ambas URLs y (3) termina en **0** con el mensaje de resultado. **FAIL** si no hay conectividad: documentar como *environment blocked*, no como fallo de producto, salvo evidencia contraria desde una red válida.
 
 6. **Opcional:** `LANDING_SMOKE_NO_REACHABILITY_PROBE=1` solo si se necesita forzar Puppeteer pese a un falso negativo de `fetch` en el runner (caso excepcional).
+
+## Test report (tester 003, segunda pasada, 2026-03-28)
+
+1. **Date/time (UTC)** and log window: **2026-03-28 14:36:47 UTC** (comandos **~14:36–14:37 UTC**).
+
+2. **Environment:** Host runner; **sin** Docker Compose para estas comprobaciones. **`BASE_URL`:** `https://satisfecho.de`. **Rama local:** `development` en **`9d22553`** (tras **`./scripts/git-sync-development.sh`**). No se revisaron logs de contenedores (smoke solo contra producción pública).
+
+3. **What was tested:** Instrucciones **(handoff)** puntos **2**, **3** y criterio **5** (PASS si 200+0); punto **1** (precondición de conectividad) satisfecho al completar curl y Puppeteer; punto **4** asumido parcialmente: el pie muestra hash **`00e806f`** (alineado con el estado descrito en el issue tras despliegue); ítem **6** no usado.
+
+4. **Results:**
+   - **(1) Precondición TCP 443 / conectividad:** **PASS** — Las peticiones HTTP y el script completaron sin *connection refused*.
+   - **(2) HTTP `GET /` y `GET /api/health` → 200:** **PASS** — `curl` devolvió **`200`** y **`200`** respectivamente (timeout 20s).
+   - **(3) Puppeteer `LANDING_VERSION_ONLY=1` + `SKIP_LANDING_PACKAGE_VERSION_CHECK=1`:** **PASS** — Sonda **`0. Reachability probe`** con **`OK`**, mensaje **`>>> RESULT: Landing page shows version.`**, salida **0**; texto de versión en pie: **`2.0.64 00e806f`**.
+   - **(4) Pie vs tip `master`:** **PASS** (evidencia indirecta) — Hash visible **`00e806f`** coincide con el tip de ramas remoto citado en la primera pasada del informe; sin comprobación adicional de GitHub Actions en este paso.
+   - **(5) Criterio global handoff:** **PASS** según definición del propio handoff.
+
+5. **Overall:** **PASS**.
+
+6. **Product owner feedback:** Producción **https://satisfecho.de** respondió **200** en la raíz y en **`/api/health`**, y el smoke Puppeteer (solo landing) terminó correctamente con versión/hash visibles en el pie. Esto confirma que, desde este entorno con egreso a Internet, el sitio está alcanzable y el flujo de smoke documentado es válido tras el despliegue.
+
+7. **URLs tested:**
+   1. `https://satisfecho.de/`
+   2. `https://satisfecho.de/api/health`
+   3. `https://satisfecho.de/` (carga vía Puppeteer en el script `test:landing-version`)
+
+8. **Relevant log excerpts (last section):**
+
+```text
+$ curl -sS -o /dev/null -w '%{http_code}\n' --connect-timeout 20 https://satisfecho.de/
+200
+$ curl -sS -o /dev/null -w '%{http_code}\n' --connect-timeout 20 https://satisfecho.de/api/health
+200
+
+$ cd front && LANDING_VERSION_ONLY=1 SKIP_LANDING_PACKAGE_VERSION_CHECK=1 BASE_URL=https://satisfecho.de npm run test:landing-version
+0. Reachability probe (remote BASE_URL)...
+   OK: Host responds over HTTP(S).
+1. Loading landing page (/)...
+   Version element text: 2.0.64 00e806f
+>>> RESULT: Landing page shows version.
+```
