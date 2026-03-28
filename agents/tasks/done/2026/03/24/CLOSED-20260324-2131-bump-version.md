@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** La tarea cerraba el ciclo sobre el issue de bump de versión (#70): alinear metadatos de release, `commit-hash` y smoke de landing sin promover `development` → `master` fuera de la política del repo.
+- **What was done:** El código quedó documentado en la tarea (versión **2.0.64**, changelog **2.0.64**, aserción localhost en `test:landing-version`, regeneración de `commit-hash.ts`); el tester verificó `package.json`, `get-commit-hash.js`, `test:landing-version` y `test:changelog` — todo **PASS**.
+- **What was tested:** Smoke Puppeteer en `http://127.0.0.1:4202`: pie de landing coincide con `front/package.json`; changelog carga correctamente.
+- **Why closed:** Criterios de prueba cumplidos (informe del tester: **Overall PASS**).
+- **Closed at (UTC):** 2026-03-28 09:56
+---
+
 # Bump Version
 
 ## GitHub
