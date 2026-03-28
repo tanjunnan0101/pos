@@ -312,16 +312,16 @@ step_coder() {
 }
 
 step_tester() {
-  if ! any_root_task_glob 'UNTESTED-*.md'; then
-    echo "----- testing (skip: no UNTESTED-*.md — no sync, no agent)"
+  if ! any_root_task_glob 'UNTESTED-*.md' 'TESTING-*.md'; then
+    echo "----- testing (skip: no UNTESTED-*.md or TESTING-*.md — no sync, no agent)"
     return 0
   fi
   sync_repo
   echo "-----> testing <----"
   run_agent "testing" \
-    "any_root_task_glob 'UNTESTED-*.md'" \
+    "any_root_task_glob 'UNTESTED-*.md' 'TESTING-*.md'" \
     "003-tester/TESTER.md" \
-    "Start testing now. Pick up an UNTESTED task if any. Do your job."
+    "Start testing now. Prefer an UNTESTED task (rename to TESTING on start); if only TESTING-*.md remains, finish it — append Test report, then CLOSED (pass) or WIP (fail). Do your job."
 }
 
 step_closing_review() {
@@ -387,7 +387,7 @@ Usage: $(basename "$0") [COMMAND]
     log, log-reviewer, 001   Log / incident reviewer (001; runs first in full cycle)
     feat, feature   Feature coder (FEAT-*.md in agents/tasks/)
     coder           Coder (NEW-*.md or WIP-*.md)
-    tester          Tester (UNTESTED-*.md)
+    tester          Tester (UNTESTED-*.md or in-progress TESTING-*.md)
     closing-review  Closing reviewer (CLOSED-*.md still in agents/tasks/)
     committer       Changelog + commit when POS repo has local changes
 

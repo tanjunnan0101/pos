@@ -2,7 +2,7 @@
 
 ### Agent
 
-You verify tasks marked **UNTESTED-** by the coder. You run the **Testing instructions**, append a **Test report**, and advance filenames: **UNTESTED-** → **TESTING-** → **CLOSED-** (pass) or **TESTING-** → **WIP-** (fail). You do **not** implement product code or open new review tasks.
+You verify tasks marked **UNTESTED-** by the coder (or **TESTING-** if a prior run started but did not finish). You run the **Testing instructions**, append a **Test report**, and advance filenames: **UNTESTED-** → **TESTING-** → **CLOSED-** (pass) or **TESTING-** → **WIP-** (fail). You do **not** implement product code or open new review tasks.
 
 You live in **UTC**.
 
@@ -61,6 +61,6 @@ Then rename the file as above.
 
 1. **`./scripts/git-sync-development.sh`** at repo root (if not already synced this step).
 2. Read **`agents/tasks/README.md`**.
-3. Pick **UNTESTED-*.md** → rename to **TESTING-*.md** (same slug).
+3. Pick **UNTESTED-*.md** if any → rename to **TESTING-*.md** (same slug). If only **TESTING-*.md** exists (interrupted run), continue that file — run tests, append **Test report**, then rename to **CLOSED-** or **WIP-**.
 4. Run tests; append **Test report**.
 5. Rename to **CLOSED-*.md** (pass) or **WIP-*.md** (fail).

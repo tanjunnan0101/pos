@@ -113,7 +113,7 @@ Same idea as **mac-stats-reviewer** `agents/run.sh`, but named for clarity: one 
 | **`./agents/pos-agent-loop.sh`** | Full cycle every **`AGENT_LOOP_SLEEP_MINUTES`** (default **5**); requires **`cursor-agent`** on `PATH`. |
 | **`./agents/pos-agent-loop.sh log`** (or **`log-reviewer`**, **`001`**) | Run **001** log / incident reviewer **only if** the shell preflight finds work: open GitHub issues not yet linked from a root **`agents/tasks/*.md`** (`#NN` / `issues/NN`), or Docker log lines matching incident heuristics. Otherwise **001** skips **`cursor-agent`** (saves tokens). Digest: **`$AGENT_LOOP_TMP/001-latest-context.txt`** (default **`$TMPDIR/pos-agent-loop/`**). Override: **`AGENT_LOG_REVIEWER_ALWAYS=1`** or **`AGENT_001_SKIP_PREFLIGHT=1`**. |
 | **`./agents/pos-agent-loop.sh coder`** | Run coder step if **`NEW-*.md`** or **`WIP-*.md`** exists (and prompt file present). Prefer finishing **NEW** first; **WIP** continues in-progress work. |
-| **`./agents/pos-agent-loop.sh tester`** | Run tester if **`UNTESTED-*.md`** exists. |
+| **`./agents/pos-agent-loop.sh tester`** | Run tester if **`UNTESTED-*.md`** or in-progress **`TESTING-*.md`** exists (so interrupted runs are not stuck). |
 | **`./agents/pos-agent-loop.sh feat`** | Run feature coder if **`FEAT-*.md`** exists. |
 | **`./agents/pos-agent-loop.sh closing-review`** | Run closer if **`CLOSED-*.md`** still in **`agents/tasks/`**. |
 | **`./agents/pos-agent-loop.sh committer`** | Run committer if POS repo has unstaged/staged changes. |
@@ -121,7 +121,7 @@ Same idea as **mac-stats-reviewer** `agents/run.sh`, but named for clarity: one 
 
 **Git:** **`scripts/git-sync-development.sh`** runs only when a step actually has work (unless **`AGENT_GIT_SYNC=0`**): **001** syncs only when its preflight gate opens; **002–004 / 006–007** sync only when their queue (or, for **007**, uncommitted changes) is non-empty. See **Sync before edits (multi-agent)** above.
 
-**Token-saving gates:** **002 / 003 / 004 / 006 / 007** skip **`cursor-agent`** and **skip git sync** when there is no matching task file at **`agents/tasks/`** root or (committer) no unstaged/staged diff. **006** runs at most five times per cycle and **stops the FEAT batch early** when no **`FEAT-*.md`** remains. **001** adds a **preflight digest** (issues + log heuristics) and only then invokes the agent.
+**Token-saving gates:** **002 / 003 / 004 / 006 / 007** skip **`cursor-agent`** and **skip git sync** when there is no matching task file at **`agents/tasks/`** root or (committer) no unstaged/staged diff. For **003**, “matching” means **`UNTESTED-*.md`** or **`TESTING-*.md`** (unfinished test runs stay in the queue). **006** runs at most five times per cycle and **stops the FEAT batch early** when no **`FEAT-*.md`** remains. **001** adds a **preflight digest** (issues + log heuristics) and only then invokes the agent.
 
 **Further token / cost ideas (not all implemented):**
 
