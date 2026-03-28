@@ -160,6 +160,31 @@ should_run_001_cursor_agent() {
   return 1
 }
 
+# If only Docker heuristics fired (no untracked issues), optional local Ollama may clear G001_LOG_SIGNALS.
+maybe_ollama_downgrade_log_signals() {
+  local ctx="$1"
+  [[ "${AGENT_001_OLLAMA_LOG_TRIAGE:-0}" == "1" ]] || return 0
+  [[ "$G001_LOG_SIGNALS" == "1" ]] || return 0
+  [[ "${G001_UNTRACKED_ISSUES:-0}" -eq 0 ]] || return 0
+  local triage_script="${REPO_ROOT}/scripts/agent-ollama-log-triage.sh"
+  [[ -f "$triage_script" ]] || return 0
+  set +e
+  bash "$triage_script" "$ctx"
+  local trc=$?
+  set -e
+  if ((trc == 1)); then
+    G001_LOG_SIGNALS=0
+    echo "----- 001 ollama log triage: SKIP (log heuristics downgraded by local model)"
+    {
+      echo ""
+      echo "=== Ollama log triage (${OLLAMA_MODEL:-qwen2.5:1.5b}) ==="
+      echo "SKIP — Docker incident flag cleared (local triage)."
+    } >>"$ctx"
+  elif ((trc == 2)); then
+    echo "----- 001 ollama log triage: error or empty output — keeping Docker heuristics"
+  fi
+}
+
 # Integrate latest origin/development before any step that may edit the repo.
 sync_repo() {
   if [[ "${AGENT_GIT_SYNC:-1}" == "0" ]]; then
@@ -202,6 +227,7 @@ step_log_reviewer() {
   mkdir -p "$AGENT_LOOP_TMP"
   local ctx="${AGENT_LOOP_TMP}/001-latest-context.txt"
   prepare_001_preflight_context "$ctx"
+  maybe_ollama_downgrade_log_signals "$ctx"
   echo "----- 001 preflight digest: $ctx"
   if ! have_cursor_agent; then
     echo "----- log reviewer (001) (skip: cursor-agent not on PATH)"
@@ -210,6 +236,11 @@ step_log_reviewer() {
   if should_run_001_cursor_agent; then
     sync_repo
     prepare_001_preflight_context "$ctx"
+    maybe_ollama_downgrade_log_signals "$ctx"
+    if ! should_run_001_cursor_agent; then
+      echo "----- log reviewer (001) (skip after sync+preflight: gate closed — e.g. ollama downgraded logs only)"
+      return 0
+    fi
     local msg
     msg="Run 001: Read the preflight digest first (absolute path): $ctx
 Then follow 001-log-reviewer/LOG-REVIEWER-PROMPT.md — (A) GitHub → up to 3 × FEAT-*.md (dedupe as documented). (B) Docker logs → NEW-*.md only for real standing incidents (digest is heuristic; you may run docker logs yourself). gh comment/label. Do your job."
@@ -315,6 +346,7 @@ Environment:
   AGENT_LOG_REVIEWER_ALWAYS  If 1, always invoke 001 cursor-agent (skip preflight gate).
   AGENT_001_SKIP_PREFLIGHT   If 1, always invoke 001 (legacy); digest still written when built.
   AGENT_001_RUN_WHEN_GH_UNKNOWN  If 1, run 001 when gh failed/missing and digest otherwise empty.
+  AGENT_001_OLLAMA_LOG_TRIAGE  If 1 and only Docker heuristics would trigger 001 (no untracked issues), run scripts/agent-ollama-log-triage.sh (local Ollama) to possibly SKIP noise. Env OLLAMA_MODEL (default qwen2.5:1.5b).
 
 Docker / app stack: start separately from repo root with ./run.sh -dev
 

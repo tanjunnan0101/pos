@@ -123,6 +123,17 @@ Same idea as **mac-stats-reviewer** `agents/run.sh`, but named for clarity: one 
 
 **Token-saving gates:** **002 / 003 / 004 / 007** already skip **`cursor-agent`** when there is no matching task file or (committer) no git diff. **006** runs at most five times per cycle but **stops the FEAT batch early** when no **`FEAT-*.md`** remains (avoids redundant syncs). **001** adds a **preflight digest** (issues + log heuristics) and only then invokes the agent.
 
+**Further token / cost ideas (not all implemented):**
+
+- **Raise `AGENT_LOOP_SLEEP_MINUTES`** when the queue is usually empty — fewer full cycles.
+- **`AGENT_GIT_SYNC=0`** on a laptop loop — saves network; use when you know nobody else is pushing.
+- **Committer:** keeping **`cursor-agent`** for **`CHANGELOG.md` / version** judgment is intentional; a pure shell rule (“commit if only `agents/tasks` changed”) would save tokens but risks bad changelog hygiene.
+- **Ollama (local):** **`cursor-agent`** is still required for steps that edit **`back/`**, **`front/`**, and run tools inside Cursor. Local models cannot replace that without a separate “apply patch + run tests” runner. What *does* help is **cheap triage** so **`cursor-agent`** runs less often for **001** when only noisy log heuristics fired:
+  - Set **`AGENT_001_OLLAMA_LOG_TRIAGE=1`** and ensure **`ollama`** is running.
+  - Script: **`scripts/agent-ollama-log-triage.sh`** (reads the digest; **`OLLAMA_MODEL`** defaults to **`qwen2.5:1.5b`** — fast/small). It only runs when **Docker heuristics** would trigger **001** and **there are zero untracked GitHub issues** (issues path unchanged — no missed **FEAT** from local LLM).
+  - **Model picks (examples from `ollama list`):** **`qwen2.5:1.5b`**, **`nemotron-3-nano:4b`**, **`huihui_ai/granite3.2-abliterated:2b`** for speed; **`qwen3.5:4b`** / **`gemma3:latest`** if you want a bit more judgment; **`qwen2.5-coder:latest`** only if you later add code-shaped local steps (heavier).
+- **Possible future:** local model drafts **closing summaries** (**004**) or **commit messages** as text-only, then a thin shell step writes the file — still needs review for quality and safety.
+
 **Docker / stack:** still start with repo-root **`./run.sh`** or **`./run.sh -dev`** — this script does **not** replace the POS application runner.
 
 **Prompts:** steps **skip** if the corresponding markdown under **`agents/001-log-reviewer/`**, **`agents/002-coder/`**, **`003-tester/`**, etc. is missing. Steps also skip if **`cursor-agent`** is missing (single commands); the **infinite loop** exits immediately if **`cursor-agent`** is not installed.
