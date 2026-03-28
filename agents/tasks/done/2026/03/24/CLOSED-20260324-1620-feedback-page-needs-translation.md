@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Issue #67 (public feedback page fully translated, no raw `FEEDBACK.*` keys, correct `document.title`) was driven to green verification after a production-only title race on first-load ES auto-detect.
+- **What was done:** Coder updated `FeedbackPublicComponent` to set the tab title after first paint via `afterNextRender` and to subscribe with `translate.stream` so the title tracks locale changes; tester re-ran the Puppeteer i18n script on local HAProxy and on satisfecho.de.
+- **What was tested:** `node front/scripts/test-feedback-public-i18n.mjs` with `BASE_URL=http://127.0.0.1:4202` and `BASE_URL=https://satisfecho.de` — both exit 0, seven `>>> RESULT:` lines, including ES first-load title containing `Cómo` on production.
+- **Why closed:** Tester overall **PASS** on 2026-03-28 (local + production); acceptance criteria met; handoff notes GitHub comment on #67 posted.
+- **Closed at (UTC):** 2026-03-28 10:04
+---
+
 # Feedback page needs translation
 
 ## GitHub
