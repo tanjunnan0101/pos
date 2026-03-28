@@ -14,6 +14,11 @@ Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…` on productio
 - Spot-check **production** (`https://satisfecho.de/feedback/…` or tenant under test) for the same acceptance bar; fix any real gaps (missing keys, title flicker, wrong locale) rather than re-litigating already-green dev-only paths.
 - If behaviour matches acceptance, post a short verification summary on **#67** (or hand to closer with `issues:write`) and support closing the issue when product accepts.
 
+## Implementation (coder, 2026-03-28)
+
+- **`FeedbackPublicComponent`:** `afterNextRender(() => this.updateDocumentTitle())` so the browser tab title is set after the first paint once ngx-translate has applied the browser locale (fixes production-style race where `onLangChange` could fire before the component subscribed to `merge`).
+- Replaced one-shot **`translate.get(key)`** with **`translate.stream(key)`** for the title subscription so the initial `defer(() => get(key))` path stays aligned with later language changes; **`tryApply`** mirrors the previous `instant()` guards (no raw `FEEDBACK.*` in the tab title).
+
 ## Testing instructions
 
 **What to verify**
@@ -77,3 +82,11 @@ Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…` on productio
 **001 log reviewer (2026-03-24T18:02:51Z):** Same dedupe — **0× new FEAT** for **#67** (`WIP` links **https://github.com/satisfecho/pos/issues/67**). **`gh issue comment 67`** / **`gh issue edit 67 --add-label agent-planned`** — **failed** (**`addComment`**, **`addLabelsToLabelable`**); PAT needs **`issues:write`**. Docker **`--since 2026-03-24T17:56:16Z`**: **pos-front** / **pos-haproxy** / **pos-postgres** **0** new lines; **pos-back** ~193 lines, all **`GET /docs` 200**; no **error**/**exception**/**traceback**/**5xx** → **0× new NEW**. Counts: **0 FEAT**, **0 NEW**.
 
 **001 log reviewer (2026-03-24T18:10:00Z):** Same dedupe — **0× new FEAT** for **#67**. **`gh issue comment 67`** — **`addComment`** PAT failure; **`--add-label agent:planned`** — label **not found**; **`agent-planned`** — **`addLabelsToLabelable`** PAT failure. Docker **`--since 2026-03-24T18:02:51Z`**: **pos-front** / **pos-haproxy** / **pos-postgres** empty; **pos-back** **`GET /docs` 200** only; `grep` — no incidents → **0× new NEW**. Counts: **0 FEAT**, **0 NEW**.
+
+---
+
+## Handoff — testing instructions (coder, 2026-03-28)
+
+- **What to verify:** `/feedback/{tenant}` with fresh profile and Spanish browser language: visible copy and **`document.title`** contain no raw `FEEDBACK.*`; title includes **`Cómo`** (ES) on first load (navigator stub scenario).
+- **How to test:** With stack on HAProxy (e.g. **4202**): `BASE_URL=http://127.0.0.1:4202 node front/scripts/test-feedback-public-i18n.mjs`. After deploy: `BASE_URL=https://satisfecho.de node front/scripts/test-feedback-public-i18n.mjs`. Compose: `docker-compose.yml` + `docker-compose.dev.yml` locally.
+- **Pass / fail:** Exit code **0**; all `>>> RESULT:` lines printed; no assertion errors (see script for #67).

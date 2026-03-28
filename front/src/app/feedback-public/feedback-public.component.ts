@@ -1,4 +1,13 @@
-import { Component, inject, signal, OnInit, OnDestroy, computed, DestroyRef } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  OnInit,
+  OnDestroy,
+  computed,
+  DestroyRef,
+  afterNextRender,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DomSanitizer, SafeResourceUrl, SafeStyle, Title } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
@@ -26,6 +35,11 @@ export class FeedbackPublicComponent implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   /** Avoids document title showing raw FEEDBACK.* before translations load (issue #67). */
   private titleI18nSub?: Subscription;
+
+  constructor() {
+    // First browser paint can happen before ngx-translate has applied browser language; re-sync tab title (#67).
+    afterNextRender(() => this.updateDocumentTitle());
+  }
 
   tenantId = signal(0);
   tenant = signal<TenantSummary | null>(null);
@@ -118,23 +132,20 @@ export class FeedbackPublicComponent implements OnInit, OnDestroy {
       }
     };
 
-    // No takeUntilDestroyed on this inner subscription: production-static builds (satisfecho.de)
-    // must still update document.title (#67). Sync instant() + get(); merge() refreshes on lang/files.
-    const instant = this.translate.instant(key);
-    if (
-      typeof instant === 'string' &&
-      instant.length > 0 &&
-      instant !== key &&
-      !instant.startsWith('FEEDBACK.')
-    ) {
-      applyPart(instant);
-    }
-
-    this.titleI18nSub = this.translate.get(key).subscribe((part) => {
-      if (typeof part === 'string') {
+    const tryApply = (part: unknown) => {
+      if (
+        typeof part === 'string' &&
+        part.length > 0 &&
+        part !== key &&
+        !part.startsWith('FEEDBACK.')
+      ) {
         applyPart(part);
       }
-    });
+    };
+
+    // stream() = initial translation + later language switches; avoids one-shot get() missing a prior onLangChange (#67).
+    tryApply(this.translate.instant(key));
+    this.titleI18nSub = this.translate.stream(key).subscribe((part) => tryApply(part));
   }
 
   ngOnDestroy(): void {

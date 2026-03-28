@@ -28,6 +28,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Public feedback tab title with browser locale (GitHub #67):** `FeedbackPublicComponent` sets `document.title` after first render (`afterNextRender`) and uses `translate.stream()` for the title string so Spanish (and other) auto-detected locales do not leave the default `index.html` title on first load.
+
 - **Tables floor plan for waiters (GitHub #65):** `/tables/canvas` used `adminGuard`, so waiters were redirected to the dashboard. The route now uses `tableAccessGuard` like `/tables`, and `PermissionService.ROUTE_ROLES['/tables/canvas']` includes waiter and receptionist. `test:tables-waiter-assignment` asserts floor-plan access when `WAITER_LOGIN_EMAIL` / `WAITER_LOGIN_PASSWORD` are set.
 
 - **Staff SPA — `ApiService` circular dependency (GitHub #99):** `PermissionService` no longer eagerly injects `ApiService`; it resolves `ApiService` via `Injector` so Angular does not report **NG0200** (`Circular dependency detected for _ApiService`) when the staff app boots and `HttpClient` runs interceptors.
