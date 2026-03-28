@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Se implementó el módulo de contratos de personal (empleado/freelancer) vinculado a la issue #99; la primera ronda de QA falló por dependencia circular de `ApiService` en el bootstrap del SPA staff, y se re-verificó tras la corrección en `PermissionService`.
+- **What was done:** Backend con `staff_contract`, rutas `/staff-contracts`, almacenamiento de PDFs autenticado, tests RBAC; frontend con `/contracts`, i18n y navegación staff; corrección de inyección perezosa de `ApiService` para eliminar NG0200.
+- **What was tested:** `pytest tests/test_staff_contracts.py` — 4 passed; build Angular en Docker sin errores; login y `test:landing-version` con visita a `/contracts` en PASS; flujo manual completo camarero en navegador quedó parcial (RBAC de camarero cubierto por API).
+- **Why closed:** Criterios obligatorios de la tarea cumplidos en la re-verificación del 2026-03-28 UTC; el fallo previo de bootstrap quedó resuelto y documentado en el propio archivo.
+- **Closed at (UTC):** 2026-03-28 09:28
+---
+
 # Employee & Freelancer Contract Management Panel for Restaurant Staff
 
 ## GitHub
