@@ -456,8 +456,15 @@ if ! have_cursor_agent; then
   exit 1
 fi
 
+# Local wall-clock when the current sleep ends (GNU date first, then BSD/macOS).
+next_cycle_eta_local() {
+  local end_epoch=$(( $(date +%s) + sleepseconds ))
+  local fmt='+%Y-%m-%d %H:%M:%S %z'
+  date -d "@$end_epoch" "$fmt" 2>/dev/null || date -r "$end_epoch" "$fmt" 2>/dev/null || echo "epoch ${end_epoch}"
+}
+
 while true; do
   run_full_cycle
-  echo "----- sleeping ${sleepminutes}m (${sleepseconds}s)"
+  echo "----- sleeping ${sleepminutes}m (${sleepseconds}s); next cycle ~ $(next_cycle_eta_local)"
   sleep "$sleepseconds"
 done
