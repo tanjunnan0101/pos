@@ -32,7 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Agent loop:** Main **coder** step runs when **`WIP-*.md`** exists as well as **`NEW-*.md`**, so tasks are not stuck after **NEW → WIP** (`agents/pos-agent-loop.sh`, `agents/002-coder/CODER.md`, `docs/agent-loop.md`).
 
-- **Agent loop — 001 GitHub:** When **`gh issue list` fails**, **001** preflight uses **`gh api repos/…/issues`** (open issues, PRs excluded) to build the digest and **`G001_UNTRACKED_ISSUES`**, so the gate can still open for new issues (`agents/pos-agent-loop.sh`, `docs/agent-loop.md`).
+- **Agent loop — 001 GitHub:** When **`gh issue list` fails**, **001** preflight uses **`gh api repos/…/issues`** (open issues, PRs excluded) to build the digest and **`G001_UNTRACKED_ISSUES`**, so the gate can still open for new issues (`agents/pos-agent-loop.sh`, `docs/agent-loop.md`). On **401 / bad credentials**, the loop prints a **stderr banner** and records **`gh` stderr** in the digest (`G001_GH_AUTH_FAILED` in the preflight summary).
 
 - **Agent loop — tester:** **`pos-agent-loop.sh tester`** treats in-progress **`TESTING-*.md`** like **`UNTESTED-*.md`** for gating and **`cursor-agent`**, so tasks renamed to **TESTING-** but not yet **CLOSED-**/ **WIP-** are not skipped by the loop (`agents/pos-agent-loop.sh`, `agents/003-tester/TESTER.md`, `docs/agent-loop.md`).
 

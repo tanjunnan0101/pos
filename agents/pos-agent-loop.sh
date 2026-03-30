@@ -53,14 +53,23 @@ last_review_iso_utc() {
   head -1 "$LAST_REVIEW_FILE" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z' | head -1
 }
 
+# True if gh stderr file looks like auth failure (401, bad token, not logged in).
+gh_stderr_looks_like_auth_failure() {
+  local f="$1"
+  [[ -f "$f" ]] || return 1
+  grep -qiE '401|Bad credentials|bad credentials|not authenticated|Authentication failed|HTTP 401|must be authenticated|not logged in|gh auth login|could not authenticate|invalid.*token' "$f" 2>/dev/null
+}
+
 # Write GitHub + Docker log digest for 001; set G001_* variables for gating.
 # G001_GH_OK: 1 if gh produced an open-issues list (issue list or api fallback); 0 if gh missing or both failed.
+# G001_GH_AUTH_FAILED: 1 if gh stderr indicated 401 / bad credentials (so the loop can warn loudly).
 # G001_UNTRACKED_ISSUES: count of open issues with no #NN / issues/NN link in root tasks (0 if gh failed).
 # G001_LOG_SIGNALS: 1 if heuristic incident lines found in recent container logs.
 prepare_001_preflight_context() {
   local ctx="$1"
   mkdir -p "$(dirname "$ctx")"
   G001_GH_OK=0
+  G001_GH_AUTH_FAILED=0
   G001_UNTRACKED_ISSUES=0
   G001_LOG_SIGNALS=0
   local utc
@@ -72,8 +81,14 @@ prepare_001_preflight_context() {
     echo "=== GitHub (open issues, limit 40) ==="
   } >"$ctx"
 
+  local gh_list_err gh_api_err
+  gh_list_err="$(dirname "$ctx")/gh-issue-list-stderr.$$"
+  gh_api_err="$(dirname "$ctx")/gh-api-stderr.$$"
+  rm -f "$gh_list_err" "$gh_api_err"
+
   if command -v gh >/dev/null 2>&1; then
-    if gh issue list --repo "$GH_REPO" --state open -L 40 --json number,title,labels,url,updatedAt >>"$ctx" 2>/dev/null; then
+    if gh issue list --repo "$GH_REPO" --state open -L 40 --json number,title,labels,url,updatedAt >>"$ctx" 2>"$gh_list_err"; then
+      rm -f "$gh_list_err"
       G001_GH_OK=1
       local num untracked=0
       while IFS= read -r num; do
@@ -85,14 +100,24 @@ prepare_001_preflight_context() {
       done < <(gh issue list --repo "$GH_REPO" --state open -L 40 --json number -q '.[].number' 2>/dev/null || true)
       G001_UNTRACKED_ISSUES=$untracked
     else
-      echo "(gh issue list failed — auth/network/CLI bug — trying REST fallback)" >>"$ctx"
+      {
+        echo "(gh issue list failed — see stderr below — trying REST fallback)"
+        echo "=== gh issue list stderr ==="
+        cat "$gh_list_err" 2>/dev/null || true
+      } >>"$ctx"
+      if gh_stderr_looks_like_auth_failure "$gh_list_err"; then
+        G001_GH_AUTH_FAILED=1
+      fi
+      rm -f "$gh_list_err"
       {
         echo ""
         echo "=== gh api fallback: repos/${GH_REPO}/issues?state=open&per_page=40 (no PRs) ==="
       } >>"$ctx"
       if gh api "repos/${GH_REPO}/issues?state=open&per_page=40" \
-        --jq '.[] | select(.pull_request == null) | {number,title,labels:[.labels[].name],updatedAt,url}' >>"$ctx" 2>/dev/null; then
+        --jq '.[] | select(.pull_request == null) | {number,title,labels:[.labels[].name],updatedAt,url}' >>"$ctx" 2>"$gh_api_err"; then
+        rm -f "$gh_api_err"
         G001_GH_OK=1
+        G001_GH_AUTH_FAILED=0
         local num2 untracked2=0
         while IFS= read -r num2; do
           [[ -z "${num2:-}" ]] && continue
@@ -103,7 +128,16 @@ prepare_001_preflight_context() {
         done < <(gh api "repos/${GH_REPO}/issues?state=open&per_page=40" --jq '.[] | select(.pull_request == null) | .number' 2>/dev/null || true)
         G001_UNTRACKED_ISSUES=$untracked2
       else
-        echo "(gh api fallback also failed — fix gh auth: gh auth login or GH_TOKEN with repo scope)" >>"$ctx"
+        {
+          echo "(gh api fallback also failed — stderr:"
+          cat "$gh_api_err" 2>/dev/null || true
+          echo ")"
+          echo "Fix: gh auth login, or GH_TOKEN with repo scope for private repos."
+        } >>"$ctx"
+        if gh_stderr_looks_like_auth_failure "$gh_api_err"; then
+          G001_GH_AUTH_FAILED=1
+        fi
+        rm -f "$gh_api_err"
       fi
     fi
   else
@@ -155,7 +189,7 @@ prepare_001_preflight_context() {
   {
     echo ""
     echo "=== Preflight summary ==="
-    echo "G001_GH_OK=$G001_GH_OK G001_UNTRACKED_ISSUES=$G001_UNTRACKED_ISSUES G001_LOG_SIGNALS=$G001_LOG_SIGNALS"
+    echo "G001_GH_OK=$G001_GH_OK G001_GH_AUTH_FAILED=$G001_GH_AUTH_FAILED G001_UNTRACKED_ISSUES=$G001_UNTRACKED_ISSUES G001_LOG_SIGNALS=$G001_LOG_SIGNALS"
   } >>"$ctx"
 }
 
@@ -272,6 +306,18 @@ run_agent() {
   echo ""
 }
 
+warn_001_github_auth_if_needed() {
+  local d="${AGENT_LOOP_TMP:-${TMPDIR:-/tmp}/pos-agent-loop}"
+  if [[ "${G001_GH_AUTH_FAILED:-0}" == "1" ]]; then
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" >&2
+    echo "!!! 001 / GitHub: NOT AUTHENTICATED (401 / bad credentials or expired token). !!!" >&2
+    echo "!!! Open issues are NOT visible to the preflight — no FEAT queue from GitHub. !!!" >&2
+    echo "!!! Fix: gh auth login   or   export GH_TOKEN=<token with repo scope>          !!!" >&2
+    echo "!!! Digest (gh stderr is in file): $d/001-latest-context.txt                    !!!" >&2
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" >&2
+  fi
+}
+
 step_log_reviewer() {
   echo "-----> log reviewer (001) <----"
   mkdir -p "$AGENT_LOOP_TMP"
@@ -279,6 +325,7 @@ step_log_reviewer() {
   prepare_001_preflight_context "$ctx"
   maybe_ollama_downgrade_log_signals "$ctx"
   echo "----- 001 preflight digest: $ctx"
+  warn_001_github_auth_if_needed
   if ! have_cursor_agent; then
     echo "----- log reviewer (001) (skip: cursor-agent not on PATH)"
     return 0
@@ -287,6 +334,7 @@ step_log_reviewer() {
     sync_repo
     prepare_001_preflight_context "$ctx"
     maybe_ollama_downgrade_log_signals "$ctx"
+    warn_001_github_auth_if_needed
     if ! should_run_001_cursor_agent; then
       echo "----- log reviewer (001) (skip after sync+preflight: gate closed — e.g. ollama downgraded logs only)"
       return 0

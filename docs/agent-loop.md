@@ -112,14 +112,16 @@ Same idea as **mac-stats-reviewer** `agents/run.sh`, but named for clarity: one 
 |------------|-----------|
 | **`./agents/pos-agent-loop.sh`** | Full cycle every **`AGENT_LOOP_SLEEP_MINUTES`** (default **5**); requires **`cursor-agent`** on `PATH`. |
 | **`./agents/pos-agent-loop.sh log`** (or **`log-reviewer`**, **`001`**) | Run **001** log / incident reviewer **only if** the shell preflight finds work: open GitHub issues not yet linked from a root **`agents/tasks/*.md`** (`#NN` / `issues/NN`), or Docker log lines matching incident heuristics. Otherwise **001** skips **`cursor-agent`** (saves tokens). Digest: **`$AGENT_LOOP_TMP/001-latest-context.txt`** (default **`$TMPDIR/pos-agent-loop/`**). Override: **`AGENT_LOG_REVIEWER_ALWAYS=1`** or **`AGENT_001_SKIP_PREFLIGHT=1`**. |
-
-**001 — if `gh issue list` fails:** preflight retries with **`gh api repos/<owner>/<repo>/issues?state=open&per_page=40`** (issues only, PRs excluded) so **`G001_UNTRACKED_ISSUES`** and the digest can still see new work when the REST call succeeds.
 | **`./agents/pos-agent-loop.sh coder`** | Run coder step if **`NEW-*.md`** or **`WIP-*.md`** exists (and prompt file present). Prefer finishing **NEW** first; **WIP** continues in-progress work. |
 | **`./agents/pos-agent-loop.sh tester`** | Run tester if **`UNTESTED-*.md`** or in-progress **`TESTING-*.md`** exists (so interrupted runs are not stuck). |
 | **`./agents/pos-agent-loop.sh feat`** | Run feature coder if **`FEAT-*.md`** exists. |
 | **`./agents/pos-agent-loop.sh closing-review`** | Run closer if **`CLOSED-*.md`** still in **`agents/tasks/`**. |
 | **`./agents/pos-agent-loop.sh committer`** | Run committer if POS repo has unstaged/staged changes. |
 | **`./agents/pos-agent-loop.sh help`** | Usage. |
+
+**001 — if `gh issue list` fails:** preflight retries with **`gh api repos/<owner>/<repo>/issues?state=open&per_page=40`** (issues only, PRs excluded) so **`G001_UNTRACKED_ISSUES`** and the digest can still see new work when the REST call succeeds.
+
+**001 — GitHub not authenticated:** If **`gh`** stderr indicates **401** / bad credentials, **`pos-agent-loop.sh`** prints a **stderr banner** on the console and sets **`G001_GH_AUTH_FAILED=1`** in the digest summary; **`gh` stderr** is appended under **`=== gh issue list stderr ===`** / **`gh api`** sections.
 
 **Git:** **`scripts/git-sync-development.sh`** runs only when a step actually has work (unless **`AGENT_GIT_SYNC=0`**): **001** syncs only when its preflight gate opens; **002–004 / 006–007** sync only when their queue (or, for **007**, uncommitted changes) is non-empty. See **Sync before edits (multi-agent)** above.
 
