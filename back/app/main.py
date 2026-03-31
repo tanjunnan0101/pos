@@ -5803,7 +5803,13 @@ def list_tables_with_status(
     current_user: Annotated[models.User, Depends(require_permission(Permission.TABLE_READ))],
     session: Session = Depends(get_session),
 ) -> list[dict]:
-    """List tables with computed status: available, reserved, or occupied. Reserved tables include upcoming_reservation when time is in the future."""
+    """List tables with computed status: available, reserved, or occupied.
+
+    Each row also includes ``operational_status`` for the floor canvas: available, reserved,
+    occupied (seated/session without an in-flight kitchen order), open_order (active order
+    not yet all-ready), or bill_issued (active order in ``ready`` — pay/collect).
+    Reserved tables may include ``upcoming_reservation`` when the booking is still in the future.
+    """
     tables = session.exec(
         select(models.Table).where(models.Table.tenant_id == current_user.tenant_id)
     ).all()
@@ -5856,9 +5862,17 @@ def list_tables_with_status(
                 models.Reservation.status == models.ReservationStatus.seated,
             )
         ).first()
+        upcoming_reservation = None
         if table.is_active or active_order or seated_here:
             status = "occupied"
-            upcoming_reservation = None
+            if active_order:
+                operational_status = (
+                    "bill_issued"
+                    if active_order.status == models.OrderStatus.ready
+                    else "open_order"
+                )
+            else:
+                operational_status = "occupied"
         else:
             reserved_here = session.exec(
                 select(models.Reservation).where(
@@ -5868,8 +5882,10 @@ def list_tables_with_status(
                 )
             ).first()
             status = "reserved" if reserved_here else "available"
-            upcoming_reservation = None
-            if reserved_here and (reserved_here.reservation_date > today_utc or reserved_here.reservation_time > now_utc):
+            operational_status = "reserved" if reserved_here else "available"
+            if reserved_here and (
+                reserved_here.reservation_date > today_utc or reserved_here.reservation_time > now_utc
+            ):
                 upcoming_reservation = {
                     "reservation_id": reserved_here.id,
                     "reservation_time": reserved_here.reservation_time.strftime("%H:%M"),
@@ -5891,6 +5907,9 @@ def list_tables_with_status(
             "height": table.height,
             "seat_count": table.seat_count,
             "status": status,
+            "operational_status": operational_status,
+            "is_active": table.is_active,
+            "active_order_id": table.active_order_id,
             "assigned_waiter_id": table.assigned_waiter_id,
             "assigned_waiter_name": waiter_map.get(table.assigned_waiter_id) if table.assigned_waiter_id else None,
             "effective_waiter_id": effective_waiter_id,

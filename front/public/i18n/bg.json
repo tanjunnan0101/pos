@@ -759,7 +759,13 @@
     "PIN": "ЩИФТ",
     "OPEN_MENU": "Отваряне на менюто",
     "OPEN_STAFF_ORDER": "Отворена поръчка",
-    "VIEW_TABLE_ORDERS": "Поръчки за тази таблица"
+    "VIEW_TABLE_ORDERS": "Поръчки за тази таблица",
+    "LEGEND_TITLE": "Статус на масите",
+    "OP_AVAILABLE": "Свободна",
+    "OP_RESERVED": "Резервирана",
+    "OP_OCCUPIED": "Заета (без отворена поръчка)",
+    "OP_OPEN_ORDER": "Отворена поръчка",
+    "OP_BILL_ISSUED": "Сметка / плащане"
   },
   "TABLE_STATUS": {
     "available": "Наличен",

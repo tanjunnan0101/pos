@@ -655,7 +655,15 @@
     "VIEW_TABLE": "表格",
     "COL_STATUS": "状态",
     "PIN": "PIN",
-    "OPEN_MENU": "打开菜单"
+    "OPEN_MENU": "打开菜单",
+    "OPEN_STAFF_ORDER": "打开订单",
+    "VIEW_TABLE_ORDERS": "此桌订单",
+    "LEGEND_TITLE": "餐桌状态",
+    "OP_AVAILABLE": "空闲",
+    "OP_RESERVED": "已预订",
+    "OP_OCCUPIED": "使用中（无进行中订单）",
+    "OP_OPEN_ORDER": "进行中订单",
+    "OP_BILL_ISSUED": "结账/收款"
   },
   "TABLE_STATUS": {
     "available": "空闲",

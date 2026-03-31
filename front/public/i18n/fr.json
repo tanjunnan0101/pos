@@ -730,7 +730,15 @@
     "VIEW_TABLE": "Vue tableau",
     "COL_STATUS": "Statut",
     "PIN": "Code PIN",
-    "OPEN_MENU": "Ouvrir le menu"
+    "OPEN_MENU": "Ouvrir le menu",
+    "OPEN_STAFF_ORDER": "Ouvrir la commande",
+    "VIEW_TABLE_ORDERS": "Commandes pour cette table",
+    "LEGEND_TITLE": "État des tables",
+    "OP_AVAILABLE": "Libre",
+    "OP_RESERVED": "Réservée",
+    "OP_OCCUPIED": "Occupée (pas de commande ouverte)",
+    "OP_OPEN_ORDER": "Commande en cours",
+    "OP_BILL_ISSUED": "Addition / paiement"
   },
   "TABLE_STATUS": {
     "available": "Disponible",

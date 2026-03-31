@@ -655,7 +655,15 @@
     "VIEW_TABLE": "टेबल",
     "COL_STATUS": "स्थिति",
     "PIN": "PIN",
-    "OPEN_MENU": "मेन्यू खोलें"
+    "OPEN_MENU": "मेन्यू खोलें",
+    "OPEN_STAFF_ORDER": "ऑर्डर खोलें",
+    "VIEW_TABLE_ORDERS": "इस टेबल के ऑर्डर",
+    "LEGEND_TITLE": "टेबल स्थिति",
+    "OP_AVAILABLE": "खाली",
+    "OP_RESERVED": "आरक्षित",
+    "OP_OCCUPIED": "भरा (कोई खुला ऑर्डर नहीं)",
+    "OP_OPEN_ORDER": "खुला ऑर्डर",
+    "OP_BILL_ISSUED": "बिल / भुगतान"
   },
   "TABLE_STATUS": {
     "available": "उपलब्ध",

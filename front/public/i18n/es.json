@@ -755,7 +755,15 @@
     "VIEW_TABLE": "Vista lista",
     "COL_STATUS": "Estado",
     "PIN": "PIN",
-    "OPEN_MENU": "Abrir menú"
+    "OPEN_MENU": "Abrir menú",
+    "OPEN_STAFF_ORDER": "Abrir pedido",
+    "VIEW_TABLE_ORDERS": "Pedidos de esta mesa",
+    "LEGEND_TITLE": "Estado de las mesas",
+    "OP_AVAILABLE": "Disponible",
+    "OP_RESERVED": "Reservada",
+    "OP_OCCUPIED": "Ocupada (sin pedido abierto)",
+    "OP_OPEN_ORDER": "Pedido abierto",
+    "OP_BILL_ISSUED": "Cuenta / cobro"
   },
   "TABLE_STATUS": {
     "available": "Disponible",

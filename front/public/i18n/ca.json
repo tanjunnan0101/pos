@@ -630,7 +630,15 @@
     "VIEW_TABLE": "Taula",
     "COL_STATUS": "Estat",
     "PIN": "PIN",
-    "OPEN_MENU": "Obrir menú"
+    "OPEN_MENU": "Obrir menú",
+    "OPEN_STAFF_ORDER": "Obrir comanda",
+    "VIEW_TABLE_ORDERS": "Comandes d'aquesta taula",
+    "LEGEND_TITLE": "Estat de les taules",
+    "OP_AVAILABLE": "Disponible",
+    "OP_RESERVED": "Reservada",
+    "OP_OCCUPIED": "Ocupada (sense comanda oberta)",
+    "OP_OPEN_ORDER": "Comanda oberta",
+    "OP_BILL_ISSUED": "Compte / cobrament"
   },
   "TABLE_STATUS": {
     "available": "Disponible",

@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, OnInit, OnDestroy, ElementRef, Vie
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { LowerCasePipe } from '@angular/common';
-import { ApiService, Floor, CanvasTable, User } from '../services/api.service';
+import { ApiService, Floor, CanvasTable, TableOperationalStatus, User } from '../services/api.service';
 import { PermissionService } from '../services/permission.service';
 import { SidebarComponent } from '../shared/sidebar.component';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal.component';
@@ -34,7 +34,7 @@ const STAFF_ORDERS_ROLES = new Set([
   imports: [FormsModule, SidebarComponent, RouterLink, TranslateModule, LowerCasePipe, ConfirmationModalComponent, FocusFirstInputDirective],
   template: `
     <app-sidebar>
-      <div class="canvas-container">
+      <div class="canvas-container tables-canvas--tablet" data-testid="tables-canvas-root">
         <!-- Header: same options as /tables -->
         <div class="page-header" data-testid="tables-canvas-header">
           <div class="header-left">
@@ -153,6 +153,15 @@ const STAFF_ORDERS_ROLES = new Set([
         <!-- Main Canvas -->
         <div class="canvas-wrapper">
           <!-- Zoom Controls -->
+          <div class="floor-legend" data-testid="floor-plan-legend" [attr.aria-label]="'TABLES.LEGEND_TITLE' | translate">
+            <div class="floor-legend-title">{{ 'TABLES.LEGEND_TITLE' | translate }}</div>
+            @for (leg of floorLegendItems; track leg.key) {
+              <div class="floor-legend-row">
+                <span class="floor-legend-swatch" [style.background]="leg.swatch"></span>
+                <span class="floor-legend-label">{{ leg.labelKey | translate }}</span>
+              </div>
+            }
+          </div>
           <div class="zoom-controls">
             <button class="zoom-btn" (click)="zoomIn()" [title]="'TABLES.ZOOM_IN' | translate">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -245,7 +254,7 @@ const STAFF_ORDERS_ROLES = new Set([
                   </filter>
                 </defs>
 
-                <!-- Tables -->
+                <!-- Tables (compact name + capacity; tablet floor — no per-chair icons) -->
                 @for (table of tablesOnCurrentFloor(); track table.id) {
                   <g
                     class="table-group"
@@ -255,30 +264,6 @@ const STAFF_ORDERS_ROLES = new Set([
                     (mousedown)="onTableMouseDown($event, table)"
                     (touchstart)="onTableTouchStart($event, table)"
                   >
-                    <!-- Chairs around table (rendered first, behind table) -->
-                    @for (seat of getSeatPositions(table); track $index) {
-                      <g [attr.transform]="'translate(' + seat.x + ',' + seat.y + ') rotate(' + seat.angle + ')'" filter="url(#chairShadow)">
-                        <!-- Chair seat (square with rounded corners) -->
-                        <rect
-                          x="-10" y="-12"
-                          width="20" height="24"
-                          rx="3"
-                          fill="url(#chairGradient)"
-                          stroke="#999"
-                          stroke-width="1"
-                        />
-                        <!-- Chair back (darker bar at top) -->
-                        <rect
-                          x="-8" y="-10"
-                          width="16" height="5"
-                          rx="2"
-                          fill="#b0b0b0"
-                          stroke="#888"
-                          stroke-width="0.5"
-                        />
-                      </g>
-                    }
-                    
                     <!-- Table shape with shadow -->
                     <g [attr.filter]="selectedTable()?.id === table.id ? 'url(#selectedGlow)' : 'url(#tableShadow)'">
                       @if (table.shape === 'circle') {
@@ -286,8 +271,8 @@ const STAFF_ORDERS_ROLES = new Set([
                           cx="0" cy="0"
                           [attr.rx]="(table.width || 80) / 2"
                           [attr.ry]="(table.height || 80) / 2"
-                          [attr.fill]="table.status === 'occupied' ? 'url(#occupiedPattern)' : table.status === 'reserved' ? '#fef3c7' : 'url(#woodGrain)'"
-                          [attr.stroke]="table.status === 'occupied' ? '#16a34a' : table.status === 'reserved' ? '#d97706' : '#8b7355'"
+                          [attr.fill]="tableSurfaceFill(table)"
+                          [attr.stroke]="tableSurfaceStroke(table)"
                           stroke-width="2"
                         />
                       } @else if (table.shape === 'oval') {
@@ -295,89 +280,83 @@ const STAFF_ORDERS_ROLES = new Set([
                           cx="0" cy="0"
                           [attr.rx]="(table.width || 120) / 2"
                           [attr.ry]="(table.height || 70) / 2"
-                          [attr.fill]="table.status === 'occupied' ? 'url(#occupiedPattern)' : table.status === 'reserved' ? '#fef3c7' : 'url(#woodGrain)'"
-                          [attr.stroke]="table.status === 'occupied' ? '#16a34a' : table.status === 'reserved' ? '#d97706' : '#8b7355'"
+                          [attr.fill]="tableSurfaceFill(table)"
+                          [attr.stroke]="tableSurfaceStroke(table)"
                           stroke-width="2"
                         />
                       } @else if (table.shape === 'booth') {
-                        <!-- Booth: U-shaped bench seating -->
                         <rect
                           [attr.x]="-((table.width || 100) / 2)"
                           [attr.y]="-((table.height || 80) / 2)"
                           [attr.width]="table.width || 100"
                           [attr.height]="table.height || 80"
                           rx="4"
-                          [attr.fill]="table.status === 'occupied' ? 'url(#occupiedPattern)' : table.status === 'reserved' ? '#fef3c7' : 'url(#woodGrain)'"
-                          [attr.stroke]="table.status === 'occupied' ? '#16a34a' : table.status === 'reserved' ? '#d97706' : '#8b7355'"
+                          [attr.fill]="tableSurfaceFill(table)"
+                          [attr.stroke]="tableSurfaceStroke(table)"
                           stroke-width="2"
                         />
-                        <!-- Booth bench backs (decorative lines) -->
                         <line
                           [attr.x1]="-((table.width || 100) / 2) + 5"
                           [attr.y1]="-((table.height || 80) / 2) + 8"
                           [attr.x2]="((table.width || 100) / 2) - 5"
                           [attr.y2]="-((table.height || 80) / 2) + 8"
-                          stroke="#8b7355"
+                          [attr.stroke]="tableSurfaceStroke(table)"
                           stroke-width="1"
-                          opacity="0.5"
+                          opacity="0.45"
                         />
                         <line
                           [attr.x1]="-((table.width || 100) / 2) + 5"
                           [attr.y1]="((table.height || 80) / 2) - 8"
                           [attr.x2]="((table.width || 100) / 2) - 5"
                           [attr.y2]="((table.height || 80) / 2) - 8"
-                          stroke="#8b7355"
+                          [attr.stroke]="tableSurfaceStroke(table)"
                           stroke-width="1"
-                          opacity="0.5"
+                          opacity="0.45"
                         />
                       } @else if (table.shape === 'bar') {
-                        <!-- Bar counter: long narrow rectangle -->
                         <rect
                           [attr.x]="-((table.width || 160) / 2)"
                           [attr.y]="-((table.height || 40) / 2)"
                           [attr.width]="table.width || 160"
                           [attr.height]="table.height || 40"
                           rx="4"
-                          [attr.fill]="table.status === 'occupied' ? 'url(#occupiedPattern)' : table.status === 'reserved' ? '#fef3c7' : '#5c4033'"
-                          [attr.stroke]="table.status === 'occupied' ? '#16a34a' : table.status === 'reserved' ? '#d97706' : '#3d2817'"
+                          [attr.fill]="tableSurfaceFill(table)"
+                          [attr.stroke]="tableSurfaceStroke(table)"
                           stroke-width="2"
                         />
-                        <!-- Bar top edge highlight -->
                         <line
                           [attr.x1]="-((table.width || 160) / 2) + 4"
                           [attr.y1]="-((table.height || 40) / 2) + 4"
                           [attr.x2]="((table.width || 160) / 2) - 4"
                           [attr.y2]="-((table.height || 40) / 2) + 4"
-                          stroke="#8b6914"
+                          [attr.stroke]="tableSurfaceStroke(table)"
                           stroke-width="2"
                           stroke-linecap="round"
+                          opacity="0.5"
                         />
                       } @else {
-                        <!-- Standard rectangle table -->
                         <rect
                           [attr.x]="-((table.width || 100) / 2)"
                           [attr.y]="-((table.height || 70) / 2)"
                           [attr.width]="table.width || 100"
                           [attr.height]="table.height || 70"
                           rx="4"
-                          [attr.fill]="table.status === 'occupied' ? 'url(#occupiedPattern)' : table.status === 'reserved' ? '#fef3c7' : 'url(#woodGrain)'"
-                          [attr.stroke]="table.status === 'occupied' ? '#16a34a' : table.status === 'reserved' ? '#d97706' : '#8b7355'"
+                          [attr.fill]="tableSurfaceFill(table)"
+                          [attr.stroke]="tableSurfaceStroke(table)"
                           stroke-width="2"
                         />
                       }
                     </g>
-                    
-                    <!-- Table number -->
                     <text
-                      class="table-number"
+                      class="table-caption"
                       text-anchor="middle"
-                      dominant-baseline="middle"
-                      [attr.fill]="table.status === 'occupied' ? 'white' : table.status === 'reserved' ? '#92400e' : '#4a3728'"
+                      [attr.fill]="tableCaptionFill(table)"
                       font-weight="600"
+                      font-size="11"
                     >
-                      {{ getTableNumber(table) }}
+                      <tspan x="0" dy="-0.2em">{{ tableCaptionName(table) }}</tspan>
+                      <tspan x="0" dy="1.15em" font-size="10" font-weight="500" opacity="0.92">— {{ table.seat_count ?? 0 }}</tspan>
                     </text>
-                    <!-- Waiter initials badge -->
                     @if (getWaiterInitials(table)) {
                       <g [attr.transform]="'translate(' + ((table.width || 100) / 2 - 10) + ',' + (-((table.height || 70) / 2) - 4) + ')'">
                         <circle r="10" [attr.fill]="getWaiterColor(table)" opacity="0.9"/>
@@ -436,10 +415,16 @@ const STAFF_ORDERS_ROLES = new Set([
                 <span class="drag-indicator"></span>
               </div>
               <div class="panel-header">
-                <div class="panel-title-row">
+                  <div class="panel-title-row">
                   <h3>{{ selectedTable()?.name }}</h3>
-                  <div class="status-badge" [class.occupied]="selectedTable()?.status === 'occupied'" [class.reserved]="selectedTable()?.status === 'reserved'">
-                    {{ selectedTable()?.status === 'occupied' ? ('TABLES.OCCUPIED' | translate) : selectedTable()?.status === 'reserved' ? ('TABLES.RESERVED' | translate) : ('TABLES.AVAILABLE' | translate) }}
+                  <div
+                    class="status-badge"
+                    [class.op-available]="operationalKey(selectedTable()!) === 'available'"
+                    [class.op-reserved]="operationalKey(selectedTable()!) === 'reserved'"
+                    [class.op-occupied]="operationalKey(selectedTable()!) === 'occupied'"
+                    [class.op-open-order]="operationalKey(selectedTable()!) === 'open_order'"
+                    [class.op-bill]="operationalKey(selectedTable()!) === 'bill_issued'">
+                    {{ operationalStatusLabelKey(selectedTable()!) | translate }}
                   </div>
                 </div>
                 <button class="close-btn" (click)="selectedTable.set(null)">
@@ -607,6 +592,93 @@ const STAFF_ORDERS_ROLES = new Set([
       gap: var(--space-3);
     }
 
+    /* Tablet floor plan: dark canvas + high-contrast status colors */
+    .canvas-container.tables-canvas--tablet {
+      --tables-canvas-bg: #101318;
+      --tables-canvas-grid: rgba(255, 255, 255, 0.06);
+    }
+    .canvas-container.tables-canvas--tablet .page-header {
+      background: var(--tables-canvas-bg);
+    }
+    .canvas-container.tables-canvas--tablet .canvas-area {
+      background:
+        linear-gradient(var(--tables-canvas-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--tables-canvas-grid) 1px, transparent 1px),
+        var(--tables-canvas-bg);
+    }
+    .canvas-container.tables-canvas--tablet .floor-tabs {
+      background: #1a1f26;
+      border-color: #2d3540;
+    }
+    .canvas-container.tables-canvas--tablet .empty-state {
+      background: var(--tables-canvas-bg);
+    }
+
+    .floor-legend {
+      position: absolute;
+      top: var(--space-3);
+      left: var(--space-3);
+      z-index: 15;
+      background: rgba(16, 19, 24, 0.94);
+      border: 1px solid #2d3540;
+      border-radius: var(--radius-md);
+      padding: var(--space-2) var(--space-3);
+      max-width: min(240px, 46vw);
+      font-size: 0.75rem;
+      color: #e5e7eb;
+      box-shadow: var(--shadow-md);
+      pointer-events: none;
+    }
+    .floor-legend-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #9ca3af;
+    }
+    .floor-legend-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 3px 0;
+    }
+    .floor-legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .floor-legend-label {
+      line-height: 1.25;
+    }
+
+    .status-badge.op-available {
+      background: rgba(75, 85, 99, 0.35);
+      color: #e5e7eb;
+    }
+    .status-badge.op-reserved {
+      background: rgba(217, 119, 6, 0.25);
+      color: #fcd34d;
+    }
+    .status-badge.op-occupied {
+      background: rgba(5, 150, 105, 0.25);
+      color: #6ee7b7;
+    }
+    .status-badge.op-open-order {
+      background: rgba(37, 99, 235, 0.28);
+      color: #bfdbfe;
+    }
+    .status-badge.op-bill {
+      background: rgba(124, 58, 237, 0.28);
+      color: #ddd6fe;
+    }
+
+    .table-caption {
+      pointer-events: none;
+    }
+
     /* Page Header - matches app style; sticky so view options stay visible when scrolling to shape palette */
     .page-header {
       display: flex;
@@ -705,6 +777,8 @@ const STAFF_ORDERS_ROLES = new Set([
 
     .floor-tab {
       padding: var(--space-2) var(--space-4);
+      min-height: 44px;
+      min-width: 44px;
       border: none;
       background: transparent;
       color: var(--color-text-muted);
@@ -816,8 +890,8 @@ const STAFF_ORDERS_ROLES = new Set([
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
-      height: 32px;
+      width: 44px;
+      height: 44px;
       border: none;
       background: transparent;
       color: var(--color-text-muted);
@@ -884,11 +958,6 @@ const STAFF_ORDERS_ROLES = new Set([
       filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.6));
     }
 
-    .table-number {
-      font-size: 20px;
-      font-weight: 700;
-      pointer-events: none;
-    }
 
     /* Touch/drag state for mobile */
     .table-group.dragging {
@@ -1568,10 +1637,62 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
     });
   }
 
-  getTableNumber(table: CanvasTable): string {
-    // Extract number from name like "Table 5" -> "5"
-    const match = table.name.match(/\d+/);
-    return match ? match[0] : table.name;
+  /** Matches legend swatches and table fills (dark tablet floor). */
+  readonly floorLegendItems: { key: TableOperationalStatus; swatch: string; labelKey: string }[] = [
+    { key: 'available', swatch: '#4b5563', labelKey: 'TABLES.OP_AVAILABLE' },
+    { key: 'reserved', swatch: '#d97706', labelKey: 'TABLES.OP_RESERVED' },
+    { key: 'occupied', swatch: '#059669', labelKey: 'TABLES.OP_OCCUPIED' },
+    { key: 'open_order', swatch: '#2563eb', labelKey: 'TABLES.OP_OPEN_ORDER' },
+    { key: 'bill_issued', swatch: '#7c3aed', labelKey: 'TABLES.OP_BILL_ISSUED' },
+  ];
+
+  operationalKey(table: CanvasTable): TableOperationalStatus {
+    if (table.operational_status) return table.operational_status;
+    if (table.status === 'reserved') return 'reserved';
+    if (table.status === 'occupied') return 'occupied';
+    return 'available';
+  }
+
+  operationalStatusLabelKey(table: CanvasTable): string {
+    const m: Record<TableOperationalStatus, string> = {
+      available: 'TABLES.OP_AVAILABLE',
+      reserved: 'TABLES.OP_RESERVED',
+      occupied: 'TABLES.OP_OCCUPIED',
+      open_order: 'TABLES.OP_OPEN_ORDER',
+      bill_issued: 'TABLES.OP_BILL_ISSUED',
+    };
+    return m[this.operationalKey(table)];
+  }
+
+  private opColors(key: TableOperationalStatus): { fill: string; stroke: string } {
+    const map: Record<TableOperationalStatus, { fill: string; stroke: string }> = {
+      available: { fill: '#374151', stroke: '#9ca3af' },
+      reserved: { fill: '#92400e', stroke: '#fbbf24' },
+      occupied: { fill: '#065f46', stroke: '#34d399' },
+      open_order: { fill: '#1e40af', stroke: '#93c5fd' },
+      bill_issued: { fill: '#5b21b6', stroke: '#c4b5fd' },
+    };
+    return map[key];
+  }
+
+  tableSurfaceFill(table: CanvasTable): string {
+    return this.opColors(this.operationalKey(table)).fill;
+  }
+
+  tableSurfaceStroke(table: CanvasTable): string {
+    return this.opColors(this.operationalKey(table)).stroke;
+  }
+
+  tableCaptionFill(table: CanvasTable): string {
+    const k = this.operationalKey(table);
+    return k === 'reserved' ? '#fef3c7' : '#f9fafb';
+  }
+
+  /** Short table name for the canvas label (avoid multi-line overflow on small shapes). */
+  tableCaptionName(table: CanvasTable): string {
+    const raw = (table.name || '').trim();
+    if (raw.length <= 14) return raw || '?';
+    return raw.slice(0, 12) + '…';
   }
 
   // Waiter assignment helpers
@@ -2138,94 +2259,4 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
       .catch(() => this.error.set('Failed to save layout'));
   }
 
-  getSeatPositions(table: CanvasTable): { x: number; y: number; angle: number }[] {
-    const seats: { x: number; y: number; angle: number }[] = [];
-    const count = table.seat_count || 4;
-    const w = (table.width || 100) / 2;
-    const h = (table.height || 70) / 2;
-    const chairOffset = 22; // Distance from table edge
-
-    if (table.shape === 'circle' || table.shape === 'oval') {
-      // Circular layout - distribute evenly around perimeter
-      for (let i = 0; i < count; i++) {
-        const angle = (2 * Math.PI * i) / count - Math.PI / 2;
-        seats.push({
-          x: (w + chairOffset) * Math.cos(angle),
-          y: (h + chairOffset) * Math.sin(angle),
-          angle: (angle * 180) / Math.PI + 90
-        });
-      }
-    } else if (table.shape === 'booth') {
-      // Booth layout - seats on top and bottom only (bench seating)
-      const topSeats = Math.ceil(count / 2);
-      const bottomSeats = count - topSeats;
-
-      // Top bench
-      for (let i = 0; i < topSeats; i++) {
-        seats.push({
-          x: -w + (w * 2 * (i + 1)) / (topSeats + 1),
-          y: -h - chairOffset,
-          angle: 180
-        });
-      }
-      // Bottom bench
-      for (let i = 0; i < bottomSeats; i++) {
-        seats.push({
-          x: -w + (w * 2 * (i + 1)) / (bottomSeats + 1),
-          y: h + chairOffset,
-          angle: 0
-        });
-      }
-    } else if (table.shape === 'bar') {
-      // Bar layout - all seats on one side (bottom/front of bar)
-      for (let i = 0; i < count; i++) {
-        seats.push({
-          x: -w + (w * 2 * (i + 1)) / (count + 1),
-          y: h + chairOffset,
-          angle: 0
-        });
-      }
-    } else {
-      // Rectangle - distribute evenly on all 4 sides
-      const topSeats = Math.ceil(count / 4);
-      const bottomSeats = Math.ceil(count / 4);
-      const leftSeats = Math.floor((count - topSeats - bottomSeats) / 2);
-      const rightSeats = count - topSeats - bottomSeats - leftSeats;
-
-      // Top
-      for (let i = 0; i < topSeats; i++) {
-        seats.push({
-          x: -w + (w * 2 * (i + 1)) / (topSeats + 1),
-          y: -h - chairOffset,
-          angle: 180
-        });
-      }
-      // Bottom
-      for (let i = 0; i < bottomSeats; i++) {
-        seats.push({
-          x: -w + (w * 2 * (i + 1)) / (bottomSeats + 1),
-          y: h + chairOffset,
-          angle: 0
-        });
-      }
-      // Left
-      for (let i = 0; i < leftSeats; i++) {
-        seats.push({
-          x: -w - chairOffset,
-          y: -h + (h * 2 * (i + 1)) / (leftSeats + 1),
-          angle: 90
-        });
-      }
-      // Right
-      for (let i = 0; i < rightSeats; i++) {
-        seats.push({
-          x: w + chairOffset,
-          y: -h + (h * 2 * (i + 1)) / (rightSeats + 1),
-          angle: -90
-        });
-      }
-    }
-
-    return seats;
-  }
 }

@@ -645,8 +645,17 @@ export interface UpcomingReservationOnTable {
   customer_name: string;
 }
 
+export type TableOperationalStatus =
+  | 'available'
+  | 'reserved'
+  | 'occupied'
+  | 'open_order'
+  | 'bill_issued';
+
 export interface CanvasTable extends Table {
   status?: 'available' | 'occupied' | 'reserved';
+  /** Finer state for floor canvas (order pipeline vs seated without order). From GET /tables/with-status. */
+  operational_status?: TableOperationalStatus;
   assigned_waiter_id?: number | null;
   assigned_waiter_name?: string | null;
   effective_waiter_id?: number | null;

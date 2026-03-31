@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Tables / floor canvas (GitHub #120):** Tablet-oriented **dark** floor view, **status legend**, compact **table name + seat count** labels (no per-chair icons), and finer **operational** colors from **`GET /tables/with-status`** (`operational_status`: available, reserved, seated, open order, bill/ready). Response also includes **`is_active`** and **`active_order_id`** for the canvas panel.
+
 - **`.gitignore`:** Ignore **`time-of-last-review.txt`** anywhere in the tree (single pattern) instead of only **`agents/*/time-of-last-review.txt`**, so agent review timestamps stay untracked regardless of path.
 
 - **Tester prompt (`agents/003-tester/TESTER.md`):** Guidelines for tasks that include **amvara9 / production** deploy — wait for deploy success (CI, health/version polling, explicit handoff) instead of a fixed sleep before testing.

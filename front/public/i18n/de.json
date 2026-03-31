@@ -636,7 +636,13 @@
     "PIN": "PIN",
     "OPEN_MENU": "Menü öffnen",
     "OPEN_STAFF_ORDER": "Bestellung öffnen",
-    "VIEW_TABLE_ORDERS": "Bestellungen für diesen Tisch"
+    "VIEW_TABLE_ORDERS": "Bestellungen für diesen Tisch",
+    "LEGEND_TITLE": "Tischstatus",
+    "OP_AVAILABLE": "Frei",
+    "OP_RESERVED": "Reserviert",
+    "OP_OCCUPIED": "Besetzt (kein offener Auftrag)",
+    "OP_OPEN_ORDER": "Offene Bestellung",
+    "OP_BILL_ISSUED": "Rechnung / zahlen"
   },
   "TABLE_STATUS": {
     "available": "Verfügbar",
@@ -811,6 +817,15 @@
     "COL_END": "Ende",
     "COL_DURATION": "Dauer",
     "ELAPSED": "Verstrichen",
+    "NET_ELAPSED": "Gearbeitet (netto)",
+    "QR_HINT": "Scannen Sie den QR-Code vor Ort oder öffnen Sie den Mitarbeiter-Link mit Token.",
+    "LOCATION_HINT": "An diesem Standort kann GPS in der Nähe des Restaurants für Zeiterfassung nötig sein.",
+    "STATUS_BREAK": "Sie sind in der Pause",
+    "START_BREAK": "Pause beginnen",
+    "END_BREAK": "Pause beenden (QR scannen)",
+    "ERR_QR": "Öffnen Sie die Seite über den QR-Link oder ?clock_qr= mit dem Token aus den Einstellungen.",
+    "ERR_QR_BREAK": "Scannen Sie den QR-Code vor Ort, um die Pause zu beenden.",
+    "ERR_LOCATION": "Erlauben Sie den Standortzugriff zur Prüfung am Restaurant.",
     "OVERTIME_TITLE": "Verlängerte Schicht",
     "OVERTIME_BODY": "Sie sind länger als übliche {{hours}} Stunden eingestochen. Wenn Sie noch arbeiten, stimmen Sie Überstunden mit der Führung ab und stechen Sie aus, wenn Sie fertig sind."
   },
@@ -865,7 +880,14 @@
     "WORK_SESSIONS_COL_END": "Ende",
     "WORK_SESSIONS_COL_DURATION": "Dauer",
     "WORK_SESSIONS_COL_START_IP": "IP Beginn",
-    "WORK_SESSIONS_COL_END_IP": "IP Ende"
+    "WORK_SESSIONS_COL_END_IP": "IP Ende",
+    "WORK_SESSIONS_LIVE_TITLE": "Wer ist gerade eingestochen",
+    "WORK_SESSIONS_LIVE_HINT": "Nur offene Zeiterfassungen (nicht beendet).",
+    "WORK_SESSIONS_LIVE_EMPTY": "Niemand ist aktuell eingestochen.",
+    "WORK_SESSIONS_COL_STATUS": "Status",
+    "WORK_SESSIONS_COL_NET": "Netto-Zeit (Arbeit)",
+    "WORK_SESSIONS_STATUS_WORKING": "Arbeitet",
+    "WORK_SESSIONS_STATUS_BREAK": "In Pause"
   },
   "WORKING_PLAN": {
     "TITLE": "Schichtplan",
