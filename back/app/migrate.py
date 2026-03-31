@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from sqlmodel import Session, SQLModel, text
+from sqlmodel import Session, text
 
 from app.db import engine
 from app.settings import settings
@@ -210,6 +210,15 @@ class MigrationRunner:
         except Exception:
             return 0
 
+    def get_applied_versions(self, session: Session) -> set[int]:
+        """All migration version numbers recorded in schema_version (one row per applied file)."""
+        try:
+            result = session.exec(text(f"SELECT version FROM {self.schema_version_table}"))
+            rows = result.all()
+            return {int(row[0]) for row in rows if row[0] is not None}
+        except Exception:
+            return set()
+
     def get_migration_files(self) -> list[tuple[int, Path]]:
         """
         Get all migration files sorted by version number.
@@ -247,7 +256,7 @@ class MigrationRunner:
                 version = int(match.group(1))
                 migrations.append((version, file))
 
-        return migrations
+        return sorted(migrations, key=lambda x: x[0])
 
     def apply_migration(self, session: Session, version: int, file_path: Path) -> bool:
         """Apply a single migration file."""
@@ -293,19 +302,17 @@ class MigrationRunner:
         Returns:
             int: The current database version after migrations
         """
-        migrations_dir = Path(__file__).parent.parent / "migrations"
-        
-        if not migrations_dir.exists():
-            logger.warning(f"Migrations directory not found: {migrations_dir}")
+        if not self.migrations_dir.exists():
+            logger.warning(f"Migrations directory not found: {self.migrations_dir}")
             return 0
 
         with Session(engine) as session:
             # Ensure version table exists
             self.ensure_version_table(session)
 
-            # Get current version
+            applied = self.get_applied_versions(session)
             current_version = self._get_current_version_internal(session)
-            logger.info(f"Database schema version: {current_version}")
+            logger.info(f"Database schema version (max applied): {current_version}")
 
             # Get all migration files
             migration_files = self.get_migration_files()
@@ -318,14 +325,15 @@ class MigrationRunner:
             logger.info(f"Found {len(migration_files)} migration file(s):")
             for version, path in migration_files:
                 version_type = "timestamp" if len(str(version)) == 14 else "sequential"
-                status = "applied" if version <= current_version else "pending"
+                status = "applied" if version in applied else "pending"
                 logger.info(f"  - {path.name} (version: {version}, type: {version_type}, status: {status})")
 
-            # Find pending migrations
+            # Pending = files not recorded in schema_version (not "version > MAX",
+            # so older migrations are not skipped after a newer one was applied).
             pending = [
                 (version, path)
                 for version, path in migration_files
-                if version > current_version
+                if version not in applied
             ]
 
             if not pending:
@@ -347,7 +355,7 @@ class MigrationRunner:
                     self.apply_migration(session, version, path)
                 except Exception as e:
                     logger.error(f"Migration failed. Database may be in an inconsistent state.")
-                    logger.error(f"Last successful version: {current_version}")
+                    logger.error(f"Max recorded version before failure: {current_version}")
                     raise
 
             # Get final version

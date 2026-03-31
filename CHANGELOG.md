@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Database migrations:** `python -m app.migrate` now treats a migration as pending when its **version is absent from `schema_version`** (instead of `version > MAX(version)`), so an older migration file is not skipped after a newer timestamp migration was applied first. Migration files are applied in **strict version order**. `run_migrations` uses **`MigrationRunner.migrations_dir`** consistently.
+
 - **Reservations / public booking (GitHub #127):** On **today** (tenant calendar date), the time-slot dropdown in **`ReservationWeekSlotGridComponent`** no longer lists API-marked **past** slots, so the first options align with the next bookable times.
 
 - **Product image upload:** `POST /products/{id}/image` and `POST /provider/products/{id}/image` now return explicit **`JSONResponse`** so **slowapi** can inject rate-limit headers without raising `parameter \`response\` must be an instance of starlette.responses.Response` (500 on successful upload).
