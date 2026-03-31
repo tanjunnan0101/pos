@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Public booking / reservations (GitHub #119):** `GET /public/tenants/{id}` now returns **`reservation_max_guests_per_slot`** in the JSON body (same as the public tenants list and `TenantSummary`), so the public book page can enforce the tenant party-size cap. Staff debug script **`front/scripts/debug-reservations.mjs`** updated for the reservation modal with the week grid (`#res-modal-*`, `.week-slot.ws-available`).
+
 ### Changed
 
 - **Tables / floor canvas (GitHub #120):** Tablet-oriented **dark** floor view, **status legend**, compact **table name + seat count** labels (no per-chair icons), and finer **operational** colors from **`GET /tables/with-status`** (`operational_status`: available, reserved, seated, open order, bill/ready). Response also includes **`is_active`** and **`active_order_id`** for the canvas panel.

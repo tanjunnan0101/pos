@@ -940,6 +940,7 @@ def get_public_tenant(
         "terms_of_service_url": summary.terms_of_service_url,
         "privacy_policy_url": summary.privacy_policy_url,
         "timezone": summary.timezone,
+        "reservation_max_guests_per_slot": summary.reservation_max_guests_per_slot,
     }
     return JSONResponse(content=body)
 

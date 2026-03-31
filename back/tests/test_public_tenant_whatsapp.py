@@ -36,6 +36,18 @@ class TestPublicTenantWhatsapp(PgClientTestCase):
         self.assertEqual(data["whatsapp"], "+34612000111")
         self.assertEqual(data["phone"], "+34 612 000 000")
         self.assertEqual(data["email"], "pos-public-tenant-test@amvara.de")
+        self.assertIn("reservation_max_guests_per_slot", data)
+        self.assertIsNone(data["reservation_max_guests_per_slot"])
+
+    def test_get_public_tenant_includes_reservation_max_guests_per_slot_when_set(self):
+        t = self.session.get(models.Tenant, self.tenant_id)
+        t.reservation_max_guests_per_slot = 4
+        self.session.add(t)
+        self.session.commit()
+        response = self.client.get(f"/public/tenants/{self.tenant_id}")
+        self.assertEqual(response.status_code, 200, response.text)
+        data = response.json()
+        self.assertEqual(data["reservation_max_guests_per_slot"], 4)
 
 
 if __name__ == "__main__":

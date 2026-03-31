@@ -131,52 +131,61 @@ async function main() {
       console.log('\n>>> RESULT: Reservations page appears to have loaded.');
     }
 
-    // 4. Create reservation
+    // 4. Create reservation (modal: party + week grid + contact; no legacy date/time inputs)
     const testName = 'Puppeteer Test ' + Date.now();
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const dateStr = tomorrow.toISOString().slice(0, 10);
-    console.log('4. Creating reservation:', testName, 'date:', dateStr);
+    const fallbackFilterDate = tomorrow.toISOString().slice(0, 10);
+    console.log('4. Creating reservation:', testName);
     const newBtn = await page.$('.page-header .btn-primary');
     if (newBtn) {
       await newBtn.click();
       await sleep(800);
       const modal = await page.$('.modal-overlay .modal-content');
       if (modal) {
-        await page.waitForSelector('.modal-body input[type="date"]', { timeout: 3000 }).catch(() => null);
-        // Modal order: name, phone, email, date, time, party size (staff form)
-        await page.evaluate(
-          ({ name, phone, dateVal, timeVal, partySize }) => {
-            const inputs = document.querySelectorAll('.modal-body input');
-            if (inputs.length >= 6) {
-              const [nameIn, phoneIn, emailIn, dateIn, timeIn, numIn] = inputs;
-              const setAndDispatch = (el, value) => {
-                el.value = value;
-                el.dispatchEvent(new Event('input', { bubbles: true }));
-                el.dispatchEvent(new Event('change', { bubbles: true }));
-              };
-              setAndDispatch(nameIn, name);
-              setAndDispatch(phoneIn, phone);
-              setAndDispatch(emailIn, '');
-              setAndDispatch(dateIn, dateVal);
-              setAndDispatch(timeIn, timeVal);
-              setAndDispatch(numIn, String(partySize));
-            }
-          },
-          {
-            name: testName,
-            phone: '+1555123456',
-            dateVal: dateStr,
-            timeVal: '19:00',
-            partySize: 2,
-          }
-        );
-        await sleep(300);
+        await page.waitForSelector('#res-modal-party', { timeout: 5000 }).catch(() => null);
+        const partyInput = await page.$('#res-modal-party');
+        if (partyInput) {
+          await partyInput.click({ clickCount: 3 });
+          await page.keyboard.type('2');
+          await sleep(300);
+        }
+        await sleep(600);
+        try {
+          await page.waitForFunction(
+            () => {
+              const busy = document.querySelector('.book-week-loading');
+              const slot = document.querySelector('button.week-slot.ws-available');
+              return !busy && slot && !slot.disabled;
+            },
+            { timeout: 20000 }
+          );
+        } catch (_) {
+          console.log('   Create: week grid did not become ready (timeout)');
+        }
+        const picked = await page.evaluate(() => {
+          const slot = document.querySelector('button.week-slot.ws-available:not([disabled])');
+          if (!slot) return { ok: false };
+          slot.click();
+          return { ok: true };
+        });
+        if (!picked.ok) {
+          console.log('   Create: no available week slot (grid empty or still loading)');
+        }
+        await sleep(500);
+        await page.waitForSelector('#res-modal-name', { timeout: 5000 }).catch(() => null);
+        const pickedDate =
+          (await page
+            .$eval('#week-grid-hidden-date', (el) => el.value)
+            .catch(() => '')) || '';
+        await page.type('#res-modal-name', testName, { delay: 5 });
+        await page.type('#res-modal-phone', '+1555123456', { delay: 5 });
+        await sleep(400);
         const saveBtn = await page.$('.modal-footer .btn-primary');
         if (saveBtn) {
           await saveBtn.click();
-          await sleep(1500);
-          // List is filtered by date; set filter to created date so the new reservation appears
+          await sleep(2000);
+          const filterDate = pickedDate.trim() || fallbackFilterDate;
           await page.evaluate((dateVal) => {
             const dateFilter = document.querySelector('.filters input[type="date"]');
             if (dateFilter) {
@@ -184,7 +193,7 @@ async function main() {
               dateFilter.dispatchEvent(new Event('input', { bubbles: true }));
               dateFilter.dispatchEvent(new Event('change', { bubbles: true }));
             }
-          }, dateStr);
+          }, filterDate);
           await sleep(1200);
           const hasCard = await page.evaluate((name) => {
             return !!Array.from(document.querySelectorAll('.reservation-card')).find(

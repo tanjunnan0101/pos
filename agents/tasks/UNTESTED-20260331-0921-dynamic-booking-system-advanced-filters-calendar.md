@@ -22,7 +22,7 @@ Align with existing reservation models, public book flow, and `docs/` where the 
 ## Implementation summary (coder)
 
 - **DB:** `tenant.reservation_max_guests_per_slot`; `reservation` columns `service_type`, `seating_preference`, `allergies_has`, `allergies_detail` (migration `20260331120000_reservation_booking_dynamic_filters.sql`).
-- **Backend:** Capacity cap applied in `_reservable_capacity_for_tenant`; optional `service` query (`lunch`|`dinner`) on `GET /reservations/book-week-slots` and `GET /reservations/next-available`; opening-hours validation + create/update use new booking fields; `PUT /reservations/{id}` uses `model_dump(exclude_unset=True)` for service/allergies updates; public `TenantSummary` includes `reservation_max_guests_per_slot`.
+- **Backend:** Capacity cap applied in `_reservable_capacity_for_tenant`; optional `service` query (`lunch`|`dinner`) on `GET /reservations/book-week-slots` and `GET /reservations/next-available`; opening-hours validation + create/update use new booking fields; `PUT /reservations/{id}` uses `model_dump(exclude_unset=True)` for service/allergies updates; public `TenantSummary` includes `reservation_max_guests_per_slot`. **Follow-up:** `GET /public/tenants/{id}` manual JSON body now includes `reservation_max_guests_per_slot` (was omitted vs list endpoint; blocked public `/book` cap).
 - **Front:** Settings → Reservations: max guests per slot. Public `/book` and staff Reservations modal: party size, service (when `hasBreak` in opening hours), seating, allergies; week grid `[serviceType]` input; list cards show service/seating/allergies when set.
 - **Tests:** `pytest tests/test_book_week_slots_public.py` (pass). `npm run test:landing-version` with `BASE_URL=http://127.0.0.1:4202` (pass).
 
@@ -80,3 +80,29 @@ Align with existing reservation models, public book flow, and `docs/` where the 
      `GET /reservations/book-week-slots?tenant_id=1&party_size=null&week_anchor=2026-03-30 HTTP/1.1" 422 Unprocessable Entity`  
      `GET /reservations/slot-capacity?date_str=2&time_str=14:15 HTTP/1.1" 400 Bad Request`  
    - **pos-back (landing / public book period):** normal `200` lines for `/tenant/settings`, `/public/tenants/1`, `/health`; no unexpected 5xx in the sampled window.
+
+---
+
+## Coder follow-up (2026-03-31 UTC)
+
+- **`GET /public/tenants/{id}`:** Response body includes **`reservation_max_guests_per_slot`** (aligned with `TenantSummary` and `GET /public/tenants`).
+- **Tests:** `tests/test_public_tenant_whatsapp.py` — key present when unset (`null`); value `4` when set on tenant.
+- **`front/scripts/debug-reservations.mjs`:** Staff create flow uses `#res-modal-party`, first `.week-slot.ws-available`, `#res-modal-name`, `#res-modal-phone` (replaces obsolete `.modal-body input` index order that caused `party_size=null` and bad `slot-capacity` params).
+
+## Testing instructions (handoff — re-verify)
+
+- **What to verify**
+  - `GET /api/public/tenants/{id}` includes `reservation_max_guests_per_slot` (number or `null`); public `/book` party max respects tenant setting when set.
+  - Staff automation: `node scripts/debug-reservations.mjs` does not trigger `422` on `book-week-slots` or `400` on `slot-capacity` from invalid `party_size` / date.
+
+- **How to test**
+  1. **Migrate:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python -m app.migrate`
+  2. **Backend:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python -m pytest tests/test_book_week_slots_public.py tests/test_public_tenant_whatsapp.py -q`
+  3. **Frontend smoke:** `cd front && BASE_URL=http://127.0.0.1:4202 npm run test:landing-version`
+  4. **API spot check:** `curl -sS "http://127.0.0.1:4202/api/public/tenants/1" | jq 'has("reservation_max_guests_per_slot")'` → `true`
+  5. **Staff script (needs credentials):** `cd front && BASE_URL=http://127.0.0.1:4202 LOGIN_EMAIL=… LOGIN_PASSWORD=… node scripts/debug-reservations.mjs` — expect create section to log **`Create: card visible after save: true`** when user can write reservations (no `422`/`400` lines for week slots / slot-capacity in back logs).
+  6. **Manual (optional):** Repeat original instructions 5 (settings cap on `/book`) and 6 (edit + over-capacity).
+
+- **Pass/fail criteria**
+  - **PASS:** Pytest green for both files; landing smoke exit 0; `reservation_max_guests_per_slot` in single-tenant JSON; staff script create path succeeds or fails only for permission/data, not wrong modal field order.
+  - **FAIL:** Missing JSON field; regression in booking tests; staff script still logs `party_size=null` on `book-week-slots`.
