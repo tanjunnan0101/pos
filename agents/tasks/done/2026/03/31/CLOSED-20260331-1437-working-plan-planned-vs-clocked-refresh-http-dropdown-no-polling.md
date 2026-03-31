@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Working plan planned-vs-clocked was brought in line with the staff filter so it updates over HTTP when the dropdown changes, without polling the API.
+- **What was done:** The backend exposes optional `user_id` on `GET /schedule/planned-vs-actual` with tenant checks; the frontend refetches on staff selection and on existing plan reloads, using a monotonic generation counter to drop stale responses.
+- **What was tested:** Docker front build tail, `test:landing-version`, `test:working-plan`, and a manual/network check of `planned-vs-actual` GETs with no extra calls during idle — overall **PASS**.
+- **Why closed:** Tester report shows all acceptance criteria met (dropdown triggers one GET, no `setInterval`/polling, correct `user_id` when filtered).
+- **Closed at (UTC):** 2026-03-31 14:54
+---
+
 # Working plan: planned vs clocked — refresh via HTTP on staff dropdown change only (no polling)
 
 ## GitHub
