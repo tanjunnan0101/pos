@@ -815,7 +815,18 @@
     "SLOT_STATE_PAST": "Минало или твърде скоро",
     "SLOT_STATE_CLOSED_DAY": "Затворен",
     "SLOT_STATE_OUT_OF_HOURS": "Извън работно време",
-    "SLOT_STATE_OUT_OF_RANGE": "Извън периода за резервация"
+    "SLOT_STATE_OUT_OF_RANGE": "Извън периода за резервация",
+    "SERVICE_TYPE": "Услуга",
+    "SERVICE_ALL": "Обяд и вечеря",
+    "SERVICE_LUNCH": "Обяд",
+    "SERVICE_DINNER": "Вечеря",
+    "SEATING_PREFERENCE": "Място",
+    "SEATING_ANY": "Без предпочитание",
+    "SEATING_INDOOR": "Вътре",
+    "SEATING_TERRACE": "Тераса / навън",
+    "ALLERGIES_HAS": "Имаме алергии или непоносимости",
+    "ALLERGIES_DETAIL_PLACEHOLDER": "Опишете алергиите (напр. ядки, глутен)",
+    "ALLERGIES_DETAIL_REQUIRED": "Моля, опишете алергиите, когато сте отбелязали това."
   },
   "FEEDBACK": {
     "TITLE": "Как мина посещението ви?",
@@ -1266,6 +1277,8 @@
     "RESERVATION_AVG_TABLE_TURN_HINT": "Типично време престой на маса след настаняване. За планиране кога масата отново може да се резервира. Празно = просто блокиране в същия ден (без прозорец за обръщане).",
     "RESERVATION_SLOT_MINUTES": "Стъпка на времевия интервал за резервация (минути)",
     "RESERVATION_SLOT_MINUTES_HINT": "Интервал между начални часове в публичната мрежа (напр. 15 или 30). Празно или 0 = стъпка 15 минути.",
+    "RESERVATION_MAX_GUESTS_PER_SLOT": "Макс. гости на час (по избор)",
+    "RESERVATION_MAX_GUESTS_PER_SLOT_HINT": "Ограничава общия брой гости за същия начален час (освен капацитета на масите). Празно за без допълнителен лимит.",
     "RESERVATION_WALK_IN_TABLES": "Маси, запазени за влизания",
     "RESERVATION_WALK_IN_TABLES_HINT": "Брой маси извън онлайн капацитета за резервации, за да настанявате гости без резервация. Първо се задържат най-малките маси.",
     "RESERVATION_DRESS_CODE": "Облекло",

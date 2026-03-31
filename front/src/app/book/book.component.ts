@@ -7,6 +7,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LanguagePickerComponent } from '../shared/language-picker.component';
 import { LegalLinksComponent } from '../shared/legal-links.component';
 import { ReservationWeekSlotGridComponent } from '../shared/reservation-week-slot-grid.component';
+import { tenantOpeningHoursHasMealSplit } from '../shared/booking-meal-split';
 import { contactEmailValid, contactPhoneValid } from '../shared/contact-validators';
 
 @Component({
@@ -39,6 +40,11 @@ export class BookComponent implements OnInit {
   formDate = '';
   formTime = '';
   formPartySize = 2;
+  /** lunch/dinner/all — grid + API when opening hours have a break */
+  formService: 'all' | 'lunch' | 'dinner' = 'all';
+  formAllergiesHas = false;
+  formAllergiesDetail = '';
+  formSeating: 'no_preference' | 'indoor' | 'terrace' = 'no_preference';
   formName = '';
   formPhone = '';
   formEmail = '';
@@ -59,6 +65,14 @@ export class BookComponent implements OnInit {
       day: '2-digit',
     }).format(new Date());
   }
+
+  hasMealSplit = computed(() => tenantOpeningHoursHasMealSplit(this.tenant()?.opening_hours));
+
+  maxPartySize = computed(() => {
+    const cap = this.tenant()?.reservation_max_guests_per_slot;
+    if (cap != null && cap > 0) return Math.min(20, cap);
+    return 20;
+  });
 
   googleMapsUrl = computed(() => this.tenant()?.public_google_maps_url?.trim() || null);
   openstreetmapUrl = computed(() => this.tenant()?.public_openstreetmap_url?.trim() || null);
@@ -187,6 +201,10 @@ export class BookComponent implements OnInit {
       this.error.set(this.translate.instant('BOOK.INVALID_EMAIL'));
       return;
     }
+    if (this.formAllergiesHas && !this.formAllergiesDetail.trim()) {
+      this.error.set(this.translate.instant('BOOK.ALLERGIES_DETAIL_REQUIRED'));
+      return;
+    }
     if (!this.formDate?.trim() || !this.formTime?.trim()) {
       this.error.set(this.translate.instant('BOOK.PICK_SLOT'));
       return;
@@ -197,6 +215,8 @@ export class BookComponent implements OnInit {
       return;
     }
     this.submitting.set(true);
+    const svc =
+      this.hasMealSplit() && this.formService !== 'all' ? this.formService : undefined;
     const body: ReservationCreate = {
       tenant_id: tid,
       customer_name: this.formName.trim(),
@@ -210,6 +230,10 @@ export class BookComponent implements OnInit {
       client_fingerprint: this.getClientFingerprint(),
       client_screen_width: typeof screen !== 'undefined' ? screen.width : undefined,
       client_screen_height: typeof screen !== 'undefined' ? screen.height : undefined,
+      service_type: svc,
+      seating_preference: this.formSeating,
+      allergies_has: this.formAllergiesHas,
+      allergies_detail: this.formAllergiesHas ? this.formAllergiesDetail.trim() : undefined,
     };
     this.api.createReservationPublic(body).subscribe({
       next: (res) => {

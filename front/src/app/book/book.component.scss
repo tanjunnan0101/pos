@@ -352,6 +352,50 @@
   margin-bottom: var(--space-4);
 }
 
+.book-booking-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+.book-booking-controls .form-group {
+  margin-bottom: var(--space-3);
+}
+
+.label-block {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-weight: 500;
+  color: var(--color-text);
+  font-size: 0.9375rem;
+}
+
+.book-seating-group .radio-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: normal;
+  font-size: 0.9375rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.book-allergies-detail {
+  margin-top: var(--space-2);
+}
+
 .book-form label {
   display: block;
   margin-bottom: var(--space-1);

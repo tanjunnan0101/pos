@@ -1221,6 +1221,11 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                     <small class="field-hint">{{ 'SETTINGS.RESERVATION_SLOT_MINUTES_HINT' | translate }}</small>
                   </div>
                   <div class="form-group">
+                    <label for="reservation_max_guests_per_slot">{{ 'SETTINGS.RESERVATION_MAX_GUESTS_PER_SLOT' | translate }}</label>
+                    <input type="number" id="reservation_max_guests_per_slot" min="0" max="500" [(ngModel)]="formData.reservation_max_guests_per_slot" name="reservation_max_guests_per_slot" placeholder="" />
+                    <small class="field-hint">{{ 'SETTINGS.RESERVATION_MAX_GUESTS_PER_SLOT_HINT' | translate }}</small>
+                  </div>
+                  <div class="form-group">
                     <label for="reservation_walk_in_tables_reserved">{{ 'SETTINGS.RESERVATION_WALK_IN_TABLES' | translate }}</label>
                     <input type="number" id="reservation_walk_in_tables_reserved" min="0" max="99" [(ngModel)]="formData.reservation_walk_in_tables_reserved" name="reservation_walk_in_tables_reserved" placeholder="0" />
                     <small class="field-hint">{{ 'SETTINGS.RESERVATION_WALK_IN_TABLES_HINT' | translate }}</small>
@@ -2719,6 +2724,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     reservation_arrival_tolerance_minutes: null,
     reservation_average_table_turn_minutes: null,
     reservation_slot_minutes: null,
+    reservation_max_guests_per_slot: null,
     reservation_walk_in_tables_reserved: 0,
     reservation_dress_code: null,
     reservation_reminder_24h_enabled: false,
@@ -2816,6 +2822,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
           reservation_arrival_tolerance_minutes: settings.reservation_arrival_tolerance_minutes ?? null,
           reservation_average_table_turn_minutes: settings.reservation_average_table_turn_minutes ?? null,
           reservation_slot_minutes: settings.reservation_slot_minutes ?? null,
+          reservation_max_guests_per_slot: settings.reservation_max_guests_per_slot ?? null,
           reservation_walk_in_tables_reserved: settings.reservation_walk_in_tables_reserved ?? 0,
           reservation_dress_code: settings.reservation_dress_code ?? null,
           reservation_reminder_24h_enabled: settings.reservation_reminder_24h_enabled ?? false,

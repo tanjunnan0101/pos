@@ -815,7 +815,18 @@
     "SLOT_STATE_PAST": "Past or too soon",
     "SLOT_STATE_CLOSED_DAY": "Closed",
     "SLOT_STATE_OUT_OF_HOURS": "Outside opening hours",
-    "SLOT_STATE_OUT_OF_RANGE": "Outside booking window"
+    "SLOT_STATE_OUT_OF_RANGE": "Outside booking window",
+    "SERVICE_TYPE": "Service",
+    "SERVICE_ALL": "Lunch and dinner",
+    "SERVICE_LUNCH": "Lunch",
+    "SERVICE_DINNER": "Dinner",
+    "SEATING_PREFERENCE": "Seating",
+    "SEATING_ANY": "No preference",
+    "SEATING_INDOOR": "Indoor",
+    "SEATING_TERRACE": "Terrace / outdoor",
+    "ALLERGIES_HAS": "We have allergies or intolerances",
+    "ALLERGIES_DETAIL_PLACEHOLDER": "Describe allergies (e.g. nuts, gluten)",
+    "ALLERGIES_DETAIL_REQUIRED": "Please describe allergies when you indicate allergies."
   },
   "FEEDBACK": {
     "TITLE": "How was your visit?",
@@ -1266,6 +1277,8 @@
     "RESERVATION_AVG_TABLE_TURN_HINT": "Typical time a party occupies a table after seating. Used to plan when that table can be booked again. Leave empty to use a simple same-day block (no turn window).",
     "RESERVATION_SLOT_MINUTES": "Booking time slot step (minutes)",
     "RESERVATION_SLOT_MINUTES_HINT": "Interval between offered start times on the public booking grid (e.g. 15 or 30). Leave empty or 0 for 15-minute steps.",
+    "RESERVATION_MAX_GUESTS_PER_SLOT": "Max guests per time slot (optional)",
+    "RESERVATION_MAX_GUESTS_PER_SLOT_HINT": "Caps total guests that can book the same start time (in addition to table capacity). Leave empty for no extra limit.",
     "RESERVATION_WALK_IN_TABLES": "Tables reserved for walk-ins",
     "RESERVATION_WALK_IN_TABLES_HINT": "Number of tables kept out of online reservation capacity so you can seat walk-in guests. Smallest tables are withheld first.",
     "RESERVATION_DRESS_CODE": "Dress code",

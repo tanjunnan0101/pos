@@ -161,6 +161,8 @@ class Tenant(SQLModel, table=True):
     reservation_average_table_turn_minutes: int | None = Field(default=None)
     # Interval between bookable start times on public grid (null or unset = 15 minutes)
     reservation_slot_minutes: int | None = Field(default=None)
+    # When set (>0), caps total guests per time slot to min(physical reservable seats, this value).
+    reservation_max_guests_per_slot: int | None = Field(default=None)
     # Tables kept out of reservation pool so walk-ins can be seated (smallest tables dropped first from pool)
     reservation_walk_in_tables_reserved: int = Field(default=0)
     reservation_dress_code: str | None = Field(default=None)
@@ -581,6 +583,11 @@ class Reservation(TenantMixin, table=True):
     # When each reminder was sent (by staff or by heartbeat); null = not sent yet
     reminder_24h_sent_at: datetime | None = Field(default=None)
     reminder_2h_sent_at: datetime | None = Field(default=None)
+    # Booking preferences (public / staff): lunch vs dinner when opening hours have a break; seating; allergies
+    service_type: str | None = Field(default=None, max_length=16)  # lunch | dinner
+    seating_preference: str | None = Field(default=None, max_length=32)  # indoor | terrace | no_preference
+    allergies_has: bool = Field(default=False)
+    allergies_detail: str | None = Field(default=None)
 
 
 class GuestFeedback(TenantMixin, table=True):
@@ -788,6 +795,10 @@ class ReservationCreate(SQLModel):
     client_fingerprint: str | None = None
     client_screen_width: int | None = None
     client_screen_height: int | None = None
+    service_type: str | None = None  # lunch | dinner
+    seating_preference: str | None = None  # indoor | terrace | no_preference
+    allergies_has: bool | None = None
+    allergies_detail: str | None = None
 
 
 class ReservationUpdate(SQLModel):
@@ -801,6 +812,10 @@ class ReservationUpdate(SQLModel):
     customer_notes: str | None = None
     owner_notes: str | None = None
     delay_notice: str | None = Field(default=None, max_length=500)
+    service_type: str | None = None
+    seating_preference: str | None = None
+    allergies_has: bool | None = None
+    allergies_detail: str | None = None
 
 
 class ReservationStatusUpdate(SQLModel):
@@ -836,6 +851,10 @@ class PublicReservationCreate(SQLModel):
     client_fingerprint: str | None = None
     client_screen_width: int | None = None
     client_screen_height: int | None = None
+    service_type: str | None = None
+    seating_preference: str | None = None
+    allergies_has: bool | None = None
+    allergies_detail: str | None = None
 
 
 class PublicReservationUpdate(SQLModel):
@@ -1027,6 +1046,7 @@ class TenantUpdate(SQLModel):
     reservation_arrival_tolerance_minutes: int | None = None
     reservation_average_table_turn_minutes: int | None = None
     reservation_slot_minutes: int | None = None
+    reservation_max_guests_per_slot: int | None = None
     reservation_walk_in_tables_reserved: int | None = None
     reservation_dress_code: str | None = None
     reservation_reminder_24h_enabled: bool | None = None

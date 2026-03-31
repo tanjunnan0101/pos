@@ -23,6 +23,8 @@ export class ReservationWeekSlotGridComponent {
   excludeReservationId = input<number | null>(null);
   /** When this changes (e.g. modal opens with a date), reload the right week. */
   weekAnchorSeed = input<string | null>(null);
+  /** When opening hours have lunch+dinner, filter grid to one service (same backend as /book). */
+  serviceType = input<'all' | 'lunch' | 'dinner'>('all');
 
   selectedDate = model<string>('');
   selectedTime = model<string>('');
@@ -37,6 +39,7 @@ export class ReservationWeekSlotGridComponent {
       this.excludeReservationId();
       this.weekAnchorSeed()?.trim();
       this.timezone();
+      this.serviceType();
       if (!tid) return;
       untracked(() => {
         const w = this.bookWeekSlots();
@@ -71,7 +74,9 @@ export class ReservationWeekSlotGridComponent {
     if (!tid) return;
     this.weekSlotsLoading.set(true);
     const excl = this.excludeReservationId();
-    this.api.getReservationBookWeekSlots(tid, this.partySize(), weekAnchor ?? undefined, excl).subscribe({
+    const svc = this.serviceType();
+    const apiSvc = svc === 'all' ? null : svc;
+    this.api.getReservationBookWeekSlots(tid, this.partySize(), weekAnchor ?? undefined, excl, apiSvc).subscribe({
       next: (res) => {
         this.bookWeekSlots.set(res);
         this.weekSlotsLoading.set(false);
@@ -199,7 +204,9 @@ export class ReservationWeekSlotGridComponent {
     }
     const tid = this.tenantId();
     if (!tid) return;
-    this.api.getNextAvailableReservation(tid, this.tenantTodayDateStr(), this.partySize()).subscribe({
+    const svc = this.serviceType();
+    const apiSvc = svc === 'all' ? null : svc;
+    this.api.getNextAvailableReservation(tid, this.tenantTodayDateStr(), this.partySize(), undefined, apiSvc).subscribe({
       next: (res) => {
         this.selectedDate.set(res.date);
         this.selectedTime.set(this.roundTimeToQuarter(res.time));

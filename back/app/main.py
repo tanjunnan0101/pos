@@ -729,6 +729,8 @@ class TenantSummary(_BaseModel):
     privacy_policy_url: str | None = None
     # IANA timezone (e.g. Europe/Madrid) for public book page date/time UX
     timezone: str | None = None
+    # Optional cap on guests per slot (for UI max party hint)
+    reservation_max_guests_per_slot: int | None = None
 
 
 TAKE_AWAY_TABLE_NAMES = ("take away", "home ordering", "takeaway", "take-away")
@@ -864,6 +866,7 @@ def _tenant_to_summary(t: models.Tenant, session: Session) -> TenantSummary:
         terms_of_service_url=tos,
         privacy_policy_url=priv,
         timezone=t.timezone,
+        reservation_max_guests_per_slot=t.reservation_max_guests_per_slot,
     )
 
 
@@ -2491,6 +2494,17 @@ def update_tenant_settings(
             )
         else:
             tenant.reservation_slot_minutes = int(v)
+    if tenant_update.reservation_max_guests_per_slot is not None:
+        v = tenant_update.reservation_max_guests_per_slot
+        if v is None or v <= 0:
+            tenant.reservation_max_guests_per_slot = None
+        elif v > 500:
+            raise HTTPException(
+                status_code=400,
+                detail="reservation_max_guests_per_slot must be between 1 and 500, or 0 to clear",
+            )
+        else:
+            tenant.reservation_max_guests_per_slot = int(v)
     if tenant_update.reservation_walk_in_tables_reserved is not None:
         w = tenant_update.reservation_walk_in_tables_reserved
         tenant.reservation_walk_in_tables_reserved = max(0, int(w))
@@ -6133,14 +6147,33 @@ def _opening_service_windows_for_date(tenant: models.Tenant, res_date: date) -> 
     return _service_windows_from_day_hours(day_hours)
 
 
+def _filter_windows_by_service(
+    windows: List[Tuple[time, time]], service: str | None
+) -> List[Tuple[time, time]]:
+    """Keep lunch (first segment) or dinner (last segment) when the day has a lunch/dinner split."""
+    if not windows:
+        return []
+    s = (service or "").strip().lower()
+    if s in ("", "all", "any"):
+        return windows
+    if s == "lunch":
+        return [windows[0]] if len(windows) >= 1 else []
+    if s == "dinner":
+        return [windows[-1]] if len(windows) >= 2 else windows
+    return windows
+
+
 def _raise_if_reservation_time_invalid_for_opening_hours(
-    tenant: models.Tenant, res_date: date, res_time: time
+    tenant: models.Tenant, res_date: date, res_time: time, service: str | None = None
 ) -> None:
     windows = _opening_service_windows_for_date(tenant, res_date)
     if windows is None:
         return
     if len(windows) == 0:
         raise HTTPException(status_code=400, detail="Restaurant is closed on that day")
+    windows = _filter_windows_by_service(windows, service)
+    if len(windows) == 0:
+        raise HTTPException(status_code=400, detail="Restaurant is closed for this service")
     for open_t, close_t in windows:
         if res_time < open_t:
             continue
@@ -6223,6 +6256,10 @@ def _reservation_to_dict(
         "customer_notes": getattr(r, "customer_notes", None),
         "owner_notes": r.owner_notes,
         "delay_notice": getattr(r, "delay_notice", None),
+        "service_type": getattr(r, "service_type", None),
+        "seating_preference": getattr(r, "seating_preference", None),
+        "allergies_has": bool(getattr(r, "allergies_has", False)),
+        "allergies_detail": getattr(r, "allergies_detail", None),
     }
     if session and r.table_id is not None:
         table = session.get(models.Table, r.table_id)
@@ -6387,7 +6424,12 @@ def _reservable_capacity_for_tenant(
     if walk >= len(eligible):
         return (0, 0)
     pool = eligible[walk:]
-    return (sum(x.seat_count for x in pool), len(pool))
+    total_seats = sum(x.seat_count for x in pool)
+    n_tables = len(pool)
+    cap = tenant.reservation_max_guests_per_slot
+    if cap is not None and cap > 0:
+        total_seats = min(total_seats, cap)
+    return (total_seats, n_tables)
 
 
 def _demand_for_slot(
@@ -6409,6 +6451,41 @@ def _demand_for_slot(
     reservations = session.exec(q).all()
     reserved_guests = sum(r.party_size for r in reservations)
     return (reserved_guests, len(reservations))
+
+
+def _normalize_reservation_service_type(raw: str | None) -> str | None:
+    if raw is None or not str(raw).strip():
+        return None
+    s = str(raw).strip().lower()
+    if s in ("all", "any"):
+        return None
+    if s in ("lunch", "dinner"):
+        return s
+    raise HTTPException(status_code=400, detail="Invalid service_type")
+
+
+def _normalize_seating_preference(raw: str | None) -> str | None:
+    if raw is None or not str(raw).strip():
+        return None
+    s = str(raw).strip().lower()
+    if s in ("indoor", "terrace", "no_preference"):
+        return s
+    raise HTTPException(status_code=400, detail="Invalid seating_preference")
+
+
+def _normalize_allergies_for_booking(
+    allergies_has: bool | None, allergies_detail: str | None
+) -> tuple[bool, str | None]:
+    has = bool(allergies_has) if allergies_has is not None else False
+    detail = (allergies_detail or "").strip() if allergies_detail else None
+    if has and not detail:
+        raise HTTPException(
+            status_code=400,
+            detail="Allergies detail is required when allergies are indicated",
+        )
+    if not has:
+        return (False, None)
+    return (True, detail)
 
 
 @app.get("/reservations/slot-capacity")
@@ -6668,7 +6745,12 @@ def create_reservation(
     else:
         if res_dt <= now_local:
             raise HTTPException(status_code=400, detail="Reservation time must be in the future")
-    _raise_if_reservation_time_invalid_for_opening_hours(tenant, res_date, res_time)
+    service_type = _normalize_reservation_service_type(getattr(data, "service_type", None))
+    seating_pref = _normalize_seating_preference(getattr(data, "seating_preference", None))
+    ah_raw = getattr(data, "allergies_has", None)
+    ad_raw = getattr(data, "allergies_detail", None)
+    allergies_has, allergies_detail = _normalize_allergies_for_booking(ah_raw, ad_raw)
+    _raise_if_reservation_time_invalid_for_opening_hours(tenant, res_date, res_time, service_type)
     total_seats, total_tables = _reservable_capacity_for_tenant(
         session, tenant_id, res_date, tenant, res_time
     )
@@ -6709,6 +6791,10 @@ def create_reservation(
         client_fingerprint=data.client_fingerprint,
         client_screen_width=data.client_screen_width,
         client_screen_height=data.client_screen_height,
+        service_type=service_type,
+        seating_preference=seating_pref,
+        allergies_has=allergies_has,
+        allergies_detail=allergies_detail,
     )
     session.add(reservation)
     session.commit()
@@ -6817,12 +6903,20 @@ def get_reservation_book_week_slots(
         None,
         description="Exclude this reservation from demand (staff edit: current booking)",
     ),
+    service: str | None = Query(
+        None,
+        description="Optional lunch|dinner to show only that service window when opening hours have a break",
+    ),
     session: Session = Depends(get_session),
 ) -> dict:
     """Public: per-slot availability for a Mon–Sun grid (party size and capacity)."""
     tenant = session.get(models.Tenant, tenant_id)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
+
+    svc: str | None = None
+    if service and str(service).strip():
+        svc = _normalize_reservation_service_type(str(service).strip())
 
     tz = ZoneInfo(tenant.timezone) if tenant.timezone else timezone.utc
     now_local = datetime.now(tz)
@@ -6849,6 +6943,9 @@ def get_reservation_book_week_slots(
             windows = [(time(8, 0), time(23, 0))]
         if len(windows) == 0:
             continue
+        windows = _filter_windows_by_service(windows, svc)
+        if len(windows) == 0:
+            continue
         for st in _grid_slot_times_for_windows(windows, slot_step):
             all_slot_times.add(st)
 
@@ -6862,10 +6959,11 @@ def get_reservation_book_week_slots(
         windows = _opening_service_windows_for_date(tenant, d)
         if windows is None:
             windows = [(time(8, 0), time(23, 0))]
-        day_closed = len(windows) == 0
+        windows_f = _filter_windows_by_service(windows, svc)
+        day_closed = len(windows) == 0 or len(windows_f) == 0
         allowed_times = set()
         if not day_closed:
-            allowed_times = set(_grid_slot_times_for_windows(windows, slot_step))
+            allowed_times = set(_grid_slot_times_for_windows(windows_f, slot_step))
 
         for st in times_sorted:
             key = st.strftime("%H:%M")
@@ -6924,12 +7022,17 @@ def get_next_available_reservation_time(
         le=240,
         description="Earliest slot must be at least this many minutes from now (use 0 for staff tools)",
     ),
+    service: str | None = Query(None, description="Optional lunch|dinner for split opening hours"),
     session: Session = Depends(get_session),
 ) -> dict:
     """Public: find the next slot with capacity (by seats and table count)."""
     tenant = session.get(models.Tenant, tenant_id)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
+
+    svc: str | None = None
+    if service and str(service).strip():
+        svc = _normalize_reservation_service_type(str(service).strip())
 
     tz = ZoneInfo(tenant.timezone) if tenant.timezone else timezone.utc
     now_local = datetime.now(tz)
@@ -6946,6 +7049,9 @@ def get_next_available_reservation_time(
         windows = _opening_service_windows_for_date(tenant, d)
         if windows is None:
             windows = [(time(8, 0), time(23, 0))]
+        if len(windows) == 0:
+            continue
+        windows = _filter_windows_by_service(windows, svc)
         if len(windows) == 0:
             continue
 
@@ -7054,6 +7160,24 @@ def update_reservation(
         reservation.reservation_time = _parse_reservation_time(body.reservation_time)
     if body.party_size is not None:
         reservation.party_size = body.party_size
+    upd = body.model_dump(exclude_unset=True)
+    if "service_type" in upd:
+        reservation.service_type = (
+            _normalize_reservation_service_type(body.service_type) if body.service_type else None
+        )
+    if "seating_preference" in upd:
+        reservation.seating_preference = (
+            _normalize_seating_preference(body.seating_preference) if body.seating_preference else None
+        )
+    if "allergies_has" in upd:
+        reservation.allergies_has = bool(body.allergies_has)
+    if "allergies_detail" in upd:
+        reservation.allergies_detail = (body.allergies_detail or "").strip() or None
+    ah_ok, ad_ok = _normalize_allergies_for_booking(
+        reservation.allergies_has, reservation.allergies_detail
+    )
+    reservation.allergies_has = ah_ok
+    reservation.allergies_detail = ad_ok
     tenant = session.get(models.Tenant, reservation.tenant_id)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
@@ -7063,7 +7187,7 @@ def update_reservation(
     if reservation.reservation_date and reservation.reservation_date > max_ahead_date:
         raise HTTPException(status_code=400, detail=get_message("reservation_date_too_far", lang))
     _raise_if_reservation_time_invalid_for_opening_hours(
-        tenant, reservation.reservation_date, reservation.reservation_time
+        tenant, reservation.reservation_date, reservation.reservation_time, reservation.service_type
     )
     total_seats, total_tables = _reservable_capacity_for_tenant(
         session, current_user.tenant_id, reservation.reservation_date, tenant, reservation.reservation_time

@@ -807,7 +807,18 @@
     "SLOT_STATE_PAST": "Pasado o demasiado pronto",
     "SLOT_STATE_CLOSED_DAY": "Cerrado",
     "SLOT_STATE_OUT_OF_HOURS": "Fuera del horario",
-    "SLOT_STATE_OUT_OF_RANGE": "Fuera del plazo de reserva"
+    "SLOT_STATE_OUT_OF_RANGE": "Fuera del plazo de reserva",
+    "SERVICE_TYPE": "Servicio",
+    "SERVICE_ALL": "Comida y cena",
+    "SERVICE_LUNCH": "Comida",
+    "SERVICE_DINNER": "Cena",
+    "SEATING_PREFERENCE": "Ubicación",
+    "SEATING_ANY": "Sin preferencia",
+    "SEATING_INDOOR": "Interior",
+    "SEATING_TERRACE": "Terraza / exterior",
+    "ALLERGIES_HAS": "Tenemos alergias o intolerancias",
+    "ALLERGIES_DETAIL_PLACEHOLDER": "Describe las alergias (p. ej. frutos secos, gluten)",
+    "ALLERGIES_DETAIL_REQUIRED": "Describe las alergias cuando indiques que las hay."
   },
   "FEEDBACK": {
     "TITLE": "¿Cómo fue tu visita?",
@@ -1251,6 +1262,8 @@
     "RESERVATION_AVG_TABLE_TURN_HINT": "Tiempo típico que ocupa un grupo tras sentarse. Sirve para calcular cuándo la mesa puede reservarse de nuevo. Déjalo vacío para bloquear el día sin ventana de rotación.",
     "RESERVATION_SLOT_MINUTES": "Intervalo entre horarios de reserva (minutos)",
     "RESERVATION_SLOT_MINUTES_HINT": "Separación entre horas de inicio en la reserva pública (p. ej. 15 o 30). Déjalo vacío o 0 para pasos de 15 minutos.",
+    "RESERVATION_MAX_GUESTS_PER_SLOT": "Máx. comensales por franja horaria (opcional)",
+    "RESERVATION_MAX_GUESTS_PER_SLOT_HINT": "Limita el total de comensales que pueden reservar la misma hora de inicio (además de la capacidad de mesas). Déjalo vacío para no aplicar límite extra.",
     "RESERVATION_WALK_IN_TABLES": "Mesas reservadas para walk-in",
     "RESERVATION_WALK_IN_TABLES_HINT": "Mesas que no cuentan en la capacidad de reservas online para poder atender sin cita. Se priorizan las mesas más pequeñas.",
     "RESERVATION_DRESS_CODE": "Código de vestimenta",

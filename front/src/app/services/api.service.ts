@@ -418,6 +418,8 @@ export interface TenantSummary {
   privacy_policy_url?: string | null;
   /** IANA timezone for reservation date/time UX (e.g. Europe/Madrid). */
   timezone?: string | null;
+  /** Optional max guests per time slot (tenant cap); for book UI limits */
+  reservation_max_guests_per_slot?: number | null;
 }
 
 /** GET /public/legal-urls — product-wide defaults from server config. */
@@ -691,6 +693,10 @@ export interface Reservation {
   customer_notes?: string | null;
   owner_notes?: string | null;
   delay_notice?: string | null;
+  service_type?: string | null;
+  seating_preference?: string | null;
+  allergies_has?: boolean;
+  allergies_detail?: string | null;
   /** Present only for staff responses */
   client_ip?: string | null;
   client_user_agent?: string | null;
@@ -712,6 +718,10 @@ export interface ReservationCreate {
   client_fingerprint?: string | null;
   client_screen_width?: number | null;
   client_screen_height?: number | null;
+  service_type?: string | null;
+  seating_preference?: string | null;
+  allergies_has?: boolean | null;
+  allergies_detail?: string | null;
 }
 
 export interface ReservationUpdate {
@@ -725,6 +735,10 @@ export interface ReservationUpdate {
   customer_notes?: string | null;
   owner_notes?: string | null;
   delay_notice?: string | null;
+  service_type?: string | null;
+  seating_preference?: string | null;
+  allergies_has?: boolean | null;
+  allergies_detail?: string | null;
 }
 
 /** Public update by token: delay notice, reservation notes, customer notes. */
@@ -901,6 +915,8 @@ export interface TenantSettings {
   reservation_average_table_turn_minutes?: number | null;
   /** Minutes between bookable start times on public grid; null = 15 */
   reservation_slot_minutes?: number | null;
+  /** Cap total guests per time slot (min with physical pool); null = no extra cap */
+  reservation_max_guests_per_slot?: number | null;
   /** Tables kept out of the reservation pool for walk-ins (smallest tables first) */
   reservation_walk_in_tables_reserved?: number | null;
   reservation_dress_code?: string | null;
@@ -1495,11 +1511,14 @@ export class ApiService {
     date: string,
     partySize?: number,
     /** 0 = staff (earliest slot same day); omit/default 10 = public book lead time */
-    minLeadMinutes?: number
+    minLeadMinutes?: number,
+    /** lunch|dinner when opening hours have a break */
+    service?: 'lunch' | 'dinner' | null
   ): Observable<{ date: string; time: string }> {
     let params: Record<string, string> = { tenant_id: tenantId.toString(), date };
     if (partySize != null && partySize > 0) params['party_size'] = String(partySize);
     if (minLeadMinutes !== undefined) params['min_lead_minutes'] = String(minLeadMinutes);
+    if (service === 'lunch' || service === 'dinner') params['service'] = service;
     return this.http.get<{ date: string; time: string }>(`${this.apiUrl}/reservations/next-available`, { params });
   }
 
@@ -1521,7 +1540,8 @@ export class ApiService {
     tenantId: number,
     partySize: number,
     weekAnchor?: string | null,
-    excludeReservationId?: number | null
+    excludeReservationId?: number | null,
+    service?: 'lunch' | 'dinner' | null
   ): Observable<ReservationBookWeekSlotsResponse> {
     const params: Record<string, string> = {
       tenant_id: String(tenantId),
@@ -1531,6 +1551,7 @@ export class ApiService {
     if (excludeReservationId != null && excludeReservationId > 0) {
       params['exclude_reservation_id'] = String(excludeReservationId);
     }
+    if (service === 'lunch' || service === 'dinner') params['service'] = service;
     return this.http.get<ReservationBookWeekSlotsResponse>(`${this.apiUrl}/reservations/book-week-slots`, {
       params,
     });

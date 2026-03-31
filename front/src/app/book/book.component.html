@@ -145,25 +145,72 @@
         }
         <div class="book-card">
           <form (ngSubmit)="submit()" class="book-form">
+            <div class="book-booking-controls">
+              <div class="form-group">
+                <label for="book-party">{{ 'RESERVATIONS.PARTY_SIZE' | translate }}</label>
+                <input
+                  id="book-party"
+                  type="number"
+                  min="1"
+                  [max]="maxPartySize()"
+                  [(ngModel)]="formPartySize"
+                  name="partySize"
+                  required
+                />
+              </div>
+              @if (hasMealSplit()) {
+                <div class="form-group">
+                  <label for="book-service">{{ 'BOOK.SERVICE_TYPE' | translate }}</label>
+                  <select id="book-service" [(ngModel)]="formService" name="serviceType">
+                    <option value="all">{{ 'BOOK.SERVICE_ALL' | translate }}</option>
+                    <option value="lunch">{{ 'BOOK.SERVICE_LUNCH' | translate }}</option>
+                    <option value="dinner">{{ 'BOOK.SERVICE_DINNER' | translate }}</option>
+                  </select>
+                </div>
+              }
+              <div class="form-group book-seating-group">
+                <span class="label-block">{{ 'BOOK.SEATING_PREFERENCE' | translate }}</span>
+                <div class="radio-row">
+                  <label class="radio-label">
+                    <input type="radio" name="bookSeating" [(ngModel)]="formSeating" value="no_preference" />
+                    {{ 'BOOK.SEATING_ANY' | translate }}
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="bookSeating" [(ngModel)]="formSeating" value="indoor" />
+                    {{ 'BOOK.SEATING_INDOOR' | translate }}
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="bookSeating" [(ngModel)]="formSeating" value="terrace" />
+                    {{ 'BOOK.SEATING_TERRACE' | translate }}
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" [(ngModel)]="formAllergiesHas" name="allergiesHas" />
+                  {{ 'BOOK.ALLERGIES_HAS' | translate }}
+                </label>
+                @if (formAllergiesHas) {
+                  <textarea
+                    id="book-allergies"
+                    class="book-allergies-detail"
+                    [(ngModel)]="formAllergiesDetail"
+                    name="allergiesDetail"
+                    rows="2"
+                    [placeholder]="'BOOK.ALLERGIES_DETAIL_PLACEHOLDER' | translate"
+                  ></textarea>
+                }
+              </div>
+            </div>
             <app-reservation-week-slot-grid
               [tenantId]="tenantId()"
               [partySize]="formPartySize"
               [timezone]="tenant()?.timezone ?? null"
               [weekAnchorSeed]="formDate"
+              [serviceType]="hasMealSplit() ? formService : 'all'"
               [(selectedDate)]="formDate"
               [(selectedTime)]="formTime"
             />
-            <div class="form-group">
-              <label>{{ 'RESERVATIONS.PARTY_SIZE' | translate }}</label>
-              <input
-                type="number"
-                min="1"
-                max="20"
-                [(ngModel)]="formPartySize"
-                name="partySize"
-                required
-              />
-            </div>
             <div class="form-group">
               <label>{{ 'RESERVATIONS.CUSTOMER_NAME' | translate }}</label>
               <input type="text" [(ngModel)]="formName" name="name" required />

@@ -670,7 +670,18 @@
     "CAL_NEXT_MONTH": "Nächster Monat",
     "CAL_CLOSED": "Geschlossen",
     "CAL_AVAILABLE": "Geöffnet",
-    "CAL_SELECTED": "Ausgewählt"
+    "CAL_SELECTED": "Ausgewählt",
+    "SERVICE_TYPE": "Service",
+    "SERVICE_ALL": "Mittag- und Abendessen",
+    "SERVICE_LUNCH": "Mittagessen",
+    "SERVICE_DINNER": "Abendessen",
+    "SEATING_PREFERENCE": "Sitzplatz",
+    "SEATING_ANY": "Keine Präferenz",
+    "SEATING_INDOOR": "Innen",
+    "SEATING_TERRACE": "Terrasse / Außen",
+    "ALLERGIES_HAS": "Wir haben Allergien oder Unverträglichkeiten",
+    "ALLERGIES_DETAIL_PLACEHOLDER": "Allergien beschreiben (z. B. Nüsse, Gluten)",
+    "ALLERGIES_DETAIL_REQUIRED": "Bitte Allergien beschreiben."
   },
   "FEEDBACK": {
     "TITLE": "Wie war Ihr Besuch?",
@@ -1052,6 +1063,8 @@
     "RESERVATION_AVG_TABLE_TURN_HINT": "Typische Dauer, die eine Gruppe nach dem Setzen am Tisch bleibt. Bestimmt, wann der Tisch wieder reservierbar ist. Leer lassen für einfachen Tagesblock ohne Zeitfenster.",
     "RESERVATION_SLOT_MINUTES": "Raster für Buchungszeiten (Minuten)",
     "RESERVATION_SLOT_MINUTES_HINT": "Abstand zwischen Startzeiten im öffentlichen Buchungsraster (z. B. 15 oder 30). Leer oder 0 = 15-Minuten-Raster.",
+    "RESERVATION_MAX_GUESTS_PER_SLOT": "Max. Gäste pro Zeitfenster (optional)",
+    "RESERVATION_MAX_GUESTS_PER_SLOT_HINT": "Begrenzt die Gesamtzahl der Gäste zur gleichen Startzeit (zusätzlich zur Tischkapazität). Leer lassen für kein zusätzliches Limit.",
     "RESERVATION_WALK_IN_TABLES": "Tische für Walk-in freihalten",
     "RESERVATION_WALK_IN_TABLES_HINT": "Anzahl Tische außerhalb der Online-Reservierungskapazität für spontane Gäste. Zuerst die kleinsten Tische.",
     "RESERVATION_DRESS_CODE": "Kleiderordnung",
