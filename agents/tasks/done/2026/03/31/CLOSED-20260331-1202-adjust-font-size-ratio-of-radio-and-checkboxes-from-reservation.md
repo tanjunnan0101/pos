@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue #128 asked for better visual balance of reservation radios/checkboxes with form typography and removal of a duplicate allergies textarea.
+- **What was done:** Public `/book` and staff reservation modal now use a single dietary/allergies field with aligned submit/PUT behavior, merged display for legacy split values, and SCSS/inline sizing so radios/checkboxes match label text.
+- **What was tested:** `ng build --configuration=development`, `test:landing-version`, `debug-reservations-public.mjs`, programmatic checks on `/book/1` and staff New modal, and front container logs — all **PASS** (optional legacy merge edit not run).
+- **Why closed:** Tester **Test report** overall **PASS**; acceptance criteria satisfied.
+- **Closed at (UTC):** 2026-03-31 12:09
+---
+
 # Adjust font size ratio of radio and checkboxes from reservation
 
 ## GitHub
