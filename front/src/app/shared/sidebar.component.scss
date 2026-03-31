@@ -286,6 +286,20 @@
     overflow-x: hidden;
 }
 
+// Staff toolbar: hide main sidebar (tablet+) for a wider canvas
+@include for-tablet-portrait-up {
+    .layout.layout--nav-collapsed {
+        .sidebar {
+            transform: translateX(-100%);
+            pointer-events: none;
+        }
+        .main {
+            margin-left: 0;
+            max-width: 100vw;
+        }
+    }
+}
+
 // Mobile responsive
 @include for-phone-only {
     .mobile-header {

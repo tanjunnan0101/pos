@@ -6,13 +6,15 @@ import { PermissionService, Permission } from '../services/permission.service';
 import { environment } from '../../environments/environment';
 import { LanguagePickerComponent } from './language-picker.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TablesAreaPreferenceService } from '../services/tables-area-preference.service';
+import { StaffLayoutService } from '../services/staff-layout.service';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
   imports: [RouterLink, RouterLinkActive, LanguagePickerComponent, TranslateModule],
   template: `
-    <div class="layout" [class.sidebar-open]="sidebarOpen()">
+    <div class="layout" [class.sidebar-open]="sidebarOpen()" [class.layout--nav-collapsed]="staffLayout.sidebarCollapsed()">
       <header class="mobile-header">
         <button class="menu-toggle" (click)="toggleSidebar()">
           <span></span>
@@ -78,7 +80,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
              </a>
            }
            @if (canViewTables() && moduleEnabled('tables')) {
-             <a routerLink="/tables" routerLinkActive="active" class="nav-link" (click)="closeSidebar()">
+             <a [routerLink]="tablesArea.entryPath()" class="nav-link" [class.active]="isTablesNavActive()" (click)="closeSidebar()">
                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                  <rect x="3" y="3" width="7" height="7"/>
                  <rect x="14" y="3" width="7" height="7"/>
@@ -254,6 +256,8 @@ export class SidebarComponent implements OnInit {
   private router = inject(Router);
   private permissions = inject(PermissionService);
   private translate = inject(TranslateService);
+  tablesArea = inject(TablesAreaPreferenceService);
+  staffLayout = inject(StaffLayoutService);
 
   user = signal<User | null>(null);
   sidebarOpen = signal(false);
@@ -299,6 +303,12 @@ export class SidebarComponent implements OnInit {
 
   moduleEnabled(key: TenantUiModuleKey): boolean {
     return this.api.isUiModuleEnabled(key);
+  }
+
+  /** Highlight Tables nav on both `/tables` and `/tables/canvas`. */
+  isTablesNavActive(): boolean {
+    const path = this.router.url.split('?')[0];
+    return path === '/tables' || path.startsWith('/tables/');
   }
 
   /**

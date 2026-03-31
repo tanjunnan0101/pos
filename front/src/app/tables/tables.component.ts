@@ -5,6 +5,8 @@ import { QRCodeComponent } from 'angularx-qrcode';
 import { ApiService, Table, TenantSettings, Floor, TableActivateResponse, User } from '../services/api.service';
 import { PermissionService } from '../services/permission.service';
 import { SidebarComponent } from '../shared/sidebar.component';
+import { StaffPosToolbarComponent } from '../shared/staff-pos-toolbar.component';
+import { TablesAreaPreferenceService } from '../services/tables-area-preference.service';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal.component';
 import { FocusFirstInputDirective } from '../shared/focus-first-input.directive';
 import { TranslateModule } from '@ngx-translate/core';
@@ -21,10 +23,12 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
 @Component({
   selector: 'app-tables',
   standalone: true,
-  imports: [CommonModule, FormsModule, QRCodeComponent, SidebarComponent, RouterLink, TranslateModule, ConfirmationModalComponent, FocusFirstInputDirective],
+  imports: [CommonModule, FormsModule, QRCodeComponent, SidebarComponent, StaffPosToolbarComponent, RouterLink, TranslateModule, ConfirmationModalComponent, FocusFirstInputDirective],
   template: `
     <app-sidebar>
-        <div class="page-header">
+        <div class="page-header page-header--staff-flow">
+          <app-staff-pos-toolbar />
+          <div class="page-header-row">
           <div class="header-left">
             <h1>{{ 'TABLES.TITLE' | translate }}</h1>
             <a routerLink="/tables/canvas" class="btn btn-ghost btn-sm" data-testid="tables-floor-plan-link">
@@ -63,6 +67,7 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
               {{ 'TABLES.ADD_TABLE' | translate }}
             </button>
           }
+          </div>
         </div>
 
         <div class="content">
@@ -248,7 +253,7 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
                   
                   <div class="table-grid">
                     @for (table of getTablesByFloor(floor.id!); track table.id) {
-                      <div class="table-card">
+                      <div class="table-card" (dblclick)="onTableCardDoubleClick(table)">
                         <div class="table-header">
                           @if (editingTableId() === table.id) {
                             <div class="edit-fields">
@@ -524,6 +529,18 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
   `,
   styles: [`
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-5); }
+    .page-header.page-header--staff-flow {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+    }
+    .page-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+    }
     .header-left { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
     .page-header h1 { font-size: 1.5rem; font-weight: 600; color: var(--color-text); margin: 0; }
     .view-toggle { display: flex; gap: 2px; }
@@ -811,6 +828,7 @@ export class TablesComponent implements OnInit {
   private permissions = inject(PermissionService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private tablesArea = inject(TablesAreaPreferenceService);
 
   /** When true, skip restoring view mode from localStorage (URL ?view= had priority). */
   private viewResolvedFromQuery = false;
@@ -909,6 +927,7 @@ export class TablesComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.tablesArea.setArea('list');
     const v = this.route.snapshot.queryParamMap.get('view');
     if (v === 'tiles' || v === 'table') {
       this.viewResolvedFromQuery = true;
@@ -934,6 +953,14 @@ export class TablesComponent implements OnInit {
   /** Owner/admin: can change table/floor waiter assignment (requires user list API). */
   canManageTableAssignments(): boolean {
     return this.permissions.hasPermission(this.api.getCurrentUser(), 'table:write');
+  }
+
+  /** Double-click a tile: open staff orders filtered to this table. */
+  onTableCardDoubleClick(table: Table) {
+    if (!this.permissions.canAccessRoute(this.api.getCurrentUser(), '/staff/orders') || !table.id) return;
+    void this.router.navigate(['/staff/orders'], {
+      queryParams: { focusTableId: table.id, table: table.id },
+    });
   }
 
   loadData() {

@@ -62,6 +62,13 @@
     "LOGOUT": "Tancar sessió",
     "CONTRACTS": "Contractes"
   },
+  "STAFF_FLOW": {
+    "TOOLBAR_ARIA": "Navegació de personal",
+    "HIDE_NAV": "Amagar el menú principal",
+    "SHOW_NAV": "Mostrar el menú principal",
+    "ENTER_FULLSCREEN": "Pantalla completa",
+    "EXIT_FULLSCREEN": "Sortir de pantalla completa"
+  },
   "LEGAL": {
     "TERMS_OF_SERVICE": "Condicions del servei",
     "PRIVACY_POLICY": "Política de privacitat",
@@ -449,6 +456,9 @@
     "LOADING": "Carregant...",
     "REFRESH": "Actualitzar",
     "NO_ORDERS_DESC": "No hi ha comandes actives en aquest moment",
+    "FOCUS_TABLE_NO_ORDERS": "No s’han trobat comandes per a aquesta taula.",
+    "TABLE_SCOPE_LABEL": "Mostrant comandes de {{name}}",
+    "TABLE_SCOPE_CLEAR": "Mostrar totes les comandes",
     "ORDER_HISTORY": "Historial de comandes",
     "NO_ORDER_HISTORY_YET": "Encara no hi ha comandes al historial",
     "NOT_PAID_YET": "Encara no pagat",

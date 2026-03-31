@@ -62,6 +62,13 @@
     "LOGOUT": "Изход",
     "CONTRACTS": "Договори"
   },
+  "STAFF_FLOW": {
+    "TOOLBAR_ARIA": "Навигация за персонал",
+    "HIDE_NAV": "Скриване на главното меню",
+    "SHOW_NAV": "Показване на главното меню",
+    "ENTER_FULLSCREEN": "Цял екран",
+    "EXIT_FULLSCREEN": "Изход от цял екран"
+  },
   "LEGAL": {
     "TERMS_OF_SERVICE": "Общи условия",
     "PRIVACY_POLICY": "Политика за поверителност",
@@ -462,6 +469,8 @@
     "NO_ORDERS": "Няма отворени поръчки все още.",
     "NO_ORDERS_DESC": "Поръчките ще се появят тук, когато гостите ги направят",
     "FOCUS_TABLE_NO_ORDERS": "Не са намерени поръчки за тази таблица.",
+    "TABLE_SCOPE_LABEL": "Поръчки за {{name}}",
+    "TABLE_SCOPE_CLEAR": "Всички поръчки",
     "ACTIVE_ORDERS": "Активни поръчки",
     "NOT_PAID_YET": "Все още не е платено",
     "SHOW_REMOVED_ITEMS": "Показване на премахнати елементи",

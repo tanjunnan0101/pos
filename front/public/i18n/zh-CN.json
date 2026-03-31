@@ -62,6 +62,13 @@
     "LOGOUT": "退出登录",
     "CONTRACTS": "合同"
   },
+  "STAFF_FLOW": {
+    "TOOLBAR_ARIA": "员工导航",
+    "HIDE_NAV": "隐藏主导航",
+    "SHOW_NAV": "显示主导航",
+    "ENTER_FULLSCREEN": "全屏",
+    "EXIT_FULLSCREEN": "退出全屏"
+  },
   "LEGAL": {
     "TERMS_OF_SERVICE": "服务条款",
     "PRIVACY_POLICY": "隐私政策",
@@ -441,6 +448,9 @@
     "LOADING": "加载中...",
     "REFRESH": "刷新",
     "NO_ORDERS_DESC": "目前没有活跃订单",
+    "FOCUS_TABLE_NO_ORDERS": "此餐桌没有订单。",
+    "TABLE_SCOPE_LABEL": "正在显示 {{name}} 的订单",
+    "TABLE_SCOPE_CLEAR": "显示全部订单",
     "ORDER_HISTORY": "订单历史",
     "NO_ORDER_HISTORY_YET": "暂无历史订单",
     "NOT_PAID_YET": "尚未付款",

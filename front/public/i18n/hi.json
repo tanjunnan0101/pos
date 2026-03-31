@@ -62,6 +62,13 @@
     "LOGOUT": "लॉग आउट",
     "CONTRACTS": "अनुबंध"
   },
+  "STAFF_FLOW": {
+    "TOOLBAR_ARIA": "स्टाफ नेविगेशन",
+    "HIDE_NAV": "मुख्य मेनू छिपाएँ",
+    "SHOW_NAV": "मुख्य मेनू दिखाएँ",
+    "ENTER_FULLSCREEN": "पूर्ण स्क्रीन",
+    "EXIT_FULLSCREEN": "पूर्ण स्क्रीन से बाहर निकलें"
+  },
   "LEGAL": {
     "TERMS_OF_SERVICE": "सेवा की शर्तें",
     "PRIVACY_POLICY": "गोपनीयता नीति",
@@ -441,6 +448,9 @@
     "LOADING": "लोड हो रहा है...",
     "REFRESH": "रिफ्रेश करें",
     "NO_ORDERS_DESC": "वर्तमान में कोई सक्रिय ऑर्डर नहीं",
+    "FOCUS_TABLE_NO_ORDERS": "इस टेबल के लिए कोई ऑर्डर नहीं मिला।",
+    "TABLE_SCOPE_LABEL": "{{name}} के ऑर्डर दिख रहे हैं",
+    "TABLE_SCOPE_CLEAR": "सभी ऑर्डर दिखाएँ",
     "ORDER_HISTORY": "ऑर्डर इतिहास",
     "NO_ORDER_HISTORY_YET": "अभी तक इतिहास में कोई ऑर्डर नहीं",
     "NOT_PAID_YET": "अभी तक भुगतान नहीं किया",

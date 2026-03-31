@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { LowerCasePipe } from '@angular/common';
 import { ApiService, Floor, CanvasTable, TableOperationalStatus, User } from '../services/api.service';
 import { PermissionService } from '../services/permission.service';
@@ -8,6 +8,8 @@ import { SidebarComponent } from '../shared/sidebar.component';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal.component';
 import { FocusFirstInputDirective } from '../shared/focus-first-input.directive';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { StaffPosToolbarComponent } from '../shared/staff-pos-toolbar.component';
+import { TablesAreaPreferenceService } from '../services/tables-area-preference.service';
 
 interface TableShape {
   id: string;
@@ -31,12 +33,14 @@ const STAFF_ORDERS_ROLES = new Set([
 @Component({
   selector: 'app-tables-canvas',
   standalone: true,
-  imports: [FormsModule, SidebarComponent, RouterLink, TranslateModule, LowerCasePipe, ConfirmationModalComponent, FocusFirstInputDirective],
+  imports: [FormsModule, SidebarComponent, StaffPosToolbarComponent, RouterLink, TranslateModule, LowerCasePipe, ConfirmationModalComponent, FocusFirstInputDirective],
   template: `
     <app-sidebar>
       <div class="canvas-container tables-canvas--tablet" data-testid="tables-canvas-root">
         <!-- Header: same options as /tables -->
-        <div class="page-header" data-testid="tables-canvas-header">
+        <div class="page-header page-header--staff-flow" data-testid="tables-canvas-header">
+          <app-staff-pos-toolbar />
+          <div class="page-header-row">
           <div class="header-left">
             <h1>{{ 'TABLES.TITLE' | translate }}</h1>
             <span class="btn btn-ghost btn-sm active" aria-current="page" data-testid="view-option-floor-plan">
@@ -86,6 +90,7 @@ const STAFF_ORDERS_ROLES = new Set([
               </svg>
               {{ 'TABLES.SAVE_LAYOUT' | translate }}
             </button>
+          </div>
           </div>
         </div>
 
@@ -262,6 +267,7 @@ const STAFF_ORDERS_ROLES = new Set([
                     [class.dragging]="isDragging && draggedTable?.id === table.id"
                     [attr.transform]="'translate(' + (table.x_position || 100) + ',' + (table.y_position || 100) + ')'"
                     (mousedown)="onTableMouseDown($event, table)"
+                    (dblclick)="onTableDoubleClick($event, table)"
                     (touchstart)="onTableTouchStart($event, table)"
                   >
                     <!-- Table shape with shadow -->
@@ -474,7 +480,7 @@ const STAFF_ORDERS_ROLES = new Set([
                       <a
                         class="btn btn-primary panel-order-btn"
                         routerLink="/staff/orders"
-                        [queryParams]="{ focusOrder: selectedTable()!.active_order_id }"
+                        [queryParams]="{ focusOrder: selectedTable()!.active_order_id, table: selectedTable()!.id }"
                         data-testid="canvas-open-order-btn">
                         {{ 'TABLES.OPEN_STAFF_ORDER' | translate }}
                       </a>
@@ -482,7 +488,7 @@ const STAFF_ORDERS_ROLES = new Set([
                       <a
                         class="btn btn-primary panel-order-btn"
                         routerLink="/staff/orders"
-                        [queryParams]="{ focusTableId: selectedTable()!.id }"
+                        [queryParams]="{ focusTableId: selectedTable()!.id, table: selectedTable()!.id }"
                         data-testid="canvas-table-orders-btn">
                         {{ 'TABLES.VIEW_TABLE_ORDERS' | translate }}
                       </a>
@@ -690,6 +696,20 @@ const STAFF_ORDERS_ROLES = new Set([
       z-index: 20;
       background: var(--color-bg);
       padding: var(--space-2) 0;
+    }
+
+    .page-header.page-header--staff-flow {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+    }
+
+    .page-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-4);
+      flex-wrap: wrap;
     }
 
     .header-left {
@@ -1416,6 +1436,8 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private translate = inject(TranslateService);
   private permissions = inject(PermissionService);
+  private router = inject(Router);
+  private tablesArea = inject(TablesAreaPreferenceService);
 
   @ViewChild('canvasArea') canvasAreaRef!: ElementRef;
   @ViewChild('canvasSvg') canvasSvgRef!: ElementRef<SVGSVGElement>;
@@ -1498,6 +1520,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit() {
+    this.tablesArea.setArea('canvas');
     this.loadData();
     this.api.waitForInitialAuthCheck().subscribe(() => {
       if (this.canManageTableAssignments()) {
@@ -1934,6 +1957,21 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
         });
       },
       error: err => this.error.set(err.error?.detail || 'Failed to create table')
+    });
+  }
+
+  /** Double-click: open staff orders scoped to this table (same as panel link). */
+  onTableDoubleClick(event: MouseEvent, table: CanvasTable) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging = false;
+    this.draggedTable = null;
+    this.isPanning = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    if (!this.canOpenStaffOrders() || table.id == null) return;
+    void this.router.navigate(['/staff/orders'], {
+      queryParams: { focusTableId: table.id, table: table.id },
     });
   }
 

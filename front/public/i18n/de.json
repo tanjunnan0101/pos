@@ -62,6 +62,13 @@
     "LOGOUT": "Abmelden",
     "CONTRACTS": "Verträge"
   },
+  "STAFF_FLOW": {
+    "TOOLBAR_ARIA": "Personal-Navigation",
+    "HIDE_NAV": "Hauptnavigation ausblenden",
+    "SHOW_NAV": "Hauptnavigation einblenden",
+    "ENTER_FULLSCREEN": "Vollbild",
+    "EXIT_FULLSCREEN": "Vollbild beenden"
+  },
   "LEGAL": {
     "TERMS_OF_SERVICE": "Nutzungsbedingungen",
     "PRIVACY_POLICY": "Datenschutzerklärung",
@@ -450,6 +457,8 @@
     "REFRESH": "Aktualisieren",
     "NO_ORDERS_DESC": "Derzeit keine aktiven Bestellungen",
     "FOCUS_TABLE_NO_ORDERS": "Keine Bestellungen für diesen Tisch gefunden.",
+    "TABLE_SCOPE_LABEL": "Bestellungen für {{name}}",
+    "TABLE_SCOPE_CLEAR": "Alle Bestellungen anzeigen",
     "ORDER_HISTORY": "Bestellverlauf",
     "NO_ORDER_HISTORY_YET": "Noch keine Bestellungen im Verlauf",
     "NOT_PAID_YET": "Noch nicht bezahlt",

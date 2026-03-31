@@ -62,6 +62,13 @@
     "LOGOUT": "Cerrar sesión",
     "CONTRACTS": "Contratos"
   },
+  "STAFF_FLOW": {
+    "TOOLBAR_ARIA": "Navegación de personal",
+    "HIDE_NAV": "Ocultar menú principal",
+    "SHOW_NAV": "Mostrar menú principal",
+    "ENTER_FULLSCREEN": "Pantalla completa",
+    "EXIT_FULLSCREEN": "Salir de pantalla completa"
+  },
   "LEGAL": {
     "TERMS_OF_SERVICE": "Términos del servicio",
     "PRIVACY_POLICY": "Política de privacidad",
@@ -460,6 +467,9 @@
     "DATE": "Fecha",
     "NO_ORDERS": "Aún no hay pedidos",
     "NO_ORDERS_DESC": "Los pedidos aparecerán aquí cuando los clientes los realicen",
+    "FOCUS_TABLE_NO_ORDERS": "No hay pedidos para esta mesa.",
+    "TABLE_SCOPE_LABEL": "Mostrando pedidos de {{name}}",
+    "TABLE_SCOPE_CLEAR": "Ver todos los pedidos",
     "ACTIVE_ORDERS": "Pedidos Activos",
     "NOT_PAID_YET": "Sin Pagar",
     "SHOW_REMOVED_ITEMS": "Mostrar Artículos Eliminados",

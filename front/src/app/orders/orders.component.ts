@@ -18,6 +18,7 @@ import { PermissionService, Permission } from '../services/permission.service';
 import { Subscription } from 'rxjs';
 import { AgGridAngular } from 'ag-grid-angular';
 import { SidebarComponent } from '../shared/sidebar.component';
+import { StaffPosToolbarComponent } from '../shared/staff-pos-toolbar.component';
 import { FocusFirstInputDirective } from '../shared/focus-first-input.directive';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { intlLocaleFromTranslate } from '../shared/intl-locale';
@@ -43,23 +44,34 @@ ModuleRegistry.registerModules([
 @Component({
   selector: 'app-orders',
   standalone: true,
-  imports: [AgGridAngular, SidebarComponent, FormsModule, FocusFirstInputDirective, TranslateModule],
+  imports: [AgGridAngular, SidebarComponent, StaffPosToolbarComponent, FormsModule, FocusFirstInputDirective, TranslateModule],
   template: `
     <app-sidebar>
-        <div class="page-header">
-          <h1>{{ 'ORDERS.TITLE' | translate }}</h1>
-          <button class="btn btn-secondary" (click)="loadOrders()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
-            </svg>
-            {{ 'ORDERS.REFRESH' | translate }}
-          </button>
+        <div class="page-header page-header--staff-flow">
+          <app-staff-pos-toolbar />
+          <div class="page-header-row">
+            <h1>{{ 'ORDERS.TITLE' | translate }}</h1>
+            <button class="btn btn-secondary" (click)="loadOrders()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+              </svg>
+              {{ 'ORDERS.REFRESH' | translate }}
+            </button>
+          </div>
         </div>
 
         <div class="content">
           @if (loading()) {
             <div class="empty-state"><p>{{ 'ORDERS.LOADING' | translate }}</p></div>
           } @else {
+            @if (tableScopeId() != null) {
+              <div class="orders-table-scope-banner" role="status">
+                <span>{{ 'ORDERS.TABLE_SCOPE_LABEL' | translate: { name: tableScopeLabel() } }}</span>
+                <button type="button" class="btn btn-sm btn-secondary" (click)="clearTableScope()">
+                  {{ 'ORDERS.TABLE_SCOPE_CLEAR' | translate }}
+                </button>
+              </div>
+            }
             <!-- Filter Toggle -->
             <div class="filter-tabs">
               <button 
@@ -1010,7 +1022,34 @@ ModuleRegistry.registerModules([
   `,
   styles: [`
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-5); }
+    .page-header.page-header--staff-flow {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+    }
+    .page-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-4);
+    }
     .page-header h1 { font-size: 1.5rem; font-weight: 600; color: var(--color-text); margin: 0; }
+
+    .orders-table-scope-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      margin-bottom: var(--space-4);
+      background: var(--color-primary-light);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--color-text);
+    }
 
     .filter-tabs {
       display: flex;
@@ -1939,10 +1978,13 @@ export class OrdersComponent implements OnInit, OnDestroy {
     }
   }
   private wsSub?: Subscription;
+  private tableScopeQuerySub?: Subscription;
   private toastTimeout?: ReturnType<typeof setTimeout>;
   private quantityDebounceTimeout?: ReturnType<typeof setTimeout>;
 
   orders = signal<Order[]>([]);
+  /** When set (via `?table=` query), order lists show only this table's orders. */
+  tableScopeId = signal<number | null>(null);
   loading = signal(true);
   currency = signal<string>('€');
   currencyCode = signal<string | null>(null);
@@ -2002,12 +2044,22 @@ export class OrdersComponent implements OnInit, OnDestroy {
   // Loading state for async actions
   loadingAction = signal<string | null>(null);
 
+  /** Display name for the scoped table (from loaded orders). */
+  tableScopeLabel = computed(() => {
+    const tid = this.tableScopeId();
+    if (tid == null) return '';
+    const o = this.orders().find(x => x.table_id === tid);
+    return (o?.table_name && String(o.table_name).trim()) ? String(o.table_name) : `#${tid}`;
+  });
+
   // Computed signals for separating active and completed orders
   // Paid orders stay active until delivered (status → completed), so waiters/kitchen/bar still see them
   activeOrders = computed(() => {
-    const list = this.orders().filter(o =>
+    const tid = this.tableScopeId();
+    let list = this.orders().filter(o =>
       ['pending', 'preparing', 'ready', 'partially_delivered', 'paid'].includes(o.status)
     );
+    if (tid != null) list = list.filter(o => o.table_id === tid);
     return [...list].sort((a, b) => {
       if (!!a.staff_urgent !== !!b.staff_urgent) {
         return a.staff_urgent ? -1 : 1;
@@ -2015,12 +2067,18 @@ export class OrdersComponent implements OnInit, OnDestroy {
       return 0;
     });
   });
-  completedOrders = computed(() =>
-    this.orders().filter(o => ['completed', 'cancelled', 'paid'].includes(o.status))
-  );
-  notPaidOrders = computed(() =>
-    this.orders().filter(o => o.status === 'completed' && !o.paid_at)
-  );
+  completedOrders = computed(() => {
+    const tid = this.tableScopeId();
+    let list = this.orders().filter(o => ['completed', 'cancelled', 'paid'].includes(o.status));
+    if (tid != null) list = list.filter(o => o.table_id === tid);
+    return list;
+  });
+  notPaidOrders = computed(() => {
+    const tid = this.tableScopeId();
+    let list = this.orders().filter(o => o.status === 'completed' && !o.paid_at);
+    if (tid != null) list = list.filter(o => o.table_id === tid);
+    return list;
+  });
 
   // AG Grid configuration - custom light theme matching app colors
   gridTheme = themeQuartz.withParams({
@@ -2190,6 +2248,11 @@ export class OrdersComponent implements OnInit, OnDestroy {
   };
 
   ngOnInit() {
+    this.tableScopeQuerySub = this.route.queryParamMap.subscribe(q => {
+      const t = q.get('table');
+      const id = t != null && t !== '' ? Number(t) : NaN;
+      this.tableScopeId.set(Number.isFinite(id) && id > 0 ? id : null);
+    });
     this.loadTenantSettings();
     this.loadOrders();
     // Connect WebSocket for real-time updates (non-blocking - HTTP requests work without it)
@@ -2248,6 +2311,17 @@ export class OrdersComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.wsSub?.unsubscribe();
+    this.tableScopeQuerySub?.unsubscribe();
+  }
+
+  clearTableScope() {
+    this.tableScopeId.set(null);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { table: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
 
@@ -2282,10 +2356,22 @@ export class OrdersComponent implements OnInit, OnDestroy {
         ? Number(focusTableRaw)
         : NaN;
 
+    /** Resolve focus using full order list (ignore table scope filter). */
+    const rawActive = this.orders().filter(o =>
+      ['pending', 'preparing', 'ready', 'partially_delivered', 'paid'].includes(o.status)
+    );
+    const rawNotPaid = this.orders().filter(o => o.status === 'completed' && !o.paid_at);
+
+    let preserveTableId: number | null = null;
+
     const clearParams = () => {
       void this.router.navigate([], {
         relativeTo: this.route,
-        queryParams: { focusOrder: null, focusTableId: null },
+        queryParams: {
+          focusOrder: null,
+          focusTableId: null,
+          ...(preserveTableId != null ? { table: preserveTableId } : {}),
+        },
         queryParamsHandling: 'merge',
         replaceUrl: true,
       });
@@ -2298,10 +2384,13 @@ export class OrdersComponent implements OnInit, OnDestroy {
     if (Number.isFinite(focusOrderId) && focusOrderId > 0) {
       const order = this.orders().find(o => o.id === focusOrderId);
       if (order) {
-        if (this.activeOrders().some(o => o.id === focusOrderId)) {
+        if (order.table_id != null && order.table_id > 0) {
+          preserveTableId = order.table_id;
+        }
+        if (rawActive.some(o => o.id === focusOrderId)) {
           mode = 'active';
           scrollId = focusOrderId;
-        } else if (this.notPaidOrders().some(o => o.id === focusOrderId)) {
+        } else if (rawNotPaid.some(o => o.id === focusOrderId)) {
           mode = 'not_paid';
           scrollId = focusOrderId;
         } else {
@@ -2310,6 +2399,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
         }
       }
     } else if (Number.isFinite(focusTableId) && focusTableId > 0) {
+      preserveTableId = focusTableId;
       const forTable = this.orders().filter(o => o.table_id === focusTableId);
       const activeStatuses = ['pending', 'preparing', 'ready', 'partially_delivered', 'paid'];
       const activeForTable = forTable

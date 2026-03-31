@@ -62,6 +62,13 @@
     "LOGOUT": "Logout",
     "CONTRACTS": "Contracts"
   },
+  "STAFF_FLOW": {
+    "TOOLBAR_ARIA": "Staff navigation",
+    "HIDE_NAV": "Hide main navigation",
+    "SHOW_NAV": "Show main navigation",
+    "ENTER_FULLSCREEN": "Enter fullscreen",
+    "EXIT_FULLSCREEN": "Exit fullscreen"
+  },
   "LEGAL": {
     "TERMS_OF_SERVICE": "Terms of service",
     "PRIVACY_POLICY": "Privacy policy",
@@ -462,6 +469,8 @@
     "NO_ORDERS": "No orders yet",
     "NO_ORDERS_DESC": "Orders will appear here when customers place them",
     "FOCUS_TABLE_NO_ORDERS": "No orders found for this table.",
+    "TABLE_SCOPE_LABEL": "Showing orders for {{name}}",
+    "TABLE_SCOPE_CLEAR": "Show all orders",
     "ACTIVE_ORDERS": "Active Orders",
     "NOT_PAID_YET": "Not Paid Yet",
     "SHOW_REMOVED_ITEMS": "Show Removed Items",

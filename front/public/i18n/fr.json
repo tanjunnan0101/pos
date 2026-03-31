@@ -62,6 +62,13 @@
     "LOGOUT": "Déconnexion",
     "CONTRACTS": "Contrats"
   },
+  "STAFF_FLOW": {
+    "TOOLBAR_ARIA": "Navigation du personnel",
+    "HIDE_NAV": "Masquer le menu principal",
+    "SHOW_NAV": "Afficher le menu principal",
+    "ENTER_FULLSCREEN": "Plein écran",
+    "EXIT_FULLSCREEN": "Quitter le plein écran"
+  },
   "LEGAL": {
     "TERMS_OF_SERVICE": "Conditions d’utilisation",
     "PRIVACY_POLICY": "Politique de confidentialité",
@@ -443,6 +450,9 @@
     "DATE": "Date",
     "NO_ORDERS": "Aucune commande pour l'instant",
     "NO_ORDERS_DESC": "Les commandes s'afficheront ici.",
+    "FOCUS_TABLE_NO_ORDERS": "Aucune commande pour cette table.",
+    "TABLE_SCOPE_LABEL": "Commandes pour {{name}}",
+    "TABLE_SCOPE_CLEAR": "Toutes les commandes",
     "ACTIVE_ORDERS": "Commandes en cours",
     "NOT_PAID_YET": "Non payé",
     "SHOW_REMOVED_ITEMS": "Afficher les articles retirés",
