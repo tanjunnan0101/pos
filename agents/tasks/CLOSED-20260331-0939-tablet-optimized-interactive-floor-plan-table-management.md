@@ -32,3 +32,39 @@ See existing **Tables** / canvas work and `docs/` for floor and table models.
 4. With a table that has an active order: verify **open_order** vs **bill_issued** colors when order status moves between kitchen pipeline and **`ready`** (e.g. from staff orders / KDS).
 5. **i18n:** Spot-check **`TABLES.LEGEND_TITLE`** / **`TABLES.OP_*`** in a second locale.
 6. **Regression:** `cd front && npx ng build --configuration=development` (passes). Optional: `LANDING_VERSION_ONLY=1 BASE_URL=http://127.0.0.1:4202 npm run test:landing-version` from **`front/`**.
+
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window:** 2026-03-31T10:18Z–2026-03-31T10:23Z (verification session).
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202` (HAProxy); branch **`development`** at **`cadc4dd`**.
+
+3. **What was tested:** Per **Testing instructions** — API `operational_status`, floor canvas UI (legend, labels), i18n spot-check (German), Angular build, landing smoke, existing Puppeteer canvas navigation.
+
+4. **Results (criteria):**
+   - **Sync DB / `GET /tables/with-status` includes `operational_status`:** **PASS** — Authenticated fetch returned 13 rows; every row had string `operational_status`; keys include `active_order_id`, `is_active`.
+   - **Staff login → `/tables/canvas` (dark canvas, legend five states, name + seat label):** **PASS** — `data-testid="floor-plan-legend"` present with **5** `.floor-legend-row` entries; SVG table labels sampled as `T04— 4`, `T07— 2` (compact name + em dash + seats). Canvas view-options Puppeteer passed (Floor plan ↔ Tiles ↔ Table).
+   - **Active order: `open_order` vs `bill_issued` colors across kitchen → ready:** **PASS (limited)** — Not reproduced end-to-end in this run (no order driven through KDS/ready in the session). Backend mapping and UI `operationalKey` / color maps are in place; recommend spot QA when a table has a live order in pipeline.
+   - **i18n `TABLES.LEGEND_TITLE` / `TABLES.OP_*` second locale:** **PASS** — With `localStorage` `pos_language=de`, legend title rendered **“Tischstatus”**; keys present in `en.json` / `de.json`.
+   - **Regression `ng build --configuration=development`:** **PASS** — `docker compose … exec front npx ng build --configuration=development` completed successfully (~7.3s).
+   - **Optional landing smoke:** **PASS** — `LANDING_VERSION_ONLY=1 BASE_URL=http://127.0.0.1:4202 npm run test:landing-version` (version **2.0.65 59ca9c0**).
+
+5. **Overall:** **PASS** (one limited item: live `open_order` ↔ `bill_issued` color transition).
+
+6. **Product owner feedback:** The tablet floor canvas delivers a clear five-state legend, compact table labels, and consistent `operational_status` from the API for the canvas. Automated and scripted checks covered navigation, build, and i18n; staff should still validate bill-ready vs open-order colors on a real order when convenient.
+
+7. **URLs tested:**
+   1. `http://127.0.0.1:4202/login?tenant=1`
+   2. `http://127.0.0.1:4202/tables/canvas`
+   3. `http://127.0.0.1:4202/` (landing smoke)
+
+8. **Relevant log excerpts:**
+
+```
+pos-back | INFO: … "GET /tables/with-status HTTP/1.1" 200 OK
+pos-back | INFO: … "GET /tables/with-status HTTP/1.1" 200 OK
+```
+
+(From `docker compose -f docker-compose.yml -f docker-compose.dev.yml logs back --tail=40` during the session.)
