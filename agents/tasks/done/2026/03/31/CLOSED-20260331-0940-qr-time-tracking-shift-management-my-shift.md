@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The tester verified the QR-based clock-in/out, breaks, admin live view, and manual work-session adjust flow for issue #121; the test report is **PASS**.
+- **What was done:** Implementation (migration, backend HMAC/clock APIs, My Shift UI, Security QR settings, Reports live/adjust) was confirmed against migrate, pytest `test_work_session.py`, spot-check of OpenAPI/routes, and `test:landing-version` smoke including `/my-shift`.
+- **What was tested:** Migration `20260331180000_work_session_clock_qr_breaks.sql`, 3 backend tests passed, manual/API spot-check, landing smoke with demo login — **overall PASS** (UAT for full QR regenerate + adjust optional per tester).
+- **Why closed:** All listed criteria passed; task archived per agent loop.
+- **Closed at (UTC):** 2026-03-31 10:49
+---
+
 # QR-based time tracking and shift management ("My Shift")
 
 ## GitHub
