@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Smoke tests:** `front/scripts/test-landing-version.mjs` accepts **`LANDING_VERSION_ONLY=1`** to run only the landing/version assertion when **`.env`** contains local demo login vars but **`BASE_URL`** points at a remote host (avoids spurious **401** on production smoke). For non-local **`BASE_URL`**, it runs a short HTTP reachability probe before Puppeteer (clear message on connection failure; **`LANDING_SMOKE_NO_REACHABILITY_PROBE=1`** to skip). Documented in **`docs/testing.md`**.
 
+- **Staff reservation debug script (`front/scripts/debug-reservations.mjs`):** Match POST reservation error responses by pathname ending with **`/reservations`** (instead of a broad URL substring); use E.164 test phone **`+14155550100`** aligned with **`back/tests/test_contact_validation.py`**.
+
 ### Added
 
 - **POS tips — overpayment mode & reporting (GitHub #123):** Tenant **`tip_entry_mode`** (`preset` vs `overpayment`); mark-paid / finish with **`tip_amount_cents`** and optional **`amount_paid_cents`**; **`order.tip_attributed_user_id`** from table/floor waiter; sales report **`total_tips_cents`** / daily **`tips_cents`** / waiter **`tips_cents`**; working-plan month Excel footer with attributed tips total; Settings and Orders payment UI. Migration **`20260331190000_tenant_tip_entry_mode_order_tip_attribution.sql`**.
