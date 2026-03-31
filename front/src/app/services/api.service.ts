@@ -2647,6 +2647,26 @@ export class ApiService {
     });
   }
 
+  /** Planned vs clocked table for a date range as Excel (.xlsx); optional staff filter. */
+  getSchedulePlannedVsActualExport(
+    fromDate: string,
+    toDate: string,
+    lang: string,
+    userId?: number | null,
+  ): Observable<Blob> {
+    let params = new HttpParams().set('from_date', fromDate).set('to_date', toDate);
+    if (lang?.trim()) {
+      params = params.set('lang', lang.trim());
+    }
+    if (userId != null) {
+      params = params.set('user_id', String(userId));
+    }
+    return this.http.get(`${this.apiUrl}/schedule/planned-vs-actual/export`, {
+      params,
+      responseType: 'blob',
+    });
+  }
+
   /** Heuristic compliance checks (weekly hours, rest between shifts, yearly planned threshold). */
   getScheduleComplianceSummary(
     fromDate: string,

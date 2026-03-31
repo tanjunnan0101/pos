@@ -118,3 +118,126 @@ def schedule_export_labels(lang: str | None) -> dict[str, str]:
     if low in _LABELS:
         return _LABELS[low]
     return _LABELS["en"]
+
+
+# --- Planned vs clocked (GET /schedule/planned-vs-actual/export) ---
+
+_PVA_EN: dict[str, str] = {
+    "sheet": "Planned vs clocked",
+    "date": "Date",
+    "staff": "Staff",
+    "planned": "Planned",
+    "clocked": "Clocked",
+    "variance": "Variance",
+    "totals": "Totals",
+    "scope_all": "All staff",
+}
+
+_PVA_DE: dict[str, str] = {
+    **_PVA_EN,
+    "sheet": "Plan vs gestempelt",
+    "date": "Datum",
+    "staff": "Mitarbeiter",
+    "planned": "Geplant",
+    "clocked": "Gestempelt",
+    "variance": "Abweichung",
+    "totals": "Summen",
+    "scope_all": "Alle Mitarbeitenden",
+}
+
+_PVA_ES: dict[str, str] = {
+    **_PVA_EN,
+    "sheet": "Planificado vs fichado",
+    "date": "Fecha",
+    "staff": "Personal",
+    "planned": "Planificado",
+    "clocked": "Fichado",
+    "variance": "Diferencia",
+    "totals": "Totales",
+    "scope_all": "Todo el personal",
+}
+
+_PVA_CA: dict[str, str] = {
+    **_PVA_EN,
+    "sheet": "Planificat vs fitxat",
+    "date": "Data",
+    "staff": "Personal",
+    "planned": "Planificat",
+    "clocked": "Fitxat",
+    "variance": "Diferència",
+    "totals": "Totals",
+    "scope_all": "Tot el personal",
+}
+
+_PVA_FR: dict[str, str] = {
+    **_PVA_EN,
+    "sheet": "Prévu vs pointé",
+    "date": "Date",
+    "staff": "Personnel",
+    "planned": "Prévu",
+    "clocked": "Pointé",
+    "variance": "Écart",
+    "totals": "Totaux",
+    "scope_all": "Tout le personnel",
+}
+
+_PVA_BG: dict[str, str] = {
+    **_PVA_EN,
+    "sheet": "План vs отчетено",
+    "date": "Дата",
+    "staff": "Служител",
+    "planned": "Планирано",
+    "clocked": "Отчетено",
+    "variance": "Отклонение",
+    "totals": "Общо",
+    "scope_all": "Целият персонал",
+}
+
+_PVA_ZH: dict[str, str] = {
+    **_PVA_EN,
+    "sheet": "计划与实际打卡",
+    "date": "日期",
+    "staff": "员工",
+    "planned": "计划",
+    "clocked": "打卡",
+    "variance": "差异",
+    "totals": "合计",
+    "scope_all": "全体员工",
+}
+
+_PVA_HI: dict[str, str] = {
+    **_PVA_EN,
+    "sheet": "योजना बनाम घड़ी",
+    "date": "तारीख",
+    "staff": "कर्मचारी",
+    "planned": "योजना",
+    "clocked": "समय",
+    "variance": "अंतर",
+    "totals": "कुल",
+    "scope_all": "सभी कर्मचारी",
+}
+
+_PVA_LABELS: dict[str, dict[str, str]] = {
+    "en": _PVA_EN,
+    "es": _PVA_ES,
+    "de": _PVA_DE,
+    "ca": _PVA_CA,
+    "fr": _PVA_FR,
+    "bg": _PVA_BG,
+    "zh-CN": _PVA_ZH,
+    "hi": _PVA_HI,
+}
+
+
+def planned_vs_export_labels(lang: str | None) -> dict[str, str]:
+    """Column headers for planned-vs-clocked Excel export."""
+    if not lang or not str(lang).strip():
+        return _PVA_LABELS["en"]
+    raw = str(lang).strip()
+    code = normalize_language_code(raw)
+    if code:
+        return _PVA_LABELS.get(code, _PVA_LABELS["en"])
+    low = raw.lower().replace("_", "-")
+    if low in _PVA_LABELS:
+        return _PVA_LABELS[low]
+    return _PVA_LABELS["en"]

@@ -75,7 +75,7 @@ from .kitchen_stations_util import (
     resolve_order_item_kds,
     validate_kitchen_station_belongs,
 )
-from .schedule_export_i18n import schedule_export_labels
+from .schedule_export_i18n import planned_vs_export_labels, schedule_export_labels
 
 # Rate limiting (slowapi)
 try:
@@ -5818,6 +5818,92 @@ def _shift_duration_minutes(start_t: time, end_t: time) -> int:
     return max(0, em - sm)
 
 
+def _format_hours_minutes_for_export(total_minutes: int) -> str:
+    if total_minutes == 0:
+        return "0"
+    h, m = divmod(total_minutes, 60)
+    if m:
+        return f"{h}h {m}m"
+    return f"{h}h"
+
+
+def _format_hours_minutes_signed_for_export(total_minutes: int) -> str:
+    if total_minutes == 0:
+        return "0"
+    sign = "+" if total_minutes > 0 else "−"
+    return sign + _format_hours_minutes_for_export(abs(total_minutes))
+
+
+def _schedule_planned_vs_actual_row_dicts(
+    session: Session,
+    tenant_id: int,
+    fd: date,
+    td: date,
+    user_id_filter: int | None = None,
+) -> list[dict]:
+    """Planned shift minutes vs clocked net minutes per user per day (UTC day for actual)."""
+    shifts = session.exec(
+        select(models.Shift)
+        .where(models.Shift.tenant_id == tenant_id)
+        .where(models.Shift.shift_date >= fd)
+        .where(models.Shift.shift_date <= td)
+    ).all()
+    start_utc = datetime.combine(fd, time.min, tzinfo=timezone.utc)
+    end_exclusive = datetime.combine(td + timedelta(days=1), time.min, tzinfo=timezone.utc)
+    q = (
+        select(models.WorkSession)
+        .where(models.WorkSession.tenant_id == tenant_id)
+        .where(models.WorkSession.started_at >= start_utc)
+        .where(models.WorkSession.started_at < end_exclusive)
+    )
+    rows_ws = session.exec(q).all()
+
+    planned: dict[tuple[int, date], int] = {}
+    actual: dict[tuple[int, date], int] = {}
+    user_ids: set[int] = set()
+
+    for s in shifts:
+        key = (s.user_id, s.shift_date)
+        planned[key] = planned.get(key, 0) + _shift_duration_minutes(s.start_time, s.end_time)
+        user_ids.add(s.user_id)
+
+    for ws in rows_ws:
+        if ws.ended_at is None:
+            continue
+        nm = work_session_net_duration_minutes(ws, session)
+        if nm is None:
+            continue
+        d = ws.started_at.date()
+        key = (ws.user_id, d)
+        actual[key] = actual.get(key, 0) + nm
+        user_ids.add(ws.user_id)
+
+    all_keys = set(planned.keys()) | set(actual.keys())
+    names: dict[int, str] = {}
+    if user_ids:
+        users = session.exec(select(models.User).where(models.User.id.in_(user_ids))).all()
+        for u in users:
+            names[u.id] = u.full_name or u.email or ""
+
+    out_rows: list[dict] = []
+    for user_id, day in sorted(all_keys, key=lambda x: (x[1], x[0])):
+        p = planned.get((user_id, day), 0)
+        a = actual.get((user_id, day), 0)
+        out_rows.append(
+            {
+                "user_id": user_id,
+                "user_name": names.get(user_id, ""),
+                "date": day.isoformat(),
+                "planned_minutes": p,
+                "actual_minutes": a,
+                "variance_minutes": a - p,
+            }
+        )
+    if user_id_filter is not None:
+        out_rows = [r for r in out_rows if r["user_id"] == user_id_filter]
+    return out_rows
+
+
 def _week_start_monday(d: date) -> date:
     """Monday as first day of week (Python Monday=0)."""
     return d - timedelta(days=d.weekday())
@@ -5903,64 +5989,95 @@ def schedule_planned_vs_actual(
         _mark_working_plan_seen_by_owner(session, current_user.tenant_id)
         session.commit()
 
-    shifts = session.exec(
-        select(models.Shift)
-        .where(models.Shift.tenant_id == current_user.tenant_id)
-        .where(models.Shift.shift_date >= fd)
-        .where(models.Shift.shift_date <= td)
-    ).all()
-    start_utc = datetime.combine(fd, time.min, tzinfo=timezone.utc)
-    end_exclusive = datetime.combine(td + timedelta(days=1), time.min, tzinfo=timezone.utc)
-    q = (
-        select(models.WorkSession)
-        .where(models.WorkSession.tenant_id == current_user.tenant_id)
-        .where(models.WorkSession.started_at >= start_utc)
-        .where(models.WorkSession.started_at < end_exclusive)
-    )
-    rows_ws = session.exec(q).all()
-
-    planned: dict[tuple[int, date], int] = {}
-    actual: dict[tuple[int, date], int] = {}
-    user_ids: set[int] = set()
-
-    for s in shifts:
-        key = (s.user_id, s.shift_date)
-        planned[key] = planned.get(key, 0) + _shift_duration_minutes(s.start_time, s.end_time)
-        user_ids.add(s.user_id)
-
-    for ws in rows_ws:
-        if ws.ended_at is None:
-            continue
-        nm = work_session_net_duration_minutes(ws, session)
-        if nm is None:
-            continue
-        d = ws.started_at.date()
-        key = (ws.user_id, d)
-        actual[key] = actual.get(key, 0) + nm
-        user_ids.add(ws.user_id)
-
-    all_keys = set(planned.keys()) | set(actual.keys())
-    names: dict[int, str] = {}
-    if user_ids:
-        users = session.exec(select(models.User).where(models.User.id.in_(user_ids))).all()
-        for u in users:
-            names[u.id] = u.full_name or u.email or ""
-
-    out_rows: list[dict] = []
-    for user_id, day in sorted(all_keys, key=lambda x: (x[1], x[0])):
-        p = planned.get((user_id, day), 0)
-        a = actual.get((user_id, day), 0)
-        out_rows.append(
-            {
-                "user_id": user_id,
-                "user_name": names.get(user_id, ""),
-                "date": day.isoformat(),
-                "planned_minutes": p,
-                "actual_minutes": a,
-                "variance_minutes": a - p,
-            }
-        )
+    out_rows = _schedule_planned_vs_actual_row_dicts(session, current_user.tenant_id, fd, td, None)
     return {"rows": out_rows}
+
+
+@app.get("/schedule/planned-vs-actual/export")
+def export_schedule_planned_vs_actual(
+    current_user: Annotated[models.User, Depends(require_permission(Permission.SCHEDULE_READ))],
+    session: Session = Depends(get_session),
+    from_date: str = Query(..., description="Start date YYYY-MM-DD"),
+    to_date: str = Query(..., description="End date YYYY-MM-DD (inclusive)"),
+    user_id: int | None = Query(None, description="If set, only this tenant user’s rows (same tenant)"),
+    lang: str | None = Query(None, description="UI language for column headers (e.g. en, de, es)"),
+) -> StreamingResponse:
+    """Export planned vs clocked table for the date range as Excel (.xlsx); columns match the working-plan UI."""
+    try:
+        fd = datetime.strptime(from_date, "%Y-%m-%d").date()
+        td = datetime.strptime(to_date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format; use YYYY-MM-DD")
+    if fd > td:
+        raise HTTPException(status_code=400, detail="from_date must be <= to_date")
+    if current_user.tenant_id is None:
+        raise HTTPException(status_code=403, detail="Tenant required")
+    if current_user.role == models.UserRole.owner and current_user.tenant_id:
+        _mark_working_plan_seen_by_owner(session, current_user.tenant_id)
+        session.commit()
+
+    target: models.User | None = None
+    if user_id is not None:
+        target = session.exec(
+            select(models.User).where(
+                models.User.id == user_id,
+                models.User.tenant_id == current_user.tenant_id,
+            )
+        ).first()
+        if not target:
+            raise HTTPException(status_code=400, detail="User not found")
+
+    raw_rows = _schedule_planned_vs_actual_row_dicts(session, current_user.tenant_id, fd, td, user_id)
+    rows = [r for r in raw_rows if r["planned_minutes"] > 0 or r["actual_minutes"] > 0]
+
+    L = planned_vs_export_labels(lang)
+    totals_scope = L["scope_all"]
+    if user_id is not None and target is not None:
+        totals_scope = target.full_name or target.email or str(user_id)
+    try:
+        from openpyxl import Workbook
+    except ImportError:
+        raise HTTPException(status_code=500, detail="Excel export requires openpyxl")
+
+    wb = Workbook()
+    ws = wb.active
+    title = f"{L['sheet']} {from_date}_{to_date}"
+    ws.title = title[:31]
+    ws.append([L["date"], L["staff"], L["planned"], L["clocked"], L["variance"]])
+    total_p = 0
+    total_a = 0
+    for r in rows:
+        total_p += int(r["planned_minutes"])
+        total_a += int(r["actual_minutes"])
+        ws.append(
+            [
+                r["date"],
+                r["user_name"],
+                _format_hours_minutes_for_export(int(r["planned_minutes"])),
+                _format_hours_minutes_for_export(int(r["actual_minutes"])),
+                _format_hours_minutes_signed_for_export(int(r["variance_minutes"])),
+            ]
+        )
+    ws.append([])
+    ws.append(
+        [
+            L["totals"],
+            totals_scope,
+            _format_hours_minutes_for_export(total_p),
+            _format_hours_minutes_for_export(total_a),
+            _format_hours_minutes_signed_for_export(total_a - total_p),
+        ]
+    )
+
+    buf = BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    fn = f"planned-vs-clocked-{from_date}-to-{to_date}.xlsx"
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{fn}"'},
+    )
 
 
 @app.get("/schedule/compliance-summary")

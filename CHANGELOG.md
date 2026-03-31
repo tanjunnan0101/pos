@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Working plan (GitHub #130):** Single **Staff** dropdown with **All staff** (default) filters the **Planned vs clocked** table; shift **Export Excel** requires a selected person. Comparison block is **collapsible** (default collapsed) with **persisted** open state; table **totals** row; **Export comparison (Excel)** via `GET /schedule/planned-vs-actual/export` (localized headers, optional `user_id`). Task: `agents/tasks/UNTESTED-20260331-1425-working-plan-reuse-staff-dropdown-planned-clocked-totals-excel-export.md`.
+
 ### Changed
 
 - **Reservations / public booking (GitHub #128):** Single **allergies / special requirements** textarea on `/book/:tenantId` and in the staff reservation modal (removed duplicate checkbox + second “customer notes” field that repeated the same intent). Radio controls use **1rem** label text and **1.125em** native inputs with theme **accent-color**. Staff list and guest reservation view show one merged dietary line (`reservation-dietary-notes` helper).

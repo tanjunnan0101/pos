@@ -127,6 +127,8 @@ function fullDayTimeOptions(stepMin: number = STEP_30): string[] {
 }
 
 const WORKING_PLAN_VIEW_KEY = 'workingPlanView';
+/** Persist open state of the planned-vs-clocked disclosure (default collapsed). */
+const WORKING_PLAN_PVA_OPEN_KEY = 'workingPlanPvaOpen';
 const VALID_VIEWS = ['week', 'calendar'] as const;
 type ViewMode = (typeof VALID_VIEWS)[number];
 
@@ -195,9 +197,9 @@ function isValidView(v: string | null): v is ViewMode {
         <button type="button" class="btn btn-ghost btn-sm" (click)="goToToday()">{{ 'WORKING_PLAN.TODAY' | translate }}</button>
         <button type="button" class="btn btn-ghost btn-sm" (click)="load()">{{ 'ORDERS.REFRESH' | translate }}</button>
         <span class="export-sep" aria-hidden="true"></span>
-        <label class="export-label" for="working-plan-export-worker">{{ 'WORKING_PLAN.EXPORT_WORKER' | translate }}</label>
+        <label class="export-label" for="working-plan-staff-scope">{{ 'WORKING_PLAN.STAFF_FILTER_LABEL' | translate }}</label>
         <select
-          id="working-plan-export-worker"
+          id="working-plan-staff-scope"
           class="export-worker-select"
           [(ngModel)]="exportUserId"
           [disabled]="!scheduleUsers().length"
@@ -206,6 +208,7 @@ function isValidView(v: string | null): v is ViewMode {
           @if (!scheduleUsers().length) {
             <option [ngValue]="null">{{ 'WORKING_PLAN.EXPORT_NO_STAFF_OPTION' | translate }}</option>
           } @else {
+            <option [ngValue]="null">{{ 'WORKING_PLAN.ALL_STAFF_OPTION' | translate }}</option>
             @for (u of scheduleUsers(); track u.id) {
               <option [ngValue]="u.id">{{ u.full_name || u.email }} ({{ getRoleLabel(u.role) }})</option>
             }
@@ -222,7 +225,7 @@ function isValidView(v: string | null): v is ViewMode {
         </button>
       </div>
       @if (scheduleUsers().length) {
-        <p class="export-hint">{{ 'WORKING_PLAN.EXPORT_MONTH_HINT' | translate: { month: exportMonthLabel() } }}</p>
+        <p class="export-hint">{{ 'WORKING_PLAN.STAFF_FILTER_HINT' | translate: { month: exportMonthLabel() } }}</p>
       } @else {
         <p class="export-hint export-hint-muted">{{ 'WORKING_PLAN.EXPORT_NO_STAFF_HINT' | translate }}</p>
       }
@@ -238,37 +241,78 @@ function isValidView(v: string | null): v is ViewMode {
         </div>
       }
 
-      @if (plannedVsActualFiltered().length) {
-        <div class="pva-section" data-testid="working-plan-pva">
-          <h3 class="pva-title">{{ 'WORKING_PLAN.PLANNED_VS_ACTUAL' | translate }}</h3>
-          <p class="pva-hint">{{ 'WORKING_PLAN.PLANNED_VS_ACTUAL_HINT' | translate }}</p>
-          <div class="pva-table-wrap">
-            <table class="pva-table">
-              <thead>
-                <tr>
-                  <th>{{ 'WORKING_PLAN.PVA_COL_DATE' | translate }}</th>
-                  <th>{{ 'WORKING_PLAN.PVA_COL_STAFF' | translate }}</th>
-                  <th>{{ 'WORKING_PLAN.PVA_COL_PLANNED' | translate }}</th>
-                  <th>{{ 'WORKING_PLAN.PVA_COL_CLOCKED' | translate }}</th>
-                  <th>{{ 'WORKING_PLAN.PVA_COL_VARIANCE' | translate }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (r of plannedVsActualFiltered(); track r.date + '-' + r.user_id) {
-                  <tr>
-                    <td>{{ r.date }}</td>
-                    <td>{{ r.user_name }}</td>
-                    <td>{{ formatMinutes(r.planned_minutes) }}</td>
-                    <td>{{ formatMinutes(r.actual_minutes) }}</td>
-                    <td [class.pva-var-pos]="r.variance_minutes > 0" [class.pva-var-neg]="r.variance_minutes < 0">
-                      {{ formatSignedMinutes(r.variance_minutes) }}
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
+      @if (showPvaSection()) {
+        <section class="pva-section" data-testid="working-plan-pva">
+          <button
+            type="button"
+            class="pva-disclosure-trigger"
+            (click)="togglePvaSection()"
+            [attr.aria-expanded]="pvaSectionOpen()"
+            data-testid="working-plan-pva-toggle"
+          >
+            {{ pvaSectionOpen() ? ('WORKING_PLAN.PVA_HIDE' | translate) : ('WORKING_PLAN.PVA_SHOW' | translate) }}
+          </button>
+          @if (pvaSectionOpen()) {
+            <div class="pva-disclosure-body">
+              <p class="pva-hint">{{ 'WORKING_PLAN.PLANNED_VS_ACTUAL_HINT' | translate }}</p>
+              <div class="pva-toolbar">
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm"
+                  (click)="exportPvaExcel()"
+                  [disabled]="exportPvaLoading() || !plannedVsActualDisplayed().length"
+                  data-testid="working-plan-pva-export-excel"
+                >
+                  {{ exportPvaLoading() ? ('COMMON.LOADING' | translate) : ('WORKING_PLAN.EXPORT_PVA_EXCEL' | translate) }}
+                </button>
+              </div>
+              @if (plannedVsActualDisplayed().length) {
+                <div class="pva-table-wrap">
+                  <table class="pva-table">
+                    <thead>
+                      <tr>
+                        <th>{{ 'WORKING_PLAN.PVA_COL_DATE' | translate }}</th>
+                        <th>{{ 'WORKING_PLAN.PVA_COL_STAFF' | translate }}</th>
+                        <th>{{ 'WORKING_PLAN.PVA_COL_PLANNED' | translate }}</th>
+                        <th>{{ 'WORKING_PLAN.PVA_COL_CLOCKED' | translate }}</th>
+                        <th>{{ 'WORKING_PLAN.PVA_COL_VARIANCE' | translate }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (r of plannedVsActualDisplayed(); track r.date + '-' + r.user_id) {
+                        <tr>
+                          <td>{{ r.date }}</td>
+                          <td>{{ r.user_name }}</td>
+                          <td>{{ formatMinutes(r.planned_minutes) }}</td>
+                          <td>{{ formatMinutes(r.actual_minutes) }}</td>
+                          <td [class.pva-var-pos]="r.variance_minutes > 0" [class.pva-var-neg]="r.variance_minutes < 0">
+                            {{ formatSignedMinutes(r.variance_minutes) }}
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                    <tfoot>
+                      <tr class="pva-totals-row">
+                        <td>{{ 'WORKING_PLAN.PVA_TOTALS' | translate }}</td>
+                        <td></td>
+                        <td>{{ formatMinutes(pvaTotals().planned_minutes) }}</td>
+                        <td>{{ formatMinutes(pvaTotals().actual_minutes) }}</td>
+                        <td
+                          [class.pva-var-pos]="pvaTotals().variance_minutes > 0"
+                          [class.pva-var-neg]="pvaTotals().variance_minutes < 0"
+                        >
+                          {{ formatSignedMinutes(pvaTotals().variance_minutes) }}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              } @else {
+                <p class="pva-empty-filtered">{{ 'WORKING_PLAN.PVA_EMPTY_FILTERED' | translate }}</p>
+              }
+            </div>
+          }
+        </section>
       }
 
       @if (viewMode() === 'calendar') {
@@ -650,12 +694,22 @@ function isValidView(v: string | null): v is ViewMode {
     }
     .compliance-list { margin: 0.35rem 0 0 1rem; padding: 0; }
     .pva-section { margin-bottom: 1.5rem; }
-    .pva-title { font-size: 1rem; margin: 0 0 0.35rem 0; }
+    .pva-disclosure-trigger {
+      display: flex; align-items: center; width: 100%; text-align: left;
+      padding: 0.5rem 0.65rem; margin-bottom: 0.35rem;
+      background: var(--card-bg, #f8f8f8); border: 1px solid var(--border-color, #eee); border-radius: 8px;
+      font-weight: 600; font-size: 0.95rem; cursor: pointer; color: inherit;
+    }
+    .pva-disclosure-trigger:hover { filter: brightness(0.97); }
+    .pva-disclosure-body { padding-top: 0.15rem; }
+    .pva-toolbar { margin-bottom: 0.5rem; }
     .pva-hint { font-size: 0.75rem; color: var(--text-muted, #666); margin: 0 0 0.5rem 0; }
     .pva-table-wrap { overflow-x: auto; }
     .pva-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
     .pva-table th, .pva-table td { text-align: left; padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--border-color, #eee); }
     .pva-table th { font-weight: 600; color: var(--text-muted, #666); }
+    .pva-totals-row td { font-weight: 600; border-top: 2px solid var(--border-color, #ddd); border-bottom: none; }
+    .pva-empty-filtered { font-size: 0.875rem; color: var(--text-muted, #666); margin: 0 0 0.5rem 0; }
     .pva-var-pos { color: var(--color-success, #16a34a); }
     .pva-var-neg { color: var(--danger, #dc2626); }
   `],
@@ -684,9 +738,12 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
   complianceWarnings = signal<ScheduleComplianceWarning[]>([]);
   copyWeekSaving = signal(false);
   scheduleUsers = signal<User[]>([]);
-  /** Worker selected for Excel export (month scoped by current view). */
+  /** Staff scope: null = all staff (planned vs clocked + optional PVA export); set = that worker for shift Excel + filtered PVA. */
   exportUserId: number | null = null;
   exportLoading = signal(false);
+  exportPvaLoading = signal(false);
+  /** Planned vs clocked block expanded (default collapsed; optional persistence). */
+  pvaSectionOpen = signal(false);
   /** Bulk “apply to month” modal. */
   showBulkModal = signal(false);
   bulkTargetYear = signal(0);
@@ -766,9 +823,28 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
     return list;
   });
 
-  plannedVsActualFiltered = computed(() =>
-    this.plannedVsActualRows().filter((r) => r.planned_minutes > 0 || r.actual_minutes > 0),
-  );
+  plannedVsActualDisplayed = computed(() => {
+    const base = this.plannedVsActualRows().filter((r) => r.planned_minutes > 0 || r.actual_minutes > 0);
+    const uid = this.exportUserId;
+    if (uid == null) return base;
+    return base.filter((r) => r.user_id === uid);
+  });
+
+  pvaTotals = computed(() => {
+    const rows = this.plannedVsActualDisplayed();
+    let planned = 0;
+    let actual = 0;
+    for (const r of rows) {
+      planned += r.planned_minutes;
+      actual += r.actual_minutes;
+    }
+    return { planned_minutes: planned, actual_minutes: actual, variance_minutes: actual - planned };
+  });
+
+  showPvaSection = computed(() => {
+    const anyActivity = this.plannedVsActualRows().some((r) => r.planned_minutes > 0 || r.actual_minutes > 0);
+    return anyActivity || this.exportUserId != null;
+  });
 
   calendarMonthLabel = computed(() => {
     const d = this.calendarMonth();
@@ -885,6 +961,9 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
         this.load();
       }
     });
+    if (typeof localStorage !== 'undefined' && localStorage.getItem(WORKING_PLAN_PVA_OPEN_KEY) === '1') {
+      this.pvaSectionOpen.set(true);
+    }
     this.api.getUsersForSchedule().subscribe({
       next: (users) => {
         this.scheduleUsers.set(users);
@@ -892,10 +971,8 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
           this.exportUserId = null;
           return;
         }
-        if (this.exportUserId == null || !users.some((u) => u.id === this.exportUserId)) {
-          const me = this.api.getCurrentUser()?.id;
-          this.exportUserId =
-            me != null && users.some((u) => u.id === me) ? me : (users[0].id ?? null);
+        if (this.exportUserId != null && !users.some((u) => u.id === this.exportUserId)) {
+          this.exportUserId = null;
         }
       },
       error: () => {
@@ -1251,6 +1328,39 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
       });
     }
     return JSON.stringify(w);
+  }
+
+  togglePvaSection(): void {
+    this.pvaSectionOpen.update((v) => !v);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(WORKING_PLAN_PVA_OPEN_KEY, this.pvaSectionOpen() ? '1' : '0');
+    }
+  }
+
+  exportPvaExcel(): void {
+    const range = this.viewMode() === 'calendar' ? getMonthRange(this.calendarMonth()) : this.weekRange();
+    this.exportPvaLoading.set(true);
+    this.api
+      .getSchedulePlannedVsActualExport(range.from, range.to, this.languageService.getLanguage(), this.exportUserId)
+      .subscribe({
+        next: (blob) => {
+          this.exportPvaLoading.set(false);
+          if (!blob || blob.size === 0) {
+            this.showToast(this.translate.instant('WORKING_PLAN.EXPORT_PVA_FAILED'), 'error');
+            return;
+          }
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `planned-vs-clocked-${range.from}-to-${range.to}.xlsx`;
+          a.click();
+          URL.revokeObjectURL(url);
+        },
+        error: () => {
+          this.exportPvaLoading.set(false);
+          this.showToast(this.translate.instant('WORKING_PLAN.EXPORT_PVA_FAILED'), 'error');
+        },
+      });
   }
 
   exportExcel(): void {
