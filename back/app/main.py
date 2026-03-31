@@ -3791,7 +3791,7 @@ async def upload_product_image(
     file: Annotated[UploadFile, File()],
     current_user: Annotated[models.User, Depends(require_permission(Permission.PRODUCT_WRITE))],
     session: Session = Depends(get_session),
-) -> models.Product:
+) -> JSONResponse:
     """Upload an image for a product. Validates file type and size."""
     product = session.exec(
         select(models.Product).where(
@@ -3846,11 +3846,12 @@ async def upload_product_image(
 
     # Get file size for response
     image_size = get_file_size(file_path)
-    product_dict = product.model_dump()
+    product_dict = product.model_dump(mode="json")
     product_dict["image_size_bytes"] = image_size
     product_dict["image_size_formatted"] = format_file_size(image_size)
 
-    return product_dict
+    # JSONResponse so slowapi can inject rate-limit headers (requires a Response instance)
+    return JSONResponse(content=product_dict, status_code=status.HTTP_200_OK)
 
 
 @app.get("/products/{product_id}/questions")
@@ -5010,7 +5011,7 @@ async def provider_upload_product_image(
     ],
     file: Annotated[UploadFile, File()],
     session: Session = Depends(get_session),
-) -> dict:
+) -> JSONResponse:
     """Upload image for a provider product."""
     _user, provider = current
     pp = session.exec(
@@ -5050,7 +5051,14 @@ async def provider_upload_product_image(
     session.commit()
     session.refresh(pp)
     image_url = f"/uploads/providers/{provider.token}/products/{pp.image_filename}"
-    return {"id": pp.id, "image_filename": pp.image_filename, "image_url": image_url}
+    return JSONResponse(
+        content={
+            "id": pp.id,
+            "image_filename": pp.image_filename,
+            "image_url": image_url,
+        },
+        status_code=status.HTTP_200_OK,
+    )
 
 
 # ============ TENANT PRODUCTS ============
