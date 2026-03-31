@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The weekly reservations calendar UI was implemented and the tester verified staff and public booking flows against the new Mon–Sun grid, states, legend, and summary panel.
+- **What was done:** `ReservationWeekSlotGridComponent` was refined with column borders, single-letter weekday headers, available/full/closed/selected styling, a dot legend, a summary block with time-slot select, and i18n updates across locale files; existing Puppeteer selectors for the grid were preserved.
+- **What was tested:** Docker dev stack, front build logs (no TS/NG errors), `test:landing-version`, `debug-reservations.mjs`, and `debug-reservations-public.mjs` — all **PASS** per the test report.
+- **Why closed:** Test report overall **PASS**; acceptance criteria met for reservations UI and smoke coverage.
+- **Closed at (UTC):** 2026-03-31 11:17
+---
+
 # Improve reservations UI at `/reservations`
 
 ## GitHub

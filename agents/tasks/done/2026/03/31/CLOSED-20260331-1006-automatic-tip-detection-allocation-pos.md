@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Automatic tip handling (overpayment mode vs presets), attribution, and reporting/export surfaces were delivered and verified end-to-end with migration, pytest, and UI smoke.
+- **What was done:** Tenant `tip_entry_mode`, order `tip_attributed_user_id`, mark-paid/finish API rules, sales reports and waiter tips columns, working-plan Excel footer tips, Settings Payments tab, migration `20260331190000`, extended `test_order_tip.py`, and Puppeteer `test-order-tip-flows`.
+- **What was tested:** Migration at schema **20260331190000**, **14** pytest passes in `test_order_tip.py`, `test:order-tip-flows`, `test:landing-version`, and front container logs — all **PASS** per the test report.
+- **Why closed:** Test report overall **PASS**; documented pass/fail criteria satisfied.
+- **Closed at (UTC):** 2026-03-31 11:17
+---
+
 # Automatic tip detection and allocation (checkout / payments)
 
 ## GitHub
