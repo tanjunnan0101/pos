@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Reservations “Turno” time dropdown listed past slots when today was selected; tester verified the fix end-to-end.
+- **What was done:** `ReservationWeekSlotGridComponent` filters out API-marked `past` slots for tenant “today” so the first option is the next bookable slot; `ensureTimeFitsDay()` aligns with the filtered list.
+- **What was tested:** Front build logs, public `/book/1` and staff `/reservations` modal dropdowns vs API, and `test:landing-version` — all **PASS** per test report.
+- **Why closed:** All acceptance criteria met; overall tester outcome **PASS**.
+- **Closed at (UTC):** 2026-03-31 11:56
+---
+
 # Fix the Time Slot Dropdown immediately with this logic (Reservations)
 
 ## GitHub
