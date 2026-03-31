@@ -8,7 +8,7 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from '../shared/sidebar.component';
-import { ApiService, SalesReport, WorkSession } from '../services/api.service';
+import { ApiService, SalesReport, WorkSession, workSessionNetWorkSeconds } from '../services/api.service';
 import { PermissionService } from '../services/permission.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '../services/language.service';
@@ -35,6 +35,9 @@ export class ReportsComponent implements OnInit {
   workSessions = signal<WorkSession[]>([]);
   workSessionsLoading = signal(false);
   workSessionsError = signal<string | null>(null);
+  workSessionsLive = signal<WorkSession[]>([]);
+  workSessionsLiveLoading = signal(false);
+  workSessionsLiveError = signal<string | null>(null);
   fromDate = signal('');
   toDate = signal('');
   currency = signal('€');
@@ -111,6 +114,7 @@ export class ReportsComponent implements OnInit {
       error: (err) => {
         this.error.set(err?.message || 'Failed to load report');
         this.loading.set(false);
+        this.loadWorkSessions();
       },
     });
   }
@@ -122,6 +126,7 @@ export class ReportsComponent implements OnInit {
   loadWorkSessions(): void {
     if (!this.canViewAttendance()) {
       this.workSessions.set([]);
+      this.workSessionsLive.set([]);
       return;
     }
     const from = this.fromDate();
@@ -140,6 +145,27 @@ export class ReportsComponent implements OnInit {
         this.workSessionsError.set('Failed to load attendance');
       },
     });
+    this.loadWorkSessionsLive();
+  }
+
+  loadWorkSessionsLive(): void {
+    if (!this.canViewAttendance()) {
+      this.workSessionsLive.set([]);
+      return;
+    }
+    this.workSessionsLiveLoading.set(true);
+    this.workSessionsLiveError.set(null);
+    this.api.getReportWorkSessionsLive().subscribe({
+      next: (rows) => {
+        this.workSessionsLive.set(rows);
+        this.workSessionsLiveLoading.set(false);
+      },
+      error: () => {
+        this.workSessionsLive.set([]);
+        this.workSessionsLiveLoading.set(false);
+        this.workSessionsLiveError.set('Failed to load live attendance');
+      },
+    });
   }
 
   formatWorkSessionDt(iso: string | null): string {
@@ -149,14 +175,35 @@ export class ReportsComponent implements OnInit {
   }
 
   formatWorkSessionDuration(row: WorkSession): string {
+    if (!row.ended_at) {
+      const om = row.open_duration_minutes;
+      if (om != null && om >= 0) {
+        const h = Math.floor(om / 60);
+        const m = om % 60;
+        if (h > 0) return `${h}h ${m}m`;
+        return `${m}m`;
+      }
+      const sec = workSessionNetWorkSeconds(row);
+      const mins = Math.max(0, Math.floor(sec / 60));
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      if (h > 0) return `${h}h ${m}m`;
+      return `${m}m`;
+    }
     if (row.duration_minutes != null && row.duration_minutes >= 0) {
       const h = Math.floor(row.duration_minutes / 60);
       const m = row.duration_minutes % 60;
       if (h > 0) return `${h}h ${m}m`;
       return `${m}m`;
     }
-    if (!row.ended_at) return '…';
     return '—';
+  }
+
+  liveAttendanceStatus(row: WorkSession): string {
+    if (row.on_break) {
+      return this.translate.instant('REPORTS.WORK_SESSIONS_STATUS_BREAK');
+    }
+    return this.translate.instant('REPORTS.WORK_SESSIONS_STATUS_WORKING');
   }
 
   formatCurrency(cents: number): string {

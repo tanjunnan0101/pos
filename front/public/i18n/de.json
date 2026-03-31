@@ -1189,7 +1189,18 @@
     "PURGE_PLACEHOLDER": "Geschäftsname",
     "PURGE_BUTTON": "Restaurant dauerhaft löschen",
     "PURGING": "Wird gelöscht…",
-    "PURGE_FAILED": "Löschen fehlgeschlagen. Prüfen Sie, ob der Name exakt stimmt."
+    "PURGE_FAILED": "Löschen fehlgeschlagen. Prüfen Sie, ob der Name exakt stimmt.",
+    "CLOCK_QR_TITLE": "Staff clock-in QR",
+    "CLOCK_QR_DESC": "Generate a secret token for printed QR codes. When active, staff must scan or use a link with this token for clock-in, end shift, and ending breaks.",
+    "CLOCK_QR_ACTIVE": "QR protection is active.",
+    "CLOCK_QR_OFF": "QR is not required; staff can use clock buttons without scanning.",
+    "CLOCK_QR_REGENERATE": "Generate new token",
+    "CLOCK_QR_DISABLE": "Disable QR requirement",
+    "CLOCK_QR_URL_HINT": "Example path for links: /my-shift?clock_qr=YOUR_TOKEN (use your real app URL).",
+    "CLOCK_QR_SAVED": "New clock QR token generated.",
+    "CLOCK_QR_DISABLED": "Clock QR requirement disabled.",
+    "CLOCK_QR_LOCATION_VERIFY": "Require GPS at venue for clock",
+    "CLOCK_QR_LOCATION_VERIFY_HINT": "Uses latitude, longitude, and radius from the ordering location settings on this page."
   },
   "PAYMENTS": {
     "PAYMENT": "Zahlung",

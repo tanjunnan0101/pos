@@ -319,6 +319,80 @@
     }
 
     @if (canViewAttendance()) {
+      <section class="report-section" data-testid="reports-work-sessions-live">
+        <h2>{{ 'REPORTS.WORK_SESSIONS_LIVE_TITLE' | translate }}</h2>
+        <p class="muted work-sessions-hint">{{ 'REPORTS.WORK_SESSIONS_LIVE_HINT' | translate }}</p>
+        @if (workSessionsLiveLoading()) {
+          <p class="muted">{{ 'REPORTS.WORK_SESSIONS_LOADING' | translate }}</p>
+        } @else if (workSessionsLiveError()) {
+          <div class="error-banner">{{ workSessionsLiveError() }}</div>
+        } @else if (workSessionsLive().length === 0) {
+          <p class="muted">{{ 'REPORTS.WORK_SESSIONS_LIVE_EMPTY' | translate }}</p>
+        } @else {
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>{{ 'REPORTS.WORK_SESSIONS_COL_STAFF' | translate }}</th>
+                  <th>{{ 'REPORTS.WORK_SESSIONS_COL_STATUS' | translate }}</th>
+                  <th>{{ 'REPORTS.WORK_SESSIONS_COL_START' | translate }}</th>
+                  <th>{{ 'REPORTS.WORK_SESSIONS_COL_NET' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of workSessionsLive(); track row.id) {
+                  <tr>
+                    <td>{{ row.user_name }}</td>
+                    <td>{{ liveAttendanceStatus(row) }}</td>
+                    <td>{{ formatWorkSessionDt(row.started_at) }}</td>
+                    <td>{{ formatWorkSessionDuration(row) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+
+    @if (canViewAttendance()) {
+      <section class="report-section" data-testid="reports-work-sessions-live">
+        <h2>{{ 'REPORTS.WORK_SESSIONS_LIVE_TITLE' | translate }}</h2>
+        <p class="muted work-sessions-hint">{{ 'REPORTS.WORK_SESSIONS_LIVE_HINT' | translate }}</p>
+        @if (workSessionsLiveLoading()) {
+          <p class="muted">{{ 'REPORTS.WORK_SESSIONS_LOADING' | translate }}</p>
+        } @else if (workSessionsLiveError()) {
+          <div class="error-banner">{{ workSessionsLiveError() }}</div>
+        } @else if (workSessionsLive().length === 0) {
+          <p class="muted">{{ 'REPORTS.WORK_SESSIONS_LIVE_EMPTY' | translate }}</p>
+        } @else {
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>{{ 'REPORTS.WORK_SESSIONS_COL_STAFF' | translate }}</th>
+                  <th>{{ 'REPORTS.WORK_SESSIONS_COL_STATUS' | translate }}</th>
+                  <th>{{ 'REPORTS.WORK_SESSIONS_COL_START' | translate }}</th>
+                  <th>{{ 'REPORTS.WORK_SESSIONS_COL_NET' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of workSessionsLive(); track row.id) {
+                  <tr>
+                    <td>{{ row.user_name }}</td>
+                    <td>{{ liveAttendanceStatus(row) }}</td>
+                    <td>{{ formatWorkSessionDt(row.started_at) }}</td>
+                    <td>{{ formatWorkSessionDuration(row) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+
+    @if (canViewAttendance()) {
       <section class="report-section" data-testid="reports-work-sessions">
         <h2>{{ 'REPORTS.WORK_SESSIONS_TITLE' | translate }}</h2>
         <p class="muted work-sessions-hint">{{ 'REPORTS.WORK_SESSIONS_HINT' | translate }}</p>

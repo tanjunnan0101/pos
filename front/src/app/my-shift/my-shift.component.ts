@@ -1,9 +1,18 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { forkJoin } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { EMPTY, forkJoin, from, Observable, of } from 'rxjs';
+import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { SidebarComponent } from '../shared/sidebar.component';
 import { TranslateModule } from '@ngx-translate/core';
-import { ApiService, WorkSession, workSessionOpenExceedsContract } from '../services/api.service';
+import {
+  ApiService,
+  ClockQrStatus,
+  WorkSession,
+  WorkSessionClockPayload,
+  workSessionNetWorkSeconds,
+  workSessionOpenExceedsContract,
+} from '../services/api.service';
 
 @Component({
   selector: 'app-my-shift',
@@ -19,6 +28,13 @@ import { ApiService, WorkSession, workSessionOpenExceedsContract } from '../serv
 
         <p class="hint">{{ 'MY_SHIFT.AUDIT_HINT' | translate }}</p>
 
+        @if (clockStatus()?.clock_qr_required) {
+          <p class="hint qr-hint">{{ 'MY_SHIFT.QR_HINT' | translate }}</p>
+        }
+        @if (clockStatus()?.clock_qr_location_verify) {
+          <p class="hint">{{ 'MY_SHIFT.LOCATION_HINT' | translate }}</p>
+        }
+
         @if (exceedsContract()) {
           <div class="overtime-banner" role="status" data-testid="my-shift-overtime-banner">
             <strong>{{ 'MY_SHIFT.OVERTIME_TITLE' | translate }}</strong>
@@ -30,27 +46,66 @@ import { ApiService, WorkSession, workSessionOpenExceedsContract } from '../serv
           <div class="error-banner">{{ error() }}</div>
         }
 
+        @if (qrBlocked()) {
+          <div class="error-banner" role="alert">{{ 'MY_SHIFT.ERR_QR' | translate }}</div>
+        }
+
         <section class="card clock-card">
           @if (loading()) {
             <p class="muted">{{ 'MY_SHIFT.LOADING' | translate }}</p>
           } @else if (open(); as s) {
-            <p class="status on">{{ 'MY_SHIFT.STATUS_ON' | translate }}</p>
+            @if (s.on_break) {
+              <p class="status break">{{ 'MY_SHIFT.STATUS_BREAK' | translate }}</p>
+            } @else {
+              <p class="status on">{{ 'MY_SHIFT.STATUS_ON' | translate }}</p>
+            }
             <p class="time-row">
               <span class="label">{{ 'MY_SHIFT.STARTED' | translate }}</span>
               <span>{{ formatDt(s.started_at) }}</span>
             </p>
             @if (openElapsedLabel()) {
               <p class="time-row elapsed-row">
-                <span class="label">{{ 'MY_SHIFT.ELAPSED' | translate }}</span>
+                <span class="label">{{ 'MY_SHIFT.NET_ELAPSED' | translate }}</span>
                 <span>{{ openElapsedLabel() }}</span>
               </p>
             }
-            <button type="button" class="btn btn-primary btn-end" (click)="endShift()" [disabled]="actionLoading()">
-              {{ actionLoading() ? ('MY_SHIFT.WORKING' | translate) : ('MY_SHIFT.END_SHIFT' | translate) }}
-            </button>
+            <div class="btn-stack">
+              @if (s.on_break) {
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  (click)="endBreak()"
+                  [disabled]="actionLoading() || qrBlocked()"
+                >
+                  {{ actionLoading() ? ('MY_SHIFT.WORKING' | translate) : ('MY_SHIFT.END_BREAK' | translate) }}
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  (click)="startBreak()"
+                  [disabled]="actionLoading() || qrBlocked()"
+                >
+                  {{ actionLoading() ? ('MY_SHIFT.WORKING' | translate) : ('MY_SHIFT.START_BREAK' | translate) }}
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-end"
+                  (click)="endShift()"
+                  [disabled]="actionLoading() || qrBlocked()"
+                >
+                  {{ actionLoading() ? ('MY_SHIFT.WORKING' | translate) : ('MY_SHIFT.END_SHIFT' | translate) }}
+                </button>
+              }
+            </div>
           } @else {
             <p class="status off">{{ 'MY_SHIFT.STATUS_OFF' | translate }}</p>
-            <button type="button" class="btn btn-primary" (click)="startShift()" [disabled]="actionLoading()">
+            <button
+              type="button"
+              class="btn btn-primary"
+              (click)="startShift()"
+              [disabled]="actionLoading() || qrBlocked()"
+            >
               {{ actionLoading() ? ('MY_SHIFT.WORKING' | translate) : ('MY_SHIFT.START_SHIFT' | translate) }}
             </button>
           }
@@ -105,6 +160,9 @@ import { ApiService, WorkSession, workSessionOpenExceedsContract } from '../serv
       margin: 0 0 1.25rem;
       line-height: 1.4;
     }
+    .qr-hint {
+      margin-bottom: 0.5rem;
+    }
     .error-banner {
       background: var(--color-danger-bg, #fde8e8);
       color: var(--color-danger, #b91c1c);
@@ -143,6 +201,9 @@ import { ApiService, WorkSession, workSessionOpenExceedsContract } from '../serv
     .clock-card .status.on {
       color: var(--color-success, #15803d);
     }
+    .clock-card .status.break {
+      color: var(--color-warning-text, #b45309);
+    }
     .clock-card .status.off {
       color: var(--color-text-muted, #666);
     }
@@ -155,8 +216,18 @@ import { ApiService, WorkSession, workSessionOpenExceedsContract } from '../serv
     .time-row .label {
       color: var(--color-text-muted, #666);
     }
+    .btn-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      align-items: stretch;
+    }
+    .btn-stack .btn {
+      min-height: 48px;
+      font-size: 1rem;
+    }
     .btn-end {
-      margin-top: 0.25rem;
+      margin-top: 0;
     }
     .history-card h2 {
       margin: 0 0 1rem;
@@ -191,15 +262,21 @@ import { ApiService, WorkSession, workSessionOpenExceedsContract } from '../serv
 })
 export class MyShiftComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   loading = signal(true);
   actionLoading = signal(false);
   error = signal<string | null>(null);
   open = signal<WorkSession | null>(null);
   history = signal<WorkSession[]>([]);
-  /** Bumps on an interval so overtime / elapsed labels update while the page is open. */
+  clockStatus = signal<ClockQrStatus | null>(null);
+  /** From ?clock_qr= only; persisted to sessionStorage in ngOnInit */
+  clockQrToken = signal<string | null>(null);
+
   private overtimeTick = signal(0);
   private overtimeTimer: ReturnType<typeof setInterval> | null = null;
+  private querySub: { unsubscribe: () => void } | null = null;
 
   exceedsContract = computed(() => {
     this.overtimeTick();
@@ -211,13 +288,23 @@ export class MyShiftComponent implements OnInit, OnDestroy {
     return Math.round(m / 60);
   });
 
+  qrBlocked = computed(() => {
+    const st = this.clockStatus();
+    if (!st?.clock_qr_required) return false;
+    const u = this.api.getCurrentUser();
+    const tid = u?.tenant_id;
+    const fromUrl = this.clockQrToken();
+    const stored = tid != null ? sessionStorage.getItem(`clock_qr_${tid}`) : null;
+    const token = (fromUrl || stored || '').trim();
+    return !token;
+  });
+
   openElapsedLabel = computed(() => {
     this.overtimeTick();
     const s = this.open();
     if (!s || s.ended_at) return '';
-    const start = new Date(s.started_at).getTime();
-    if (Number.isNaN(start)) return '';
-    const mins = Math.max(0, Math.floor((Date.now() - start) / 60_000));
+    const sec = workSessionNetWorkSeconds(s);
+    const mins = Math.max(0, Math.floor(sec / 60));
     const h = Math.floor(mins / 60);
     const m = mins % 60;
     if (h > 0) return `${h}h ${m}m`;
@@ -225,11 +312,29 @@ export class MyShiftComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
+    this.querySub = this.route.queryParamMap.subscribe((q) => {
+      const t = q.get('clock_qr');
+      if (t?.trim()) {
+        this.clockQrToken.set(t.trim());
+        const u = this.api.getCurrentUser();
+        const tid = u?.tenant_id;
+        if (tid != null) {
+          sessionStorage.setItem(`clock_qr_${tid}`, t.trim());
+        }
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { clock_qr: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      }
+    });
     this.refreshAll();
-    this.overtimeTimer = setInterval(() => this.overtimeTick.update((n) => n + 1), 30_000);
+    this.overtimeTimer = setInterval(() => this.overtimeTick.update((n) => n + 1), 1000);
   }
 
   ngOnDestroy(): void {
+    this.querySub?.unsubscribe();
     if (this.overtimeTimer != null) {
       clearInterval(this.overtimeTimer);
       this.overtimeTimer = null;
@@ -243,6 +348,50 @@ export class MyShiftComponent implements OnInit, OnDestroy {
     return { from: from.toISOString().slice(0, 10), to: to.toISOString().slice(0, 10) };
   }
 
+  private effectiveClockQr(): string | undefined {
+    const u = this.api.getCurrentUser();
+    const tid = u?.tenant_id;
+    const t =
+      (this.clockQrToken() || (tid != null ? sessionStorage.getItem(`clock_qr_${tid}`) : null) || '').trim();
+    return t || undefined;
+  }
+
+  private buildClockPayload(): Observable<WorkSessionClockPayload> {
+    const st = this.clockStatus();
+    const payload: WorkSessionClockPayload = {};
+    const q = this.effectiveClockQr();
+    if (q) payload.clock_qr = q;
+    if (st?.clock_qr_location_verify) {
+      return from(
+        new Promise<WorkSessionClockPayload>((resolve, reject) => {
+          if (!('geolocation' in navigator)) {
+            reject(new Error('no geolocation'));
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              resolve({
+                ...payload,
+                latitude: pos.coords.latitude,
+                longitude: pos.coords.longitude,
+              });
+            },
+            () => reject(new Error('geo denied')),
+            { timeout: 15000, maximumAge: 120000 }
+          );
+        })
+      ).pipe(
+        catchError(() => {
+          this.error.set(
+            'Location is required for clock actions at this venue. Allow access in your browser and try again.'
+          );
+          return EMPTY;
+        })
+      );
+    }
+    return of(payload);
+  }
+
   refreshAll(): void {
     this.loading.set(true);
     this.error.set(null);
@@ -250,10 +399,12 @@ export class MyShiftComponent implements OnInit, OnDestroy {
     forkJoin({
       open: this.api.getMyOpenWorkSession(),
       history: this.api.getMyWorkSessions(from, to),
+      qr: this.api.getMyClockQrStatus(),
     }).subscribe({
-      next: ({ open, history }) => {
+      next: ({ open, history, qr }) => {
         this.open.set(open);
         this.history.set(history);
+        this.clockStatus.set(qr);
         this.loading.set(false);
       },
       error: () => {
@@ -266,7 +417,45 @@ export class MyShiftComponent implements OnInit, OnDestroy {
   startShift(): void {
     this.actionLoading.set(true);
     this.error.set(null);
-    this.api.startMyWorkSession().subscribe({
+    this.buildClockPayload()
+      .pipe(
+        switchMap((payload) => this.api.startMyWorkSession(payload)),
+        finalize(() => this.actionLoading.set(false))
+      )
+      .subscribe({
+        next: (s) => {
+          this.open.set(s);
+          this.refreshHistoryOnly();
+        },
+        error: (err) => {
+          this.error.set(err?.error?.detail || 'Could not start shift');
+        },
+      });
+  }
+
+  endShift(): void {
+    this.actionLoading.set(true);
+    this.error.set(null);
+    this.buildClockPayload()
+      .pipe(
+        switchMap((payload) => this.api.endMyWorkSession(payload)),
+        finalize(() => this.actionLoading.set(false))
+      )
+      .subscribe({
+        next: () => {
+          this.open.set(null);
+          this.refreshHistoryOnly();
+        },
+        error: (err) => {
+          this.error.set(err?.error?.detail || 'Could not end shift');
+        },
+      });
+  }
+
+  startBreak(): void {
+    this.actionLoading.set(true);
+    this.error.set(null);
+    this.api.startMyWorkSessionBreak().subscribe({
       next: (s) => {
         this.open.set(s);
         this.actionLoading.set(false);
@@ -274,25 +463,33 @@ export class MyShiftComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.actionLoading.set(false);
-        this.error.set(err?.error?.detail || 'Could not start shift');
+        this.error.set(err?.error?.detail || 'Could not start break');
       },
     });
   }
 
-  endShift(): void {
+  endBreak(): void {
     this.actionLoading.set(true);
     this.error.set(null);
-    this.api.endMyWorkSession().subscribe({
-      next: () => {
-        this.open.set(null);
-        this.actionLoading.set(false);
-        this.refreshHistoryOnly();
-      },
-      error: (err) => {
-        this.actionLoading.set(false);
-        this.error.set(err?.error?.detail || 'Could not end shift');
-      },
-    });
+    this.buildClockPayload()
+      .pipe(
+        switchMap((payload) => this.api.endMyWorkSessionBreak(payload)),
+        finalize(() => this.actionLoading.set(false))
+      )
+      .subscribe({
+        next: (s) => {
+          this.open.set(s);
+          this.refreshHistoryOnly();
+        },
+        error: (err) => {
+          const d = err?.error?.detail;
+          this.error.set(
+            typeof d === 'string' && d.toLowerCase().includes('qr')
+              ? 'Scan the venue QR code (or use the staff link with the token) to end your break.'
+              : d || 'Could not end break'
+          );
+        },
+      });
   }
 
   private refreshHistoryOnly(): void {

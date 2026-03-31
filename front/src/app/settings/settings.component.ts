@@ -560,6 +560,47 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                 }
               </div>
             }
+            <div class="form-card clock-qr-card" style="margin-top: 1.5rem;" data-testid="settings-clock-qr-card">
+              <h3>{{ 'SETTINGS.CLOCK_QR_TITLE' | translate }}</h3>
+              <p class="hint">{{ 'SETTINGS.CLOCK_QR_DESC' | translate }}</p>
+              @if (settings()?.clock_qr_active) {
+                <p class="muted">{{ 'SETTINGS.CLOCK_QR_ACTIVE' | translate }}</p>
+              } @else {
+                <p class="muted">{{ 'SETTINGS.CLOCK_QR_OFF' | translate }}</p>
+              }
+              <div class="form-group checkbox-row" style="margin-top: 1rem;">
+                <label class="switch">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="formData.clock_qr_location_verify"
+                    name="clock_qr_location_verify"
+                    (change)="saveClockQrLocationVerify()"
+                  />
+                  <span class="slider round"></span>
+                </label>
+                <div>
+                  <span class="check-label">{{ 'SETTINGS.CLOCK_QR_LOCATION_VERIFY' | translate }}</span>
+                  <p class="hint">{{ 'SETTINGS.CLOCK_QR_LOCATION_VERIFY_HINT' | translate }}</p>
+                </div>
+              </div>
+              <div class="form-actions" style="margin-top: 1rem;">
+                <button type="button" class="btn btn-primary" (click)="regenerateClockQr()" [disabled]="clockQrBusy()">
+                  {{ 'SETTINGS.CLOCK_QR_REGENERATE' | translate }}
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  (click)="disableClockQr()"
+                  [disabled]="clockQrBusy() || !settings()?.clock_qr_active">
+                  {{ 'SETTINGS.CLOCK_QR_DISABLE' | translate }}
+                </button>
+              </div>
+              @if (clockQrLastToken()) {
+                <p class="hint" style="margin-top: 1rem;">{{ 'SETTINGS.CLOCK_QR_URL_HINT' | translate }}</p>
+                <code class="otp-secret" style="word-break: break-all;">{{ clockQrLastToken() }}</code>
+                <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;" (click)="copyClockQrToken()">{{ 'COMMON.COPY' | translate }}</button>
+              }
+            </div>
           </div>
           } @else if (activeSection() === 'data-privacy') {
           <div class="section" data-testid="settings-data-privacy-section">
@@ -2634,6 +2675,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
   otpDisabling = signal(false);
   otpSettingUp = signal(false);
 
+  clockQrBusy = signal(false);
+  /** Plain token shown once after regenerate (not stored on server). */
+  clockQrLastToken = signal<string | null>(null);
+
   purgeConfirmTenantName = '';
   dataExporting = signal(false);
   purging = signal(false);
@@ -2736,6 +2781,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     public_privacy_policy_url: null,
     tip_tax_rate_percent: 0,
     ui_modules: { ...DEFAULT_TENANT_UI_MODULES },
+    clock_qr_location_verify: false,
   };
 
   allTimezones: string[] = [];
@@ -2837,7 +2883,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
             ...DEFAULT_TENANT_UI_MODULES,
             ...(settings.ui_modules || {}),
           },
+          clock_qr_active: settings.clock_qr_active ?? false,
+          clock_qr_location_verify: settings.clock_qr_location_verify ?? false,
         };
+        this.clockQrLastToken.set(null);
         const tip = settings.tip_preset_percents;
         if (Array.isArray(tip) && tip.length > 0) {
           this.tipPresetEdit = [...tip.map((x) => Math.min(100, Math.max(0, Math.floor(Number(x) || 0))))];
@@ -3598,6 +3647,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     // Prepare update data - only include stripe_secret_key if it was actually changed
     const updateData = { ...this.formData };
+    delete (updateData as Record<string, unknown>)['clock_qr_active'];
 
     // Always send reminder options so they are persisted (default false if unset)
     updateData.reservation_reminder_24h_enabled = this.formData.reservation_reminder_24h_enabled ?? false;
@@ -3672,5 +3722,62 @@ export class SettingsComponent implements OnInit, OnDestroy {
     } else {
       this.error.set('Geolocation is not supported by your browser.');
     }
+  }
+
+  regenerateClockQr(): void {
+    this.clockQrBusy.set(true);
+    this.error.set(null);
+    this.api.regenerateTenantClockQr().subscribe({
+      next: (r) => {
+        this.formData.clock_qr_active = r.clock_qr_active;
+        this.clockQrLastToken.set(r.token);
+        this.settings.update((s) => (s ? { ...s, clock_qr_active: r.clock_qr_active } : s));
+        this.success.set(this.translate.instant('SETTINGS.CLOCK_QR_SAVED'));
+        this.scheduleSuccessDismiss();
+        this.clockQrBusy.set(false);
+      },
+      error: (err) => {
+        this.error.set(err?.error?.detail || 'Could not generate clock QR token.');
+        this.clockQrBusy.set(false);
+      },
+    });
+  }
+
+  disableClockQr(): void {
+    this.clockQrBusy.set(true);
+    this.error.set(null);
+    this.api.disableTenantClockQr().subscribe({
+      next: (r) => {
+        this.formData.clock_qr_active = r.clock_qr_active;
+        this.clockQrLastToken.set(null);
+        this.settings.update((s) => (s ? { ...s, clock_qr_active: r.clock_qr_active } : s));
+        this.success.set(this.translate.instant('SETTINGS.CLOCK_QR_DISABLED'));
+        this.scheduleSuccessDismiss();
+        this.clockQrBusy.set(false);
+      },
+      error: (err) => {
+        this.error.set(err?.error?.detail || 'Could not disable clock QR.');
+        this.clockQrBusy.set(false);
+      },
+    });
+  }
+
+  saveClockQrLocationVerify(): void {
+    this.api
+      .updateTenantSettings({ clock_qr_location_verify: !!this.formData.clock_qr_location_verify })
+      .subscribe({
+        next: (updated) => {
+          this.settings.set(updated);
+          this.success.set(this.translate.instant('SETTINGS.SAVE_CHANGES'));
+          this.scheduleSuccessDismiss();
+        },
+        error: () => this.error.set('Could not save clock location option.'),
+      });
+  }
+
+  copyClockQrToken(): void {
+    const t = this.clockQrLastToken();
+    if (!t || !navigator.clipboard?.writeText) return;
+    navigator.clipboard.writeText(t).catch(() => {});
   }
 }

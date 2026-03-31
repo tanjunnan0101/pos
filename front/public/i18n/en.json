@@ -1289,6 +1289,8 @@
     "CLOCK_QR_URL_HINT": "Example path for links: /my-shift?clock_qr=YOUR_TOKEN (use your real app URL).",
     "CLOCK_QR_SAVED": "New clock QR token generated.",
     "CLOCK_QR_DISABLED": "Clock QR requirement disabled.",
+    "CLOCK_QR_LOCATION_VERIFY": "Require GPS at venue for clock",
+    "CLOCK_QR_LOCATION_VERIFY_HINT": "Uses latitude, longitude, and radius from the ordering location settings on this page.",
     "RESERVATIONS": "Reservations",
     "RESERVATIONS_SUBTITLE": "Pre-payment, policies and reminders for table reservations",
     "RESERVATION_PREPAYMENT": "Reservation pre-payment",

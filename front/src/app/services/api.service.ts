@@ -222,23 +222,51 @@ export interface WorkSession {
   started_at: string;
   ended_at: string | null;
   duration_minutes: number | null;
-  /** Elapsed minutes while session is open; null when ended. */
+  /** Net work minutes while session is open (breaks excluded). Mirrors server open_duration_minutes. */
   open_duration_minutes?: number | null;
-  /** Server default for “normal” shift length (minutes); UI may compare locally to `started_at`. */
   contract_threshold_minutes?: number;
-  /** True when open elapsed time >= threshold (server time at last response). */
   over_contract?: boolean;
   start_ip: string | null;
   end_ip: string | null;
+  on_break?: boolean;
+  break_started_at?: string | null;
+  /** Total break seconds (completed + in-progress), server-computed. */
+  break_seconds_total?: number;
+  user_role?: string | null;
+}
+
+export interface ClockQrStatus {
+  clock_qr_required: boolean;
+  clock_qr_location_verify: boolean;
+}
+
+export interface WorkSessionClockPayload {
+  clock_qr?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
+/** Net worked seconds from wall time minus server break total (keeps UI in sync between polls). */
+export function workSessionNetWorkSeconds(ws: WorkSession | null | undefined): number {
+  if (!ws || ws.ended_at) return 0;
+  const start = new Date(ws.started_at).getTime();
+  if (Number.isNaN(start)) return 0;
+  const wall = Math.max(0, (Date.now() - start) / 1000);
+  const br = ws.break_seconds_total ?? 0;
+  return Math.max(0, wall - br);
 }
 
 /** Whether an open work session has reached the contract-length threshold (client clock). */
 export function workSessionOpenExceedsContract(ws: WorkSession | null | undefined): boolean {
   if (!ws || ws.ended_at) return false;
+  if (ws.over_contract === true) return true;
   const threshold = ws.contract_threshold_minutes ?? 480;
-  const start = new Date(ws.started_at).getTime();
-  if (Number.isNaN(start)) return false;
-  return Date.now() - start >= threshold * 60 * 1000;
+  const nm = ws.open_duration_minutes;
+  if (nm != null && nm >= 0) {
+    return nm >= threshold;
+  }
+  const netSec = workSessionNetWorkSeconds(ws);
+  return netSec >= threshold * 60;
 }
 
 export interface AuthResponse {
@@ -897,6 +925,10 @@ export interface TenantSettings {
   revolut_merchant_secret?: string | null;
   logo_size_bytes?: number | null;
   logo_size_formatted?: string | null;
+  /** Staff clock QR is configured (no secret exposed). */
+  clock_qr_active?: boolean;
+  /** When clock QR is on, require GPS near venue coordinates for clock actions. */
+  clock_qr_location_verify?: boolean;
   // Location verification settings
   latitude?: number | null;
   longitude?: number | null;
@@ -2431,12 +2463,25 @@ export class ApiService {
     return this.http.get<WorkSession | null>(`${this.apiUrl}/users/me/work-session`);
   }
 
-  startMyWorkSession(): Observable<WorkSession> {
-    return this.http.post<WorkSession>(`${this.apiUrl}/users/me/work-session/start`, {});
+  /** Whether venue QR and GPS are required for clock actions. */
+  getMyClockQrStatus(): Observable<ClockQrStatus> {
+    return this.http.get<ClockQrStatus>(`${this.apiUrl}/users/me/clock-qr-status`);
   }
 
-  endMyWorkSession(): Observable<WorkSession> {
-    return this.http.post<WorkSession>(`${this.apiUrl}/users/me/work-session/end`, {});
+  startMyWorkSession(payload?: WorkSessionClockPayload): Observable<WorkSession> {
+    return this.http.post<WorkSession>(`${this.apiUrl}/users/me/work-session/start`, payload ?? {});
+  }
+
+  endMyWorkSession(payload?: WorkSessionClockPayload): Observable<WorkSession> {
+    return this.http.post<WorkSession>(`${this.apiUrl}/users/me/work-session/end`, payload ?? {});
+  }
+
+  startMyWorkSessionBreak(): Observable<WorkSession> {
+    return this.http.post<WorkSession>(`${this.apiUrl}/users/me/work-session/break/start`, {});
+  }
+
+  endMyWorkSessionBreak(payload?: WorkSessionClockPayload): Observable<WorkSession> {
+    return this.http.post<WorkSession>(`${this.apiUrl}/users/me/work-session/break/end`, payload ?? {});
   }
 
   getMyWorkSessions(fromDate: string, toDate: string): Observable<WorkSession[]> {
@@ -2451,6 +2496,34 @@ export class ApiService {
       params = params.set('user_id', String(userId));
     }
     return this.http.get<WorkSession[]>(`${this.apiUrl}/reports/work-sessions`, { params });
+  }
+
+  /** Owner/admin: open clock sessions (on shift / on break). */
+  getReportWorkSessionsLive(): Observable<WorkSession[]> {
+    return this.http.get<WorkSession[]>(`${this.apiUrl}/reports/work-sessions/live`);
+  }
+
+  /** Owner/admin: generate venue clock QR token (returned once). */
+  regenerateTenantClockQr(): Observable<{ token: string; clock_qr_active: boolean }> {
+    return this.http.post<{ token: string; clock_qr_active: boolean }>(
+      `${this.apiUrl}/tenant/settings/clock-qr/regenerate`,
+      {}
+    );
+  }
+
+  /** Owner/admin: disable venue clock QR requirement. */
+  disableTenantClockQr(): Observable<{ status: string; clock_qr_active: boolean }> {
+    return this.http.delete<{ status: string; clock_qr_active: boolean }>(
+      `${this.apiUrl}/tenant/settings/clock-qr`
+    );
+  }
+
+  /** Owner/admin: manual payroll correction (audit trail on server). */
+  postReportWorkSessionAdjust(
+    sessionId: number,
+    body: { note?: string; started_at?: string | null; ended_at?: string | null },
+  ): Observable<WorkSession> {
+    return this.http.post<WorkSession>(`${this.apiUrl}/reports/work-sessions/${sessionId}/adjust`, body);
   }
 
   /** Changelog (CHANGELOG.md from project root, served by backend). */

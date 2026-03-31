@@ -41,6 +41,7 @@ from .tenant_lifecycle_routes import router as tenant_lifecycle_router
 from .staff_contract_routes import router as staff_contract_router
 from .staff_contract_template_routes import router as staff_contract_template_router
 from .work_session_serialization import serialize_work_session
+from .clock_qr_util import clock_qr_tokens_equal, generate_clock_qr_token, hash_clock_qr_token
 from .inventory_service import deduct_inventory_for_order
 from . import inventory_models
 from .translation_service import TranslationService
@@ -1671,12 +1672,105 @@ def otp_disable(
 # ============ STAFF WORK SESSION (clock in / out) ============
 
 
+class WorkSessionClockBody(_BaseModel):
+    """Optional venue QR token and GPS for clock actions when the tenant requires them."""
+
+    clock_qr: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+
+
+def _tenant_requires_clock_qr(tenant: models.Tenant) -> bool:
+    return bool((tenant.clock_qr_token_hash or "").strip())
+
+
+def _verify_clock_qr_token(tenant: models.Tenant, body: WorkSessionClockBody | None) -> None:
+    if not _tenant_requires_clock_qr(tenant):
+        return
+    token = (body.clock_qr if body else None) or None
+    if not clock_qr_tokens_equal(tenant.clock_qr_token_hash, token):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or missing venue QR token",
+        )
+
+
+def _verify_clock_location_if_required(
+    tenant: models.Tenant,
+    body: WorkSessionClockBody | None,
+) -> None:
+    if not tenant.clock_qr_location_verify:
+        return
+    if tenant.latitude is None or tenant.longitude is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Venue coordinates must be set in Settings to require GPS for clock actions",
+        )
+    lat = body.latitude if body else None
+    lon = body.longitude if body else None
+    if lat is None or lon is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Location permission required for clock at this venue",
+        )
+    distance = haversine_distance(
+        float(tenant.latitude),
+        float(tenant.longitude),
+        float(lat),
+        float(lon),
+    )
+    radius = float(tenant.location_radius_meters or 100)
+    if distance > radius:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Clock action blocked: location is outside the venue radius",
+        )
+
+
+def _close_open_break_for_session(
+    session: Session,
+    ws: models.WorkSession,
+    *,
+    end_at: datetime,
+) -> None:
+    """End in-progress break row and clear break_started_at (e.g. before clock-out)."""
+    if ws.break_started_at is None:
+        return
+    open_br = session.exec(
+        select(models.WorkSessionBreak)
+        .where(models.WorkSessionBreak.work_session_id == ws.id)
+        .where(models.WorkSessionBreak.ended_at.is_(None))
+    ).first()
+    if open_br:
+        open_br.ended_at = end_at
+        session.add(open_br)
+    ws.break_started_at = None
+    session.add(ws)
+
+
 def _require_tenant_staff_for_work_session(user: models.User) -> None:
     if user.tenant_id is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Work sessions are only for restaurant staff accounts",
         )
+
+
+@app.get("/users/me/clock-qr-status")
+def get_my_clock_qr_status(
+    current_user: Annotated[models.User, Depends(security.get_current_user)],
+    session: Session = Depends(get_session),
+) -> dict:
+    """Whether venue QR / GPS is required for clock actions (no secrets exposed)."""
+    _require_tenant_staff_for_work_session(current_user)
+    assert current_user.tenant_id is not None
+    tenant = session.get(models.Tenant, current_user.tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    return {
+        "clock_qr_required": _tenant_requires_clock_qr(tenant),
+        "clock_qr_location_verify": bool(tenant.clock_qr_location_verify),
+    }
 
 
 @app.get("/users/me/work-session")
@@ -1695,7 +1789,7 @@ def get_my_open_work_session(
     if not open_row:
         return None
     name = current_user.full_name or current_user.email or ""
-    return serialize_work_session(open_row, name)
+    return serialize_work_session(open_row, name, session=session)
 
 
 @app.post("/users/me/work-session/start")
@@ -1703,10 +1797,18 @@ def start_my_work_session(
     request: Request,
     current_user: Annotated[models.User, Depends(security.get_current_user)],
     session: Session = Depends(get_session),
+    body: WorkSessionClockBody | None = Body(default=None),
 ) -> dict:
     """Clock in: start a work session. At most one open session per user."""
     _require_tenant_staff_for_work_session(current_user)
     assert current_user.tenant_id is not None
+    payload = body or WorkSessionClockBody()
+    tenant = session.get(models.Tenant, current_user.tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    _verify_clock_qr_token(tenant, payload)
+    _verify_clock_location_if_required(tenant, payload)
+
     existing = session.exec(
         select(models.WorkSession).where(
             models.WorkSession.user_id == current_user.id,
@@ -1736,7 +1838,7 @@ def start_my_work_session(
         )
     session.refresh(ws)
     name = current_user.full_name or current_user.email or ""
-    return serialize_work_session(ws, name)
+    return serialize_work_session(ws, name, session=session)
 
 
 @app.post("/users/me/work-session/end")
@@ -1744,9 +1846,18 @@ def end_my_work_session(
     request: Request,
     current_user: Annotated[models.User, Depends(security.get_current_user)],
     session: Session = Depends(get_session),
+    body: WorkSessionClockBody | None = Body(default=None),
 ) -> dict:
     """Clock out: close the current open work session."""
     _require_tenant_staff_for_work_session(current_user)
+    assert current_user.tenant_id is not None
+    payload = body or WorkSessionClockBody()
+    tenant = session.get(models.Tenant, current_user.tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    _verify_clock_qr_token(tenant, payload)
+    _verify_clock_location_if_required(tenant, payload)
+
     open_row = session.exec(
         select(models.WorkSession).where(
             models.WorkSession.user_id == current_user.id,
@@ -1758,13 +1869,105 @@ def end_my_work_session(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No open work session to end",
         )
-    open_row.ended_at = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc)
+    _close_open_break_for_session(session, open_row, end_at=now)
+    open_row.ended_at = now
     open_row.end_ip = _client_ip_from_request(request)
     session.add(open_row)
     session.commit()
     session.refresh(open_row)
     name = current_user.full_name or current_user.email or ""
-    return serialize_work_session(open_row, name)
+    return serialize_work_session(open_row, name, session=session)
+
+
+@app.post("/users/me/work-session/break/start")
+def start_my_work_session_break(
+    request: Request,
+    current_user: Annotated[models.User, Depends(security.get_current_user)],
+    session: Session = Depends(get_session),
+) -> dict:
+    """Start a break (pause work timer). No venue QR required."""
+    _require_tenant_staff_for_work_session(current_user)
+    open_row = session.exec(
+        select(models.WorkSession).where(
+            models.WorkSession.user_id == current_user.id,
+            models.WorkSession.ended_at.is_(None),
+        )
+    ).first()
+    if not open_row:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No open work session to pause",
+        )
+    if open_row.break_started_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Already on break",
+        )
+    now = datetime.now(timezone.utc)
+    br = models.WorkSessionBreak(
+        tenant_id=open_row.tenant_id,
+        work_session_id=open_row.id,
+        started_at=now,
+        ended_at=None,
+    )
+    open_row.break_started_at = now
+    session.add(br)
+    session.add(open_row)
+    session.commit()
+    session.refresh(open_row)
+    name = current_user.full_name or current_user.email or ""
+    return serialize_work_session(open_row, name, session=session)
+
+
+@app.post("/users/me/work-session/break/end")
+def end_my_work_session_break(
+    request: Request,
+    current_user: Annotated[models.User, Depends(security.get_current_user)],
+    session: Session = Depends(get_session),
+    body: WorkSessionClockBody | None = Body(default=None),
+) -> dict:
+    """End break (resume work timer). Requires venue QR when the tenant has clock QR enabled."""
+    _require_tenant_staff_for_work_session(current_user)
+    assert current_user.tenant_id is not None
+    payload = body or WorkSessionClockBody()
+    tenant = session.get(models.Tenant, current_user.tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    _verify_clock_qr_token(tenant, payload)
+    _verify_clock_location_if_required(tenant, payload)
+
+    open_row = session.exec(
+        select(models.WorkSession).where(
+            models.WorkSession.user_id == current_user.id,
+            models.WorkSession.ended_at.is_(None),
+        )
+    ).first()
+    if not open_row:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No open work session",
+        )
+    if open_row.break_started_at is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Not on break",
+        )
+    now = datetime.now(timezone.utc)
+    open_br = session.exec(
+        select(models.WorkSessionBreak)
+        .where(models.WorkSessionBreak.work_session_id == open_row.id)
+        .where(models.WorkSessionBreak.ended_at.is_(None))
+    ).first()
+    if open_br:
+        open_br.ended_at = now
+        session.add(open_br)
+    open_row.break_started_at = None
+    session.add(open_row)
+    session.commit()
+    session.refresh(open_row)
+    name = current_user.full_name or current_user.email or ""
+    return serialize_work_session(open_row, name, session=session)
 
 
 @app.get("/users/me/work-sessions")
@@ -1793,7 +1996,7 @@ def list_my_work_sessions(
         .order_by(models.WorkSession.started_at.desc())
     ).all()
     name = current_user.full_name or current_user.email or ""
-    return [serialize_work_session(r, name) for r in rows]
+    return [serialize_work_session(r, name, session=session) for r in rows]
 
 
 # ============ USER MANAGEMENT ============
@@ -2191,6 +2394,9 @@ def get_tenant_settings(
     apply_tenant_currency_api_dict(tenant_dict)
     tenant_dict["ui_modules"] = resolve_tenant_ui_modules(tenant.ui_modules)
 
+    tenant_dict.pop("clock_qr_token_hash", None)
+    tenant_dict["clock_qr_active"] = bool(tenant.clock_qr_token_hash)
+
     return tenant_dict
 
 
@@ -2544,6 +2750,9 @@ def update_tenant_settings(
             tenant.ui_modules, tenant_update.ui_modules
         )
 
+    if tenant_update.clock_qr_location_verify is not None:
+        tenant.clock_qr_location_verify = tenant_update.clock_qr_location_verify
+
     session.add(tenant)
     session.commit()
     session.refresh(tenant)
@@ -2582,7 +2791,45 @@ def update_tenant_settings(
     apply_tenant_currency_api_dict(tenant_dict)
     tenant_dict["ui_modules"] = resolve_tenant_ui_modules(tenant.ui_modules)
 
+    tenant_dict.pop("clock_qr_token_hash", None)
+    tenant_dict["clock_qr_active"] = bool(tenant.clock_qr_token_hash)
+
     return tenant_dict
+
+
+@app.post("/tenant/settings/clock-qr/regenerate")
+def regenerate_tenant_clock_qr(
+    current_user: Annotated[models.User, Depends(require_permission(Permission.SETTINGS_UPDATE))],
+    session: Session = Depends(get_session),
+) -> dict:
+    """Generate a new venue clock QR token (plain token returned once)."""
+    tenant = session.exec(
+        select(models.Tenant).where(models.Tenant.id == current_user.tenant_id)
+    ).first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    token = generate_clock_qr_token()
+    tenant.clock_qr_token_hash = hash_clock_qr_token(token)
+    session.add(tenant)
+    session.commit()
+    return {"token": token, "clock_qr_active": True}
+
+
+@app.delete("/tenant/settings/clock-qr")
+def disable_tenant_clock_qr(
+    current_user: Annotated[models.User, Depends(require_permission(Permission.SETTINGS_UPDATE))],
+    session: Session = Depends(get_session),
+) -> dict:
+    """Disable venue QR requirement for clock actions."""
+    tenant = session.exec(
+        select(models.Tenant).where(models.Tenant.id == current_user.tenant_id)
+    ).first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    tenant.clock_qr_token_hash = None
+    session.add(tenant)
+    session.commit()
+    return {"status": "ok", "clock_qr_active": False}
 
 
 # Kitchen/Bar display timer settings (read/update by anyone with order access)

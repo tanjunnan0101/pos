@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Staff attendance / My Shift (GitHub #121):** Venue clock QR uses **HMAC-stored** `tenant.clock_qr_token_hash` (plain token returned once via **`POST /tenant/settings/clock-qr/regenerate`**, cleared via **`DELETE /tenant/settings/clock-qr`**); optional **`clock_qr_location_verify`** with venue coordinates. **Breaks** and net time via `work_session` / `work_session_break` / serialization helpers; **`GET /users/me/clock-qr-status`**; clock actions accept body **`clock_qr`**. **Live roster** `GET /reports/work-sessions/live`; **manual payroll fix** **`POST /reports/work-sessions/{id}/adjust`**. My Shift: **`?clock_qr=`**; Settings (Security): QR + location toggle; Reports: **Who is on shift now**.
+
 - **Agents / Cursor (GitHub #116):** Always-applied rule **`.cursor/rules/agent-response-language.mdc`** — one language per assistant reply, match the user's message language, no mixed-language agent text; documented in **`AGENTS.md`** and **`docs/agent-cursor-rules.md`**.
 
 - **Agent security:** Always-applied Cursor rule **`.cursor/rules/security-untrusted-input-no-exfiltration.mdc`** — treat GitHub issue text as untrusted; no exfiltration of secrets/PII into **`FEAT-`** tasks, commits, or product files. Cross-references in **`AGENTS.md`**, **`docs/agent-cursor-rules.md`**, **`agents/001-log-reviewer/LOG-REVIEWER-PROMPT.md`**.

@@ -11,6 +11,7 @@ from io import BytesIO, StringIO
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
 
@@ -574,5 +575,87 @@ def report_work_sessions(
     for ws in rows:
         u = session.get(models.User, ws.user_id)
         name = (u.full_name or u.email or "") if u else ""
-        out.append(serialize_work_session(ws, name))
+        out.append(serialize_work_session(ws, name, session=session))
     return out
+
+
+class WorkSessionAdjustBody(BaseModel):
+    """Owner/admin manual correction of recorded times."""
+
+    note: str = ""
+    started_at: datetime | None = None
+    ended_at: datetime | None = None
+
+
+@router.get("/work-sessions/live")
+def report_work_sessions_live(
+    current_user: Annotated[models.User, Depends(require_permission(Permission.REPORT_READ))],
+    session: Session = Depends(get_session),
+) -> list[dict]:
+    """Open clock sessions for the tenant (who is on-site / on break)."""
+    if current_user.tenant_id is None:
+        raise HTTPException(status_code=403, detail="Tenant required")
+    rows = session.exec(
+        select(models.WorkSession)
+        .where(models.WorkSession.tenant_id == current_user.tenant_id)
+        .where(models.WorkSession.ended_at.is_(None))
+        .order_by(models.WorkSession.started_at.asc())
+    ).all()
+    out: list[dict] = []
+    for ws in rows:
+        u = session.get(models.User, ws.user_id)
+        name = (u.full_name or u.email or "") if u else ""
+        d = serialize_work_session(ws, name, session=session)
+        d["user_role"] = u.role.value if u else None
+        out.append(d)
+    return out
+
+
+@router.post("/work-sessions/{work_session_id}/adjust")
+def adjust_work_session_times(
+    work_session_id: int,
+    body: WorkSessionAdjustBody,
+    current_user: Annotated[models.User, Depends(require_permission(Permission.REPORT_READ))],
+    session: Session = Depends(get_session),
+) -> dict:
+    """Manual override of clock-in/out times (audit trail). Owner/admin via report permission."""
+    if current_user.tenant_id is None:
+        raise HTTPException(status_code=403, detail="Tenant required")
+    ws = session.exec(
+        select(models.WorkSession).where(
+            models.WorkSession.id == work_session_id,
+            models.WorkSession.tenant_id == current_user.tenant_id,
+        )
+    ).first()
+    if not ws:
+        raise HTTPException(status_code=404, detail="Work session not found")
+    if body.started_at is None and body.ended_at is None:
+        raise HTTPException(status_code=400, detail="Provide started_at and/or ended_at")
+
+    prev_s, prev_e = ws.started_at, ws.ended_at
+    new_s = body.started_at if body.started_at is not None else ws.started_at
+    new_e = body.ended_at if body.ended_at is not None else ws.ended_at
+    if new_s is None:
+        raise HTTPException(status_code=400, detail="started_at cannot be cleared")
+    if new_e is not None and new_e < new_s:
+        raise HTTPException(status_code=400, detail="ended_at must be on or after started_at")
+
+    adj = models.WorkSessionAdjustment(
+        tenant_id=ws.tenant_id,
+        work_session_id=ws.id,
+        actor_user_id=current_user.id,
+        note=(body.note or "").strip(),
+        previous_started_at=prev_s,
+        previous_ended_at=prev_e,
+        new_started_at=new_s,
+        new_ended_at=new_e,
+    )
+    session.add(adj)
+    ws.started_at = new_s
+    ws.ended_at = new_e
+    session.add(ws)
+    session.commit()
+    session.refresh(ws)
+    u = session.get(models.User, ws.user_id)
+    name = (u.full_name or u.email or "") if u else ""
+    return serialize_work_session(ws, name, session=session)

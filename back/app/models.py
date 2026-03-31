@@ -203,6 +203,11 @@ class Tenant(SQLModel, table=True):
     # Staff app: JSONB stores only disabled module keys; see tenant_ui_modules.resolve_tenant_ui_modules
     ui_modules: dict | None = Field(default=None, sa_column=Column(JSONB, nullable=True))
 
+    # Staff clock-in: venue QR secret (hex digest of HMAC-SHA256); null = QR not required for clock actions
+    clock_qr_token_hash: str | None = Field(default=None, max_length=128)
+    # When clock QR is active, optionally require GPS within tenant latitude/longitude + location_radius_meters
+    clock_qr_location_verify: bool = Field(default=False)
+
     users: list["User"] = Relationship(back_populates="tenant")
 
 
@@ -543,6 +548,33 @@ class WorkSession(TenantMixin, table=True):
     ended_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
     start_ip: str | None = Field(default=None, max_length=45)
     end_ip: str | None = Field(default=None, max_length=45)
+    # When set (and session still open), staff is on break; active work timer pauses until break ends
+    break_started_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
+
+
+class WorkSessionBreak(TenantMixin, table=True):
+    """One break interval within an open or closed work session (audit / payroll)."""
+
+    __tablename__ = "work_session_break"
+    id: int | None = Field(default=None, primary_key=True)
+    work_session_id: int = Field(foreign_key="work_session.id", index=True)
+    started_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    ended_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
+
+
+class WorkSessionAdjustment(TenantMixin, table=True):
+    """Owner/admin manual edit of clock times (audit trail)."""
+
+    __tablename__ = "work_session_adjustment"
+    id: int | None = Field(default=None, primary_key=True)
+    work_session_id: int = Field(foreign_key="work_session.id", index=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    actor_user_id: int | None = Field(default=None, foreign_key="user.id", index=True)
+    note: str = Field(default="")
+    previous_started_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
+    previous_ended_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
+    new_started_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
+    new_ended_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True), nullable=True))
 
 
 class ReservationStatus(str, Enum):
@@ -1024,6 +1056,9 @@ class TenantUpdate(SQLModel):
     longitude: float | None = None
     location_radius_meters: int | None = None
     location_check_enabled: bool | None = None
+
+    # When staff clock QR is enabled, optionally require GPS at venue for clock actions
+    clock_qr_location_verify: bool | None = None
 
     # Per-tenant SMTP / email (optional; fallback to global config)
     smtp_host: str | None = None
