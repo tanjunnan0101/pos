@@ -48,3 +48,68 @@ Public booking should follow the real floor layout: only offer seating zones tha
 - Pass: migration succeeds; Angular build clean (`docker compose … logs --tail=80 front`); landing smoke test exits 0; public book page shows zone UI only when ≥2 bookable zones and submits without 400 from location rule.
 
 - Fail: migration errors; TS/build errors in front logs; 400 on public booking when zones are misconfigured; cross-tenant data in zone endpoint.
+
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window**  
+   - Started: **2026-03-31T13:21Z** (approx.).  
+   - Finished: **2026-03-31T13:23Z**.  
+   - Backend log window: same window around `GET /public/tenants/1/reservation-book-zones` and landing test navigation.
+
+2. **Environment**  
+   - Compose: `docker-compose.yml` + `docker-compose.dev.yml`.  
+   - **BASE_URL:** `http://127.0.0.1:4202` (HAProxy).  
+   - Branch: **development** @ **531eaff**.
+
+3. **What was tested** (from “What to verify” + task “How to test”)  
+   - `python -m app.migrate` in `back` container.  
+   - `GET /api/public/tenants/1/reservation-book-zones` via HAProxy.  
+   - `docker compose … logs --tail=80 front`.  
+   - `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front`.  
+   - DB spot-check: `\d floor`, `\d reservation` in Postgres (`pos` / user `pos`).  
+   - **Not completed:** manual `/book/1` two-zone UI, inactive floor filtering, `preferred_floor_id` on new rows (blocked by API/DB failure).
+
+4. **Results**  
+   - **Migrate applies cleanly / schema matches feature:** **FAIL** — `app.migrate` exits 0 and lists `20260331131400_floor_is_active_reservation_preferred_floor.sql` as **applied**, but **`floor` has no `is_active`** and **`reservation` has no `preferred_floor_id`** (`psql \d floor` / `\d reservation`). Schema version is out of sync with actual DDL.  
+   - **`/book/:tenantId` loads + zone dropdown behavior (≥2 / 1 zone):** **FAIL** (not verified; public zones endpoint broken).  
+   - **Inactive floor excluded from public zones; capacity unchanged for others:** **FAIL** (not exercised; endpoint 500).  
+   - **`preferred_floor_id` / names in API:** **FAIL** (columns absent; not verified).  
+   - **API smoke `reservation-book-zones`:** **FAIL** — `curl` returned **HTTP 500** and body `Internal Server Error`.  
+   - **Angular build clean:** **PASS** — `front` logs show “Application bundle generation complete” with no TS errors in tail.  
+   - **Landing smoke test:** **PASS** — `test:landing-version` **exit 0** (~44.5s); browser showed some **500**s on `/reservations`, `/tables`, `/reports` during nav (likely same missing-column issue on related queries).  
+   - **Cross-tenant data in zone endpoint:** **N/A** — endpoint errors before meaningful JSON; no evidence of cross-tenant leak.
+
+5. **Overall:** **FAIL** — Failed: migrate/schema consistency, public zones API, feature verification for booking zones and `preferred_floor_id`.
+
+6. **Product owner feedback**  
+   The feature cannot be accepted in this environment: the migration runner believes the floor/reservation migration is applied, but the database tables do not contain the new columns, so any code path selecting `floor.is_active` crashes with **ProgrammingError**. After repairing schema (re-run migration SQL or `migrate --sync-idempotent` / manual repair per ops docs), re-test the public zones endpoint and `/book/1` with one vs two active floors.
+
+7. **URLs tested**  
+   1. `http://127.0.0.1:4202/`  
+   2. `http://127.0.0.1:4202/dashboard`  
+   3. `http://127.0.0.1:4202/api/public/tenants/1/reservation-book-zones` (500)  
+   4. Sidebar routes exercised by `test:landing-version` (16 top-level + inventory sublinks), including `/reservations`, `/tables`, `/reports` (500s observed in browser console during test).
+
+8. **Relevant log excerpts**  
+
+`pos-back` (traceback on zones endpoint):
+
+```
+sqlalchemy.exc.ProgrammingError: (psycopg.errors.UndefinedColumn) column floor.is_active does not exist
+[SQL: SELECT floor.tenant_id, floor.id, floor.name, floor.sort_order, floor.is_active, ...
+```
+
+`curl` (HAProxy):
+
+```
+Internal Server Error
+HTTP_CODE:500
+```
+
+`pos-front` (build):
+
+```
+Application bundle generation complete. [0.735 seconds] - 2026-03-31T13:21:33.079Z
+```
