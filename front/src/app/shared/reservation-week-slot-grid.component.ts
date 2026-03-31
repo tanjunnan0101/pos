@@ -198,9 +198,11 @@ export class ReservationWeekSlotGridComponent {
   private ensureTimeFitsDay(): void {
     const res = this.bookDaySlots();
     if (!res) return;
+    const dateStr = this.selectedDate().trim();
+    const times = this.dayTimesForSelectedDate(res, dateStr);
     const t = this.selectedTime().trim();
     if (t && res.cells[t] === 'available') return;
-    for (const slot of res.times) {
+    for (const slot of times) {
       if (res.cells[slot] === 'available') {
         this.selectedTime.set(slot);
         return;
@@ -334,8 +336,24 @@ export class ReservationWeekSlotGridComponent {
     this.selectedTime.set(value);
   }
 
+  /**
+   * Ordered slot keys for the dropdown. On the tenant’s calendar today, omit slots the API marks
+   * as past so the list starts at the next bookable time (same as /book and staff reservations).
+   */
   dayTimes(): string[] {
-    return this.bookDaySlots()?.times ?? [];
+    const res = this.bookDaySlots();
+    if (!res) return [];
+    return this.dayTimesForSelectedDate(res, this.selectedDate().trim());
+  }
+
+  private dayTimesForSelectedDate(
+    res: ReservationBookDaySlotsResponse,
+    dateStr: string,
+  ): string[] {
+    if (!dateStr || dateStr !== this.tenantTodayDateStr()) {
+      return res.times;
+    }
+    return res.times.filter((t) => this.slotState(dateStr, t) !== 'past');
   }
 
   daySlotSelectable(timeStr: string): boolean {

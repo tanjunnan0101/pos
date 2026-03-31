@@ -15,3 +15,14 @@ In the reservations flow, the time slot control (Turno) does not respect “now�
 - Ensure the **first visible option** is the next available slot after the current time, not a fixed morning time.
 - Add or extend automated coverage if there is an existing pattern (unit or e2e); otherwise document manual checks: pick today at a time after midday and confirm the dropdown starts at the expected next slot only.
 - After front changes, confirm `ng serve` / Docker `pos-front` logs show a clean bundle build.
+
+## Implementation notes
+
+- **`ReservationWeekSlotGridComponent`** (`front/src/app/shared/reservation-week-slot-grid.component.ts`): when `selectedDate` equals **`tenantTodayDateStr()`** (tenant TZ or browser fallback), **`dayTimes()`** now omits slots whose API cell state is **`past`**, so the Turno dropdown no longer lists morning times ahead of the first bookable slot. **`ensureTimeFitsDay()`** uses the same filtered list when auto-picking a time.
+
+## Testing instructions
+
+1. **Build:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml logs --tail=80 front` — no TS/Angular errors after save.
+2. **Manual — public `/book/{tenantId}`:** With tenant timezone correct, select **today** in the month grid after local midday; open the time dropdown. Confirm the **first** listed times are not before the next bookable slot (API already marks past slots; they must **not** appear in the list).
+3. **Manual — staff `/reservations`:** New/edit reservation modal → same grid; select today; confirm the time dropdown matches the same behaviour.
+4. **Smoke (optional):** `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` with stack up.
