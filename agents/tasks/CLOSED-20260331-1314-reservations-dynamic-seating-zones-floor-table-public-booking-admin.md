@@ -59,3 +59,46 @@ Public booking should follow the real floor layout: only offer seating zones tha
 ## Prior test run (superseded)
 
 An earlier run reported `schema_version` out of sync with DDL and HTTP 500 on `reservation-book-zones`. The migration runner change addresses **skipped** migrations; `--sync-idempotent` addresses **orphaned** `schema_version` rows without matching columns. Re-verify using the steps above.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-03-31T13:33:50Z – 2026-03-31T13:36:00Z (approximately). Log window: same interval on `pos-front` / `pos-back` via `docker compose … logs`.
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202` (HAProxy); branch `development` @ `7184e05`.
+
+3. **What was tested:** Per **Testing instructions** / **What to verify**: migration runner and `--sync-idempotent`; public `reservation-book-zones`; DB columns; Angular/front logs and landing smoke; public `/book/1` (Puppeteer + API POST); inactive floor exclusion; tenant isolation; `preferred_floor_id` on create response.
+
+4. **Results**
+
+   - Migration applies missing versions (not only after MAX) — **PASS** — `python -m app.migrate` reported all files including `20260331131400_floor_is_active_reservation_preferred_floor.sql` as applied; “Database is up to date (version 20260331190000)”.
+   - Migrate on dev DB; `/book/1` loads — **PASS** — Puppeteer navigated to `http://127.0.0.1:4202/book/1`, `.book-form` visible.
+   - ≥2 bookable zones: seating area required; UI validation — **PASS** — With two active zones, `debug-reservations-public.mjs` showed form error “Please choose a seating area.” (expected until script selects a zone). **PASS** — `POST /api/reservations` with valid `preferred_floor_id` (floor 3), slot `2026-03-31 15:45`, returned 200 and body included `"preferred_floor_id":3,"preferred_floor_name":"A dentro"`.
+   - One bookable zone: no seating prompt; booking succeeds — **PASS** — Temporarily set `floor.id=1` `is_active=false`; `reservation-book-zones` returned one floor; `HEADLESS=1 node front/scripts/debug-reservations-public.mjs` exited 0 (“Public user successfully reserved”); then restored `is_active=true`.
+   - Inactive floor omitted from public zones list — **PASS** — Before restore, `GET …/tenants/1/reservation-book-zones` returned only `{"id":3,"name":"A dentro",…}`; after restore, two floors again.
+   - `preferred_floor_id` / `preferred_floor_name` in API where applicable — **PASS** — See POST response above; reservation id **1866** created during test (dev data).
+   - `--sync-idempotent` — **PASS** — Completed without error; log ended with “Sync-idempotent finished”.
+   - `reservation-book-zones` 200 JSON, no 500 — **PASS** — e.g. `{"floors":[…]}` HTTP 200.
+   - Cross-tenant — **PASS** — `GET …/tenants/2/reservation-book-zones` → `{"floors":[]}`; `GET …/tenants/99999/…` → HTTP 404 “Tenant not found”.
+   - Angular build / landing smoke — **PASS** — `docker compose … logs --tail=80 front` shows “Application bundle generation complete” without errors; `npm run test:landing-version` exit code **0** (ended 2026-03-31T13:34:37Z).
+
+5. **Overall:** **PASS** (all criteria met).
+
+6. **Product owner feedback:** Public booking now respects real zones: guests must pick an area when multiple floors are open for booking, and a single open zone stays frictionless. Staff can see preferred floor on the reservation payload. The legacy public Puppeteer script should be updated to choose a seating area when two zones exist so CI-style runs stay green without mutating floors.
+
+7. **URLs tested**
+
+   1. `http://127.0.0.1:4202/`
+   2. `http://127.0.0.1:4202/book/1`
+   3. `http://127.0.0.1:4202/api/public/tenants/1/reservation-book-zones`
+   4. `http://127.0.0.1:4202/api/public/tenants/2/reservation-book-zones`
+   5. `http://127.0.0.1:4202/api/public/tenants/99999/reservation-book-zones`
+   6. `http://127.0.0.1:4202/api/reservations` (POST)
+   7. `http://127.0.0.1:4202/api/reservations/book-week-slots?tenant_id=1&party_size=3&week_anchor=2026-03-31` (with and without `floor_id=3` — payloads equal byte length on this dataset)
+   8. Landing test also hit staff routes under same origin (`/dashboard`, `/reservations`, `/tables`, … per script).
+
+8. **Relevant log excerpts**
+
+   - **pos-front** (build): `Application bundle generation complete. [0.735 seconds] - 2026-03-31T13:21:33.079Z` (no TS/NG errors in tail).
+   - **pos-back:** `POST /reservations HTTP/1.1" 200 OK` after successful zone booking; `GET /public/tenants/1/reservation-book-zones HTTP/1.1" 200 OK`; `GET /public/tenants/99999/reservation-book-zones HTTP/1.1" 404 Not Found`.
