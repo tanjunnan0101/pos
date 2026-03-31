@@ -42,6 +42,26 @@ def _in_range(d: datetime | None, from_date: date, to_date: date) -> bool:
     return from_date <= d_date <= to_date
 
 
+def _waiter_name_for_order_tips(session: Session, order: models.Order) -> str:
+    """Waiter for tip attribution: stored tip_attributed_user_id, else table assignment."""
+    tid = getattr(order, "tip_attributed_user_id", None)
+    if tid:
+        u = session.get(models.User, tid)
+        if u and u.tenant_id == order.tenant_id:
+            return u.full_name or u.email or str(tid)
+    table = session.get(models.Table, order.table_id)
+    if table:
+        waiter_id = table.assigned_waiter_id
+        if waiter_id is None and table.floor_id:
+            floor = session.get(models.Floor, table.floor_id)
+            if floor:
+                waiter_id = floor.default_waiter_id
+        if waiter_id:
+            u = session.get(models.User, waiter_id)
+            return (u.full_name or u.email) if u else str(waiter_id)
+    return "Unassigned"
+
+
 def _get_revenue_items(
     session: Session,
     tenant_id: int,
@@ -114,6 +134,28 @@ def _build_report_payload(tenant_id: int, session: Session, from_date: date, to_
         from_date, to_date = to_date, from_date
     rows = _get_revenue_items(session, tenant_id, from_date, to_date)
 
+    tips_by_day: dict[str, int] = defaultdict(int)
+    tips_by_waiter: dict[str, int] = defaultdict(int)
+    total_tips_cents = 0
+    orders_for_tips = session.exec(
+        select(models.Order)
+        .where(models.Order.tenant_id == tenant_id)
+        .where(models.Order.deleted_at.is_(None))
+        .where(models.Order.status.in_([s.value for s in REVENUE_STATUSES]))
+    ).all()
+    for order in orders_for_tips:
+        rev_date = _revenue_date(order)
+        if not _in_range(rev_date, from_date, to_date):
+            continue
+        tip = int(order.tip_amount_cents or 0)
+        if tip <= 0:
+            continue
+        total_tips_cents += tip
+        day = rev_date.strftime("%Y-%m-%d") if hasattr(rev_date, "strftime") else str(rev_date)[:10]
+        tips_by_day[day] += tip
+        wn = _waiter_name_for_order_tips(session, order)
+        tips_by_waiter[wn] += tip
+
     # Summary by day
     by_day_agg: dict[str, dict] = defaultdict(
         lambda: {"revenue_cents": 0, "cost_cents": 0, "profit_cents": 0, "order_count": set()}
@@ -131,6 +173,7 @@ def _build_report_payload(tenant_id: int, session: Session, from_date: date, to_
             "cost_cents": data["cost_cents"],
             "profit_cents": data["profit_cents"],
             "order_count": len(data["order_count"]),
+            "tips_cents": tips_by_day.get(d, 0),
         }
         for d, data in sorted(by_day_agg.items())
     ]
@@ -221,6 +264,7 @@ def _build_report_payload(tenant_id: int, session: Session, from_date: date, to_
             "cost_cents": v["cost_cents"],
             "profit_cents": v["profit_cents"],
             "order_count": len(v["order_count"]),
+            "tips_cents": tips_by_waiter.get(k, 0),
         }
         for k, v in sorted(by_waiter.items(), key=lambda x: -x[1]["revenue_cents"])
     ]
@@ -275,6 +319,7 @@ def _build_report_payload(tenant_id: int, session: Session, from_date: date, to_
             "total_revenue_cents": total_revenue_cents,
             "total_cost_cents": total_cost_cents,
             "total_profit_cents": total_profit_cents,
+            "total_tips_cents": total_tips_cents,
             "total_orders": total_orders,
             "average_revenue_per_order_cents": average_revenue_per_order_cents,
             "daily": summary_daily,
@@ -344,6 +389,7 @@ def export_report(
                 L["revenue_cents"],
                 L["cost_cents"],
                 L["profit_cents"],
+                L["tips_cents"],
                 L["orders"],
             ]
         )
@@ -353,6 +399,7 @@ def export_report(
                 row["revenue_cents"],
                 row.get("cost_cents", 0),
                 row.get("profit_cents", 0),
+                row.get("tips_cents", 0),
                 row["order_count"],
             ])
         ws.append([])
@@ -363,6 +410,7 @@ def export_report(
                 s["total_revenue_cents"],
                 s.get("total_cost_cents", 0),
                 s.get("total_profit_cents", 0),
+                s.get("total_tips_cents", 0),
                 s["total_orders"],
             ]
         )
@@ -449,6 +497,7 @@ def export_report(
                 L["revenue_cents"],
                 L["cost_cents"],
                 L["profit_cents"],
+                L["tips_cents"],
                 L["orders"],
             ]
         )
@@ -458,6 +507,7 @@ def export_report(
                 w["revenue_cents"],
                 w.get("cost_cents", 0),
                 w.get("profit_cents", 0),
+                w.get("tips_cents", 0),
                 w["order_count"],
             ])
         buf = BytesIO()
@@ -477,16 +527,18 @@ def export_report(
                 "revenue_cents": r["revenue_cents"],
                 "cost_cents": r.get("cost_cents", 0),
                 "profit_cents": r.get("profit_cents", 0),
+                "tips_cents": r.get("tips_cents", 0),
                 "order_count": r["order_count"],
             }
             for r in data["summary"]["daily"]
         ]
-        keys = ["date", "revenue_cents", "cost_cents", "profit_cents", "order_count"]
+        keys = ["date", "revenue_cents", "cost_cents", "profit_cents", "tips_cents", "order_count"]
         header_row = [
             L["date"],
             L["revenue_cents"],
             L["cost_cents"],
             L["profit_cents"],
+            L["tips_cents"],
             L["orders"],
         ]
     elif report == "products":
@@ -522,12 +574,13 @@ def export_report(
         ]
     elif report == "waiter":
         rows = data["by_waiter"]
-        keys = ["waiter_name", "revenue_cents", "cost_cents", "profit_cents", "order_count"]
+        keys = ["waiter_name", "revenue_cents", "cost_cents", "profit_cents", "tips_cents", "order_count"]
         header_row = [
             L["waiter"],
             L["revenue_cents"],
             L["cost_cents"],
             L["profit_cents"],
+            L["tips_cents"],
             L["orders"],
         ]
     else:

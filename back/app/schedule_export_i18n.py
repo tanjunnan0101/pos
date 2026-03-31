@@ -14,6 +14,7 @@ _EN: dict[str, str] = {
     "label": "Label",
     "employee": "Employee",
     "role": "Role",
+    "tips_month": "Tips (month total, cents)",
 }
 
 _ES: dict[str, str] = {

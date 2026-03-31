@@ -1134,7 +1134,20 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                     />
                     <p class="hint">{{ 'SETTINGS.TIP_TAX_RATE_HINT' | translate }}</p>
                   </div>
-                  
+                  <div class="form-group">
+                    <label for="tip_entry_mode">{{ 'SETTINGS.TIP_ENTRY_MODE' | translate }}</label>
+                    <select
+                      id="tip_entry_mode"
+                      class="form-select"
+                      [(ngModel)]="formData.tip_entry_mode"
+                      name="tip_entry_mode"
+                    >
+                      <option value="preset">{{ 'SETTINGS.TIP_ENTRY_MODE_PRESET' | translate }}</option>
+                      <option value="overpayment">{{ 'SETTINGS.TIP_ENTRY_MODE_OVERPAYMENT' | translate }}</option>
+                    </select>
+                    <p class="hint">{{ 'SETTINGS.TIP_ENTRY_MODE_HINT' | translate }}</p>
+                  </div>
+
                   <div class="divider"></div>
                   
                   <h3>{{ 'SETTINGS.LOCATION_VERIFICATION' | translate }}</h3>
@@ -2780,6 +2793,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     public_terms_of_service_url: null,
     public_privacy_policy_url: null,
     tip_tax_rate_percent: 0,
+    tip_entry_mode: 'preset' as 'preset' | 'overpayment',
     ui_modules: { ...DEFAULT_TENANT_UI_MODULES },
     clock_qr_location_verify: false,
   };
@@ -2879,6 +2893,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
           public_terms_of_service_url: settings.public_terms_of_service_url ?? null,
           public_privacy_policy_url: settings.public_privacy_policy_url ?? null,
           tip_tax_rate_percent: settings.tip_tax_rate_percent ?? 0,
+          tip_entry_mode:
+            settings.tip_entry_mode === 'overpayment' ? 'overpayment' : 'preset',
           ui_modules: {
             ...DEFAULT_TENANT_UI_MODULES,
             ...(settings.ui_modules || {}),
@@ -3670,6 +3686,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
       100,
       Math.max(0, Math.floor(Number(this.formData.tip_tax_rate_percent) || 0))
     );
+    updateData.tip_entry_mode =
+      this.formData.tip_entry_mode === 'overpayment' ? 'overpayment' : 'preset';
 
     updateData.ui_modules = {
       ...DEFAULT_TENANT_UI_MODULES,

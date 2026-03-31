@@ -27,6 +27,7 @@ _EN: dict[str, str] = {
     "quantity": "Quantity",
     "table": "Table",
     "waiter": "Waiter",
+    "tips_cents": "Tips (cents)",
     "source_public": "Public (online)",
     "source_staff": "Staff",
     "res_status_booked": "Booked",

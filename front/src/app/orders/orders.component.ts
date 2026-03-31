@@ -848,7 +848,36 @@ ModuleRegistry.registerModules([
                 <p class="payment-amount-line">
                   {{ 'ORDERS.SUBTOTAL' | translate }}: {{ formatPrice(orderPaymentSubtotal(orderToMarkPaid()!)) }}
                 </p>
-                @if (tipPresetsForPayment().length > 0) {
+                @if (tipEntryModeOverpayment()) {
+                  <p class="modal-hint">{{ 'ORDERS.OVERPAYMENT_PAYMENT_HINT' | translate }}</p>
+                  <div class="form-group">
+                    <label for="payment-amount-charged">{{ 'ORDERS.AMOUNT_CHARGED' | translate }}</label>
+                    <input
+                      id="payment-amount-charged"
+                      type="text"
+                      inputmode="decimal"
+                      class="form-control"
+                      [(ngModel)]="paymentAmountPaidInput"
+                      (ngModelChange)="onPaymentAmountPaidChange()"
+                      name="paymentAmountPaid"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="payment-tip-amount">{{ 'ORDERS.TIP_AMOUNT_EDIT' | translate }}</label>
+                    <input
+                      id="payment-tip-amount"
+                      type="text"
+                      inputmode="decimal"
+                      class="form-control"
+                      [(ngModel)]="paymentTipAmountInput"
+                      name="paymentTipAmount"
+                    />
+                  </div>
+                  <p class="modal-hint payment-tip-preview">
+                    {{ 'ORDERS.TIP_AMOUNT' | translate }}: {{ formatPrice(paymentTipAmountDisplayCents()) }}
+                    — {{ 'ORDERS.AMOUNT_DUE' | translate }}: {{ formatPrice(paymentOverpaymentGrandTotalCents()) }}
+                  </p>
+                } @else if (tipPresetsForPayment().length > 0) {
                   <div class="form-group payment-tip-group">
                     <span class="form-label-text">{{ 'ORDERS.TIP' | translate }}</span>
                     <div class="tip-preset-buttons">
@@ -1925,6 +1954,10 @@ export class OrdersComponent implements OnInit, OnDestroy {
   paymentMethod = 'cash';
   /** Selected POS tip preset percent; 0 = no tip */
   paymentTipPercent = 0;
+  /** When tip_entry_mode is overpayment: amount charged on card/terminal (major units, locale decimal) */
+  paymentAmountPaidInput = '';
+  /** Editable tip in major units (defaults from amount − subtotal) */
+  paymentTipAmountInput = '';
   processingPayment = signal(false);
   statusDropdownOpen = signal<number | null>(null); // Order ID for which dropdown is open
   itemStatusDropdownOpen = signal<string | null>(null); // "orderId-itemId" for which dropdown is open
@@ -2427,6 +2460,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
     this.orderToMarkPaid.set(order);
     this.paymentMethod = 'cash';
     this.paymentTipPercent = 0;
+    this.paymentAmountPaidInput = '';
+    this.paymentTipAmountInput = '';
   }
 
   markEditOrderFinish(order: Order) {
@@ -2435,6 +2470,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
     this.orderToMarkPaid.set(order);
     this.paymentMethod = 'cash';
     this.paymentTipPercent = 0;
+    this.paymentAmountPaidInput = '';
+    this.paymentTipAmountInput = '';
   }
 
   getStatusLabel(status: string): string {
@@ -3309,6 +3346,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
     this.orderToMarkPaid.set(order);
     this.paymentMethod = 'cash'; // Reset to default
     this.paymentTipPercent = 0;
+    this.paymentAmountPaidInput = '';
+    this.paymentTipAmountInput = '';
   }
 
   openFinishPaymentModal(order: Order) {
@@ -3317,6 +3356,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
     this.orderToMarkPaid.set(order);
     this.paymentMethod = 'cash';
     this.paymentTipPercent = 0;
+    this.paymentAmountPaidInput = '';
+    this.paymentTipAmountInput = '';
   }
 
   closePaymentModal() {
@@ -3324,6 +3365,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
     this.paymentModalFinishMode.set(false);
     this.processingPayment.set(false);
     this.paymentTipPercent = 0;
+    this.paymentAmountPaidInput = '';
+    this.paymentTipAmountInput = '';
   }
 
   orderPaymentSubtotal(order: Order): number {
@@ -3334,6 +3377,32 @@ export class OrdersComponent implements OnInit, OnDestroy {
       i => !i.removed_by_customer && i.status !== 'cancelled'
     );
     return items.reduce((s, i) => s + (i.price_cents || 0) * (i.quantity || 0), 0);
+  }
+
+  tipEntryModeOverpayment(): boolean {
+    return this.tenantSettings()?.tip_entry_mode === 'overpayment';
+  }
+
+  /** Exposed for payment modal template */
+  paymentTipAmountDisplayCents(): number {
+    return this.parseMoneyMajorToCents(this.paymentTipAmountInput);
+  }
+
+  private parseMoneyMajorToCents(s: string): number {
+    const t = (s || '').replace(',', '.').trim();
+    if (!t) return 0;
+    const n = parseFloat(t);
+    if (Number.isNaN(n) || n < 0) return 0;
+    return Math.round(n * 100);
+  }
+
+  onPaymentAmountPaidChange(): void {
+    const order = this.orderToMarkPaid();
+    if (!order) return;
+    const sub = this.orderPaymentSubtotal(order);
+    const paid = this.parseMoneyMajorToCents(this.paymentAmountPaidInput);
+    const tip = Math.max(0, paid - sub);
+    this.paymentTipAmountInput = (tip / 100).toFixed(2);
   }
 
   tipPresetsForPayment(): number[] {
@@ -3373,18 +3442,64 @@ export class OrdersComponent implements OnInit, OnDestroy {
     return this.orderPaymentSubtotal(order) + this.paymentTipPreviewCents(order);
   }
 
+  paymentOverpaymentGrandTotalCents(): number {
+    const order = this.orderToMarkPaid();
+    if (!order) return 0;
+    return this.orderPaymentSubtotal(order) + this.parseMoneyMajorToCents(this.paymentTipAmountInput);
+  }
+
   confirmMarkAsPaid() {
     const order = this.orderToMarkPaid();
     if (!order || !this.paymentMethod) return;
+
+    if (this.tipEntryModeOverpayment()) {
+      const sub = this.orderPaymentSubtotal(order);
+      const paid = this.parseMoneyMajorToCents(this.paymentAmountPaidInput);
+      const tip = this.parseMoneyMajorToCents(this.paymentTipAmountInput);
+      if (paid < sub + tip) {
+        this.showToast(
+          this.translate.instant('ORDERS.OVERPAYMENT_VALIDATE') || 'Amount charged must cover subtotal and tip',
+          'error'
+        );
+        return;
+      }
+      this.processingPayment.set(true);
+      const opts = {
+        tipEntryMode: 'overpayment' as const,
+        tipAmountCents: tip,
+        amountPaidCents: paid > 0 ? paid : undefined,
+      };
+      const req = this.paymentModalFinishMode()
+        ? this.api.finishOrder(order.id, this.paymentMethod, opts)
+        : this.api.markOrderPaid(order.id, this.paymentMethod, opts);
+      req.subscribe({
+        next: () => {
+          this.processingPayment.set(false);
+          this.closePaymentModal();
+          this.loadOrders();
+        },
+        error: () => {
+          this.processingPayment.set(false);
+          this.showToast(
+            this.translate.instant(
+              this.paymentModalFinishMode() ? 'ORDERS.FAILED_TO_FINISH' : 'ORDERS.FAILED_TO_MARK_PAID'
+            ),
+            'error'
+          );
+        }
+      });
+      return;
+    }
 
     this.processingPayment.set(true);
     const tip =
       this.paymentTipPercent > 0 && this.tipPresetsForPayment().includes(this.paymentTipPercent)
         ? this.paymentTipPercent
         : null;
+    const presetOpts = { tipEntryMode: 'preset' as const, tipPercent: tip };
     const req = this.paymentModalFinishMode()
-      ? this.api.finishOrder(order.id, this.paymentMethod, tip)
-      : this.api.markOrderPaid(order.id, this.paymentMethod, tip);
+      ? this.api.finishOrder(order.id, this.paymentMethod, presetOpts)
+      : this.api.markOrderPaid(order.id, this.paymentMethod, presetOpts);
     req.subscribe({
       next: () => {
         this.processingPayment.set(false);
