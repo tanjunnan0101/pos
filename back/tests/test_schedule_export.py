@@ -78,12 +78,14 @@ class TestScheduleExport(PgClientTestCase):
         self.assertIn(".xlsx", cd)
         wb = load_workbook(BytesIO(r.content))
         ws = wb.active
-        self.assertEqual(ws.max_row, 2)
+        # Header, one shift row, blank separator, tips summary row
+        self.assertEqual(ws.max_row, 4)
         self.assertEqual(ws.cell(2, 1).value, "2025-03-15")
         self.assertEqual(ws.cell(2, 2).value, "09:00")
         self.assertEqual(ws.cell(2, 3).value, "14:00")
         self.assertEqual(ws.cell(2, 4).value, "Morning")
         self.assertEqual(ws.cell(2, 5).value, "Sara Waiter")
+        self.assertEqual(ws.cell(4, 6).value, "0")
 
     def test_export_empty_month_header_only(self) -> None:
         h = _bearer_headers(self.admin)
@@ -95,7 +97,10 @@ class TestScheduleExport(PgClientTestCase):
         self.assertEqual(r.status_code, 200, r.text)
         wb = load_workbook(BytesIO(r.content))
         ws = wb.active
-        self.assertEqual(ws.max_row, 1)
+        # Header, blank separator, tips summary row (no shift rows in empty month)
+        self.assertEqual(ws.max_row, 3)
+        self.assertIsNone(ws.cell(2, 1).value)
+        self.assertEqual(ws.cell(3, 6).value, "0")
 
     def test_export_user_not_in_tenant(self) -> None:
         other_tenant = models.Tenant(name="Other tenant SE")

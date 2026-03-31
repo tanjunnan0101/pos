@@ -201,8 +201,8 @@ function isValidView(v: string | null): v is ViewMode {
         <select
           id="working-plan-staff-scope"
           class="export-worker-select"
-          [(ngModel)]="exportUserId"
-          (ngModelChange)="onExportUserIdChange()"
+          [ngModel]="exportUserId()"
+          (ngModelChange)="onExportUserIdSelected($event)"
           [disabled]="!scheduleUsers().length"
           data-testid="working-plan-export-worker"
         >
@@ -219,7 +219,7 @@ function isValidView(v: string | null): v is ViewMode {
           type="button"
           class="btn btn-ghost btn-sm"
           (click)="exportExcel()"
-          [disabled]="exportUserId == null || exportLoading() || !scheduleUsers().length"
+          [disabled]="exportUserId() == null || exportLoading() || !scheduleUsers().length"
           data-testid="working-plan-export-excel"
         >
           {{ exportLoading() ? ('COMMON.LOADING' | translate) : ('WORKING_PLAN.EXPORT_EXCEL' | translate) }}
@@ -739,8 +739,8 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
   complianceWarnings = signal<ScheduleComplianceWarning[]>([]);
   copyWeekSaving = signal(false);
   scheduleUsers = signal<User[]>([]);
-  /** Staff scope: null = all staff (planned vs clocked + optional PVA export); set = that worker for shift Excel + filtered PVA. */
-  exportUserId: number | null = null;
+  /** Staff scope: null = all staff (planned vs clocked + optional PVA export); set = that worker for shift Excel + filtered PVA. Signal so computeds react to dropdown changes. */
+  exportUserId = signal<number | null>(null);
   exportLoading = signal(false);
   exportPvaLoading = signal(false);
   /** Planned vs clocked block expanded (default collapsed; optional persistence). */
@@ -828,7 +828,7 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
 
   plannedVsActualDisplayed = computed(() => {
     const base = this.plannedVsActualRows().filter((r) => r.planned_minutes > 0 || r.actual_minutes > 0);
-    const uid = this.exportUserId;
+    const uid = this.exportUserId();
     if (uid == null) return base;
     return base.filter((r) => r.user_id === uid);
   });
@@ -846,7 +846,7 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
 
   showPvaSection = computed(() => {
     const anyActivity = this.plannedVsActualRows().some((r) => r.planned_minutes > 0 || r.actual_minutes > 0);
-    return anyActivity || this.exportUserId != null;
+    return anyActivity || this.exportUserId() != null;
   });
 
   calendarMonthLabel = computed(() => {
@@ -971,16 +971,17 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
       next: (users) => {
         this.scheduleUsers.set(users);
         if (!users.length) {
-          this.exportUserId = null;
+          this.exportUserId.set(null);
           return;
         }
-        if (this.exportUserId != null && !users.some((u) => u.id === this.exportUserId)) {
-          this.exportUserId = null;
+        const cur = this.exportUserId();
+        if (cur != null && !users.some((u) => u.id === cur)) {
+          this.exportUserId.set(null);
         }
       },
       error: () => {
         this.scheduleUsers.set([]);
-        this.exportUserId = null;
+        this.exportUserId.set(null);
       },
     });
     this.api.getTenantSettings().subscribe({
@@ -1065,10 +1066,9 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
     this.bulkTargetMonth.set(month);
     this.bulkWeekdays.set(new Set([1, 2, 3, 4, 5]));
     const users = this.scheduleUsers();
+    const exp = this.exportUserId();
     this.bulkUserId =
-      this.exportUserId != null && users.some((u) => u.id === this.exportUserId)
-        ? this.exportUserId
-        : (users[0]?.id ?? null);
+      exp != null && users.some((u) => u.id === exp) ? exp : (users[0]?.id ?? null);
     this.bulkTimeStep = 30;
     this.bulkUseAnyHour = false;
     this.bulkStartTime = '09:00';
@@ -1344,7 +1344,7 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
     const range = this.viewMode() === 'calendar' ? getMonthRange(this.calendarMonth()) : this.weekRange();
     this.exportPvaLoading.set(true);
     this.api
-      .getSchedulePlannedVsActualExport(range.from, range.to, this.languageService.getLanguage(), this.exportUserId)
+      .getSchedulePlannedVsActualExport(range.from, range.to, this.languageService.getLanguage(), this.exportUserId())
       .subscribe({
         next: (blob) => {
           this.exportPvaLoading.set(false);
@@ -1367,7 +1367,7 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
   }
 
   exportExcel(): void {
-    const uid = this.exportUserId;
+    const uid = this.exportUserId();
     if (uid == null) return;
     const { year, month } = this.exportYearMonth();
     this.exportLoading.set(true);
@@ -1400,7 +1400,7 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
   private fetchPlannedVsActual(): void {
     const range = this.planDateRange();
     const gen = ++this.plannedVsActualFetchGen;
-    const uid = this.exportUserId;
+    const uid = this.exportUserId();
     this.api.getSchedulePlannedVsActual(range.from, range.to, uid).subscribe({
       next: (res) => {
         if (gen !== this.plannedVsActualFetchGen) return;
@@ -1413,7 +1413,8 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
     });
   }
 
-  onExportUserIdChange(): void {
+  onExportUserIdSelected(value: number | null): void {
+    this.exportUserId.set(value);
     this.fetchPlannedVsActual();
   }
 
