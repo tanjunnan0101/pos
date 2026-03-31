@@ -796,7 +796,10 @@
     "OP_RESERVED": "Резервирана",
     "OP_OCCUPIED": "Заета (без отворена поръчка)",
     "OP_OPEN_ORDER": "Отворена поръчка",
-    "OP_BILL_ISSUED": "Сметка / плащане"
+    "OP_BILL_ISSUED": "Сметка / плащане",
+    "FLOOR_PUBLIC_BOOKING": "Отворено за онлайн резервация",
+    "FLOOR_MOVE_UP": "Премести нагоре",
+    "FLOOR_MOVE_DOWN": "Премести надолу"
   },
   "TABLE_STATUS": {
     "available": "Наличен",
@@ -872,7 +875,10 @@
     "SEATING_TERRACE": "Тераса / навън",
     "ALLERGIES_HAS": "Имаме алергии или непоносимости",
     "ALLERGIES_DETAIL_PLACEHOLDER": "Опишете алергиите (напр. ядки, глутен)",
-    "ALLERGIES_DETAIL_REQUIRED": "Моля, опишете алергиите, когато сте отбелязали това."
+    "ALLERGIES_DETAIL_REQUIRED": "Моля, опишете алергиите, когато сте отбелязали това.",
+    "LOCATION_ZONE": "Зона",
+    "LOCATION_ZONE_PLACEHOLDER": "Изберете зона",
+    "LOCATION_ZONE_REQUIRED": "Моля, изберете зона."
   },
   "FEEDBACK": {
     "TITLE": "Как мина посещението ви?",

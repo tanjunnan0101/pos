@@ -770,7 +770,10 @@
     "OP_RESERVED": "Réservée",
     "OP_OCCUPIED": "Occupée (pas de commande ouverte)",
     "OP_OPEN_ORDER": "Commande en cours",
-    "OP_BILL_ISSUED": "Addition / paiement"
+    "OP_BILL_ISSUED": "Addition / paiement",
+    "FLOOR_PUBLIC_BOOKING": "Ouvert à la réservation en ligne",
+    "FLOOR_MOVE_UP": "Monter l'étage",
+    "FLOOR_MOVE_DOWN": "Descendre l'étage"
   },
   "TABLE_STATUS": {
     "available": "Disponible",
@@ -846,7 +849,10 @@
     "SEATING_TERRACE": "Terrasse / extérieur",
     "ALLERGIES_HAS": "Allergies ou intolérances",
     "ALLERGIES_DETAIL_PLACEHOLDER": "Décrivez les allergies (ex. noix, gluten)",
-    "ALLERGIES_DETAIL_REQUIRED": "Décrivez les allergies lorsque vous cochez cette case."
+    "ALLERGIES_DETAIL_REQUIRED": "Décrivez les allergies lorsque vous cochez cette case.",
+    "LOCATION_ZONE": "Espace",
+    "LOCATION_ZONE_PLACEHOLDER": "Choisir l'espace",
+    "LOCATION_ZONE_REQUIRED": "Veuillez choisir un espace."
   },
   "RESERVATIONS": {
     "TITLE": "Réservations",

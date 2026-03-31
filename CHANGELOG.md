@@ -42,6 +42,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Reservations / seating zones (GitHub #129):** Public **`GET /public/tenants/{id}/reservation-book-zones`** lists active floors with tables; **`floor.is_active`**, **`reservation.preferred_floor_id`**. Public `/book` shows a **seating area** control when there are two or more bookable zones; slot APIs accept optional **`floor_id`**. Tables list view: per-floor **open for online booking** toggle and **reorder** (↑↓). Venue-wide capacity still includes tables with no `floor_id`; zone capacity counts only tables on that floor.
+
 - **Tables / Orders tablet flow (GitHub #124):** Remember last **list vs floor plan** (`localStorage` + `TablesAreaPreferenceService`); sidebar **Tables** link and segment switcher use it. **Orders ↔ Tables** toolbar (`StaffPosToolbarComponent`) on `/staff/orders`, `/tables`, `/tables/canvas` with **hide main nav** (tablet+) and **fullscreen** icon buttons. **Double-click** a table on floor plan or tile list opens **Staff Orders** with `?table=` scope (filter + banner; clear to show all). i18n: `STAFF_FLOW.*`, `ORDERS.TABLE_SCOPE_*`.
 
 - **POS tips — overpayment mode & reporting (GitHub #123):** Tenant **`tip_entry_mode`** (`preset` vs `overpayment`); mark-paid / finish with **`tip_amount_cents`** and optional **`amount_paid_cents`**; **`order.tip_attributed_user_id`** from table/floor waiter; sales report **`total_tips_cents`** / daily **`tips_cents`** / waiter **`tips_cents`**; working-plan month Excel footer with attributed tips total; Settings and Orders payment UI. Migration **`20260331190000_tenant_tip_entry_mode_order_tip_attribution.sql`**.

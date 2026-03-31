@@ -779,7 +779,10 @@
     "OP_RESERVED": "Reservada",
     "OP_OCCUPIED": "Ocupada (sin pedido abierto)",
     "OP_OPEN_ORDER": "Pedido abierto",
-    "OP_BILL_ISSUED": "Cuenta / cobro"
+    "OP_BILL_ISSUED": "Cuenta / cobro",
+    "FLOOR_PUBLIC_BOOKING": "Abierto para reserva online",
+    "FLOOR_MOVE_UP": "Subir planta",
+    "FLOOR_MOVE_DOWN": "Bajar planta"
   },
   "TABLE_STATUS": {
     "available": "Disponible",
@@ -851,7 +854,10 @@
     "SEATING_TERRACE": "Terraza / exterior",
     "ALLERGIES_HAS": "Tenemos alergias o intolerancias",
     "ALLERGIES_DETAIL_PLACEHOLDER": "Describe las alergias (p. ej. frutos secos, gluten)",
-    "ALLERGIES_DETAIL_REQUIRED": "Describe las alergias cuando indiques que las hay."
+    "ALLERGIES_DETAIL_REQUIRED": "Describe las alergias cuando indiques que las hay.",
+    "LOCATION_ZONE": "Zona",
+    "LOCATION_ZONE_PLACEHOLDER": "Elige zona",
+    "LOCATION_ZONE_REQUIRED": "Elige una zona."
   },
   "FEEDBACK": {
     "TITLE": "¿Cómo fue tu visita?",

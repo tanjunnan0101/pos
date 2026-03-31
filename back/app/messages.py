@@ -11,6 +11,8 @@ MESSAGES = {
         "invalid_reservation_token": "Invalid or unknown reservation link",
         "reservation_date_too_far": "Reservation date cannot be more than 12 months in advance",
         "reservation_min_lead_time": "Reservation must be at least {minutes} minutes from now",
+        "reservation_location_required": "Please choose a seating area",
+        "reservation_invalid_seating_area": "Invalid seating area for this restaurant",
         "incorrect_username_or_password": "Incorrect username or password",
         "actor_current_password_required": "Enter your current password to change a user's password.",
         "incorrect_actor_password": "Your current password is incorrect.",

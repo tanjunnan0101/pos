@@ -228,7 +228,7 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
             </div>
           } @else {
             <!-- Tiles view: grouped by Floor -->
-            @for (floor of floors(); track floor.id) {
+            @for (floor of floorsSorted(); track floor.id) {
               @if (getTablesByFloor(floor.id!).length > 0) {
                 <div class="floor-section">
                   <div class="section-header">
@@ -236,6 +236,36 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
                       <h2>{{ floor.name }}</h2>
                       <span class="badge">{{ getTablesByFloor(floor.id!).length }}</span>
                     </div>
+                    @if (canManageFloors()) {
+                      <div class="floor-admin-actions">
+                        <label class="floor-active-toggle">
+                          <input
+                            type="checkbox"
+                            [checked]="floor.is_active !== false"
+                            (change)="toggleFloorActive(floor, $event)"
+                          />
+                          {{ 'TABLES.FLOOR_PUBLIC_BOOKING' | translate }}
+                        </label>
+                        <button
+                          type="button"
+                          class="btn btn-ghost btn-sm"
+                          (click)="moveFloorSort(floor, -1)"
+                          [disabled]="isFirstFloorSort(floor)"
+                          [title]="'TABLES.FLOOR_MOVE_UP' | translate"
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-ghost btn-sm"
+                          (click)="moveFloorSort(floor, 1)"
+                          [disabled]="isLastFloorSort(floor)"
+                          [title]="'TABLES.FLOOR_MOVE_DOWN' | translate"
+                        >
+                          ↓
+                        </button>
+                      </div>
+                    }
                     <div class="floor-waiter-assign">
                       <label class="floor-waiter-label">{{ 'TABLES.DEFAULT_WAITER' | translate }}:</label>
                       @if (canManageTableAssignments()) {
@@ -604,6 +634,21 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
     }
 
     .floor-section { margin-bottom: var(--space-8); }
+    .floor-admin-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+    .floor-active-toggle {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      cursor: pointer;
+    }
+    .floor-active-toggle input { cursor: pointer; }
     .floor-section .section-header { 
       display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4);
       padding-bottom: var(--space-2); border-bottom: 2px solid var(--color-bg); flex-wrap: wrap;
@@ -953,6 +998,64 @@ export class TablesComponent implements OnInit {
   /** Owner/admin: can change table/floor waiter assignment (requires user list API). */
   canManageTableAssignments(): boolean {
     return this.permissions.hasPermission(this.api.getCurrentUser(), 'table:write');
+  }
+
+  /** Rename/reorder/deactivate floors for public booking zones. */
+  canManageFloors(): boolean {
+    return this.permissions.hasPermission(this.api.getCurrentUser(), 'floor:write');
+  }
+
+  floorsSorted(): Floor[] {
+    return [...this.floors()].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  }
+
+  floorSortIndex(floor: Floor): number {
+    return this.floorsSorted().findIndex(f => f.id === floor.id);
+  }
+
+  isFirstFloorSort(floor: Floor): boolean {
+    return this.floorSortIndex(floor) <= 0;
+  }
+
+  isLastFloorSort(floor: Floor): boolean {
+    const s = this.floorsSorted();
+    return this.floorSortIndex(floor) >= s.length - 1;
+  }
+
+  toggleFloorActive(floor: Floor, event: Event) {
+    const el = event.target as HTMLInputElement;
+    if (!floor.id) return;
+    const next = el.checked;
+    this.api.updateFloor(floor.id, { is_active: next }).subscribe({
+      next: u => this.floors.update(fs => fs.map(f => (f.id === u.id ? u : f))),
+      error: err => {
+        el.checked = !next;
+        this.error.set(err.error?.detail || 'Failed to update floor');
+      },
+    });
+  }
+
+  moveFloorSort(floor: Floor, delta: number) {
+    const sorted = this.floorsSorted();
+    const i = sorted.findIndex(f => f.id === floor.id);
+    const j = i + delta;
+    if (i < 0 || j < 0 || j >= sorted.length) return;
+    const a = sorted[i];
+    const b = sorted[j];
+    const aid = a.id;
+    const bid = b.id;
+    if (aid == null || bid == null) return;
+    const ao = a.sort_order ?? 0;
+    const bo = b.sort_order ?? 0;
+    this.api.updateFloor(aid, { sort_order: bo }).subscribe({
+      next: () => {
+        this.api.updateFloor(bid, { sort_order: ao }).subscribe({
+          next: () => this.loadData(),
+          error: err => this.error.set(err.error?.detail || 'Failed to reorder floor'),
+        });
+      },
+      error: err => this.error.set(err.error?.detail || 'Failed to reorder floor'),
+    });
   }
 
   /** Double-click a tile: open staff orders filtered to this table. */

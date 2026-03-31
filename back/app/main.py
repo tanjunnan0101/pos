@@ -945,6 +945,26 @@ def get_public_tenant(
     return JSONResponse(content=body)
 
 
+@app.get("/public/tenants/{tenant_id}/reservation-book-zones")
+def get_public_reservation_book_zones(
+    tenant_id: int,
+    session: Session = Depends(get_session),
+    lang: str = Depends(_get_requested_language),
+) -> dict:
+    """Public: active floors/zones that have at least one table (for /book location selector)."""
+    tenant = session.get(models.Tenant, tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail=get_message("tenant_not_found", lang))
+    floors = _bookable_floors_for_public(session, tenant_id)
+    return {
+        "floors": [
+            {"id": f.id, "name": f.name, "sort_order": f.sort_order}
+            for f in floors
+            if f.id is not None
+        ]
+    }
+
+
 @app.get("/public/table-lookup")
 @limiter.limit(
     f"{getattr(settings, 'rate_limit_public_menu_per_minute', 30)}/minute",
@@ -5440,7 +5460,10 @@ def create_floor(
         sort_order = (max_order or 0) + 1
 
     floor = models.Floor(
-        name=floor_data.name, sort_order=sort_order, tenant_id=current_user.tenant_id
+        name=floor_data.name,
+        sort_order=sort_order,
+        tenant_id=current_user.tenant_id,
+        is_active=floor_data.is_active if floor_data.is_active is not None else True,
     )
     session.add(floor)
     session.commit()
@@ -5484,6 +5507,8 @@ def update_floor(
             if not waiter:
                 raise HTTPException(status_code=400, detail="Waiter not found")
             floor.default_waiter_id = waiter.id
+    if floor_update.is_active is not None:
+        floor.is_active = floor_update.is_active
 
     session.add(floor)
     session.commit()
@@ -6857,7 +6882,14 @@ def _reservation_to_dict(
         "seating_preference": getattr(r, "seating_preference", None),
         "allergies_has": bool(getattr(r, "allergies_has", False)),
         "allergies_detail": getattr(r, "allergies_detail", None),
+        "preferred_floor_id": getattr(r, "preferred_floor_id", None),
     }
+    pfid = getattr(r, "preferred_floor_id", None)
+    if pfid is not None and session:
+        fl = session.get(models.Floor, pfid)
+        out["preferred_floor_name"] = fl.name if fl else None
+    else:
+        out["preferred_floor_name"] = None
     if session and r.table_id is not None:
         table = session.get(models.Table, r.table_id)
         out["table_name"] = table.name if table else None
@@ -6917,6 +6949,27 @@ def _table_busy_interval_turn(
     return (st, st + timedelta(minutes=turn_minutes))
 
 
+def _bookable_floors_for_public(session: Session, tenant_id: int) -> list[models.Floor]:
+    """Active floors that have at least one table on that floor (public zone list)."""
+    floors = session.exec(
+        select(models.Floor)
+        .where(models.Floor.tenant_id == tenant_id, models.Floor.is_active.is_(True))
+        .order_by(models.Floor.sort_order, models.Floor.name)
+    ).all()
+    out: list[models.Floor] = []
+    for f in floors:
+        if f.id is None:
+            continue
+        one = session.exec(
+            select(models.Table)
+            .where(models.Table.tenant_id == tenant_id, models.Table.floor_id == f.id)
+            .limit(1)
+        ).first()
+        if one is not None:
+            out.append(f)
+    return out
+
+
 def _table_blocks_reservation_slot(
     table: models.Table,
     seated: models.Reservation | None,
@@ -6954,16 +7007,23 @@ def _reservable_capacity_for_tenant(
     slot_time: time,
     *,
     _now_utc: datetime | None = None,
+    floor_id: int | None = None,
 ) -> tuple[int, int]:
     """Seats and table count in the reservation pool for one slot.
 
     Excludes tables busy at that slot (turn-time windows when configured; else same-day block).
     Then drops the smallest ``reservation_walk_in_tables_reserved`` tables from the pool for walk-ins.
+
+    When ``floor_id`` is set, only tables on that floor are counted (``Table.floor_id == floor_id``).
+    Tables with ``floor_id`` null are never counted for a zone-specific pool — they only contribute
+    to venue-wide capacity (``floor_id`` None).
     """
     now_utc = _now_utc or datetime.now(timezone.utc)
     tables = session.exec(
         select(models.Table).where(models.Table.tenant_id == tenant_id)
     ).all()
+    if floor_id is not None:
+        tables = [t for t in tables if t.floor_id == floor_id]
     if not tables:
         return (0, 0)
     table_ids = [t.id for t in tables if t.id is not None]
@@ -7035,8 +7095,17 @@ def _demand_for_slot(
     slot_date: date,
     slot_time: time,
     exclude_reservation_id: int | None = None,
+    floor_id: int | None = None,
 ) -> tuple[int, int]:
-    """Return (reserved_guests, reserved_parties) for the slot. Active = booked, seated."""
+    """Return (reserved_guests, reserved_parties) for the slot. Active = booked, seated.
+
+    Venue-wide (floor_id None): all reservations on the slot count.
+
+    Zone-scoped (floor_id set): counts reservations with ``preferred_floor_id == floor_id``, plus
+    reservations with no preferred floor but a seated table on that floor (``table.floor_id``).
+    Booked parties without preferred floor and without a table do not consume zone capacity (they
+    only count venue-wide).
+    """
     q = select(models.Reservation).where(
         models.Reservation.tenant_id == tenant_id,
         models.Reservation.reservation_date == slot_date,
@@ -7046,8 +7115,25 @@ def _demand_for_slot(
     if exclude_reservation_id is not None:
         q = q.where(models.Reservation.id != exclude_reservation_id)
     reservations = session.exec(q).all()
-    reserved_guests = sum(r.party_size for r in reservations)
-    return (reserved_guests, len(reservations))
+    if floor_id is None:
+        reserved_guests = sum(r.party_size for r in reservations)
+        return (reserved_guests, len(reservations))
+    table_ids = [r.table_id for r in reservations if r.table_id]
+    tables_map: dict[int, models.Table] = {}
+    if table_ids:
+        tbls = session.exec(select(models.Table).where(models.Table.id.in_(table_ids))).all()
+        tables_map = {t.id: t for t in tbls if t.id is not None}
+    included: list[models.Reservation] = []
+    for r in reservations:
+        pf = getattr(r, "preferred_floor_id", None)
+        if pf == floor_id:
+            included.append(r)
+        elif pf is None and r.table_id:
+            t = tables_map.get(r.table_id)
+            if t and t.floor_id == floor_id:
+                included.append(r)
+    reserved_guests = sum(r.party_size for r in included)
+    return (reserved_guests, len(included))
 
 
 def _normalize_reservation_service_type(raw: str | None) -> str | None:
@@ -7092,6 +7178,7 @@ def get_slot_capacity(
     date_str: str = Query(..., description="Date YYYY-MM-DD"),
     time_str: str = Query(..., description="Time HH:MM"),
     exclude_reservation_id: int | None = Query(None, description="Exclude this reservation (for edit)"),
+    floor_id: int | None = Query(None, description="Optional zone: capacity for that floor only"),
 ) -> dict:
     """Capacity and demand for one slot (for create/edit form). Staff only."""
     try:
@@ -7104,10 +7191,10 @@ def get_slot_capacity(
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
     total_seats, total_tables = _reservable_capacity_for_tenant(
-        session, tenant_id, d, tenant, slot_time
+        session, tenant_id, d, tenant, slot_time, floor_id=floor_id
     )
     reserved_guests, reserved_parties = _demand_for_slot(
-        session, tenant_id, d, slot_time, exclude_reservation_id=exclude_reservation_id
+        session, tenant_id, d, slot_time, exclude_reservation_id=exclude_reservation_id, floor_id=floor_id
     )
     return {
         "total_seats": total_seats,
@@ -7348,10 +7435,38 @@ def create_reservation(
     ad_raw = getattr(data, "allergies_detail", None)
     allergies_has, allergies_detail = _normalize_allergies_for_booking(ah_raw, ad_raw)
     _raise_if_reservation_time_invalid_for_opening_hours(tenant, res_date, res_time, service_type)
+    bookable = _bookable_floors_for_public(session, tenant_id)
+    bookable_ids = {f.id for f in bookable if f.id is not None}
+    raw_pf = getattr(data, "preferred_floor_id", None)
+    eff_floor: int | None = None
+    if current_user:
+        if raw_pf is not None:
+            fl = session.exec(
+                select(models.Floor).where(
+                    models.Floor.id == raw_pf,
+                    models.Floor.tenant_id == tenant_id,
+                )
+            ).first()
+            if not fl:
+                raise HTTPException(status_code=400, detail=get_message("floor_not_found", lang))
+            eff_floor = raw_pf
+    else:
+        if raw_pf is not None:
+            if raw_pf not in bookable_ids:
+                raise HTTPException(status_code=400, detail=get_message("reservation_invalid_seating_area", lang))
+            eff_floor = raw_pf
+        elif len(bookable) == 1:
+            eff_floor = bookable[0].id
+        elif len(bookable) >= 2:
+            raise HTTPException(status_code=400, detail=get_message("reservation_location_required", lang))
+        else:
+            eff_floor = None
     total_seats, total_tables = _reservable_capacity_for_tenant(
-        session, tenant_id, res_date, tenant, res_time
+        session, tenant_id, res_date, tenant, res_time, floor_id=eff_floor
     )
-    reserved_guests, reserved_parties = _demand_for_slot(session, tenant_id, res_date, res_time, exclude_reservation_id=None)
+    reserved_guests, reserved_parties = _demand_for_slot(
+        session, tenant_id, res_date, res_time, exclude_reservation_id=None, floor_id=eff_floor
+    )
     if reserved_guests + data.party_size > total_seats or reserved_parties + 1 > total_tables:
         raise HTTPException(
             status_code=400,
@@ -7392,6 +7507,7 @@ def create_reservation(
         seating_preference=seating_pref,
         allergies_has=allergies_has,
         allergies_detail=allergies_detail,
+        preferred_floor_id=eff_floor,
     )
     session.add(reservation)
     session.commit()
@@ -7495,6 +7611,7 @@ def _public_book_slot_cells_for_single_date(
     today_local: date,
     min_dt: datetime,
     max_book: date,
+    floor_id: int | None = None,
 ) -> dict[str, str]:
     """Per time-slot state for one calendar day (same rules as book-week-slots)."""
     slot_step = _effective_reservation_slot_minutes(tenant)
@@ -7526,12 +7643,14 @@ def _public_book_slot_cells_for_single_date(
         if slot_dt < min_dt:
             cells[key] = "past"
             continue
-        total_seats, total_tables = _reservable_capacity_for_tenant(session, tenant_id, d, tenant, st)
+        total_seats, total_tables = _reservable_capacity_for_tenant(
+            session, tenant_id, d, tenant, st, floor_id=floor_id
+        )
         if total_tables < 1 or total_seats < party_size:
             cells[key] = "full"
             continue
         reserved_guests, reserved_parties = _demand_for_slot(
-            session, tenant_id, d, st, exclude_reservation_id=exclude_reservation_id
+            session, tenant_id, d, st, exclude_reservation_id=exclude_reservation_id, floor_id=floor_id
         )
         if reserved_guests + party_size <= total_seats and reserved_parties + 1 <= total_tables:
             cells[key] = "available"
@@ -7581,6 +7700,10 @@ def get_reservation_book_week_slots(
     service: str | None = Query(
         None,
         description="Optional lunch|dinner to show only that service window when opening hours have a break",
+    ),
+    floor_id: int | None = Query(
+        None,
+        description="Optional seating zone: capacity and demand for that floor only",
     ),
     session: Session = Depends(get_session),
 ) -> dict:
@@ -7660,14 +7783,14 @@ def get_reservation_book_week_slots(
                 continue
 
             total_seats, total_tables = _reservable_capacity_for_tenant(
-                session, tenant_id, d, tenant, st
+                session, tenant_id, d, tenant, st, floor_id=floor_id
             )
             if total_tables < 1 or total_seats < party_size:
                 cells[key] = "full"
                 continue
 
             reserved_guests, reserved_parties = _demand_for_slot(
-                session, tenant_id, d, st, exclude_reservation_id=exclude_reservation_id
+                session, tenant_id, d, st, exclude_reservation_id=exclude_reservation_id, floor_id=floor_id
             )
             if reserved_guests + party_size <= total_seats and reserved_parties + 1 <= total_tables:
                 cells[key] = "available"
@@ -7699,6 +7822,10 @@ def get_reservation_book_month_day_states(
     service: str | None = Query(
         None,
         description="Optional lunch|dinner when opening hours have a break",
+    ),
+    floor_id: int | None = Query(
+        None,
+        description="Optional seating zone: capacity for that floor only",
     ),
     session: Session = Depends(get_session),
 ) -> dict:
@@ -7734,6 +7861,7 @@ def get_reservation_book_month_day_states(
             today_local,
             min_dt,
             max_book,
+            floor_id=floor_id,
         )
         days_out.append({"date": d.isoformat(), "state": _aggregate_public_day_slot_state(cells)})
 
@@ -7752,6 +7880,10 @@ def get_reservation_book_day_slots(
     service: str | None = Query(
         None,
         description="Optional lunch|dinner when opening hours have a break",
+    ),
+    floor_id: int | None = Query(
+        None,
+        description="Optional seating zone: capacity for that floor only",
     ),
     session: Session = Depends(get_session),
 ) -> dict:
@@ -7788,6 +7920,7 @@ def get_reservation_book_day_slots(
         today_local,
         min_dt,
         max_book,
+        floor_id=floor_id,
     )
     times_sorted = sorted(cells.keys(), key=lambda k: int(k[:2]) * 60 + int(k[3:5]))
     return {"date": d.isoformat(), "times": times_sorted, "cells": cells}
@@ -7805,6 +7938,7 @@ def get_next_available_reservation_time(
         description="Earliest slot must be at least this many minutes from now (use 0 for staff tools)",
     ),
     service: str | None = Query(None, description="Optional lunch|dinner for split opening hours"),
+    floor_id: int | None = Query(None, description="Optional seating zone: capacity for that floor only"),
     session: Session = Depends(get_session),
 ) -> dict:
     """Public: find the next slot with capacity (by seats and table count)."""
@@ -7843,13 +7977,13 @@ def get_next_available_reservation_time(
                 continue
 
             total_seats, total_tables = _reservable_capacity_for_tenant(
-                session, tenant_id, d, tenant, slot_time
+                session, tenant_id, d, tenant, slot_time, floor_id=floor_id
             )
             if total_tables < 1 or total_seats < party_size:
                 continue
 
             reserved_guests, reserved_parties = _demand_for_slot(
-                session, tenant_id, d, slot_time, exclude_reservation_id=None
+                session, tenant_id, d, slot_time, exclude_reservation_id=None, floor_id=floor_id
             )
             if reserved_guests + party_size <= total_seats and reserved_parties + 1 <= total_tables:
                 return {
@@ -7955,6 +8089,19 @@ def update_reservation(
         reservation.allergies_has = bool(body.allergies_has)
     if "allergies_detail" in upd:
         reservation.allergies_detail = (body.allergies_detail or "").strip() or None
+    if "preferred_floor_id" in upd:
+        if body.preferred_floor_id is None:
+            reservation.preferred_floor_id = None
+        else:
+            fl = session.exec(
+                select(models.Floor).where(
+                    models.Floor.id == body.preferred_floor_id,
+                    models.Floor.tenant_id == current_user.tenant_id,
+                )
+            ).first()
+            if not fl:
+                raise HTTPException(status_code=400, detail=get_message("floor_not_found", lang))
+            reservation.preferred_floor_id = body.preferred_floor_id
     ah_ok, ad_ok = _normalize_allergies_for_booking(
         reservation.allergies_has, reservation.allergies_detail
     )
@@ -7971,8 +8118,14 @@ def update_reservation(
     _raise_if_reservation_time_invalid_for_opening_hours(
         tenant, reservation.reservation_date, reservation.reservation_time, reservation.service_type
     )
+    cap_floor = reservation.preferred_floor_id
     total_seats, total_tables = _reservable_capacity_for_tenant(
-        session, current_user.tenant_id, reservation.reservation_date, tenant, reservation.reservation_time
+        session,
+        current_user.tenant_id,
+        reservation.reservation_date,
+        tenant,
+        reservation.reservation_time,
+        floor_id=cap_floor,
     )
     reserved_guests, reserved_parties = _demand_for_slot(
         session,
@@ -7980,6 +8133,7 @@ def update_reservation(
         reservation.reservation_date,
         reservation.reservation_time,
         exclude_reservation_id=reservation_id,
+        floor_id=cap_floor,
     )
     if reserved_guests + reservation.party_size > total_seats or reserved_parties + 1 > total_tables:
         raise HTTPException(

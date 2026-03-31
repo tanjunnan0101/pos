@@ -2,7 +2,13 @@ import { Component, inject, signal, computed, OnInit, ViewChild } from '@angular
 import { DomSanitizer, SafeResourceUrl, SafeStyle } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ApiService, Reservation, ReservationCreate, TenantSummary } from '../services/api.service';
+import {
+  ApiService,
+  Reservation,
+  ReservationBookZone,
+  ReservationCreate,
+  TenantSummary,
+} from '../services/api.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LanguagePickerComponent } from '../shared/language-picker.component';
 import { LegalLinksComponent } from '../shared/legal-links.component';
@@ -49,6 +55,9 @@ export class BookComponent implements OnInit {
   formPhone = '';
   formEmail = '';
   formClientNotes = '';
+  /** Public book zones (2+ → show selector; 1 → set automatically; 0 → venue-wide). */
+  bookZones = signal<ReservationBookZone[]>([]);
+  formFloorId: number | null = null;
   submitting = signal(false);
   error = signal<string | null>(null);
   successReservation = signal<Reservation | null>(null);
@@ -98,6 +107,20 @@ export class BookComponent implements OnInit {
         this.loading.set(false);
         this.formDate = this.tenantTodayDate();
         this.formTime = '';
+        this.api.getReservationBookZones(tid).subscribe({
+          next: (z) => {
+            this.bookZones.set(z.floors);
+            if (z.floors.length === 1) {
+              this.formFloorId = z.floors[0].id;
+            } else {
+              this.formFloorId = null;
+            }
+          },
+          error: () => {
+            this.bookZones.set([]);
+            this.formFloorId = null;
+          },
+        });
       },
       error: () => {
         this.loading.set(false);
@@ -204,6 +227,10 @@ export class BookComponent implements OnInit {
       this.error.set(this.translate.instant('BOOK.PICK_SLOT'));
       return;
     }
+    if (this.bookZones().length >= 2 && (this.formFloorId == null || Number.isNaN(this.formFloorId))) {
+      this.error.set(this.translate.instant('BOOK.LOCATION_ZONE_REQUIRED'));
+      return;
+    }
     const st = this.weekSlotGrid?.slotState(this.formDate, this.formTime) ?? 'out_of_hours';
     if (st !== 'available') {
       this.error.set(this.translate.instant('BOOK.SLOT_UNAVAILABLE'));
@@ -230,6 +257,8 @@ export class BookComponent implements OnInit {
       seating_preference: this.formSeating,
       allergies_has: dietary.length > 0,
       allergies_detail: dietary || undefined,
+      preferred_floor_id:
+        this.formFloorId != null && !Number.isNaN(this.formFloorId) ? this.formFloorId : undefined,
     };
     this.api.createReservationPublic(body).subscribe({
       next: (res) => {

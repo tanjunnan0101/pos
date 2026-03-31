@@ -537,6 +537,17 @@ export interface ReservationBookMonthDayStatesResponse {
   days: ReservationBookMonthDayState[];
 }
 
+/** GET /public/tenants/{id}/reservation-book-zones — active floors with tables for public /book. */
+export interface ReservationBookZone {
+  id: number;
+  name: string;
+  sort_order: number;
+}
+
+export interface ReservationBookZonesResponse {
+  floors: ReservationBookZone[];
+}
+
 /** GET /reservations/book-day-slots — times + cells for one day (dropdown after date pick). */
 export interface ReservationBookDaySlotsResponse {
   date: string;
@@ -679,6 +690,8 @@ export interface Floor {
   tenant_id?: number;
   default_waiter_id?: number | null;
   default_waiter_name?: string | null;
+  /** When false, floor is hidden from public booking zone list */
+  is_active?: boolean;
 }
 
 export interface Table {
@@ -789,6 +802,8 @@ export interface Reservation {
   seating_preference?: string | null;
   allergies_has?: boolean;
   allergies_detail?: string | null;
+  preferred_floor_id?: number | null;
+  preferred_floor_name?: string | null;
   /** Present only for staff responses */
   client_ip?: string | null;
   client_user_agent?: string | null;
@@ -814,6 +829,7 @@ export interface ReservationCreate {
   seating_preference?: string | null;
   allergies_has?: boolean | null;
   allergies_detail?: string | null;
+  preferred_floor_id?: number | null;
 }
 
 export interface ReservationUpdate {
@@ -831,6 +847,7 @@ export interface ReservationUpdate {
   seating_preference?: string | null;
   allergies_has?: boolean | null;
   allergies_detail?: string | null;
+  preferred_floor_id?: number | null;
 }
 
 /** Public update by token: delay notice, reservation notes, customer notes. */
@@ -1556,7 +1573,12 @@ export class ApiService {
     return this.http.get<{ count: number }>(`${this.apiUrl}/reservations/upcoming-no-table-count`, { params });
   }
 
-  getSlotCapacity(date: string, time: string, excludeReservationId?: number): Observable<{
+  getSlotCapacity(
+    date: string,
+    time: string,
+    excludeReservationId?: number,
+    floorId?: number | null
+  ): Observable<{
     total_seats: number;
     total_tables: number;
     reserved_guests: number;
@@ -1566,6 +1588,7 @@ export class ApiService {
   }> {
     let params = new HttpParams().set('date_str', date).set('time_str', time);
     if (excludeReservationId != null) params = params.set('exclude_reservation_id', excludeReservationId.toString());
+    if (floorId != null && floorId > 0) params = params.set('floor_id', String(floorId));
     return this.http.get<{
       total_seats: number;
       total_tables: number;
@@ -1627,12 +1650,14 @@ export class ApiService {
     /** 0 = staff (earliest slot same day); omit/default 10 = public book lead time */
     minLeadMinutes?: number,
     /** lunch|dinner when opening hours have a break */
-    service?: 'lunch' | 'dinner' | null
+    service?: 'lunch' | 'dinner' | null,
+    floorId?: number | null
   ): Observable<{ date: string; time: string }> {
     let params: Record<string, string> = { tenant_id: tenantId.toString(), date };
     if (partySize != null && partySize > 0) params['party_size'] = String(partySize);
     if (minLeadMinutes !== undefined) params['min_lead_minutes'] = String(minLeadMinutes);
     if (service === 'lunch' || service === 'dinner') params['service'] = service;
+    if (floorId != null && floorId > 0) params['floor_id'] = String(floorId);
     return this.http.get<{ date: string; time: string }>(`${this.apiUrl}/reservations/next-available`, { params });
   }
 
@@ -1655,7 +1680,8 @@ export class ApiService {
     partySize: number,
     weekAnchor?: string | null,
     excludeReservationId?: number | null,
-    service?: 'lunch' | 'dinner' | null
+    service?: 'lunch' | 'dinner' | null,
+    floorId?: number | null
   ): Observable<ReservationBookWeekSlotsResponse> {
     const params: Record<string, string> = {
       tenant_id: String(tenantId),
@@ -1666,6 +1692,7 @@ export class ApiService {
       params['exclude_reservation_id'] = String(excludeReservationId);
     }
     if (service === 'lunch' || service === 'dinner') params['service'] = service;
+    if (floorId != null && floorId > 0) params['floor_id'] = String(floorId);
     return this.http.get<ReservationBookWeekSlotsResponse>(`${this.apiUrl}/reservations/book-week-slots`, {
       params,
     });
@@ -1677,7 +1704,8 @@ export class ApiService {
     month: number,
     partySize: number,
     excludeReservationId?: number | null,
-    service?: 'lunch' | 'dinner' | null
+    service?: 'lunch' | 'dinner' | null,
+    floorId?: number | null
   ): Observable<ReservationBookMonthDayStatesResponse> {
     const params: Record<string, string> = {
       tenant_id: String(tenantId),
@@ -1689,6 +1717,7 @@ export class ApiService {
       params['exclude_reservation_id'] = String(excludeReservationId);
     }
     if (service === 'lunch' || service === 'dinner') params['service'] = service;
+    if (floorId != null && floorId > 0) params['floor_id'] = String(floorId);
     return this.http.get<ReservationBookMonthDayStatesResponse>(
       `${this.apiUrl}/reservations/book-month-day-states`,
       { params }
@@ -1700,7 +1729,8 @@ export class ApiService {
     date: string,
     partySize: number,
     excludeReservationId?: number | null,
-    service?: 'lunch' | 'dinner' | null
+    service?: 'lunch' | 'dinner' | null,
+    floorId?: number | null
   ): Observable<ReservationBookDaySlotsResponse> {
     const params: Record<string, string> = {
       tenant_id: String(tenantId),
@@ -1711,6 +1741,7 @@ export class ApiService {
       params['exclude_reservation_id'] = String(excludeReservationId);
     }
     if (service === 'lunch' || service === 'dinner') params['service'] = service;
+    if (floorId != null && floorId > 0) params['floor_id'] = String(floorId);
     return this.http.get<ReservationBookDaySlotsResponse>(`${this.apiUrl}/reservations/book-day-slots`, {
       params,
     });
@@ -2248,6 +2279,13 @@ export class ApiService {
   }
 
   /** Get one tenant's public info (for book/menu branding). Public, no auth. */
+  /** Public: list bookable seating zones (active floors with ≥1 table). */
+  getReservationBookZones(tenantId: number): Observable<ReservationBookZonesResponse> {
+    return this.http.get<ReservationBookZonesResponse>(
+      `${this.apiUrl}/public/tenants/${tenantId}/reservation-book-zones`
+    );
+  }
+
   getPublicTenant(tenantId: number): Observable<TenantSummary> {
     return this.http.get<TenantSummary>(`${this.apiUrl}/public/tenants/${tenantId}`);
   }

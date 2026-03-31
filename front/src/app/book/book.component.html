@@ -158,6 +158,17 @@
                   required
                 />
               </div>
+              @if (bookZones().length >= 2) {
+                <div class="form-group">
+                  <label for="book-zone">{{ 'BOOK.LOCATION_ZONE' | translate }}</label>
+                  <select id="book-zone" [(ngModel)]="formFloorId" name="floorId" required>
+                    <option [ngValue]="null" disabled>{{ 'BOOK.LOCATION_ZONE_PLACEHOLDER' | translate }}</option>
+                    @for (z of bookZones(); track z.id) {
+                      <option [ngValue]="z.id">{{ z.name }}</option>
+                    }
+                  </select>
+                </div>
+              }
               @if (hasMealSplit()) {
                 <div class="form-group">
                   <label for="book-service">{{ 'BOOK.SERVICE_TYPE' | translate }}</label>
@@ -203,6 +214,7 @@
               [timezone]="tenant()?.timezone ?? null"
               [weekAnchorSeed]="formDate"
               [serviceType]="hasMealSplit() ? formService : 'all'"
+              [bookFloorId]="formFloorId"
               [(selectedDate)]="formDate"
               [(selectedTime)]="formTime"
             />

@@ -655,7 +655,10 @@
     "OP_RESERVED": "Reserviert",
     "OP_OCCUPIED": "Besetzt (kein offener Auftrag)",
     "OP_OPEN_ORDER": "Offene Bestellung",
-    "OP_BILL_ISSUED": "Rechnung / zahlen"
+    "OP_BILL_ISSUED": "Rechnung / zahlen",
+    "FLOOR_PUBLIC_BOOKING": "Online-Reservierung offen",
+    "FLOOR_MOVE_UP": "Bereich nach oben",
+    "FLOOR_MOVE_DOWN": "Bereich nach unten"
   },
   "TABLE_STATUS": {
     "available": "Verfügbar",
@@ -727,7 +730,10 @@
     "SEATING_TERRACE": "Terrasse / Außen",
     "ALLERGIES_HAS": "Wir haben Allergien oder Unverträglichkeiten",
     "ALLERGIES_DETAIL_PLACEHOLDER": "Allergien beschreiben (z. B. Nüsse, Gluten)",
-    "ALLERGIES_DETAIL_REQUIRED": "Bitte Allergien beschreiben."
+    "ALLERGIES_DETAIL_REQUIRED": "Bitte Allergien beschreiben.",
+    "LOCATION_ZONE": "Bereich",
+    "LOCATION_ZONE_PLACEHOLDER": "Bereich wählen",
+    "LOCATION_ZONE_REQUIRED": "Bitte einen Bereich wählen."
   },
   "FEEDBACK": {
     "TITLE": "Wie war Ihr Besuch?",

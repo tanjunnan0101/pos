@@ -497,6 +497,7 @@ class Floor(TenantMixin, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str  # e.g., "Main Floor", "Terrace"
     sort_order: int = Field(default=0)
+    is_active: bool = Field(default=True, index=True)  # False = hidden from public booking zones
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Default waiter for tables on this floor (fallback when table has no explicit assignment)
@@ -622,6 +623,7 @@ class Reservation(TenantMixin, table=True):
     seating_preference: str | None = Field(default=None, max_length=32)  # indoor | terrace | no_preference
     allergies_has: bool = Field(default=False)
     allergies_detail: str | None = Field(default=None)
+    preferred_floor_id: int | None = Field(default=None, foreign_key="floor.id")
 
 
 class GuestFeedback(TenantMixin, table=True):
@@ -834,6 +836,7 @@ class ReservationCreate(SQLModel):
     seating_preference: str | None = None  # indoor | terrace | no_preference
     allergies_has: bool | None = None
     allergies_detail: str | None = None
+    preferred_floor_id: int | None = None
 
 
 class ReservationUpdate(SQLModel):
@@ -851,6 +854,7 @@ class ReservationUpdate(SQLModel):
     seating_preference: str | None = None
     allergies_has: bool | None = None
     allergies_detail: str | None = None
+    preferred_floor_id: int | None = None
 
 
 class ReservationStatusUpdate(SQLModel):
@@ -890,6 +894,7 @@ class PublicReservationCreate(SQLModel):
     seating_preference: str | None = None
     allergies_has: bool | None = None
     allergies_detail: str | None = None
+    preferred_floor_id: int | None = None
 
 
 class PublicReservationUpdate(SQLModel):
@@ -902,12 +907,14 @@ class PublicReservationUpdate(SQLModel):
 class FloorCreate(SQLModel):
     name: str
     sort_order: int | None = None
+    is_active: bool | None = None
 
 
 class FloorUpdate(SQLModel):
     name: str | None = None
     sort_order: int | None = None
     default_waiter_id: int | None = None
+    is_active: bool | None = None
 
 
 class ShiftCreate(SQLModel):

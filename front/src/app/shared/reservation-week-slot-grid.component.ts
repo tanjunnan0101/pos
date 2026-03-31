@@ -29,6 +29,8 @@ export class ReservationWeekSlotGridComponent {
   weekAnchorSeed = input<string | null>(null);
   /** When opening hours have lunch+dinner, filter to one service (same backend as /book). */
   serviceType = input<'all' | 'lunch' | 'dinner'>('all');
+  /** Public /book: seating zone — capacity for that floor only (omit when venue-wide). */
+  bookFloorId = input<number | null>(null);
 
   selectedDate = model<string>('');
   selectedTime = model<string>('');
@@ -56,6 +58,7 @@ export class ReservationWeekSlotGridComponent {
       this.partySize();
       this.excludeReservationId();
       this.serviceType();
+      this.bookFloorId();
       this.calendarYear();
       this.calendarMonth();
       if (!tid) return;
@@ -67,6 +70,7 @@ export class ReservationWeekSlotGridComponent {
       this.partySize();
       this.excludeReservationId();
       this.serviceType();
+      this.bookFloorId();
       this.monthLoading();
       const dateStr = this.selectedDate()?.trim() ?? '';
       if (!tid || !dateStr) {
@@ -110,7 +114,15 @@ export class ReservationWeekSlotGridComponent {
     const svc = this.serviceType();
     const apiSvc = svc === 'all' ? null : svc;
     this.api
-      .getReservationBookMonthDayStates(tid, y, m, this.partySize(), this.excludeReservationId(), apiSvc)
+      .getReservationBookMonthDayStates(
+        tid,
+        y,
+        m,
+        this.partySize(),
+        this.excludeReservationId(),
+        apiSvc,
+        this.bookFloorId()
+      )
       .subscribe({
         next: (res) => {
           const map: Record<string, ReservationBookWeekSlotState> = {};
@@ -145,7 +157,14 @@ export class ReservationWeekSlotGridComponent {
     const svc = this.serviceType();
     const apiSvc = svc === 'all' ? null : svc;
     this.api
-      .getNextAvailableReservation(tid, this.tenantTodayDateStr(), this.partySize(), undefined, apiSvc)
+      .getNextAvailableReservation(
+        tid,
+        this.tenantTodayDateStr(),
+        this.partySize(),
+        undefined,
+        apiSvc,
+        this.bookFloorId()
+      )
       .subscribe({
         next: (res: { date: string; time: string }) => {
           const [y, mo] = res.date.split('-').map(Number);
@@ -181,7 +200,14 @@ export class ReservationWeekSlotGridComponent {
     const svc = this.serviceType();
     const apiSvc = svc === 'all' ? null : svc;
     this.api
-      .getReservationBookDaySlots(tid, dateStr, this.partySize(), this.excludeReservationId(), apiSvc)
+      .getReservationBookDaySlots(
+        tid,
+        dateStr,
+        this.partySize(),
+        this.excludeReservationId(),
+        apiSvc,
+        this.bookFloorId()
+      )
       .subscribe({
         next: (res) => {
           this.bookDaySlots.set(res);

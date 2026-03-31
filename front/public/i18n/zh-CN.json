@@ -677,7 +677,10 @@
     "OP_RESERVED": "已预订",
     "OP_OCCUPIED": "使用中（无进行中订单）",
     "OP_OPEN_ORDER": "进行中订单",
-    "OP_BILL_ISSUED": "结账/收款"
+    "OP_BILL_ISSUED": "结账/收款",
+    "FLOOR_PUBLIC_BOOKING": "开放在线预订",
+    "FLOOR_MOVE_UP": "上移楼层",
+    "FLOOR_MOVE_DOWN": "下移楼层"
   },
   "TABLE_STATUS": {
     "available": "空闲",
@@ -753,7 +756,10 @@
     "SEATING_TERRACE": "露台/户外",
     "ALLERGIES_HAS": "有过敏或不耐受",
     "ALLERGIES_DETAIL_PLACEHOLDER": "请说明过敏（如坚果、麸质）",
-    "ALLERGIES_DETAIL_REQUIRED": "勾选过敏时请填写说明。"
+    "ALLERGIES_DETAIL_REQUIRED": "勾选过敏时请填写说明。",
+    "LOCATION_ZONE": "区域",
+    "LOCATION_ZONE_PLACEHOLDER": "选择区域",
+    "LOCATION_ZONE_REQUIRED": "请选择区域。"
   },
   "RESERVATIONS": {
     "TITLE": "预订管理",

@@ -652,7 +652,10 @@
     "OP_RESERVED": "Reservada",
     "OP_OCCUPIED": "Ocupada (sense comanda oberta)",
     "OP_OPEN_ORDER": "Comanda oberta",
-    "OP_BILL_ISSUED": "Compte / cobrament"
+    "OP_BILL_ISSUED": "Compte / cobrament",
+    "FLOOR_PUBLIC_BOOKING": "Obert a reserves en línia",
+    "FLOOR_MOVE_UP": "Pujar planta",
+    "FLOOR_MOVE_DOWN": "Baixar planta"
   },
   "TABLE_STATUS": {
     "available": "Disponible",
@@ -728,7 +731,10 @@
     "SEATING_TERRACE": "Terrassa / exterior",
     "ALLERGIES_HAS": "Tenim al·lèrgies o intoleràncies",
     "ALLERGIES_DETAIL_PLACEHOLDER": "Descriu les al·lèrgies (p. ex. fruits secs, gluten)",
-    "ALLERGIES_DETAIL_REQUIRED": "Descriu les al·lèrgies quan n'indiquis."
+    "ALLERGIES_DETAIL_REQUIRED": "Descriu les al·lèrgies quan n'indiquis.",
+    "LOCATION_ZONE": "Zona",
+    "LOCATION_ZONE_PLACEHOLDER": "Tria la zona",
+    "LOCATION_ZONE_REQUIRED": "Tria una zona."
   },
   "RESERVATIONS": {
     "TITLE": "Reserves",

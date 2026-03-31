@@ -677,7 +677,10 @@
     "OP_RESERVED": "आरक्षित",
     "OP_OCCUPIED": "भरा (कोई खुला ऑर्डर नहीं)",
     "OP_OPEN_ORDER": "खुला ऑर्डर",
-    "OP_BILL_ISSUED": "बिल / भुगतान"
+    "OP_BILL_ISSUED": "बिल / भुगतान",
+    "FLOOR_PUBLIC_BOOKING": "ऑनलाइन बुकिंग खुला",
+    "FLOOR_MOVE_UP": "फ़्लोर ऊपर",
+    "FLOOR_MOVE_DOWN": "फ़्लोर नीचे"
   },
   "TABLE_STATUS": {
     "available": "उपलब्ध",
@@ -753,7 +756,10 @@
     "SEATING_TERRACE": "टेरेस / बाहर",
     "ALLERGIES_HAS": "हमें एलर्जी या असहिष्णुता है",
     "ALLERGIES_DETAIL_PLACEHOLDER": "एलर्जी का वर्णन करें (जैसे मूंगफली, ग्लूटेन)",
-    "ALLERGIES_DETAIL_REQUIRED": "जब आप एलर्जी चुनें तो विवरण लिखें।"
+    "ALLERGIES_DETAIL_REQUIRED": "जब आप एलर्जी चुनें तो विवरण लिखें।",
+    "LOCATION_ZONE": "क्षेत्र",
+    "LOCATION_ZONE_PLACEHOLDER": "क्षेत्र चुनें",
+    "LOCATION_ZONE_REQUIRED": "कृपया एक क्षेत्र चुनें।"
   },
   "RESERVATIONS": {
     "TITLE": "आरक्षण",
