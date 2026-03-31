@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue #126 required replacing the reservations booking time-slot grid with a month day grid plus a post-selection time dropdown.
+- **What was done:** Backend added month/day slot APIs and aggregation; frontend wired `ReservationWeekSlotGridComponent` to month states and per-day slots with standalone `ngModel` for `/book` hidden fields; i18n keys updated across locales.
+- **What was tested:** Backend pytest (7 passed), front build tail, landing smoke, public Puppeteer booking, and staff reservations script — all passed per the tester report.
+- **Why closed:** All acceptance criteria and listed tests passed (PASS overall).
+- **Closed at (UTC):** 2026-03-31 11:45
+---
+
 # STOP: Wrong layout — monthly date grid for reservations (not time-slot grid)
 
 ## GitHub
