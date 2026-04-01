@@ -40,6 +40,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Product image upload:** `POST /products/{id}/image` and `POST /provider/products/{id}/image` now return explicit **`JSONResponse`** so **slowapi** can inject rate-limit headers without raising `parameter \`response\` must be an instance of starlette.responses.Response` (500 on successful upload).
 
+- **Table groups / SlowAPI:** `POST`/`DELETE /table-groups` use **`JSONResponse`** (same slowapi contract as product uploads). Added **`tests/test_table_groups_slowapi_subprocess.py`** to exercise join+delete with **`RATE_LIMIT_ENABLED=true`** (pytest normally disables limits via `conftest`).
+
 - **Public booking / reservations (GitHub #119):** `GET /public/tenants/{id}` now returns **`reservation_max_guests_per_slot`** in the JSON body (same as the public tenants list and `TenantSummary`), so the public book page can enforce the tenant party-size cap. Staff debug script **`front/scripts/debug-reservations.mjs`** updated for the reservation modal with the week grid (`#res-modal-*`, `.week-slot.ws-available`).
 
 ### Changed
