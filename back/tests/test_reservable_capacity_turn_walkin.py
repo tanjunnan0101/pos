@@ -12,6 +12,8 @@ import sys
 import unittest
 from datetime import date, datetime, time, timedelta, timezone
 
+from sqlalchemy import JSON as SAJSON
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine, select
 
@@ -23,8 +25,24 @@ from app import models  # noqa: E402
 from app.main import _reservable_capacity_for_tenant  # noqa: E402
 
 
+def _swap_jsonb_columns_to_json_for_sqlite(table) -> list:
+    """SQLite cannot compile PostgreSQL JSONB; use generic JSON for in-memory DDL only."""
+    pairs: list = []
+    for col in table.columns:
+        if isinstance(col.type, JSONB):
+            pairs.append((col, col.type))
+            col.type = SAJSON()
+    return pairs
+
+
+def _restore_jsonb_columns(pairs: list) -> None:
+    for col, typ in pairs:
+        col.type = typ
+
+
 class TestReservableCapacityTurnWalkin(unittest.TestCase):
     def setUp(self):
+        self._tenant_jsonb_cols = _swap_jsonb_columns_to_json_for_sqlite(models.Tenant.__table__)
         self.engine = create_engine(
             "sqlite://",
             connect_args={"check_same_thread": False},
@@ -65,6 +83,7 @@ class TestReservableCapacityTurnWalkin(unittest.TestCase):
 
     def tearDown(self):
         self.session.close()
+        _restore_jsonb_columns(self._tenant_jsonb_cols)
 
     def test_walk_in_reserves_smallest_tables_first(self):
         self.tenant.reservation_walk_in_tables_reserved = 1

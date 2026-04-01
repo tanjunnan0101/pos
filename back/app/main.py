@@ -6793,7 +6793,7 @@ def create_table_group(
     body: models.TableGroupCreate,
     current_user: Annotated[models.User, Depends(require_permission(Permission.TABLE_WRITE))],
     session: Session = Depends(get_session),
-) -> dict:
+) -> JSONResponse:
     """Join N tables into one logical group (same floor, no open orders or blocking reservations)."""
     ids = sorted({int(x) for x in body.table_ids})
     if len(ids) < 2:
@@ -6869,11 +6869,15 @@ def create_table_group(
         t.table_group_id = g.id
         session.add(t)
     session.commit()
-    return {
-        "id": g.id,
-        "table_ids": ids,
-        "tenant_id": current_user.tenant_id,
-    }
+    # JSONResponse so slowapi can inject rate-limit headers (requires a Response instance)
+    return JSONResponse(
+        content={
+            "id": g.id,
+            "table_ids": ids,
+            "tenant_id": current_user.tenant_id,
+        },
+        status_code=status.HTTP_201_CREATED,
+    )
 
 
 @app.delete("/table-groups/{group_id}")
@@ -6886,7 +6890,7 @@ def delete_table_group(
     group_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.TABLE_WRITE))],
     session: Session = Depends(get_session),
-) -> dict:
+) -> JSONResponse:
     """Dissolve a table group; physical tables and tokens are unchanged."""
     g = session.exec(
         select(models.TableGroup).where(
@@ -6903,7 +6907,10 @@ def delete_table_group(
         session.add(t)
     session.delete(g)
     session.commit()
-    return {"dissolved": True, "id": group_id, "table_ids": member_ids}
+    return JSONResponse(
+        content={"dissolved": True, "id": group_id, "table_ids": member_ids},
+        status_code=status.HTTP_200_OK,
+    )
 
 
 @app.delete("/tables/{table_id}")
