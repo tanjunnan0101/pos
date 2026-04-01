@@ -542,6 +542,8 @@ export interface ReservationBookZone {
   id: number;
   name: string;
   sort_order: number;
+  /** indoor | outdoor | any — matches reservation seating preference */
+  seating_zone?: string;
 }
 
 export interface ReservationBookZonesResponse {
@@ -692,6 +694,8 @@ export interface Floor {
   default_waiter_name?: string | null;
   /** When false, floor is hidden from public booking zone list */
   is_active?: boolean;
+  /** indoor | outdoor | any */
+  seating_zone?: string;
 }
 
 export interface Table {

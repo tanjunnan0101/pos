@@ -681,6 +681,10 @@
     "OP_OPEN_ORDER": "खुला ऑर्डर",
     "OP_BILL_ISSUED": "बिल / भुगतान",
     "FLOOR_PUBLIC_BOOKING": "ऑनलाइन बुकिंग खुला",
+    "FLOOR_SEATING_ZONE": "आरक्षण क्षेत्र",
+    "SEATING_ZONE_ANY": "अंदर या बरामदा",
+    "SEATING_ZONE_INDOOR": "केवल अंदर",
+    "SEATING_ZONE_OUTDOOR": "बरामदा / बाहर",
     "FLOOR_MOVE_UP": "फ़्लोर ऊपर",
     "FLOOR_MOVE_DOWN": "फ़्लोर नीचे"
   },
@@ -761,7 +765,8 @@
     "ALLERGIES_DETAIL_REQUIRED": "जब आप एलर्जी चुनें तो विवरण लिखें।",
     "LOCATION_ZONE": "क्षेत्र",
     "LOCATION_ZONE_PLACEHOLDER": "क्षेत्र चुनें",
-    "LOCATION_ZONE_REQUIRED": "कृपया एक क्षेत्र चुनें।"
+    "LOCATION_ZONE_REQUIRED": "कृपया एक क्षेत्र चुनें।",
+    "NO_ZONE_FOR_SEATING": "इस पसंद से मेल खाने वाला कोई क्षेत्र नहीं है। दूसरा विकल्प चुनें या रेस्तरां से संपर्क करें।"
   },
   "RESERVATIONS": {
     "TITLE": "आरक्षण",

@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Reservations / floor seating (GitHub #139):** Floors have **`seating_zone`** (`indoor` | `outdoor` | `any`). Public **`/book`** filters the seating-area dropdown and slot capacity by the guest’s **seating preference** (terrace ↔ outdoor). API validates **preferred floor** vs preference; **seat** rejects tables on zones that don’t match. **Tables** list: per-floor **Reservation seating** control for staff. Task: `agents/tasks/UNTESTED-20260401-1035-syncing-reservation-seating-with-floor-plan-sections.md`.
+
 - **Working plan (GitHub #136):** **Calendar** view — each real shift line is **clickable** to **edit** (same modal as week list), with a small **delete** control; overflow `+N more` stays non-interactive. Task: `agents/tasks/UNTESTED-20260401-0910-working-plan-calendar-click-shift-edit-delete.md`.
 
 - **Working plan (GitHub #135):** **Add shift** modal — optional **split shift** (checkbox; Shift A / Shift B) with a second start/end pair; saves as **two** planned shifts the same day so calendar, week list, and planned-minute totals include **both** blocks. Task: `agents/tasks/UNTESTED-20260401-0841-split-shift-add-shift-modal-working-plan.md`.

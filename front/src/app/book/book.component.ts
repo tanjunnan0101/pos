@@ -110,11 +110,7 @@ export class BookComponent implements OnInit {
         this.api.getReservationBookZones(tid).subscribe({
           next: (z) => {
             this.bookZones.set(z.floors);
-            if (z.floors.length === 1) {
-              this.formFloorId = z.floors[0].id;
-            } else {
-              this.formFloorId = null;
-            }
+            this.onSeatingPreferenceChange();
           },
           error: () => {
             this.bookZones.set([]);
@@ -145,6 +141,34 @@ export class BookComponent implements OnInit {
   getWhatsAppUrl(phone: string): string {
     const digits = (phone || '').replace(/\D/g, '');
     return `https://wa.me/${digits}`;
+  }
+
+  /** Bookable zones compatible with the current seating preference. */
+  bookZonesForSeating(): ReservationBookZone[] {
+    return this.bookZones().filter((z) => this.zoneMatchesSeating(z, this.formSeating));
+  }
+
+  private zoneMatchesSeating(
+    z: ReservationBookZone,
+    pref: 'no_preference' | 'indoor' | 'terrace',
+  ): boolean {
+    const zone = (z.seating_zone || 'any').toLowerCase();
+    if (zone === 'any') return true;
+    if (pref === 'no_preference') return true;
+    if (pref === 'indoor') return zone === 'indoor';
+    if (pref === 'terrace') return zone === 'outdoor';
+    return true;
+  }
+
+  onSeatingPreferenceChange(): void {
+    const opts = this.bookZonesForSeating();
+    if (opts.length === 1) {
+      this.formFloorId = opts[0].id;
+    } else if (opts.length === 0) {
+      this.formFloorId = null;
+    } else if (this.formFloorId != null && !opts.some((x) => x.id === this.formFloorId)) {
+      this.formFloorId = null;
+    }
   }
 
   /** Format opening_hours JSON for display in current locale (e.g. "Mon–Fri 09:00–22:00, Sat 10:00–20:00, Sun closed"). */
@@ -227,7 +251,11 @@ export class BookComponent implements OnInit {
       this.error.set(this.translate.instant('BOOK.PICK_SLOT'));
       return;
     }
-    if (this.bookZones().length >= 2 && (this.formFloorId == null || Number.isNaN(this.formFloorId))) {
+    if (this.bookZones().length >= 1 && this.bookZonesForSeating().length === 0) {
+      this.error.set(this.translate.instant('BOOK.NO_ZONE_FOR_SEATING'));
+      return;
+    }
+    if (this.bookZonesForSeating().length >= 2 && (this.formFloorId == null || Number.isNaN(this.formFloorId))) {
       this.error.set(this.translate.instant('BOOK.LOCATION_ZONE_REQUIRED'));
       return;
     }

@@ -681,6 +681,10 @@
     "OP_OPEN_ORDER": "进行中订单",
     "OP_BILL_ISSUED": "结账/收款",
     "FLOOR_PUBLIC_BOOKING": "开放在线预订",
+    "FLOOR_SEATING_ZONE": "预订区域",
+    "SEATING_ZONE_ANY": "室内或露台",
+    "SEATING_ZONE_INDOOR": "仅室内",
+    "SEATING_ZONE_OUTDOOR": "露台 / 户外",
     "FLOOR_MOVE_UP": "上移楼层",
     "FLOOR_MOVE_DOWN": "下移楼层"
   },
@@ -761,7 +765,8 @@
     "ALLERGIES_DETAIL_REQUIRED": "勾选过敏时请填写说明。",
     "LOCATION_ZONE": "区域",
     "LOCATION_ZONE_PLACEHOLDER": "选择区域",
-    "LOCATION_ZONE_REQUIRED": "请选择区域。"
+    "LOCATION_ZONE_REQUIRED": "请选择区域。",
+    "NO_ZONE_FOR_SEATING": "没有符合此偏好的座位区域。请选择其他选项或联系餐厅。"
   },
   "RESERVATIONS": {
     "TITLE": "预订管理",

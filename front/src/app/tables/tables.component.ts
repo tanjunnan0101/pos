@@ -246,6 +246,18 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
                           />
                           {{ 'TABLES.FLOOR_PUBLIC_BOOKING' | translate }}
                         </label>
+                        <label class="floor-seating-zone-label">
+                          <span class="floor-waiter-label">{{ 'TABLES.FLOOR_SEATING_ZONE' | translate }}</span>
+                          <select
+                            class="waiter-select waiter-select-sm"
+                            [value]="floor.seating_zone || 'any'"
+                            (change)="onFloorSeatingZoneChange(floor, $event)"
+                          >
+                            <option value="any">{{ 'TABLES.SEATING_ZONE_ANY' | translate }}</option>
+                            <option value="indoor">{{ 'TABLES.SEATING_ZONE_INDOOR' | translate }}</option>
+                            <option value="outdoor">{{ 'TABLES.SEATING_ZONE_OUTDOOR' | translate }}</option>
+                          </select>
+                        </label>
                         <button
                           type="button"
                           class="btn btn-ghost btn-sm"
@@ -649,6 +661,13 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
       cursor: pointer;
     }
     .floor-active-toggle input { cursor: pointer; }
+    .floor-seating-zone-label {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
     .floor-section .section-header { 
       display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4);
       padding-bottom: var(--space-2); border-bottom: 2px solid var(--color-bg); flex-wrap: wrap;
@@ -1032,6 +1051,16 @@ export class TablesComponent implements OnInit {
         el.checked = !next;
         this.error.set(err.error?.detail || 'Failed to update floor');
       },
+    });
+  }
+
+  onFloorSeatingZoneChange(floor: Floor, event: Event) {
+    const sel = event.target as HTMLSelectElement;
+    const v = sel.value;
+    if (!floor.id) return;
+    this.api.updateFloor(floor.id, { seating_zone: v }).subscribe({
+      next: (u) => this.floors.update((fs) => fs.map((f) => (f.id === u.id ? u : f))),
+      error: (err: any) => this.error.set(err.error?.detail || 'Failed to update floor'),
     });
   }
 

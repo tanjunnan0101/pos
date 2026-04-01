@@ -958,7 +958,12 @@ def get_public_reservation_book_zones(
     floors = _bookable_floors_for_public(session, tenant_id)
     return {
         "floors": [
-            {"id": f.id, "name": f.name, "sort_order": f.sort_order}
+            {
+                "id": f.id,
+                "name": f.name,
+                "sort_order": f.sort_order,
+                "seating_zone": _normalize_floor_seating_zone_value(getattr(f, "seating_zone", None)),
+            }
             for f in floors
             if f.id is not None
         ]
@@ -5459,11 +5464,17 @@ def create_floor(
         ).first()
         sort_order = (max_order or 0) + 1
 
+    sz = (
+        _parse_floor_seating_zone_for_write(floor_data.seating_zone)
+        if floor_data.seating_zone is not None
+        else "any"
+    )
     floor = models.Floor(
         name=floor_data.name,
         sort_order=sort_order,
         tenant_id=current_user.tenant_id,
         is_active=floor_data.is_active if floor_data.is_active is not None else True,
+        seating_zone=sz,
     )
     session.add(floor)
     session.commit()
@@ -5509,6 +5520,8 @@ def update_floor(
             floor.default_waiter_id = waiter.id
     if floor_update.is_active is not None:
         floor.is_active = floor_update.is_active
+    if floor_update.seating_zone is not None:
+        floor.seating_zone = _parse_floor_seating_zone_for_write(floor_update.seating_zone)
 
     session.add(floor)
     session.commit()
@@ -7216,6 +7229,59 @@ def _reservable_capacity_for_tenant(
     return (total_seats, n_tables)
 
 
+def _normalize_floor_seating_zone_value(raw: str | None) -> str:
+    if raw is None or not str(raw).strip():
+        return "any"
+    s = str(raw).strip().lower()
+    if s in ("indoor", "outdoor", "any"):
+        return s
+    return "any"
+
+
+def _parse_floor_seating_zone_for_write(raw: str | None) -> str:
+    """Validate API input for Floor.seating_zone (indoor | outdoor | any)."""
+    if raw is None or not str(raw).strip():
+        return "any"
+    s = str(raw).strip().lower()
+    if s in ("indoor", "outdoor", "any"):
+        return s
+    raise HTTPException(status_code=400, detail="Invalid seating_zone")
+
+
+def _floor_matches_seating_preference(floor: models.Floor, seating_pref: str | None) -> bool:
+    """Whether a floor's seating_zone is compatible with reservation seating_preference."""
+    zone = _normalize_floor_seating_zone_value(getattr(floor, "seating_zone", None))
+    sp = (seating_pref or "no_preference").strip().lower()
+    if sp in ("", "no_preference"):
+        return True
+    if zone == "any":
+        return True
+    if sp == "indoor":
+        return zone == "indoor"
+    if sp == "terrace":
+        return zone == "outdoor"
+    return True
+
+
+def _bookable_floors_matching_seating(
+    session: Session, tenant_id: int, seating_pref: str | None
+) -> list[models.Floor]:
+    """Active public book zones whose seating_zone matches the guest's seating preference."""
+    bookable = _bookable_floors_for_public(session, tenant_id)
+    return [f for f in bookable if _floor_matches_seating_preference(f, seating_pref)]
+
+
+def _validate_floor_seating_pair_or_raise(
+    floor: models.Floor | None, seating_pref: str | None, lang: str
+) -> None:
+    if floor is None:
+        return
+    if not _floor_matches_seating_preference(floor, seating_pref):
+        raise HTTPException(
+            status_code=400, detail=get_message("reservation_seating_floor_mismatch", lang)
+        )
+
+
 def _demand_for_slot(
     session: Session,
     tenant_id: int,
@@ -7563,6 +7629,8 @@ def create_reservation(
     allergies_has, allergies_detail = _normalize_allergies_for_booking(ah_raw, ad_raw)
     _raise_if_reservation_time_invalid_for_opening_hours(tenant, res_date, res_time, service_type)
     bookable = _bookable_floors_for_public(session, tenant_id)
+    matching = _bookable_floors_matching_seating(session, tenant_id, seating_pref)
+    matching_ids = {f.id for f in matching if f.id is not None}
     bookable_ids = {f.id for f in bookable if f.id is not None}
     raw_pf = getattr(data, "preferred_floor_id", None)
     eff_floor: int | None = None
@@ -7576,16 +7644,23 @@ def create_reservation(
             ).first()
             if not fl:
                 raise HTTPException(status_code=400, detail=get_message("floor_not_found", lang))
+            _validate_floor_seating_pair_or_raise(fl, seating_pref, lang)
             eff_floor = raw_pf
     else:
         if raw_pf is not None:
             if raw_pf not in bookable_ids:
                 raise HTTPException(status_code=400, detail=get_message("reservation_invalid_seating_area", lang))
+            if raw_pf not in matching_ids:
+                raise HTTPException(status_code=400, detail=get_message("reservation_invalid_seating_area", lang))
             eff_floor = raw_pf
-        elif len(bookable) == 1:
-            eff_floor = bookable[0].id
-        elif len(bookable) >= 2:
+        elif len(matching) == 1:
+            eff_floor = matching[0].id
+        elif len(matching) >= 2:
             raise HTTPException(status_code=400, detail=get_message("reservation_location_required", lang))
+        elif len(bookable) >= 1 and len(matching) == 0:
+            raise HTTPException(
+                status_code=400, detail=get_message("reservation_seating_no_matching_zone", lang)
+            )
         else:
             eff_floor = None
     total_seats, total_tables = _reservable_capacity_for_tenant(
@@ -8234,6 +8309,10 @@ def update_reservation(
     )
     reservation.allergies_has = ah_ok
     reservation.allergies_detail = ad_ok
+    if reservation.preferred_floor_id is not None:
+        fl_pf = session.get(models.Floor, reservation.preferred_floor_id)
+        if fl_pf and fl_pf.tenant_id == current_user.tenant_id:
+            _validate_floor_seating_pair_or_raise(fl_pf, reservation.seating_preference, lang)
     tenant = session.get(models.Tenant, reservation.tenant_id)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
@@ -8321,6 +8400,7 @@ def seat_reservation(
     body: models.ReservationSeat,
     current_user: Annotated[models.User, Depends(require_permission(Permission.RESERVATION_WRITE))],
     session: Session = Depends(get_session),
+    lang: str = Depends(_get_requested_language),
 ) -> dict:
     """Assign table to reservation (seat the party). Staff only."""
     reservation = session.exec(
@@ -8343,6 +8423,10 @@ def seat_reservation(
         raise HTTPException(status_code=404, detail="Table not found")
     if table.seat_count < reservation.party_size:
         raise HTTPException(status_code=400, detail="Table capacity is less than party size")
+    if table.floor_id is not None:
+        fl = session.get(models.Floor, table.floor_id)
+        if fl and fl.tenant_id == current_user.tenant_id:
+            _validate_floor_seating_pair_or_raise(fl, getattr(reservation, "seating_preference", None), lang)
     if table.is_active:
         raise HTTPException(
             status_code=400,

@@ -774,6 +774,10 @@
     "OP_OPEN_ORDER": "Commande en cours",
     "OP_BILL_ISSUED": "Addition / paiement",
     "FLOOR_PUBLIC_BOOKING": "Ouvert à la réservation en ligne",
+    "FLOOR_SEATING_ZONE": "Zone de réservation",
+    "SEATING_ZONE_ANY": "Intérieur ou terrasse",
+    "SEATING_ZONE_INDOOR": "Intérieur uniquement",
+    "SEATING_ZONE_OUTDOOR": "Terrasse / extérieur",
     "FLOOR_MOVE_UP": "Monter l'étage",
     "FLOOR_MOVE_DOWN": "Descendre l'étage"
   },
@@ -854,7 +858,8 @@
     "ALLERGIES_DETAIL_REQUIRED": "Décrivez les allergies lorsque vous cochez cette case.",
     "LOCATION_ZONE": "Espace",
     "LOCATION_ZONE_PLACEHOLDER": "Choisir l'espace",
-    "LOCATION_ZONE_REQUIRED": "Veuillez choisir un espace."
+    "LOCATION_ZONE_REQUIRED": "Veuillez choisir un espace.",
+    "NO_ZONE_FOR_SEATING": "Aucun espace ne correspond à cette préférence. Choisissez une autre option ou contactez le restaurant."
   },
   "RESERVATIONS": {
     "TITLE": "Réservations",

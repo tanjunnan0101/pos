@@ -800,6 +800,10 @@
     "OP_OPEN_ORDER": "Отворена поръчка",
     "OP_BILL_ISSUED": "Сметка / плащане",
     "FLOOR_PUBLIC_BOOKING": "Отворено за онлайн резервация",
+    "FLOOR_SEATING_ZONE": "Зона за резервация",
+    "SEATING_ZONE_ANY": "Вътре или тераса",
+    "SEATING_ZONE_INDOOR": "Само вътре",
+    "SEATING_ZONE_OUTDOOR": "Тераса / навън",
     "FLOOR_MOVE_UP": "Премести нагоре",
     "FLOOR_MOVE_DOWN": "Премести надолу"
   },
@@ -880,7 +884,8 @@
     "ALLERGIES_DETAIL_REQUIRED": "Моля, опишете алергиите, когато сте отбелязали това.",
     "LOCATION_ZONE": "Зона",
     "LOCATION_ZONE_PLACEHOLDER": "Изберете зона",
-    "LOCATION_ZONE_REQUIRED": "Моля, изберете зона."
+    "LOCATION_ZONE_REQUIRED": "Моля, изберете зона.",
+    "NO_ZONE_FOR_SEATING": "Няма зона, която да съответства на тази предпочитание. Изберете друга опция или се свържете с ресторанта."
   },
   "FEEDBACK": {
     "TITLE": "Как мина посещението ви?",

@@ -158,17 +158,6 @@
                   required
                 />
               </div>
-              @if (bookZones().length >= 2) {
-                <div class="form-group">
-                  <label for="book-zone">{{ 'BOOK.LOCATION_ZONE' | translate }}</label>
-                  <select id="book-zone" [(ngModel)]="formFloorId" name="floorId" required>
-                    <option [ngValue]="null" disabled>{{ 'BOOK.LOCATION_ZONE_PLACEHOLDER' | translate }}</option>
-                    @for (z of bookZones(); track z.id) {
-                      <option [ngValue]="z.id">{{ z.name }}</option>
-                    }
-                  </select>
-                </div>
-              }
               @if (hasMealSplit()) {
                 <div class="form-group">
                   <label for="book-service">{{ 'BOOK.SERVICE_TYPE' | translate }}</label>
@@ -183,19 +172,33 @@
                 <span class="label-block">{{ 'BOOK.SEATING_PREFERENCE' | translate }}</span>
                 <div class="radio-row">
                   <label class="radio-label">
-                    <input type="radio" name="bookSeating" [(ngModel)]="formSeating" value="no_preference" />
+                    <input type="radio" name="bookSeating" [(ngModel)]="formSeating" (ngModelChange)="onSeatingPreferenceChange()" value="no_preference" />
                     {{ 'BOOK.SEATING_ANY' | translate }}
                   </label>
                   <label class="radio-label">
-                    <input type="radio" name="bookSeating" [(ngModel)]="formSeating" value="indoor" />
+                    <input type="radio" name="bookSeating" [(ngModel)]="formSeating" (ngModelChange)="onSeatingPreferenceChange()" value="indoor" />
                     {{ 'BOOK.SEATING_INDOOR' | translate }}
                   </label>
                   <label class="radio-label">
-                    <input type="radio" name="bookSeating" [(ngModel)]="formSeating" value="terrace" />
+                    <input type="radio" name="bookSeating" [(ngModel)]="formSeating" (ngModelChange)="onSeatingPreferenceChange()" value="terrace" />
                     {{ 'BOOK.SEATING_TERRACE' | translate }}
                   </label>
                 </div>
               </div>
+              @if (bookZones().length >= 1 && bookZonesForSeating().length === 0) {
+                <div class="form-error form-hint-block">{{ 'BOOK.NO_ZONE_FOR_SEATING' | translate }}</div>
+              }
+              @if (bookZonesForSeating().length >= 2) {
+                <div class="form-group">
+                  <label for="book-zone">{{ 'BOOK.LOCATION_ZONE' | translate }}</label>
+                  <select id="book-zone" [(ngModel)]="formFloorId" name="floorId" required>
+                    <option [ngValue]="null" disabled>{{ 'BOOK.LOCATION_ZONE_PLACEHOLDER' | translate }}</option>
+                    @for (z of bookZonesForSeating(); track z.id) {
+                      <option [ngValue]="z.id">{{ z.name }}</option>
+                    }
+                  </select>
+                </div>
+              }
               <div class="form-group">
                 <label for="book-dietary">{{ 'RESERVATIONS.CUSTOMER_NOTES' | translate }}</label>
                 <textarea

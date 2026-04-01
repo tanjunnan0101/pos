@@ -498,6 +498,8 @@ class Floor(TenantMixin, table=True):
     name: str  # e.g., "Main Floor", "Terrace"
     sort_order: int = Field(default=0)
     is_active: bool = Field(default=True, index=True)  # False = hidden from public booking zones
+    # indoor | outdoor | any — used with reservation seating_preference (terrace ↔ outdoor)
+    seating_zone: str = Field(default="any", max_length=16)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Default waiter for tables on this floor (fallback when table has no explicit assignment)
@@ -908,6 +910,7 @@ class FloorCreate(SQLModel):
     name: str
     sort_order: int | None = None
     is_active: bool | None = None
+    seating_zone: str | None = None  # indoor | outdoor | any
 
 
 class FloorUpdate(SQLModel):
@@ -915,6 +918,7 @@ class FloorUpdate(SQLModel):
     sort_order: int | None = None
     default_waiter_id: int | None = None
     is_active: bool | None = None
+    seating_zone: str | None = None
 
 
 class ShiftCreate(SQLModel):

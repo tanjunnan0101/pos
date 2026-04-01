@@ -656,6 +656,10 @@
     "OP_OPEN_ORDER": "Comanda oberta",
     "OP_BILL_ISSUED": "Compte / cobrament",
     "FLOOR_PUBLIC_BOOKING": "Obert a reserves en línia",
+    "FLOOR_SEATING_ZONE": "Zona de reserva",
+    "SEATING_ZONE_ANY": "Interior o terrassa",
+    "SEATING_ZONE_INDOOR": "Només interior",
+    "SEATING_ZONE_OUTDOOR": "Terrassa / exterior",
     "FLOOR_MOVE_UP": "Pujar planta",
     "FLOOR_MOVE_DOWN": "Baixar planta"
   },
@@ -736,7 +740,8 @@
     "ALLERGIES_DETAIL_REQUIRED": "Descriu les al·lèrgies quan n'indiquis.",
     "LOCATION_ZONE": "Zona",
     "LOCATION_ZONE_PLACEHOLDER": "Tria la zona",
-    "LOCATION_ZONE_REQUIRED": "Tria una zona."
+    "LOCATION_ZONE_REQUIRED": "Tria una zona.",
+    "NO_ZONE_FOR_SEATING": "Cap zona coincideix amb aquesta preferència. Tria una altra opció o contacta el restaurant."
   },
   "RESERVATIONS": {
     "TITLE": "Reserves",
