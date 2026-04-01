@@ -139,7 +139,8 @@
     "ORDER_TAKEAWAY": "पार्सल / घर पर ऑर्डर",
     "PROVIDER_LOGIN": "प्रदाता लॉगिन",
     "REGISTER_AS_PROVIDER": "प्रदाता के रूप में पंजीकरण करें",
-    "CONTACT_US": "संपर्क करें"
+    "CONTACT_US": "संपर्क करें",
+    "GITHUB_REPO": "GitHub पर स्रोत"
   },
   "DASHBOARD": {
     "TITLE": "डैशबोर्ड",

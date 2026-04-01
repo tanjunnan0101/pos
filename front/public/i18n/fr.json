@@ -139,7 +139,8 @@
     "ORDER_TAKEAWAY": "À emporter / Commande à domicile",
     "PROVIDER_LOGIN": "Connexion fournisseur",
     "REGISTER_AS_PROVIDER": "S'inscrire comme fournisseur",
-    "CONTACT_US": "Nous contacter"
+    "CONTACT_US": "Nous contacter",
+    "GITHUB_REPO": "Code source sur GitHub"
   },
   "ORDERS_PUBLIC": {
     "TITLE": "À emporter et livraison",

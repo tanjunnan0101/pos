@@ -139,7 +139,8 @@
     "ORDER_TAKEAWAY": "Take away / Home ordering",
     "PROVIDER_LOGIN": "Provider login",
     "REGISTER_AS_PROVIDER": "Register as provider",
-    "CONTACT_US": "Contact us"
+    "CONTACT_US": "Contact us",
+    "GITHUB_REPO": "Source on GitHub"
   },
   "ORDERS_PUBLIC": {
     "TITLE": "Take away & Home ordering",

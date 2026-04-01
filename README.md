@@ -8,7 +8,7 @@
 
 **Restaurant POS and ordering infrastructure — self-hosted, multi-tenant, real-time.**
 
-_A point-of-sale system with a customer-facing menu, table management, reservations, and Stripe payments. Staff use the Angular admin; customers order via QR codes and pay at the table. You keep full control of your data and deployment._
+_A point-of-sale system with a customer-facing menu, table management, reservations, and online payments (**Stripe** and optional **Revolut**). Staff use the Angular admin; customers order via QR codes and pay at the table. You keep full control of your data and deployment._
 
 ---
 </div>
@@ -19,7 +19,7 @@ _A point-of-sale system with a customer-facing menu, table management, reservati
 POS2 is built for restaurants and venues that want:
 
 - **One place for everything** — Orders, tables, reservations, menu, and payments in a single stack.
-- **Customer ordering without apps** — Guests scan a table QR code, browse the menu, place orders, and pay with Stripe. Optional table PIN keeps ordering secure.
+- **Customer ordering without apps** — Guests scan a table QR code, browse the menu, place orders, and pay with Stripe or Revolut (per-tenant). Optional table PIN keeps ordering secure.
 - **Real-time updates** — Order status (pending → preparing → ready → delivered → paid) flows to staff and customers over WebSockets.
 - **Multi-tenant from day one** — Each restaurant (tenant) has isolated data, settings, and Stripe configuration.
 - **Self-hosted** — Run on your own server or local network; no vendor lock-in.
@@ -46,8 +46,9 @@ The staff dashboard gives quick access to Catalog, Reservations, Kitchen display
 | **Customer menu** | Browse menu, cart, place order, order history. Optional “immediate payment required” (checkout auto-opens after placing order). |
 | **Kitchen display** | Dedicated full-screen view at `/kitchen`: large order cards, auto-refresh and WebSocket updates, optional sound on new orders. Read-only; same access as Orders. See [docs/0015-kitchen-display.md](docs/0015-kitchen-display.md). |
 | **Reports** | Sales & revenue at `/reports` (owner/admin): date range, summary (total revenue, order count, average payment per client), reservation count and by source (public/staff), by product/category/table/waiter, charts, CSV/Excel export. See [docs/0016-reports.md](docs/0016-reports.md). |
-| **Payments** | **Stripe** (online card payment at table); **cash** and **card terminal (dataphone)** (staff marks order as paid and records method). Optional **immediate payment required** (checkout opens right after placing order). Per-tenant Stripe keys and currency. |
+| **Payments** | **Stripe** and **Revolut** (online checkout on the customer menu; per-tenant configuration in **Settings**). **Cash** and **card terminal (dataphone)** when staff marks the order paid. Optional **immediate payment required** (checkout opens right after placing order). Revolut sandbox and redirect URLs: [docs/REVOLUT.md](docs/REVOLUT.md). |
 | **Tables** | Table management, QR codes, canvas view. Table activation and 4-digit PIN so only present guests can order; PIN rate limiting via Redis. |
+| **Staff navigation** | After sign-in, the sidebar matches operational areas: **Dashboard**, **My shift** (optional), **Orders**, **Reservations** and **Guest feedback** (when the reservations module is enabled), **Tables** (list and canvas), **Kitchen** and **Bar** displays, **Customers**, **Products**, **Catalog** (when the providers module is enabled), **Reports**, **Working plan**, **Inventory** (items, suppliers, purchase orders, stock, reports — admin), **Users**, **Contracts** (when permitted), **Settings** (admin). |
 | **Reservations** | Staff: list, create, edit, seat, finish, cancel at `/reservations`. **Client notes** (from the customer at booking) and **owner notes** (internal staff notes). **Client technical info** (IP, user-agent, browser fingerprint, screen size) is recorded for public bookings and visible to staff. **No-show**: mark no-shows and **send reminders** by email and/or **WhatsApp** (when Twilio is configured). Public: book at `/book/:tenantId`, view/cancel at `/reservation?token=...`. Table status: available / reserved / occupied. |
 | **Real-time** | WebSocket updates for order status; token-based WS auth (`/ws-token`). |
 | **i18n & currency** | Multiple UI languages (e.g. en, es, ca, de, zh-CN, hi); backend localized messages; per-tenant currency (EUR, USD, MXN, etc.). |
@@ -67,7 +68,7 @@ Planned but not yet implemented: batch order operations, and stricter “must pa
 - **Database:** PostgreSQL 18
 - **Cache / pub-sub:** Redis 7
 - **Real-time:** WebSocket bridge (custom service)
-- **Payments:** Stripe
+- **Payments:** Stripe, Revolut (optional; see [docs/REVOLUT.md](docs/REVOLUT.md))
 - **Deployment:** Docker Compose, HAProxy
 
 ---
@@ -148,7 +149,7 @@ Key variables in `config.env` (see `config.env.example` for the full list):
 | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_FROM` | Optional; when set, reservation reminders can be sent via WhatsApp (in addition to email) | Optional |
 | `DEFAULT_PHONE_COUNTRY` | ISO country code (e.g. `ES`, `DE`) for normalizing reservation phone numbers to E.164 | Optional (default `ES`) |
 
-Stripe keys are configured per tenant in **Settings** in the admin UI. Settings also include business profile, contact (phone, email, address, **Tax ID**, **CIF**), opening hours, and payment options. For deployment on a domain or IP, see [docs/0004-deployment.md](docs/0004-deployment.md).
+**Stripe** and **Revolut** credentials are configured per tenant in **Settings** (payment options) in the admin UI. Settings also include business profile, contact (phone, email, address, **Tax ID**, **CIF**), opening hours, and payment options. Revolut-specific env and setup are documented in [docs/REVOLUT.md](docs/REVOLUT.md). For deployment on a domain or IP, see [docs/0004-deployment.md](docs/0004-deployment.md).
 
 ---
 
@@ -156,7 +157,9 @@ Stripe keys are configured per tenant in **Settings** in the admin UI. Settings 
 
 | Document | Description |
 |----------|-------------|
-| [ROADMAP.md](ROADMAP.md) | Implemented vs planned features; rate limiting and security roadmap |
+| [ROADMAP.md](ROADMAP.md) | Implemented vs planned features; security roadmap |
+| [docs/0020-rate-limiting-production.md](docs/0020-rate-limiting-production.md) | API rate limits (global, login, register, payments, public menu, uploads, admin), Redis, `X-Forwarded-For`, tests |
+| [docs/REVOLUT.md](docs/REVOLUT.md) | Revolut Merchant API: sandbox, redirect URLs, certificates, tenant setup |
 | [CHANGELOG.md](CHANGELOG.md) | Release notes and unreleased changes |
 | [AGENTS.md](AGENTS.md) | How to find the app port and view logs (for developers/agents) |
 | [docs/README.md](docs/README.md) | **Index of all documentation** (deployment, email, features, plans, testing) |
@@ -286,7 +289,7 @@ Full guide: [docs/0004-deployment.md](docs/0004-deployment.md).
 ## Roadmap
 
 - **Done:** Order management, reservations, table PIN, Stripe, WebSocket, i18n, deployment docs. See [ROADMAP.md](ROADMAP.md) for the full list.
-- **Planned:** Order Phase 4 (batch, audit, item replacement), optional stricter “immediate payment” enforcement. Rate limiting and security hardening are described in [ROADMAP.md](ROADMAP.md).
+- **Planned:** Order Phase 4 (batch, audit, item replacement), optional stricter “immediate payment” enforcement. Further security items (e.g. CAPTCHA after failed logins) are noted in [ROADMAP.md](ROADMAP.md).
 
 ---
 
@@ -296,7 +299,7 @@ Full guide: [docs/0004-deployment.md](docs/0004-deployment.md).
 - **CORS:** Set `CORS_ORIGINS` to your real frontend origin(s); avoid `*` in production if possible.
 - **Database:** Use strong credentials; do not commit `config.env`.
 - **Stripe:** Use live keys in production and configure them per tenant in Settings.
-- **Rate limiting:** Not yet implemented for most endpoints; PIN attempts are rate-limited. See [ROADMAP.md](ROADMAP.md) for the planned strategy.
+- **Rate limiting:** Global and per-route limits (login, register, payments, public menu, uploads, admin/management) are enforced via Redis; see [docs/0020-rate-limiting-production.md](docs/0020-rate-limiting-production.md) and [ROADMAP.md](ROADMAP.md). Table PIN attempts remain rate-limited as documented in [docs/0009-table-pin-security.md](docs/0009-table-pin-security.md).
 
 ---
 

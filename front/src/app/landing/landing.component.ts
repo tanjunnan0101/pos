@@ -161,6 +161,14 @@ import { environment } from '../../environments/environment';
         <a routerLink="/provider/register" data-testid="landing-provider-register">{{ 'LANDING.REGISTER_AS_PROVIDER' | translate }}</a>
         <span class="footer-sep">·</span>
         <a href="mailto:sales@satisfecho.de" data-testid="landing-contact-us">{{ 'LANDING.CONTACT_US' | translate }}</a>
+        <span class="footer-sep">·</span>
+        <a
+          href="https://github.com/satisfecho/pos/"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid="landing-github"
+          >{{ 'LANDING.GITHUB_REPO' | translate }}</a
+        >
         @if (legalTermsUrl() || legalPrivacyUrl()) {
           <span class="footer-sep">·</span>
           <app-legal-links [inline]="true" [termsUrl]="legalTermsUrl()" [privacyUrl]="legalPrivacyUrl()" />
@@ -570,12 +578,18 @@ import { environment } from '../../environments/environment';
       text-align: center;
       font-size: 0.9375rem;
       color: var(--color-text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      column-gap: var(--space-2);
+      row-gap: var(--space-2);
     }
 
     .landing-footer a {
       color: var(--color-primary);
       font-weight: 500;
-      margin-left: var(--space-2);
+      margin-left: 0;
       text-decoration: none;
     }
 
@@ -584,7 +598,7 @@ import { environment } from '../../environments/environment';
     }
 
     .landing-footer .footer-sep {
-      margin: 0 var(--space-2);
+      margin: 0;
       color: var(--color-text-muted);
     }
   `],

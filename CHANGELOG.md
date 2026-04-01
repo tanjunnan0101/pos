@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Landing (GitHub #133):** Footer link **Source on GitHub** → `https://github.com/satisfecho/pos/` (i18n `LANDING.GITHUB_REPO`), responsive footer layout.
+
+- **Documentation (GitHub #132):** Root **README.md** — staff sidebar/navigation summary, **Stripe** + **Revolut** in payments and configuration, accurate **rate limiting** pointer to [docs/0020-rate-limiting-production.md](docs/0020-rate-limiting-production.md); [docs/README.md](docs/README.md) quick link and feature row for [docs/REVOLUT.md](docs/REVOLUT.md).
+
 - **Working plan (GitHub #130):** Single **Staff** dropdown with **All staff** (default) filters the **Planned vs clocked** table; shift **Export Excel** requires a selected person. Comparison block is **collapsible** (default collapsed) with **persisted** open state; table **totals** row; **Export comparison (Excel)** via `GET /schedule/planned-vs-actual/export` (localized headers, optional `user_id`). Task: `agents/tasks/UNTESTED-20260331-1425-working-plan-reuse-staff-dropdown-planned-clocked-totals-excel-export.md`.
 
 ### Changed

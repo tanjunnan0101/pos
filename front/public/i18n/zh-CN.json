@@ -139,7 +139,8 @@
     "ORDER_TAKEAWAY": "外带 / 居家点餐",
     "PROVIDER_LOGIN": "供应商登录",
     "REGISTER_AS_PROVIDER": "注册为供应商",
-    "CONTACT_US": "联系我们"
+    "CONTACT_US": "联系我们",
+    "GITHUB_REPO": "GitHub 源码"
   },
   "DASHBOARD": {
     "TITLE": "仪表板",

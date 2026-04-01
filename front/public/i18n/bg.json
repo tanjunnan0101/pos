@@ -139,7 +139,8 @@
     "ORDER_TAKEAWAY": "Отнемане /Поръчка в домашни условия",
     "PROVIDER_LOGIN": "Вход за доставчик",
     "REGISTER_AS_PROVIDER": "Регистрирайте се като доставчик",
-    "CONTACT_US": "Свържете се с нас"
+    "CONTACT_US": "Свържете се с нас",
+    "GITHUB_REPO": "Изходен код в GitHub"
   },
   "ORDERS_PUBLIC": {
     "TITLE": "Отнемане и поръчване на дома",
