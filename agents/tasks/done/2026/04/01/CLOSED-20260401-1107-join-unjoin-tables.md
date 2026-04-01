@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Issue #140 (join/unjoin table groups MVP) was implemented and the tester ran migration, pytest, authenticated table-groups API calls, `/tables/with-status` checks, landing semver smoke, and a docs skim, with overall **PASS**.
+- **What was done:** Backend table groups, slowapi `JSONResponse` fix for create/delete, SQLite/JSONB test compatibility, floor UI and staff order `table_group_label` wiring, and `docs/0051-table-groups-mvp.md` alignment per the task.
+- **What was tested:** Migration `20260401140000_table_group` applied; **6** pytest passes; **POST/DELETE** `/table-groups` returned **201/200** with JSON (no **500** on success paths); group fields present on `with-status`; landing **2.0.68** after `get-commit-hash.js`; canvas was partial (API-level join validation, not full headed UI proof).
+- **Why closed:** All required pass/fail gates in the test report were met (**PASS** overall).
+- **Closed at (UTC):** 2026-04-01 11:39
+---
+
 # Join / unjoin tables
 
 ## GitHub
