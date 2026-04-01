@@ -706,14 +706,17 @@ function isValidView(v: string | null): v is ViewMode {
     .view-toggle .btn.active { background: var(--border-color, #eee); font-weight: 500; }
     .calendar-section { margin-bottom: 1.5rem; }
     .calendar-legend { font-size: 0.875rem; color: var(--text-muted, #666); margin: 0 0 0.5rem 0; }
-    .calendar-grid { display: flex; flex-direction: column; gap: 2px; max-width: 42rem; }
+    .calendar-grid { display: flex; flex-direction: column; gap: 2px; width: 100%; max-width: 100rem; }
     .calendar-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
     .calendar-cell {
-      min-height: 4.75rem; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;
+      min-height: 7.75rem; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;
       border: 1px solid var(--border-color, #eee); border-radius: 6px;
       font-size: 0.875rem; min-width: 0; padding: 0.3rem 0.35rem; gap: 0.15rem;
     }
-    .calendar-cell-header { font-weight: 600; background: var(--card-bg, #f8f8f8); aspect-ratio: auto; padding: 0.25rem 0; }
+    .calendar-cell-header {
+      font-weight: 600; background: var(--card-bg, #f8f8f8); aspect-ratio: auto; padding: 0.25rem 0;
+      min-height: auto;
+    }
     .calendar-cell-empty { background: var(--bg-muted, #f5f5f5); border-color: transparent; }
     .calendar-cell-closed:not(.calendar-day-matches) { background: var(--bg-muted, #ececec); color: var(--text-muted, #666); }
     .calendar-day-matches { background: rgba(220, 38, 38, 0.25); border-color: var(--danger, #dc2626); }

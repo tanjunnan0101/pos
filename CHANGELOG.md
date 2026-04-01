@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Working plan (GitHub #138):** **Calendar** view — grid uses **full width** up to **100rem** (was capped at 42rem); day cells **min-height 7.75rem** for more shift lines; weekday header row stays compact (`min-height: auto` on header cells). Scoped to `WorkingPlanComponent` styles only.
+
 - **Reservations / public booking (GitHub #128):** Single **allergies / special requirements** textarea on `/book/:tenantId` and in the staff reservation modal (removed duplicate checkbox + second “customer notes” field that repeated the same intent). Radio controls use **1rem** label text and **1.125em** native inputs with theme **accent-color**. Staff list and guest reservation view show one merged dietary line (`reservation-dietary-notes` helper).
 
 ### Fixed
