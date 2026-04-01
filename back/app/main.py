@@ -6938,9 +6938,9 @@ def delete_table(
     table_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.TABLE_WRITE))],
     session: Session = Depends(get_session),
+    lang: str = Depends(_get_requested_language),
     reassign_to_table_id: int | None = Query(None, description="Reassign orders and reservations to this table before deleting"),
 ) -> JSONResponse:
-    lang = _get_requested_language(request)
     table = session.exec(
         select(models.Table).where(
             models.Table.id == table_id,

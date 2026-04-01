@@ -34,6 +34,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **DELETE `/tables/{id}`:** Resolved **500** (`Query` object passed to language normalization) by injecting `lang` with **`Depends(_get_requested_language)`** instead of calling `_get_requested_language(request)` directly. Regression: `back/tests/test_delete_table_api.py`.
+
 - **Tables / floor canvas (GitHub #142):** Drag-to-join confirmation on `/tables/canvas` fires only when table footprints **overlap** in layout coordinates (strict AABB for rectangle/booth/bar; ellipse metric for circle/oval pairs), not when tables are merely **near** each other—removes the previous inflated proximity margin.
 
 - **Tables / floor canvas (GitHub #137):** Staff **Tables** floor-plan view — **header** (`tables-canvas-header`) and **floor tabs** use the normal light/neutral theme again; the dark tablet canvas styling applies only to the drawing area, not the chrome above it.
