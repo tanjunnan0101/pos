@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Postgres logs reported `relation "restaurantorder" does not exist` for SQL that does not match this product’s schema; the codebase uses quoted `"order"`, `orderitem`, and `"table"`, not `restaurantorder`.
+- **What was done:** Documentation was added (`docs/0033-postgres-adhoc-sql-table-names.md`) with a table map and corrected example queries; README and `docs/README.md` were updated; CHANGELOG `[Unreleased]` records the change. No application or migration code was changed.
+- **What was tested:** Tester verified documentation against migrations/models, links, changelog, absence of `restaurantorder` in `back/`, and optional live `\dt` checks — **overall PASS**.
+- **Why closed:** All tester pass/fail criteria met; task scope was external mis-query guidance, fully delivered.
+- **Closed at (UTC):** 2026-04-01 14:21
+---
+
 # Postgres: relation "restaurantorder" does not exist
 
 ## Source
