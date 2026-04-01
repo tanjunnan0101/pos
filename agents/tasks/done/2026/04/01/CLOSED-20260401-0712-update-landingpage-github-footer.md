@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The landing page footer was updated so visitors can open the public **pos** GitHub repository (issue #133).
+- **What was done:** A footer link to `https://github.com/satisfecho/pos/` was added with i18n-friendly copy, `data-testid="landing-github"`, and layout that holds on narrow viewports.
+- **What was tested:** Front build health, `npm run test:landing-version` (exit 0), and manual checks of href, label, and responsive footer — all **PASS**.
+- **Why closed:** Tester **Overall: PASS**; acceptance criteria met.
+- **Closed at (UTC):** 2026-04-01 07:22
+---
+
 # Update landing page (GitHub link in footer)
 
 ## GitHub

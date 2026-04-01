@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Root **README.md** and documentation cross-links were brought in line with the product (issue #132).
+- **What was done:** Rate-limiting detail was pointed at **docs/0020-rate-limiting-production.md**, Revolut was documented and linked per **docs/REVOLUT.md**, the staff feature list was aligned with the sidebar, and **docs/README.md** indexes REVOLUT.
+- **What was tested:** Documentation review per task testing instructions (README, docs index, link existence, sidebar alignment) — **Overall: PASS** (no app build required).
+- **Why closed:** Tester **Overall: PASS**; acceptance criteria met.
+- **Closed at (UTC):** 2026-04-01 07:22
+---
+
 # Update README.md
 
 ## GitHub
