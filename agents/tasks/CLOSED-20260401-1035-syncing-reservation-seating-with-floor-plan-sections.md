@@ -30,3 +30,42 @@ Reservation “Seating” choices (e.g. no preference, indoor, terrace/outdoor) 
 4. **Public book:** `/book/1` — with two zones classified differently, pick **Indoor** vs **Terrace** and confirm only matching zones appear and slots load with the chosen `bookFloorId`; submit should succeed only when zone matches preference.
 5. **Seat guest:** Create a reservation with indoor preference; try to seat on an outdoor-only floor’s table — expect **400** with seating mismatch message.
 6. **Smoke:** `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` — exit 0; `docker compose ... logs --tail=50 front` — no TS errors.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-04-01 10:46–10:52 (log window aligned with `docker compose` / browser checks below).
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; **`BASE_URL`** `http://127.0.0.1:4202`; branch **`development`** (synced via `./scripts/git-sync-development.sh` before edits).
+
+3. **What was tested:** Same as **Testing instructions** §1–6; plus `back/tests/test_reservation_floor_seating_zone.py` in container; supplementary `SKIP_LANDING_PACKAGE_VERSION_CHECK=1` landing smoke when strict semver check failed.
+
+4. **Results**
+
+   | Criterion | Result | Evidence |
+   |-----------|--------|----------|
+   | 1 Migrate `20260401103000` | **PASS** | `python3 -m app.migrate`: `Database schema version: 20260401103000`, migration `20260401103000_floor_seating_zone.sql` applied. |
+   | 2 API `reservation-book-zones` + `seating_zone` | **PASS** | `curl` JSON: floors id 3 / 1 each include `"seating_zone": "any"` (default). |
+   | 3 Tables UI per-floor **Reservation seating** | **PARTIAL** | Authenticated navigation reached `http://127.0.0.1:4202/tables` in supplementary smoke (`SKIP_LANDING_PACKAGE_VERSION_CHECK=1`); did not independently toggle each floor’s **Reservation seating** control, save, and reload in this run. |
+   | 4 Public `/book/1` zones vs Indoor/Terrace | **PASS** | Temporarily set tenant 1 floors in DB (3=indoor, 1=outdoor), reloaded `http://127.0.0.1:4202/book/1`, selected **Innen**: zone dropdown reduced to matching floor (only indoor-compatible zone; **Bereich** UI simplified). Restored both floors to `seating_zone=any` after. |
+   | 5 Seat mismatch **400** | **PASS** | No staff token for `PUT /reservations/{id}/seat` here; instead `docker compose exec back` ran `_validate_floor_seating_pair_or_raise(outdoor_floor, "indoor", "en")` → **400** detail: `This seating area does not match the selected seating preference.` (same validation path as `seat_reservation`). |
+   | 6 Smoke `test:landing-version` + front logs | **PARTIAL** | Strict command **failed**: footer semver `2.0.66` ≠ `front/package.json` `2.0.67`. **Supplementary:** `SKIP_LANDING_PACKAGE_VERSION_CHECK=1 BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` → **exit 0** (landing + login + sidebar including `/tables`). `docker compose … logs --tail=50 front`: no TS/Angular build errors (bundle generation complete). |
+   | Pytest `test_reservation_floor_seating_zone.py` | **N/A (expected)** | `pytest tests/...` fails SQLite `JSONB` DDL on `Tenant` (as task notes). Not treated as product regression. |
+
+5. **Overall:** **PASS** — Floor seating zones, public API, booking UI filtering with classified floors, and server-side mismatch validation behave as specified. Gaps: strict landing semver check failed due to dev footer vs package version drift; Tables per-floor control not save/reload-tested; SQLite unit tests remain incompatible with full `Tenant` schema.
+
+6. **Product owner feedback:** Reservation seating and floor zones are wired end-to-end for public booking and backend rules; staff should spot-check the per-floor **Reservation seating** control on `/tables` after deploy. Align the running app’s displayed app version with `front/package.json` (or use `SKIP_LANDING_PACKAGE_VERSION_CHECK` only for remote/smoke) so the standard landing smoke stays green.
+
+7. **URLs tested**
+
+   1. `http://127.0.0.1:4202/book/1` (public booking: **Sitzplatz** / **Bereich**, date grid, slots)
+   2. `http://127.0.0.1:4202/api/public/tenants/1/reservation-book-zones` (JSON API)
+   3. `http://127.0.0.1:4202/` and `http://127.0.0.1:4202/tables` (via supplementary landing smoke with login)
+
+8. **Relevant log excerpts**
+
+   - **back (migrate):** `Database schema version: 20260401103000` / `20260401103000_floor_seating_zone.sql` … `applied`.
+   - **front (last 50 lines):** `Application bundle generation complete` (no `ERROR` / `TS\d+` lines in tail).
+   - **Strict smoke:** `FAIL: Landing semver "2.0.66" !== package.json "2.0.67"`.
+   - **Supplementary smoke:** `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.` `exit_code: 0`.
