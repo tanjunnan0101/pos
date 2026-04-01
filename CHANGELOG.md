@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Tables / floor canvas (GitHub #137):** Staff **Tables** floor-plan view — **header** (`tables-canvas-header`) and **floor tabs** use the normal light/neutral theme again; the dark tablet canvas styling applies only to the drawing area, not the chrome above it.
+
 - **Database migrations:** `python -m app.migrate` now treats a migration as pending when its **version is absent from `schema_version`** (instead of `version > MAX(version)`), so an older migration file is not skipped after a newer timestamp migration was applied first. Migration files are applied in **strict version order**. `run_migrations` uses **`MigrationRunner.migrations_dir`** consistently.
 
 - **Reservations / public booking (GitHub #127):** On **today** (tenant calendar date), the time-slot dropdown in **`ReservationWeekSlotGridComponent`** no longer lists API-marked **past** slots, so the first options align with the next bookable times.

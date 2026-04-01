@@ -603,18 +603,12 @@ const STAFF_ORDERS_ROLES = new Set([
       --tables-canvas-bg: #101318;
       --tables-canvas-grid: rgba(255, 255, 255, 0.06);
     }
-    .canvas-container.tables-canvas--tablet .page-header {
-      background: var(--tables-canvas-bg);
-    }
+    /* Header + floor tabs: keep theme light/neutral; dark styling only on .canvas-area below */
     .canvas-container.tables-canvas--tablet .canvas-area {
       background:
         linear-gradient(var(--tables-canvas-grid) 1px, transparent 1px),
         linear-gradient(90deg, var(--tables-canvas-grid) 1px, transparent 1px),
         var(--tables-canvas-bg);
-    }
-    .canvas-container.tables-canvas--tablet .floor-tabs {
-      background: #1a1f26;
-      border-color: #2d3540;
     }
     .canvas-container.tables-canvas--tablet .empty-state {
       background: var(--tables-canvas-bg);
