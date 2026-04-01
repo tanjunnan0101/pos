@@ -21,3 +21,39 @@ Expose the repository link beside the landing page version line: add a **GitHub 
 2. Smoke: `cd front && BASE_URL=http://127.0.0.1:4202 npm run test:landing-version` (or `LANDING_VERSION_ONLY=1` for version-only).
 3. Manual (logged out, `/`): Bottom bar shows version + commit, GitHub octocat icon linking to `https://github.com/satisfecho/pos/`, tagline below; **no** GitHub link in the footer link row. Narrow viewport: bar wraps without clipping.
 4. Optional: switch language — tagline and GitHub `aria-label` follow locale files.
+
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window:** 2026-04-01 — verification ~08:30–08:36 UTC; Docker `pos-front` logs reviewed for the recent rebuild window (includes `2026-04-01T08:28:14Z` … `08:28:18Z`).
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202`; branch `development` (synced via `./scripts/git-sync-development.sh` before edits).
+
+3. **What was tested:** Items under **Testing instructions** — front build health, `test:landing-version`, manual checks for GitHub in version bar, tagline, no GitHub in footer, narrow viewport. Optional locale switch not exercised.
+
+4. **Results:**
+   - **Docker front logs — no TS/Angular errors:** **PASS** — last 80 lines show successful rebuilds (`Application bundle generation complete`), no `ERROR` / `TS2345` / bundle failed lines in sample.
+   - **Smoke `npm run test:landing-version` with `LANDING_VERSION_ONLY=1`:** **PASS** — exit 0; version text includes semver `2.0.66`, commit hash, and tagline snippet.
+   - **Manual — GitHub link in `[data-testid="landing-version"]`, href `https://github.com/satisfecho/pos/`, `[data-testid="landing-github"]` present:** **PASS** — Puppeteer `page.evaluate` confirmed href and test id.
+   - **Manual — tagline non-empty below version row:** **PASS** — `.landing-version-tagline` has visible translated text (also visible in smoke output).
+   - **Manual — no GitHub link in `.landing-footer`:** **PASS** — zero footer anchors with `github.com` in `href`.
+   - **Manual — narrow viewport (375×667) — version bar / icon not clipped:** **PASS** — `likelyClipped: false`, `ghInViewport: true`.
+
+5. **Overall:** **PASS** (all required criteria met).
+
+6. **Product owner feedback:** The landing bottom bar now presents version, commit, and repository access in one strip with a clear open-source tagline, without duplicating GitHub in the footer link row. Layout holds on a narrow phone-width viewport.
+
+7. **URLs tested:**
+   1. `http://127.0.0.1:4202/` (desktop viewport, logged out)
+   2. `http://127.0.0.1:4202/` (375×667 viewport, reload)
+
+8. **Relevant log excerpts (last section):**
+
+```
+pos-front | Application bundle generation complete. [0.009 seconds] - 2026-04-01T08:28:14.561Z
+pos-front | Application bundle generation complete. [0.009 seconds] - 2026-04-01T08:28:16.583Z
+pos-front | Application bundle generation complete. [0.009 seconds] - 2026-04-01T08:28:18.591Z
+```
+
+Smoke script (excerpt): `>>> RESULT: Landing page shows version.` (exit code 0).
