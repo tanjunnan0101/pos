@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** `DELETE /tables/{id}` returned 500 because `delete_table` called `_get_requested_language(request)` without dependency injection, so a FastAPI `Query` object reached `normalize_language_code` and raised `AttributeError`.
+- **What was done:** The handler now uses `lang: str = Depends(_get_requested_language)` like other endpoints; regression coverage was added in `back/tests/test_delete_table_api.py` (404 missing table, 200 delete empty inactive table).
+- **What was tested:** Pytest `test_delete_table_api.py` — 2 passed; integration curl to HAProxy `DELETE /api/tables/…` returned 401 JSON without 500; structured `detail` behavior confirmed.
+- **Why closed:** Tester overall **PASS**; language-resolution 500 eliminated and criteria in Testing instructions satisfied.
+- **Closed at (UTC):** 2026-04-01 14:05
+---
+
 # DELETE /tables/{id} returns 500 — requested language is a Query object
 
 ## Source
