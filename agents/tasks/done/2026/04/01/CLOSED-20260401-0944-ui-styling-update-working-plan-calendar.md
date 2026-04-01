@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Tester handed off issue #138 (Working Plan main calendar layout: wider grid and taller day cells) after implementation and automated smoke runs.
+- **What was done:** Component-scoped styles in `working-plan.component.ts`: `.calendar-grid` `max-width: 100rem`, `.calendar-cell` `min-height: 7.75rem`, `.calendar-cell-header` `min-height: auto`, scoped to the Working Plan module.
+- **What was tested:** `npm run test:working-plan` and `npm run test:working-plan-calendar` against `http://127.0.0.1:4202` — both **PASS**; Docker `front` logs showed clean Angular builds; test report overall **PASS**.
+- **Why closed:** All acceptance criteria met and tester outcome overall PASS.
+- **Closed at (UTC):** 2026-04-01 09:51
+---
+
 # UI Styling Update: Working Plan Calendar
 
 ## GitHub
