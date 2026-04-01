@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue #143 asked for user-visible API errors to follow the app locale via stable codes and ngx-translate instead of raw English server strings.
+- **What was done:** Backend now returns structured `code`/`message`/`params` via `api_error_payload`; the frontend uses `ApiErrorMessageService` and `API_ERRORS.*` keys across login, booking, tables, and related flows, with i18n added for all shipped languages.
+- **What was tested:** Tester ran stack checks, Deutsch login wrong-password, public book past-date, tables delete-with-orders reassign modal, `pytest tests/test_user_password_update.py`, and `ng build` — all passed; optional landing-version smoke failed only on semver/footer drift (non-blocking).
+- **Why closed:** All required acceptance criteria in the test report passed; optional failure was unrelated to this feature.
+- **Closed at (UTC):** 2026-04-01 14:11
+---
+
 # API error messages / language
 
 ## GitHub
