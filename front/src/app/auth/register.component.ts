@@ -4,6 +4,7 @@ import { contactEmailValidator } from '../shared/contact-validators';
 import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ApiService } from '../services/api.service';
+import { ApiErrorMessageService } from '../services/api-error-message.service';
 import { LanguagePickerComponent } from '../shared/language-picker.component';
 import { LegalLinksComponent } from '../shared/legal-links.component';
 
@@ -322,6 +323,7 @@ export class RegisterComponent implements OnInit {
   private api = inject(ApiService);
   private router = inject(Router);
   translate = inject(TranslateService);
+  private apiErr = inject(ApiErrorMessageService);
 
   legalTermsUrl = signal<string | null>(null);
   legalPrivacyUrl = signal<string | null>(null);
@@ -370,13 +372,13 @@ export class RegisterComponent implements OnInit {
         },
         error: (err) => {
           this.loading.set(false);
-          const detail = (err.error?.detail ?? '') as string;
-          this.error.set(detail || 'Registration failed');
-          // Backend returns localized "email already registered"; suggest sign-in
-          this.emailAlreadyRegistered.set(
-            err.status === 400 &&
-            /registered|registriert|registrat|registrado|registrat|已注册|पंजीकृत/i.test(detail)
-          );
+          const d = err.error?.detail;
+          const code =
+            d && typeof d === 'object' && !Array.isArray(d) && 'code' in d
+              ? (d as { code?: string }).code
+              : undefined;
+          this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
+          this.emailAlreadyRegistered.set(err.status === 400 && code === 'email_already_registered');
         }
       });
     }

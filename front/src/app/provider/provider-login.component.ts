@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { ApiService } from '../services/api.service';
+import { ApiErrorMessageService } from '../services/api-error-message.service';
 import { LegalLinksComponent } from '../shared/legal-links.component';
 
 @Component({
@@ -160,6 +161,7 @@ export class ProviderLoginComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private router = inject(Router);
+  private apiErr = inject(ApiErrorMessageService);
 
   legalTermsUrl = signal<string | null>(null);
   legalPrivacyUrl = signal<string | null>(null);
@@ -193,7 +195,7 @@ export class ProviderLoginComponent implements OnInit {
       next: () => this.router.navigate(['/provider']),
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err.error?.detail || 'Login failed');
+        this.error.set(this.apiErr.fromHttpError(err, 'AUTH.LOGIN_FAILED'));
       }
     });
   }

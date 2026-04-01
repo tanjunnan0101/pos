@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { LanguagePickerComponent } from '../shared/language-picker.component';
 import { LegalLinksComponent } from '../shared/legal-links.component';
 import { environment } from '../../environments/environment';
+import { ApiErrorMessageService } from '../services/api-error-message.service';
 
 @Component({
   selector: 'app-landing',
@@ -669,6 +670,7 @@ export class LandingComponent implements OnInit {
   private api = inject(ApiService);
   private router = inject(Router);
   private translate = inject(TranslateService);
+  private apiErr = inject(ApiErrorMessageService);
 
   version = environment.version;
   commitHash = environment.commitHash;
@@ -711,7 +713,7 @@ export class LandingComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err?.error?.detail || 'Failed to load restaurants');
+        this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
         this.loading.set(false);
       },
     });

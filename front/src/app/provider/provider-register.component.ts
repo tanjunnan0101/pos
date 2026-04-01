@@ -4,6 +4,7 @@ import { contactEmailValidator, optionalContactPhoneValidator } from '../shared/
 import { Router, RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { ApiService } from '../services/api.service';
+import { ApiErrorMessageService } from '../services/api-error-message.service';
 import { LegalLinksComponent } from '../shared/legal-links.component';
 
 @Component({
@@ -300,6 +301,7 @@ export class ProviderRegisterComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private router = inject(Router);
+  private apiErr = inject(ApiErrorMessageService);
 
   legalTermsUrl = signal<string | null>(null);
   legalPrivacyUrl = signal<string | null>(null);
@@ -365,7 +367,7 @@ export class ProviderRegisterComponent implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err.error?.detail || 'Registration failed');
+        this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
       }
     });
   }

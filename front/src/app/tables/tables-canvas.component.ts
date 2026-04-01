@@ -10,6 +10,7 @@ import { FocusFirstInputDirective } from '../shared/focus-first-input.directive'
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { StaffPosToolbarComponent } from '../shared/staff-pos-toolbar.component';
 import { TablesAreaPreferenceService } from '../services/tables-area-preference.service';
+import { ApiErrorMessageService } from '../services/api-error-message.service';
 
 interface TableShape {
   id: string;
@@ -1465,6 +1466,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
   private permissions = inject(PermissionService);
   private router = inject(Router);
   private tablesArea = inject(TablesAreaPreferenceService);
+  private apiErr = inject(ApiErrorMessageService);
 
   @ViewChild('canvasArea') canvasAreaRef!: ElementRef;
   @ViewChild('canvasSvg') canvasSvgRef!: ElementRef<SVGSVGElement>;
@@ -1597,7 +1599,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
         }
       },
       error: err => {
-        this.error.set(err.error?.detail || 'Failed to load floors');
+        this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
         this.floors.set([]);
       }
     });
@@ -1605,7 +1607,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
     this.api.getTablesWithStatus().subscribe({
       next: tables => this.tables.set(tables),
       error: err => {
-        this.error.set(err.error?.detail || 'Failed to load tables');
+        this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
         this.tables.set([]);
       }
     });
@@ -1643,7 +1645,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
         this.floors.update(f => [...f, floor]);
         this.selectedFloorId.set(floor.id!);
       },
-      error: err => this.error.set(err.error?.detail || 'Failed to create floor')
+      error: err => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
     });
   }
 
@@ -1662,7 +1664,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
         next: updated => {
           this.floors.update(floors => floors.map(f => f.id === updated.id ? updated : f));
         },
-        error: err => this.error.set(err.error?.detail || 'Failed to rename floor')
+        error: err => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
       });
     }
     this.editingFloorId.set(null);
@@ -1698,7 +1700,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
         const remaining = this.floors();
         this.selectedFloorId.set(remaining.length > 0 ? remaining[0].id! : null);
       },
-      error: err => this.error.set(err.error?.detail || 'Failed to delete floor')
+      error: err => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
     });
   }
 
@@ -1814,7 +1816,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
         this.loadData();
       },
       error: (err: { error?: { detail?: string } }) =>
-        this.error.set(err.error?.detail || 'Join failed'),
+        this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED')),
     });
   }
 
@@ -1828,7 +1830,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
         this.loadData();
       },
       error: (err: { error?: { detail?: string } }) =>
-        this.error.set(err.error?.detail || 'Unjoin failed'),
+        this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED')),
     });
   }
 
@@ -2044,7 +2046,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
         ));
         this.selectedTable.update(st => st ? { ...st, assigned_waiter_id: res.assigned_waiter_id, assigned_waiter_name: res.assigned_waiter_name } : st);
       },
-      error: (err: any) => this.error.set(err.error?.detail || 'Failed to assign waiter')
+      error: (err: any) => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
     });
   }
 
@@ -2238,10 +2240,10 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
             const canvasTable: CanvasTable = { ...updated, status: 'available' };
             this.tables.update(t => [...t, canvasTable]);
           },
-          error: err => this.error.set(err.error?.detail || 'Failed to set table layout')
+          error: err => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
         });
       },
-      error: err => this.error.set(err.error?.detail || 'Failed to create table')
+      error: err => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
     });
   }
 
@@ -2526,7 +2528,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
           };
         });
       },
-      error: err => this.error.set(err.error?.detail || 'Failed to update table')
+      error: err => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
     });
   }
 
@@ -2556,14 +2558,18 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
         this.selectedTable.set(null);
       },
       error: err => {
-        const detail = err.error?.detail ?? '';
-        if (err.status === 400 && typeof detail === 'string' && detail.includes('has orders')) {
+        const d = err.error?.detail;
+        const code =
+          d && typeof d === 'object' && !Array.isArray(d) && 'code' in d
+            ? (d as { code?: string }).code
+            : undefined;
+        if (err.status === 400 && code === 'table_has_orders') {
           this.confirmationModal.update(m => ({ ...m, show: false }));
           this.reassignTableModal.set(table);
           const other = this.tables().filter(t => t.id !== table.id);
           this.reassignTargetTableId.set(other.length > 0 ? other[0].id ?? null : null);
         } else {
-          this.error.set(detail || 'Failed to delete table');
+          this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
         }
       }
     });
@@ -2584,7 +2590,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
         this.selectedTable.set(null);
         this.cancelReassign();
       },
-      error: err => this.error.set(err.error?.detail || 'Failed')
+      error: err => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
     });
   }
 
@@ -2604,7 +2610,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
           this.loadData();
         },
         error: (err: { error?: { detail?: string } }) =>
-          this.error.set(err.error?.detail || 'Join failed'),
+          this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED')),
       });
     }
     this.onConfirmationCancel();

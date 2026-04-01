@@ -57,7 +57,9 @@ class TestUserPasswordUpdate(PgClientTestCase):
             json={"password": "newpass1"},
         )
         self.assertEqual(r.status_code, 400, r.text)
-        self.assertIn("current password", r.json()["detail"].lower(), r.text)
+        d = r.json()["detail"]
+        msg = (d.get("message") if isinstance(d, dict) else str(d)).lower()
+        self.assertIn("current password", msg, r.text)
 
     def test_change_user_password_wrong_actor_password_rejected(self) -> None:
         h = _bearer_headers(self.owner)
@@ -70,7 +72,9 @@ class TestUserPasswordUpdate(PgClientTestCase):
             },
         )
         self.assertEqual(r.status_code, 400, r.text)
-        self.assertIn("incorrect", r.json()["detail"].lower(), r.text)
+        d = r.json()["detail"]
+        msg = (d.get("message") if isinstance(d, dict) else str(d)).lower()
+        self.assertIn("incorrect", msg, r.text)
 
     def test_change_user_password_with_correct_actor_password_ok(self) -> None:
         h = _bearer_headers(self.owner)

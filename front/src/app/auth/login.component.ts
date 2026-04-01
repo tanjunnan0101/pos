@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../services/api.service';
+import { ApiErrorMessageService } from '../services/api-error-message.service';
 import { LanguagePickerComponent } from '../shared/language-picker.component';
 import { LegalLinksComponent } from '../shared/legal-links.component';
 
@@ -279,6 +280,7 @@ export class LoginComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   translate = inject(TranslateService);
+  private apiErr = inject(ApiErrorMessageService);
 
   legalTermsUrl = signal<string | null>(null);
   legalPrivacyUrl = signal<string | null>(null);
@@ -331,9 +333,9 @@ export class LoginComponent implements OnInit {
             this.showOtpStep.set(true);
             this.error.set('');
           } else if (err.status === 429) {
-            this.error.set(err.error?.detail || 'Too many login attempts. Please try again later.');
+            this.error.set(this.apiErr.fromHttpError(err, 'AUTH.LOGIN_RATE_LIMITED'));
           } else {
-            this.error.set(err.error?.detail || 'Login failed');
+            this.error.set(this.apiErr.fromHttpError(err, 'AUTH.LOGIN_FAILED'));
           }
         }
       });
@@ -351,7 +353,7 @@ export class LoginComponent implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err?.error?.detail || 'Invalid or expired code');
+        this.error.set(this.apiErr.fromHttpError(err, 'API_ERRORS.INVALID_OTP_CODE'));
       }
     });
   }

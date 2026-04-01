@@ -15,6 +15,7 @@ import { LegalLinksComponent } from '../shared/legal-links.component';
 import { ReservationWeekSlotGridComponent } from '../shared/reservation-week-slot-grid.component';
 import { tenantOpeningHoursHasMealSplit } from '../shared/booking-meal-split';
 import { contactEmailValid, contactPhoneValid } from '../shared/contact-validators';
+import { ApiErrorMessageService } from '../services/api-error-message.service';
 
 @Component({
   selector: 'app-book',
@@ -38,6 +39,7 @@ export class BookComponent implements OnInit {
   private api = inject(ApiService);
   private translate = inject(TranslateService);
   private sanitizer = inject(DomSanitizer);
+  private apiErr = inject(ApiErrorMessageService);
 
   tenantId = signal<number>(0);
   tenant = signal<TenantSummary | null>(null);
@@ -294,7 +296,7 @@ export class BookComponent implements OnInit {
         this.submitting.set(false);
       },
       error: (e) => {
-        this.error.set(e.error?.detail || this.translate.instant('BOOK.ERROR_FAILED'));
+        this.error.set(this.apiErr.fromHttpError(e, 'BOOK.ERROR_FAILED'));
         this.submitting.set(false);
       },
     });

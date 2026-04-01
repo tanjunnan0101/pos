@@ -46,6 +46,7 @@ from .inventory_service import deduct_inventory_for_order
 from . import inventory_models
 from .translation_service import TranslationService
 from .messages import get_message
+from .api_errors import api_error_payload
 
 # Minimum advance booking for public (unauthenticated) reservations
 RESERVATION_PUBLIC_MIN_LEAD_MINUTES = 10
@@ -913,7 +914,7 @@ def get_public_tenant(
     """Get one tenant's public info for book page (name, logo, phone, email, whatsapp, opening_hours). Public, no authentication."""
     tenant = session.get(models.Tenant, tenant_id)
     if not tenant:
-        raise HTTPException(status_code=404, detail=get_message("tenant_not_found", lang))
+        raise HTTPException(status_code=404, detail=api_error_payload("tenant_not_found", lang))
     summary = _tenant_to_summary(tenant, session)
     # Return explicit JSON so whatsapp is always present (same tenant as /tenant/settings)
     body = {
@@ -954,7 +955,7 @@ def get_public_reservation_book_zones(
     """Public: active floors/zones that have at least one table (for /book location selector)."""
     tenant = session.get(models.Tenant, tenant_id)
     if not tenant:
-        raise HTTPException(status_code=404, detail=get_message("tenant_not_found", lang))
+        raise HTTPException(status_code=404, detail=api_error_payload("tenant_not_found", lang))
     floors = _bookable_floors_for_public(session, tenant_id)
     return {
         "floors": [
@@ -1039,7 +1040,7 @@ def submit_public_guest_feedback(
     """Anonymous guest feedback (rating + optional comment and contact). Optional reservation_token must match this tenant."""
     tenant = session.get(models.Tenant, tenant_id)
     if not tenant:
-        raise HTTPException(status_code=404, detail=get_message("tenant_not_found", lang))
+        raise HTTPException(status_code=404, detail=api_error_payload("tenant_not_found", lang))
 
     comment = None
     if body.comment is not None and str(body.comment).strip():
@@ -1054,14 +1055,14 @@ def submit_public_guest_feedback(
         try:
             cemail = normalize_email_address(body.contact_email)
         except ValueError:
-            raise HTTPException(status_code=400, detail=get_message("invalid_email", lang))
+            raise HTTPException(status_code=400, detail=api_error_payload("invalid_email", lang))
 
     cphone = None
     if body.contact_phone is not None and str(body.contact_phone).strip():
         try:
             cphone = normalize_phone_e164(body.contact_phone, settings.default_phone_country)
         except ValueError:
-            raise HTTPException(status_code=400, detail=get_message("invalid_phone", lang))
+            raise HTTPException(status_code=400, detail=api_error_payload("invalid_phone", lang))
 
     reservation_id = None
     if body.reservation_token is not None and str(body.reservation_token).strip():
@@ -1073,7 +1074,7 @@ def submit_public_guest_feedback(
             )
         ).first()
         if not res:
-            raise HTTPException(status_code=400, detail=get_message("invalid_reservation_token", lang))
+            raise HTTPException(status_code=400, detail=api_error_payload("invalid_reservation_token", lang))
         reservation_id = res.id
 
     client_ip = _client_ip_from_request(request)
@@ -1157,13 +1158,13 @@ def register(
     try:
         email = normalize_email_address(email)
     except ValueError:
-        raise HTTPException(status_code=400, detail=get_message("invalid_email", lang))
+        raise HTTPException(status_code=400, detail=api_error_payload("invalid_email", lang))
     existing_user = session.exec(
         select(models.User).where(models.User.email == email)
     ).first()
     if existing_user:
         raise HTTPException(
-            status_code=400, detail=get_message("email_already_registered", lang)
+            status_code=400, detail=api_error_payload("email_already_registered", lang)
         )
 
     # Virgin deployment: if exactly one tenant exists and has no users, first registrant becomes its owner
@@ -1207,20 +1208,20 @@ def register_provider(
     try:
         norm_email = normalize_email_address(body.email)
     except ValueError:
-        raise HTTPException(status_code=400, detail=get_message("invalid_email", lang))
+        raise HTTPException(status_code=400, detail=api_error_payload("invalid_email", lang))
     norm_phone = body.phone
     if norm_phone and str(norm_phone).strip():
         try:
             norm_phone = normalize_phone_e164(norm_phone, settings.default_phone_country)
         except ValueError:
-            raise HTTPException(status_code=400, detail=get_message("invalid_phone", lang))
+            raise HTTPException(status_code=400, detail=api_error_payload("invalid_phone", lang))
     existing = session.exec(
         select(models.User).where(models.User.email == norm_email)
     ).first()
     if existing:
         raise HTTPException(
             status_code=400,
-            detail=get_message("email_already_registered", lang),
+            detail=api_error_payload("email_already_registered", lang),
         )
     existing_provider = session.exec(
         select(models.Provider).where(models.Provider.name == body.provider_name)
@@ -1298,7 +1299,7 @@ def login_for_access_token(
     ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=get_message("incorrect_username_or_password", lang),
+            detail=api_error_payload("incorrect_username_or_password", lang),
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -1308,7 +1309,11 @@ def login_for_access_token(
         temp_token = security.create_otp_pending_token(token_data)
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
-            content={"detail": "OTP required", "require_otp": True, "temp_token": temp_token},
+            content={
+                "detail": api_error_payload("otp_required", lang),
+                "require_otp": True,
+                "temp_token": temp_token,
+            },
         )
 
     token_data = _token_data_for_user(user)
@@ -1362,6 +1367,7 @@ def login_with_otp(
     request: Request,
     body: OTPVerifyBody,
     session: Session = Depends(get_session),
+    lang: str = Depends(_get_requested_language),
 ) -> JSONResponse:
     """After password login returned require_otp, submit OTP code to get access and refresh tokens."""
     try:
@@ -1369,29 +1375,38 @@ def login_with_otp(
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired OTP session. Please log in again.",
+            detail=api_error_payload("otp_session_expired", lang),
         )
     email = payload.get("sub")
     tenant_id = payload.get("tenant_id")
     provider_id = payload.get("provider_id")
     if not email:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=api_error_payload("otp_token_invalid", lang),
+        )
     statement = select(models.User).where(models.User.email == email)
     if tenant_id is not None:
         statement = statement.where(models.User.tenant_id == tenant_id)
     elif provider_id is not None:
         statement = statement.where(models.User.provider_id == provider_id)
     else:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=api_error_payload("otp_token_invalid", lang),
+        )
     user = session.exec(statement).first()
     if not user or not getattr(user, "otp_secret", None) or not getattr(user, "otp_enabled", False):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid OTP session")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=api_error_payload("otp_session_invalid", lang),
+        )
     import pyotp
     totp = pyotp.TOTP(user.otp_secret)
     if not totp.verify(body.code, valid_window=1):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired OTP code",
+            detail=api_error_payload("invalid_otp_code", lang),
         )
     token_data = _token_data_for_user(user)
     access_token = security.create_access_token(
@@ -1482,7 +1497,7 @@ async def password_reset_request(
     try:
         email = normalize_email_address(body.email)
     except ValueError:
-        raise HTTPException(status_code=400, detail=get_message("invalid_email", lang))
+        raise HTTPException(status_code=400, detail=api_error_payload("invalid_email", lang))
     user = _resolve_user_for_password_reset(session, email, body.tenant_id, body.scope)
     msg = get_message("password_reset_sent", lang)
     if not user:
@@ -1540,13 +1555,13 @@ def password_reset_confirm(
     if row is None or row.used_at is not None or row.expires_at < now:
         raise HTTPException(
             status_code=400,
-            detail=get_message("password_reset_invalid", lang),
+            detail=api_error_payload("password_reset_invalid", lang),
         )
     user = session.get(models.User, row.user_id)
     if user is None:
         raise HTTPException(
             status_code=400,
-            detail=get_message("password_reset_invalid", lang),
+            detail=api_error_payload("password_reset_invalid", lang),
         )
     row.used_at = now
     user.hashed_password = security.get_password_hash(body.new_password)
@@ -2191,12 +2206,12 @@ def update_user(
         if not actor_pw:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=get_message("actor_current_password_required", lang),
+                detail=api_error_payload("actor_current_password_required", lang),
             )
         if not security.verify_password(actor_pw, current_user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=get_message("incorrect_actor_password", lang),
+                detail=api_error_payload("incorrect_actor_password", lang),
             )
         target_user.hashed_password = security.get_password_hash(new_password)
         # Increment token version to invalidate existing tokens
@@ -6925,6 +6940,7 @@ def delete_table(
     session: Session = Depends(get_session),
     reassign_to_table_id: int | None = Query(None, description="Reassign orders and reservations to this table before deleting"),
 ) -> JSONResponse:
+    lang = _get_requested_language(request)
     table = session.exec(
         select(models.Table).where(
             models.Table.id == table_id,
@@ -6933,7 +6949,7 @@ def delete_table(
     ).first()
 
     if not table:
-        raise HTTPException(status_code=404, detail="Table not found")
+        raise HTTPException(status_code=404, detail=api_error_payload("table_not_found", lang))
 
     has_orders = session.exec(
         select(models.Order).where(
@@ -6945,12 +6961,15 @@ def delete_table(
     if has_orders and not reassign_to_table_id:
         raise HTTPException(
             status_code=400,
-            detail="Cannot delete table: it has orders. Reassign to another table or close orders first.",
+            detail=api_error_payload("table_has_orders", lang),
         )
 
     if reassign_to_table_id is not None:
         if reassign_to_table_id == table_id:
-            raise HTTPException(status_code=400, detail="Reassign target must be a different table.")
+            raise HTTPException(
+                status_code=400,
+                detail=api_error_payload("reassign_target_must_differ", lang),
+            )
         target = session.exec(
             select(models.Table).where(
                 models.Table.id == reassign_to_table_id,
@@ -6958,7 +6977,10 @@ def delete_table(
             )
         ).first()
         if not target:
-            raise HTTPException(status_code=404, detail="Reassign target table not found.")
+            raise HTTPException(
+                status_code=404,
+                detail=api_error_payload("reassign_target_not_found", lang),
+            )
         # Reassign orders
         orders_linked = session.exec(
             select(models.Order).where(
@@ -7592,7 +7614,7 @@ def _validate_floor_seating_pair_or_raise(
         return
     if not _floor_matches_seating_preference(floor, seating_pref):
         raise HTTPException(
-            status_code=400, detail=get_message("reservation_seating_floor_mismatch", lang)
+            status_code=400, detail=api_error_payload("reservation_seating_floor_mismatch", lang)
         )
 
 
@@ -7901,33 +7923,42 @@ def create_reservation(
         data = body
     else:
         if body.tenant_id is None:
-            raise HTTPException(status_code=400, detail="tenant_id required for public booking")
+            raise HTTPException(
+                status_code=400,
+                detail=api_error_payload("tenant_id_required_for_booking", lang),
+            )
         tenant_id = body.tenant_id
         data = body
     # Validate tenant exists
     tenant = session.get(models.Tenant, tenant_id)
     if not tenant:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+        raise HTTPException(status_code=404, detail=api_error_payload("tenant_not_found", lang))
     try:
         res_date = _parse_reservation_date(data.reservation_date)
         res_time = _parse_reservation_time(data.reservation_time)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=api_error_payload("invalid_reservation_datetime", lang),
+        )
     # Reject past date/time (use business timezone if configured, else UTC)
     tz = ZoneInfo(tenant.timezone) if tenant.timezone else timezone.utc
     now_local = datetime.now(tz)
     if res_date < now_local.date():
-        raise HTTPException(status_code=400, detail="Reservation date must be today or in the future")
+        raise HTTPException(
+            status_code=400,
+            detail=api_error_payload("reservation_date_must_be_today_or_future", lang),
+        )
     max_ahead_date = now_local.date() + timedelta(days=366)
     if res_date > max_ahead_date:
-        raise HTTPException(status_code=400, detail=get_message("reservation_date_too_far", lang))
+        raise HTTPException(status_code=400, detail=api_error_payload("reservation_date_too_far", lang))
     res_dt = datetime.combine(res_date, res_time, tzinfo=tz)
     if not current_user:
         min_dt = now_local + timedelta(minutes=RESERVATION_PUBLIC_MIN_LEAD_MINUTES)
         if res_dt < min_dt:
             raise HTTPException(
                 status_code=400,
-                detail=get_message(
+                detail=api_error_payload(
                     "reservation_min_lead_time",
                     lang,
                     minutes=RESERVATION_PUBLIC_MIN_LEAD_MINUTES,
@@ -7935,7 +7966,10 @@ def create_reservation(
             )
     else:
         if res_dt <= now_local:
-            raise HTTPException(status_code=400, detail="Reservation time must be in the future")
+            raise HTTPException(
+                status_code=400,
+                detail=api_error_payload("reservation_time_must_be_future", lang),
+            )
     service_type = _normalize_reservation_service_type(getattr(data, "service_type", None))
     seating_pref = _normalize_seating_preference(getattr(data, "seating_preference", None))
     ah_raw = getattr(data, "allergies_has", None)
@@ -7957,23 +7991,23 @@ def create_reservation(
                 )
             ).first()
             if not fl:
-                raise HTTPException(status_code=400, detail=get_message("floor_not_found", lang))
+                raise HTTPException(status_code=400, detail=api_error_payload("floor_not_found", lang))
             _validate_floor_seating_pair_or_raise(fl, seating_pref, lang)
             eff_floor = raw_pf
     else:
         if raw_pf is not None:
             if raw_pf not in bookable_ids:
-                raise HTTPException(status_code=400, detail=get_message("reservation_invalid_seating_area", lang))
+                raise HTTPException(status_code=400, detail=api_error_payload("reservation_invalid_seating_area", lang))
             if raw_pf not in matching_ids:
-                raise HTTPException(status_code=400, detail=get_message("reservation_invalid_seating_area", lang))
+                raise HTTPException(status_code=400, detail=api_error_payload("reservation_invalid_seating_area", lang))
             eff_floor = raw_pf
         elif len(matching) == 1:
             eff_floor = matching[0].id
         elif len(matching) >= 2:
-            raise HTTPException(status_code=400, detail=get_message("reservation_location_required", lang))
+            raise HTTPException(status_code=400, detail=api_error_payload("reservation_location_required", lang))
         elif len(bookable) >= 1 and len(matching) == 0:
             raise HTTPException(
-                status_code=400, detail=get_message("reservation_seating_no_matching_zone", lang)
+                status_code=400, detail=api_error_payload("reservation_seating_no_matching_zone", lang)
             )
         else:
             eff_floor = None
@@ -7991,13 +8025,13 @@ def create_reservation(
     try:
         phone_e164 = normalize_phone_e164(data.customer_phone, settings.default_phone_country)
     except ValueError:
-        raise HTTPException(status_code=400, detail=get_message("invalid_phone", lang))
+        raise HTTPException(status_code=400, detail=api_error_payload("invalid_phone", lang))
     cust_email = None
     if data.customer_email is not None and str(data.customer_email).strip():
         try:
             cust_email = normalize_email_address(data.customer_email)
         except ValueError:
-            raise HTTPException(status_code=400, detail=get_message("invalid_email", lang))
+            raise HTTPException(status_code=400, detail=api_error_payload("invalid_email", lang))
     token_str = str(uuid4())
     client_ip = _client_ip_from_request(request)
     user_agent = (request.headers.get("user-agent") or "")[:512]
@@ -8569,7 +8603,7 @@ def update_reservation(
                 body.customer_phone, settings.default_phone_country
             )
         except ValueError:
-            raise HTTPException(status_code=400, detail=get_message("invalid_phone", lang))
+            raise HTTPException(status_code=400, detail=api_error_payload("invalid_phone", lang))
     if body.customer_email is not None:
         if not str(body.customer_email).strip():
             reservation.customer_email = None
@@ -8577,7 +8611,7 @@ def update_reservation(
             try:
                 reservation.customer_email = normalize_email_address(body.customer_email)
             except ValueError:
-                raise HTTPException(status_code=400, detail=get_message("invalid_email", lang))
+                raise HTTPException(status_code=400, detail=api_error_payload("invalid_email", lang))
     if body.client_notes is not None:
         reservation.client_notes = body.client_notes
     if body.customer_notes is not None:
@@ -8616,7 +8650,7 @@ def update_reservation(
                 )
             ).first()
             if not fl:
-                raise HTTPException(status_code=400, detail=get_message("floor_not_found", lang))
+                raise HTTPException(status_code=400, detail=api_error_payload("floor_not_found", lang))
             reservation.preferred_floor_id = body.preferred_floor_id
     ah_ok, ad_ok = _normalize_allergies_for_booking(
         reservation.allergies_has, reservation.allergies_detail
@@ -8634,7 +8668,7 @@ def update_reservation(
     now_local = datetime.now(tz)
     max_ahead_date = now_local.date() + timedelta(days=366)
     if reservation.reservation_date and reservation.reservation_date > max_ahead_date:
-        raise HTTPException(status_code=400, detail=get_message("reservation_date_too_far", lang))
+        raise HTTPException(status_code=400, detail=api_error_payload("reservation_date_too_far", lang))
     _raise_if_reservation_time_invalid_for_opening_hours(
         tenant, reservation.reservation_date, reservation.reservation_time, reservation.service_type
     )
@@ -9261,11 +9295,14 @@ def get_menu(
         logger.debug("get_menu table query token=%s row=%s", table_token[:8] + "...", table_row)
     except Exception as e:
         logger.exception("get_menu table query failed: %s", e)
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=api_error_payload("database_error", lang),
+        )
 
     if not table_row:
         logger.debug("get_menu: no table for token prefix=%s", table_token[:8] + "...")
-        raise HTTPException(status_code=404, detail="Table not found")
+        raise HTTPException(status_code=404, detail=api_error_payload("table_not_found", lang))
 
     # Create a simple object with the needed attributes
     class TableData:
@@ -9297,7 +9334,7 @@ def get_menu(
             status_code=403,
             detail={
                 "code": "TABLE_CLOSED",
-                "message": "This table is currently closed.",
+                "message": get_message("table_currently_closed", lang),
                 "table_name": table.name,
                 "tenant_name": tenant.name if tenant else None,
                 "tenant_logo": tenant.logo_filename if tenant else None,

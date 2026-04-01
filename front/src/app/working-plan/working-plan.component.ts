@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -18,6 +19,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '../services/language.service';
 import { PermissionService } from '../services/permission.service';
 import { hueFromUserId, weekShiftCardBorderLeft } from './working-plan-shift-colors';
+import { ApiErrorMessageService } from '../services/api-error-message.service';
 
 /** One row in a calendar day cell: a real shift or the “+N more” overflow line. */
 type CalendarShiftLineRow =
@@ -842,6 +844,7 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
 
   private api = inject(ApiService);
   private translate = inject(TranslateService);
+  private apiErr = inject(ApiErrorMessageService);
   private languageService = inject(LanguageService);
   private permissions = inject(PermissionService);
   private router = inject(Router);
@@ -1923,11 +1926,8 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
     }
   }
 
-  private getApiErrorMessage(err: { error?: { detail?: string | unknown } }): string {
-    const d = err.error?.detail;
-    if (typeof d === 'string') return d;
-    if (Array.isArray(d) && d.length > 0 && d[0]?.msg) return String(d[0].msg);
-    return this.translate.instant('WORKING_PLAN.SAVE_FAILED');
+  private getApiErrorMessage(err: unknown): string {
+    return this.apiErr.fromHttpError(err as HttpErrorResponse, 'WORKING_PLAN.SAVE_FAILED');
   }
 
   confirmDelete(s: Shift): void {

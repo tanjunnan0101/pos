@@ -22,6 +22,7 @@ import { tenantOpeningHoursHasMealSplit } from '../shared/booking-meal-split';
 import { reservationDietaryNotesDisplay, reservationDietaryNotesFormValue } from '../shared/reservation-dietary-notes';
 import { contactEmailValid, contactPhoneValid } from '../shared/contact-validators';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ApiErrorMessageService } from '../services/api-error-message.service';
 
 @Component({
   selector: 'app-reservations',
@@ -434,6 +435,7 @@ export class ReservationsComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private permissions = inject(PermissionService);
   private translate = inject(TranslateService);
+  private apiErr = inject(ApiErrorMessageService);
 
   /** Public tenant (timezone for week grid, same as /book). */
   tenantSummary = signal<TenantSummary | null>(null);
@@ -779,12 +781,12 @@ export class ReservationsComponent implements OnInit, OnDestroy {
       };
       this.api.updateReservation(this.editingReservation()!.id, update).subscribe({
         next: () => { this.closeForm(); this.load(); this.loadTables(); },
-        error: (e) => this.formError.set(e.error?.detail || this.translate.instant('RESERVATIONS.ERROR_FAILED_UPDATE')),
+        error: (e) => this.formError.set(this.apiErr.fromHttpError(e, 'RESERVATIONS.ERROR_FAILED_UPDATE')),
       });
     } else {
       this.api.createReservation(payload).subscribe({
         next: () => { this.closeForm(); this.load(); this.loadTables(); },
-        error: (e) => this.formError.set(e.error?.detail || this.translate.instant('RESERVATIONS.ERROR_FAILED_CREATE')),
+        error: (e) => this.formError.set(this.apiErr.fromHttpError(e, 'RESERVATIONS.ERROR_FAILED_CREATE')),
       });
     }
   }
@@ -817,7 +819,7 @@ export class ReservationsComponent implements OnInit, OnDestroy {
     if (!r) return;
     this.api.seatReservation(r.id, tableId).subscribe({
       next: () => { this.closeSeatModal(); this.load(); this.loadTables(); },
-      error: (e) => alert(e.error?.detail || this.translate.instant('RESERVATIONS.ERROR_FAILED_SEAT')),
+      error: (e) => alert(this.apiErr.fromHttpError(e, 'RESERVATIONS.ERROR_FAILED_SEAT')),
     });
   }
 
@@ -857,7 +859,7 @@ export class ReservationsComponent implements OnInit, OnDestroy {
       },
       error: (e) => {
         this.sendingReminderId.set(null);
-        alert(e.error?.detail || this.translate.instant('RESERVATIONS.REMINDER_FAILED'));
+        alert(this.apiErr.fromHttpError(e, 'RESERVATIONS.REMINDER_FAILED'));
       },
     });
   }
@@ -878,7 +880,7 @@ export class ReservationsComponent implements OnInit, OnDestroy {
   finish(r: Reservation) {
     this.api.finishReservation(r.id).subscribe({
       next: () => { this.load(); this.loadTables(); },
-      error: (e) => alert(e.error?.detail || this.translate.instant('RESERVATIONS.ERROR_FAILED')),
+      error: (e) => alert(this.apiErr.fromHttpError(e, 'RESERVATIONS.ERROR_FAILED')),
     });
   }
 }

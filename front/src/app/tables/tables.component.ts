@@ -11,6 +11,7 @@ import { ConfirmationModalComponent } from '../shared/confirmation-modal.compone
 import { FocusFirstInputDirective } from '../shared/focus-first-input.directive';
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
+import { ApiErrorMessageService } from '../services/api-error-message.service';
 
 const TABLES_VIEW_STORAGE_KEY = 'pos.tables.viewMode';
 
@@ -893,6 +894,7 @@ export class TablesComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private tablesArea = inject(TablesAreaPreferenceService);
+  private apiErr = inject(ApiErrorMessageService);
 
   /** When true, skip restoring view mode from localStorage (URL ?view= had priority). */
   private viewResolvedFromQuery = false;
@@ -1049,7 +1051,7 @@ export class TablesComponent implements OnInit {
       next: u => this.floors.update(fs => fs.map(f => (f.id === u.id ? u : f))),
       error: err => {
         el.checked = !next;
-        this.error.set(err.error?.detail || 'Failed to update floor');
+        this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
       },
     });
   }
@@ -1060,7 +1062,7 @@ export class TablesComponent implements OnInit {
     if (!floor.id) return;
     this.api.updateFloor(floor.id, { seating_zone: v }).subscribe({
       next: (u) => this.floors.update((fs) => fs.map((f) => (f.id === u.id ? u : f))),
-      error: (err: any) => this.error.set(err.error?.detail || 'Failed to update floor'),
+      error: (err: any) => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED')),
     });
   }
 
@@ -1080,10 +1082,10 @@ export class TablesComponent implements OnInit {
       next: () => {
         this.api.updateFloor(bid, { sort_order: ao }).subscribe({
           next: () => this.loadData(),
-          error: err => this.error.set(err.error?.detail || 'Failed to reorder floor'),
+          error: err => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED')),
         });
       },
-      error: err => this.error.set(err.error?.detail || 'Failed to reorder floor'),
+      error: err => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED')),
     });
   }
 
@@ -1106,10 +1108,10 @@ export class TablesComponent implements OnInit {
         }
         this.api.getTables().subscribe({
           next: tables => { this.tables.set(tables); this.loading.set(false); },
-          error: err => { this.error.set(err.error?.detail || 'Failed to load tables'); this.loading.set(false); }
+          error: err => { this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED')); this.loading.set(false); }
         });
       },
-      error: err => { this.error.set(err.error?.detail || 'Failed to load floors'); this.loading.set(false); }
+      error: err => { this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED')); this.loading.set(false); }
     });
   }
 
@@ -1144,7 +1146,7 @@ export class TablesComponent implements OnInit {
         this.newTableName = '';
         this.showForm.set(false);
       },
-      error: err => this.error.set(err.error?.detail || 'Failed')
+      error: err => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
     });
   }
 
@@ -1195,7 +1197,7 @@ export class TablesComponent implements OnInit {
           this.onConfirmationCancel();
         },
         error: err => {
-          this.error.set(err.error?.detail || 'Failed to close table');
+          this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
           this.activatingTableId.set(null);
           this.onConfirmationCancel();
         }
@@ -1210,14 +1212,18 @@ export class TablesComponent implements OnInit {
           this.onConfirmationCancel();
         },
         error: err => {
-          const detail = err.error?.detail ?? '';
-          if (err.status === 400 && typeof detail === 'string' && detail.includes('has orders')) {
+          const d = err.error?.detail;
+          const code =
+            d && typeof d === 'object' && !Array.isArray(d) && 'code' in d
+              ? (d as { code?: string }).code
+              : undefined;
+          if (err.status === 400 && code === 'table_has_orders') {
             this.confirmationModal.update(m => ({ ...m, show: false }));
             this.reassignTableModal.set(table);
             const other = this.tables().filter(t => t.id !== table.id);
             this.reassignTargetTableId.set(other.length > 0 ? other[0].id ?? null : null);
           } else {
-            this.error.set(detail || 'Failed');
+            this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
           }
         }
       });
@@ -1241,7 +1247,7 @@ export class TablesComponent implements OnInit {
         this.cancelReassign();
         this.showToast('TABLES.TABLE_DELETED', 'success');
       },
-      error: err => this.error.set(err.error?.detail || 'Failed')
+      error: err => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
     });
   }
 
@@ -1366,7 +1372,7 @@ export class TablesComponent implements OnInit {
         this.tables.update(t => t.map(x => x.id === table.id ? updated : x));
         this.cancelEdit();
       },
-      error: err => this.error.set(err.error?.detail || 'Failed to update table')
+      error: err => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
     });
   }
 
@@ -1384,7 +1390,7 @@ export class TablesComponent implements OnInit {
         this.activatingTableId.set(null);
       },
       error: err => {
-        this.error.set(err.error?.detail || 'Failed to activate table');
+        this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
         this.activatingTableId.set(null);
       }
     });
@@ -1403,7 +1409,7 @@ export class TablesComponent implements OnInit {
         this.activatingTableId.set(null);
       },
       error: err => {
-        this.error.set(err.error?.detail || 'Failed to close table');
+        this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
         this.activatingTableId.set(null);
       }
     });
@@ -1422,7 +1428,7 @@ export class TablesComponent implements OnInit {
         this.activatingTableId.set(null);
       },
       error: (err: any) => {
-        this.error.set(err.error?.detail || 'Failed to regenerate PIN');
+        this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
         this.activatingTableId.set(null);
       }
     });
@@ -1440,7 +1446,7 @@ export class TablesComponent implements OnInit {
             : t
         ));
       },
-      error: (err: any) => this.error.set(err.error?.detail || 'Failed to assign waiter')
+      error: (err: any) => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
     });
   }
 
@@ -1456,7 +1462,7 @@ export class TablesComponent implements OnInit {
             : f
         ));
       },
-      error: (err: any) => this.error.set(err.error?.detail || 'Failed to assign waiter to floor')
+      error: (err: any) => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
     });
   }
 }
