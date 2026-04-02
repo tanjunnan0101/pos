@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The public landing page needed always-visible Terms of Service and Privacy Policy links so legal documents are discoverable without relying on optional server-configured public URLs.
+- **What was done:** The landing footer now always uses `routerLink` to `/terms` and `/privacy` with i18n labels (alongside register/provider/contact), removing the conditional `app-legal-links` path; CHANGELOG and `test-landing-provider-links.mjs` were updated with `data-testid` assertions for terms and privacy.
+- **What was tested:** Footer links and navigation to `/terms` and `/privacy` passed manual/curl checks and `test-landing-provider-links.mjs` (exit 0); optional `test:landing-version` failed only due to bundle vs `package.json` semver drift, not treated as a regression for this feature.
+- **Why closed:** All mandatory and scripted acceptance criteria passed; optional version check failure was environment drift per task notes.
+- **Closed at (UTC):** 2026-04-02 09:24
+---
+
 # Missing mandatory legal links on homepage
 
 ## GitHub
