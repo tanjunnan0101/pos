@@ -60,3 +60,49 @@ Staff who open **My shift** from normal navigation (without a venue QR URL) curr
 
 - **Pass:** Automated script exits **0**; manual flow shows scan CTA when QR is required and no token; **`?clock_qr=`** regression still works; **`npx ng build`** succeeds; **`docker compose … logs front`** has no compile errors after changes.
 - **Fail:** No **`clock-qr-status`** request on My shift load when QR is required, **`.scan-cta`** missing with cleared **`sessionStorage`**, or build/compile errors in the front container logs.
+
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window:** Started **2026-04-02T15:48:37Z**; verification completed **2026-04-02T15:51:11Z** (includes optional landing smoke). Front container log window reviewed around **15:42–15:48Z** (compose `logs front --tail=80`).
+
+2. **Environment:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml`; **`BASE_URL=http://127.0.0.1:4202`** (HAProxy); branch **`development`** @ **`d537343`**.
+
+3. **What was tested:** Per **Testing instructions** — `clock-qr-status` on My shift load; **`.scan-cta`** with required QR and cleared session; **`?clock_qr=`** regression; **`npx ng build`**; front logs for compile errors; optional landing smoke.
+
+4. **Results**
+
+   | Criterion | Result | Evidence |
+   |-----------|--------|----------|
+   | `GET /api/users/me/clock-qr-status` on `/my-shift` open | **PASS** | Puppeteer `test-my-shift-clock-qr.mjs`: `waitForResponse` on `/users/me/clock-qr-status` status 200 |
+   | **Scan venue QR** (`.scan-cta`) when QR required, no token | **PASS** | Same script: `document.querySelector('.scan-cta')` present after clearing `sessionStorage` for tenant |
+   | Copy does not push hand-edited query strings | **PASS** | Automated scope does not assert copy; spot-check: i18n keys updated per implementation summary (no manual UI read in this run) |
+   | Physical QR scan (camera) | **N/A / manual** | Not executed: no printed QR / camera in this automated pass; flow covered by API + CTA + token persistence tests |
+   | **`/my-shift?clock_qr=TOKEN`** ingests token, strips query | **PASS** | One-off Puppeteer check (local script with `NODE_PATH=front/node_modules`): navigate with `clock_qr` param → URL no longer contains `clock_qr=`, `sessionStorage` matches token; cleanup `DELETE /tenant/settings/clock-qr` |
+   | `npx ng build` | **PASS** | `docker compose … exec -T front npx ng build` exit 0 (~8s) |
+   | Front container: no compile errors | **PASS** | Recent `logs front`: dev rebuilds complete with “Application bundle generation complete”, no TS/NG errors in tail |
+   | Optional: `test:landing-version` | **PASS** | `SKIP_LANDING_PACKAGE_VERSION_CHECK=1`; exit 0, “Landing version OK; … sidebar nav OK” |
+
+5. **Overall:** **PASS** (all automated criteria; physical camera scan deferred to manual QA if needed).
+
+6. **Product owner feedback:** My shift now exposes a clear **Scan venue QR** path when the tenant requires a venue token and the session has none, backed by the same **`clock-qr-status`** check as before. Staff are no longer forced to bookmark a URL with **`?clock_qr=`**; the legacy query-param path still works for shared links. Recommend a quick human pass with a real printed QR to confirm camera UX on a target device.
+
+7. **URLs tested (numbered)**
+
+   1. `http://127.0.0.1:4202/login`
+   2. `http://127.0.0.1:4202/my-shift`
+   3. `http://127.0.0.1:4202/my-shift?clock_qr=<regenerated-token>` (regression — query stripped after load)
+   4. `http://127.0.0.1:4202/` (landing smoke)
+
+8. **Relevant log excerpts**
+
+   **Puppeteer (`npm run test:my-shift-clock-qr`):**
+   ```
+   OK: GET /users/me/clock-qr-status returned 200
+   OK: .scan-cta present
+   PASS: My shift clock-QR UI and API check.
+   Cleanup: clock QR disabled for tenant.
+   ```
+
+   **`docker compose … logs --tail=80 front` (excerpt):** dev server shows successful rebuild — e.g. `Application bundle generation complete. [7.298 seconds] - 2026-04-02T15:42:54.673Z`, `Watch mode enabled`; no compilation failure lines in the captured tail.
