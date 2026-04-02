@@ -213,37 +213,48 @@ should_run_001_cursor_agent() {
   return 1
 }
 
-# True when local Ollama is usable: CLI present, daemon responds, at least one model row in `ollama list`.
-# Disable triage entirely with AGENT_001_OLLAMA_LOG_TRIAGE=0 (even if ollama is running).
-ollama_local_triage_available() {
+# True when local LLM triage can run: llama.cpp OpenAI API up (/v1/models) + python3, or Ollama with ≥1 model.
+# Disable triage entirely with AGENT_001_OLLAMA_LOG_TRIAGE=0.
+local_llm_triage_available() {
   [[ "${AGENT_001_OLLAMA_LOG_TRIAGE:-}" != "0" ]] || return 1
-  command -v ollama >/dev/null 2>&1 || return 1
-  ollama list 2>/dev/null | tail -n +2 | head -1 | grep -q '[[:graph:]]'
+  local base="${LLAMA_CPP_BASE_URL:-http://127.0.0.1:8080/v1}"
+  base="${base%/}"
+  if curl -sfS -m 3 -o /dev/null "${base}/models" 2>/dev/null && command -v python3 >/dev/null 2>&1; then
+    return 0
+  fi
+  if command -v ollama >/dev/null 2>&1 && ollama list 2>/dev/null | tail -n +2 | head -1 | grep -q '[[:graph:]]'; then
+    return 0
+  fi
+  return 1
 }
 
-# If only Docker heuristics fired (no untracked issues), local Ollama may clear G001_LOG_SIGNALS (auto when ollama works).
-maybe_ollama_downgrade_log_signals() {
+# If only Docker heuristics fired (no untracked issues), local LLM may clear G001_LOG_SIGNALS (llama.cpp first, else Ollama).
+maybe_local_llm_downgrade_log_signals() {
   local ctx="$1"
-  ollama_local_triage_available || return 0
+  local ollama_model="${OLLAMA_MODEL:-qwen2.5:1.5b}"
+  local llama_model="${LLAMA_CPP_MODEL:-Bonsai-8B.gguf}"
+  local llama_base="${LLAMA_CPP_BASE_URL:-http://127.0.0.1:8080/v1}"
+  local triage_label="llama.cpp @ ${llama_base} (${llama_model}) → Ollama fallback (${ollama_model})"
+  local_llm_triage_available || return 0
   [[ "$G001_LOG_SIGNALS" == "1" ]] || return 0
   [[ "${G001_UNTRACKED_ISSUES:-0}" -eq 0 ]] || return 0
   local triage_script="${REPO_ROOT}/scripts/agent-ollama-log-triage.sh"
   [[ -f "$triage_script" ]] || return 0
-  echo "----- 001 ollama log triage: auto (ollama up + models — ${OLLAMA_MODEL:-qwen2.5:1.5b})"
+  echo "----- 001 local LLM log triage: auto (${triage_label})"
   set +e
   bash "$triage_script" "$ctx"
   local trc=$?
   set -e
   if ((trc == 1)); then
     G001_LOG_SIGNALS=0
-    echo "----- 001 ollama log triage: SKIP (log heuristics downgraded by local model)"
+    echo "----- 001 local LLM log triage: SKIP (log heuristics downgraded by local model)"
     {
       echo ""
-      echo "=== Ollama log triage (${OLLAMA_MODEL:-qwen2.5:1.5b}) ==="
+      echo "=== Local LLM log triage (${triage_label}) ==="
       echo "SKIP — Docker incident flag cleared (local triage)."
     } >>"$ctx"
   elif ((trc == 2)); then
-    echo "----- 001 ollama log triage: error or empty output — keeping Docker heuristics"
+    echo "----- 001 local LLM log triage: error or empty output — keeping Docker heuristics"
   fi
 }
 
@@ -323,7 +334,7 @@ step_log_reviewer() {
   mkdir -p "$AGENT_LOOP_TMP"
   local ctx="${AGENT_LOOP_TMP}/001-latest-context.txt"
   prepare_001_preflight_context "$ctx"
-  maybe_ollama_downgrade_log_signals "$ctx"
+  maybe_local_llm_downgrade_log_signals "$ctx"
   echo "----- 001 preflight digest: $ctx"
   warn_001_github_auth_if_needed
   if ! have_cursor_agent; then
@@ -333,10 +344,10 @@ step_log_reviewer() {
   if should_run_001_cursor_agent; then
     sync_repo
     prepare_001_preflight_context "$ctx"
-    maybe_ollama_downgrade_log_signals "$ctx"
+    maybe_local_llm_downgrade_log_signals "$ctx"
     warn_001_github_auth_if_needed
     if ! should_run_001_cursor_agent; then
-      echo "----- log reviewer (001) (skip after sync+preflight: gate closed — e.g. ollama downgraded logs only)"
+      echo "----- log reviewer (001) (skip after sync+preflight: gate closed — e.g. local LLM downgraded logs only)"
       return 0
     fi
     local msg
@@ -468,7 +479,7 @@ Environment:
   AGENT_LOG_REVIEWER_ALWAYS  If 1, always invoke 001 cursor-agent (skip preflight gate).
   AGENT_001_SKIP_PREFLIGHT   If 1, always invoke 001 (legacy); digest still written when built.
   AGENT_001_RUN_WHEN_GH_UNKNOWN  If 1, run 001 when gh failed/missing and digest otherwise empty.
-  AGENT_001_OLLAMA_LOG_TRIAGE  If 0, never run local Ollama triage. Otherwise (default) triage runs when ollama list works and shows ≥1 model, only for log-only 001 signals. OLLAMA_MODEL (default qwen2.5:1.5b).
+  AGENT_001_OLLAMA_LOG_TRIAGE  If 0, never run local LLM triage. Otherwise (default) triage runs when llama.cpp OpenAI API responds (GET \$LLAMA_CPP_BASE_URL/models, default http://127.0.0.1:8080/v1) and python3 exists, or when ollama list shows ≥1 model — only for log-only 001 signals. LLAMA_CPP_MODEL (default Bonsai-8B.gguf); OLLAMA_MODEL (default qwen2.5:1.5b). AGENT_001_SKIP_LLAMA_CPP=1 forces Ollama only.
 
 Docker / app stack: start separately from repo root with ./run.sh -dev
 

@@ -28,6 +28,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Agent loop — local LLM triage:** **`scripts/agent-ollama-log-triage.sh`** calls **llama.cpp** (OpenAI-compatible **`POST`** to **`…/v1/chat/completions`**, default base **`http://127.0.0.1:8080/v1`**, model **`Bonsai-8B.gguf`**) first, then **Ollama** if that fails or returns nothing. **`pos-agent-loop.sh`** runs triage when **`GET …/v1/models`** succeeds and **`python3`** exists, or when **`ollama list`** shows ≥1 model (unless **`AGENT_001_OLLAMA_LOG_TRIAGE=0`**). Optional **`AGENT_001_SKIP_LLAMA_CPP=1`** uses only Ollama. **`docs/agent-loop.md`** updated.
+
 - **Tables / floor plan (GitHub #144):** `/tables/canvas` **debounced auto-save** (~550 ms after the last drag) for table **x/y** positions using existing `PUT /tables/{id}` calls; saves are **serialized** so overlapping flush/debounce only persist the latest state. **Unsaved changes** stays accurate until a successful save. **Switch floor**, **join/unjoin**, **delete table**, and **reassign-and-delete** **flush** pending layout saves first. **Route leave** runs `canDeactivate` (save then optional confirm) plus **`beforeunload`** when still dirty.
 
 - **API errors / i18n (GitHub #143):** Many FastAPI `HTTPException` responses now use structured `detail` (`code`, `message`, optional `params`) via `api_error_payload`, so the Angular app can map **`API_ERRORS.*`** keys in all shipped languages. Staff/public surfaces updated include login/register, provider auth, booking, reservations, tables, working plan, and landing tenant list. Table delete “has orders” is detected by `code: table_has_orders`.
