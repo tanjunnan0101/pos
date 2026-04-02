@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed, OnInit, OnDestroy, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { LowerCasePipe } from '@angular/common';
@@ -99,7 +100,7 @@ const STAFF_ORDERS_ROLES = new Set([
               </button>
             }
             @if (canUnjoinFromSelection()) {
-              <button type="button" class="btn btn-secondary" (click)="unjoinSelectedGroup()" data-testid="tables-unjoin-btn">
+              <button type="button" class="btn btn-secondary" (click)="unjoinSelectedGroup()" [disabled]="unjoinInFlight()" data-testid="tables-unjoin-btn">
                 {{ 'TABLES.UNJOIN_TABLES' | translate }}
               </button>
             }
@@ -1481,6 +1482,8 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
   selectedTable = signal<CanvasTable | null>(null);
   /** Ctrl/Cmd+click table ids for Join (same floor, not already grouped). */
   joinSelectionIds = signal<number[]>([]);
+  /** Prevents duplicate DELETE /table-group calls (stale id → 404 / error banner). */
+  unjoinInFlight = signal(false);
   editingFloorId = signal<number | null>(null);
   editingFloorName = '';
   hasUnsavedChanges = signal(false);
@@ -1632,12 +1635,29 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
     });
 
     this.api.getTablesWithStatus().subscribe({
-      next: tables => this.tables.set(tables),
+      next: tables => {
+        this.tables.set(tables);
+        this.syncSelectedTableAfterTablesLoad(tables);
+      },
       error: err => {
         this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
         this.tables.set([]);
       }
     });
+  }
+
+  /** After tables are reloaded, keep the side panel / header in sync (avoids stale group ids after unjoin/join). */
+  private syncSelectedTableAfterTablesLoad(tables: CanvasTable[]): void {
+    const sel = this.selectedTable();
+    if (sel?.id == null) return;
+    const fresh = tables.find(t => t.id === sel.id);
+    if (fresh) {
+      this.selectedTable.set(fresh);
+      this.selectedTableName = fresh.name;
+      this.selectedTableSeats = fresh.seat_count || 4;
+    } else {
+      this.selectedTable.set(null);
+    }
   }
 
   tablesOnCurrentFloor() {
@@ -1867,18 +1887,23 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
   }
 
   unjoinSelectedGroup(): void {
+    if (this.unjoinInFlight()) return;
     const gid = this.selectedTable()?.table_group_id;
     if (gid == null) return;
     const proceed = () => {
       this.error.set('');
-      this.api.deleteTableGroup(gid).subscribe({
-        next: () => {
-          this.joinSelectionIds.set([]);
-          this.loadData();
-        },
-        error: (err: { error?: { detail?: string } }) =>
-          this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED')),
-      });
+      this.unjoinInFlight.set(true);
+      this.api
+        .deleteTableGroup(gid)
+        .pipe(finalize(() => this.unjoinInFlight.set(false)))
+        .subscribe({
+          next: () => {
+            this.joinSelectionIds.set([]);
+            this.loadData();
+          },
+          error: (err: { error?: { detail?: string } }) =>
+            this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED')),
+        });
     };
     if (!this.hasUnsavedChanges()) {
       proceed();
