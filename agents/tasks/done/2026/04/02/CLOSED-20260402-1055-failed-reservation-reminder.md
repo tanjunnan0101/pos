@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The Reservations **Remind** flow failed opaquely for staff when SMTP was missing or mail could not be sent.
+- **What was done:** The API now returns **503** with actionable `detail` when no channel delivers; reminder-sent timestamps update only on real delivery; `email_service` helpers and `tests/test_reservation_reminder_email.py` cover the contract.
+- **What was tested:** Pytest **8 passed**; manual/API checks confirmed 503 messaging and null `reminder_*_sent_at` after failed send; success path with live SMTP not exercised locally (N/A); optional landing smoke failed only due to unrelated semver drift.
+- **Why closed:** Tester **overall PASS** — required backend and failure-path behavior match the task.
+- **Closed at (UTC):** 2026-04-02 11:00
+---
+
 # Failed to send reservation reminder (Reservations)
 
 ## GitHub
