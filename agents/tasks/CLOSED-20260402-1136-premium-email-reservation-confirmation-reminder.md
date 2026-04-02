@@ -25,3 +25,31 @@ Stakeholders want transactional reservation emails (confirmation after booking, 
    Expect: all passed.
 2. **Manual / SMTP (optional):** With SMTP configured, create a public booking with email or use **Send reminder** on a reservation with email; confirm HTML shows card layout, optional logo if tenant has logo + `PUBLIC_APP_BASE_URL`, localized strings match tenant **Settings → default language** where applicable.
 3. **Regression:** Custom confirmation templates (Settings → Email) still respect placeholder allowlist; body still renders inside the new outer wrapper.
+
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window:** 2026-04-02 11:45–11:47 UTC (pytest run ~0.35s; back container healthy throughout).
+
+2. **Environment:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml`; branch `development`; `BASE_URL` not used (no browser). Pytest executed via `docker compose … exec -T back python3 -m pytest …`.
+
+3. **What was tested:** Items 1–3 from **Testing instructions** above; item 2 (manual/SMTP) is optional and was **not** executed.
+
+4. **Results:**
+   - **Criterion 1 (unit tests):** **PASS** — `14 passed in 0.35s` for `tests/test_reservation_reminder_email.py` and `tests/test_reservation_email_template.py`.
+   - **Criterion 2 (manual/SMTP):** **N/A (optional)** — not run; no SMTP/booking UI verification this round.
+   - **Criterion 3 (regression / allowlist + wrapper):** **PASS** — covered by the same pytest suite (e.g. placeholder allowlist, escaping, reminder/confirmation alignment).
+
+5. **Overall:** **PASS** (mandatory automated checks satisfied; optional manual path skipped).
+
+6. **Product owner feedback:** Automated tests confirm the shared email layout, i18n hooks, and safe rendering paths behave as intended. For a full stakeholder sign-off on visual branding in real inboxes, run the optional SMTP step once with a tenant that has a logo and `PUBLIC_APP_BASE_URL` set.
+
+7. **URLs tested:** **N/A — no browser** (backend unit tests only).
+
+8. **Relevant log excerpts:** Pytest stdout (primary evidence):
+   ```
+   ..............                                                           [100%]
+   14 passed in 0.35s
+   ```
+   `docker compose … logs --tail=30 back` during the window showed routine HTTP 200s only; no errors tied to the pytest invocation (pytest runs in-process, not logged as HTTP).
