@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The working-plan calendar’s Schedule compliance block showed planned time and weekly limits as raw minutes (e.g. 2400 min); stakeholders wanted human-readable hours-style copy consistent with the rest of the calendar.
+- **What was done:** Implementation reused `formatMinutes` / `formatSignedMinutes` in `complianceWarningText()` and passed formatted strings into ngx-translate; i18n keys were updated across locales so sentences no longer redundantly appended “min” after formatted durations.
+- **What was tested:** Angular build health, Puppeteer `npm run test:working-plan-calendar` (exit 0, calendar loads, no console errors), and static verification that compliance copy uses `formatMinutes` — **all PASS** per tester report.
+- **Why closed:** All verification criteria in the test report passed; task ready for archive.
+- **Closed at (UTC):** 2026-04-02 16:09
+---
+
 # Change minutes to hours
 
 ## GitHub Issues
