@@ -45,6 +45,7 @@
     "EMAIL_ALREADY_REGISTERED": "E-mail déjà enregistré.",
     "INCORRECT_USERNAME_OR_PASSWORD": "Identifiant ou mot de passe incorrect.",
     "PASSWORD_RESET_INVALID": "Lien de réinitialisation invalide ou expiré. Demandez-en un nouveau depuis la page de connexion.",
+    "PASSWORD_RESET_NOT_CONFIGURED": "La réinitialisation du mot de passe est indisponible : l'URL publique de l'application n'est pas configurée sur le serveur. Demandez à un administrateur de définir PUBLIC_APP_BASE_URL (et SMTP) dans l'environnement de déploiement.",
     "ACTOR_CURRENT_PASSWORD_REQUIRED": "Saisissez votre mot de passe actuel pour modifier le mot de passe d'un utilisateur.",
     "INCORRECT_ACTOR_PASSWORD": "Votre mot de passe actuel est incorrect.",
     "RESERVATION_SEATING_FLOOR_MISMATCH": "Cette zone ne correspond pas à la préférence de placement choisie.",

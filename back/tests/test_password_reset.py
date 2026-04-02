@@ -83,6 +83,21 @@ class TestPasswordReset(PgClientTestCase):
         self.assertEqual(r.status_code, 200, r.text)
         self.assertEqual(r.json().get("status"), "ok")
 
+    def test_request_missing_public_app_base_returns_503(self):
+        """Same response for any email when base URL unset (no enumeration)."""
+        from app.settings import settings
+
+        settings.public_app_base_url = ""
+        for email in ("nobody-here-xyz@amvara.de", "pwreset-staff@amvara.de"):
+            r = self.client.post(
+                "/password-reset/request",
+                json={"email": email, "tenant_id": self.tenant.id},
+            )
+            self.assertEqual(r.status_code, 503, r.text)
+            detail = r.json().get("detail")
+            self.assertIsInstance(detail, dict)
+            self.assertEqual(detail.get("code"), "password_reset_not_configured")
+
     @patch("app.main.email_svc.send_password_reset_email", new_callable=AsyncMock)
     def test_confirm_updates_password_and_invalidates_token(self, mock_send):
         mock_send.return_value = True
@@ -118,6 +133,15 @@ class TestPasswordReset(PgClientTestCase):
             json={"token": "not-a-real-token-value-here", "new_password": "x" * 10},
         )
         self.assertEqual(r.status_code, 400, r.text)
+
+    def test_password_reset_not_configured_translations_defined_for_all_locales(self):
+        from app.language_service import SUPPORTED_LANGUAGES
+        from app.messages import MESSAGES
+
+        key = "password_reset_not_configured"
+        for lang in SUPPORTED_LANGUAGES:
+            block = MESSAGES.get(lang, {})
+            self.assertIn(key, block, f"missing {key} for locale {lang}")
 
     def test_password_reset_email_translations_defined_for_all_locales(self):
         from app.language_service import SUPPORTED_LANGUAGES

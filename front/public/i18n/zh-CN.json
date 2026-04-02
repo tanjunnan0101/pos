@@ -45,6 +45,7 @@
     "EMAIL_ALREADY_REGISTERED": "电子邮件已注册。",
     "INCORRECT_USERNAME_OR_PASSWORD": "用户名或密码不正确。",
     "PASSWORD_RESET_INVALID": "重置链接无效或已过期。请从登录页重新申请。",
+    "PASSWORD_RESET_NOT_CONFIGURED": "无法重置密码：服务器未配置公共应用 URL。请让管理员在部署环境中设置 PUBLIC_APP_BASE_URL（以及 SMTP）。",
     "ACTOR_CURRENT_PASSWORD_REQUIRED": "更改用户密码前请输入您当前的密码。",
     "INCORRECT_ACTOR_PASSWORD": "您当前的密码不正确。",
     "RESERVATION_SEATING_FLOOR_MISMATCH": "该座位区域与所选偏好不匹配。",

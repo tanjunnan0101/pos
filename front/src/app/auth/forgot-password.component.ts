@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { contactEmailValidator } from '../shared/contact-validators';
 import { ApiService } from '../services/api.service';
+import { ApiErrorMessageService } from '../services/api-error-message.service';
 import { LanguagePickerComponent } from '../shared/language-picker.component';
 
 @Component({
@@ -160,6 +161,7 @@ import { LanguagePickerComponent } from '../shared/language-picker.component';
 export class ForgotPasswordComponent {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
+  private apiErr = inject(ApiErrorMessageService);
   private route = inject(ActivatedRoute);
   translate = inject(TranslateService);
 
@@ -206,9 +208,9 @@ export class ForgotPasswordComponent {
       error: (err) => {
         this.loading.set(false);
         if (err.status === 429) {
-          this.error.set(err.error?.detail || 'Too many requests. Try again later.');
+          this.error.set(this.apiErr.fromHttpError(err, 'FEEDBACK.RATE_LIMIT'));
         } else {
-          this.error.set(err.error?.detail || 'Request failed');
+          this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
         }
       },
     });

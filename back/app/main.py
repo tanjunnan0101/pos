@@ -1498,13 +1498,15 @@ async def password_reset_request(
         email = normalize_email_address(body.email)
     except ValueError:
         raise HTTPException(status_code=400, detail=api_error_payload("invalid_email", lang))
+    base = (settings.public_app_base_url or "").strip().rstrip("/")
+    if not base:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=api_error_payload("password_reset_not_configured", lang),
+        )
     user = _resolve_user_for_password_reset(session, email, body.tenant_id, body.scope)
     msg = get_message("password_reset_sent", lang)
     if not user:
-        return JSONResponse({"status": "ok", "message": msg})
-    base = (settings.public_app_base_url or "").strip().rstrip("/")
-    if not base:
-        logger.warning("password reset: PUBLIC_APP_BASE_URL is not set; cannot send reset email")
         return JSONResponse({"status": "ok", "message": msg})
     pending = session.exec(
         select(models.PasswordResetToken).where(
@@ -1530,6 +1532,10 @@ async def password_reset_request(
         user.email, reset_url, tenant=tenant_for_smtp, lang=lang
     )
     if not sent:
+        logger.warning(
+            "password reset: email was not sent (check SMTP / tenant email settings); user_id=%s",
+            user.id,
+        )
         session.delete(prt)
     session.commit()
     return JSONResponse({"status": "ok", "message": msg})

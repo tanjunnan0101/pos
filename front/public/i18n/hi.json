@@ -45,6 +45,7 @@
     "EMAIL_ALREADY_REGISTERED": "ईमेल पहले से पंजीकृत है।",
     "INCORRECT_USERNAME_OR_PASSWORD": "गलत उपयोगकर्ता नाम या पासवर्ड।",
     "PASSWORD_RESET_INVALID": "अमान्य या समाप्त रीसेट लिंक। लॉगिन पृष्ठ से नया अनुरोध करें।",
+    "PASSWORD_RESET_NOT_CONFIGURED": "पासवर्ड रीसेट उपलब्ध नहीं है: सर्वर पर सार्वजनिक ऐप URL कॉन्फ़िगर नहीं है। किसी व्यवस्थापक से तैनाती वातावरण में PUBLIC_APP_BASE_URL (और SMTP) सेट करने को कहें।",
     "ACTOR_CURRENT_PASSWORD_REQUIRED": "किसी उपयोगकर्ता का पासवर्ड बदलने के लिए अपना वर्तमान पासवर्ड दर्ज करें।",
     "INCORRECT_ACTOR_PASSWORD": "आपका वर्तमान पासवर्ड गलत है।",
     "RESERVATION_SEATING_FLOOR_MISMATCH": "यह बैठने का क्षेत्र चयनित वरीयता से मेल नहीं खाता।",

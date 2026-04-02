@@ -45,6 +45,7 @@
     "EMAIL_ALREADY_REGISTERED": "E-Mail bereits registriert.",
     "INCORRECT_USERNAME_OR_PASSWORD": "Falscher Benutzername oder Passwort.",
     "PASSWORD_RESET_INVALID": "Ungültiger oder abgelaufener Link zum Zurücksetzen. Bitte fordern Sie auf der Anmeldeseite einen neuen an.",
+    "PASSWORD_RESET_NOT_CONFIGURED": "Passwort-Zurücksetzen ist nicht verfügbar: die öffentliche App-URL ist auf dem Server nicht konfiguriert. Bitte einen Administrator, PUBLIC_APP_BASE_URL (und SMTP) in der Umgebung zu setzen.",
     "ACTOR_CURRENT_PASSWORD_REQUIRED": "Geben Sie Ihr aktuelles Passwort ein, um das Passwort eines Benutzers zu ändern.",
     "INCORRECT_ACTOR_PASSWORD": "Ihr aktuelles Passwort ist falsch.",
     "RESERVATION_SEATING_FLOOR_MISMATCH": "Dieser Sitzbereich passt nicht zur gewählten Sitzpräferenz.",

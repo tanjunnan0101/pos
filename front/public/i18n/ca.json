@@ -45,6 +45,7 @@
     "EMAIL_ALREADY_REGISTERED": "Correu electrònic ja registrat.",
     "INCORRECT_USERNAME_OR_PASSWORD": "Nom d'usuari o contrasenya incorrectes.",
     "PASSWORD_RESET_INVALID": "Enllaç de restabliment no vàlid o caducat. Sol·liciteu-ne un de nou des de la pàgina d'inici de sessió.",
+    "PASSWORD_RESET_NOT_CONFIGURED": "El restabliment de contrasenya no està disponible: l'URL pública de l'aplicació no està configurada al servidor. Demaneu a un administrador que configuri PUBLIC_APP_BASE_URL (i SMTP) a l'entorn de desplegament.",
     "ACTOR_CURRENT_PASSWORD_REQUIRED": "Introduïu la vostra contrasenya actual per canviar la contrasenya d'un usuari.",
     "INCORRECT_ACTOR_PASSWORD": "La vostra contrasenya actual no és correcta.",
     "RESERVATION_SEATING_FLOOR_MISMATCH": "Aquesta zona no coincideix amb la preferència d'emplaçament seleccionada.",

@@ -45,6 +45,7 @@
     "EMAIL_ALREADY_REGISTERED": "Email already registered.",
     "INCORRECT_USERNAME_OR_PASSWORD": "Incorrect username or password.",
     "PASSWORD_RESET_INVALID": "Invalid or expired reset link. Please request a new one from the login page.",
+    "PASSWORD_RESET_NOT_CONFIGURED": "Password reset is unavailable: the public app URL is not configured on the server. Ask an administrator to set PUBLIC_APP_BASE_URL (and SMTP) in the deployment environment.",
     "ACTOR_CURRENT_PASSWORD_REQUIRED": "Enter your current password to change a user's password.",
     "INCORRECT_ACTOR_PASSWORD": "Your current password is incorrect.",
     "RESERVATION_SEATING_FLOOR_MISMATCH": "This seating area does not match the selected seating preference.",

@@ -45,6 +45,7 @@
     "EMAIL_ALREADY_REGISTERED": "Correo electrónico ya registrado.",
     "INCORRECT_USERNAME_OR_PASSWORD": "Nombre de usuario o contraseña incorrectos.",
     "PASSWORD_RESET_INVALID": "Enlace de restablecimiento no válido o caducado. Solicite uno nuevo desde la página de inicio de sesión.",
+    "PASSWORD_RESET_NOT_CONFIGURED": "El restablecimiento de contraseña no está disponible: la URL pública de la aplicación no está configurada en el servidor. Pida a un administrador que configure PUBLIC_APP_BASE_URL (y SMTP) en el entorno de despliegue.",
     "ACTOR_CURRENT_PASSWORD_REQUIRED": "Introduzca su contraseña actual para cambiar la contraseña de un usuario.",
     "INCORRECT_ACTOR_PASSWORD": "Su contraseña actual no es correcta.",
     "RESERVATION_SEATING_FLOOR_MISMATCH": "Esta zona no coincide con la preferencia de asiento seleccionada.",
