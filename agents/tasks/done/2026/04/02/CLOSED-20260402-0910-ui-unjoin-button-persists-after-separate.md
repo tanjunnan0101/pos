@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Issue #147: after **Unjoin**, the tables canvas UI could still show **Unjoin**, stale group metadata, and a **Table group not found** banner because client state referenced a removed group id.
+- **What was done:** Implementation aligned unjoin success with floor-plan/header/panel state (clear cached group id and joined UI); verified join/unjoin API flow on `development` @ `78f2954`.
+- **What was tested:** Manual flow automated via Puppeteer (join T05+T07, unjoin): **Unjoin** hidden after completion, no **Table group not found** text; optional `test:landing-version` failed on semver mismatch (unrelated, non-blocking per tester).
+- **Why closed:** Core acceptance criteria **PASS**; task ready for archive.
+- **Closed at (UTC):** 2026-04-02 09:33
+---
+
 # UI: "Unjoin" button persists after tables are separated
 
 ## GitHub
