@@ -30,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Working plan / compliance (GitHub #153):** **Schedule compliance (heuristic checks)** on `/working-plan/calendar` (and week view) formats planned time, weekly limits, rest gaps, and yearly thresholds with the same **`formatMinutes`** helper as **Planned vs clocked** (`Xh` / `Xh Ym`), instead of raw minute counts in translated strings. Task: `agents/tasks/UNTESTED-20260402-1606-change-minutes-to-hours.md`.
+
 - **Agents (001 log reviewer):** `agents/001-log-reviewer/LOG-REVIEWER-PROMPT.md` — FEAT task template uses a **GitHub Issues** section (repo link, `gh issue list`, optional `--json`); **High-level instructions for coder** and **NEW-** queue guidance spell out actionable, doc-referenced bullets without code (duplicate placeholder text removed).
 
 - **Reservation emails (GitHub #150):** Shared **HTML shell** for confirmation and reminder (muted background, card, optional **tenant logo** when `PUBLIC_APP_BASE_URL` is set). **Manage reservation** links use a consistent **CTA** style and **`get_message`** copy (`email_reservation_manage_link_text`) in the tenant’s **`default_language`**. Reminder **subject/body** are localized; plain-text reminders append a **timezone line** when the tenant has **`timezone`** set. New keys in `back/app/messages.py`; `normalize_lang_for_messages()` maps UI codes to message bundles.

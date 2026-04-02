@@ -14,3 +14,15 @@ On `/working-plan/calendar`, **Schedule compliance (heuristic checks)** shows pl
 - Introduce a consistent formatting helper (or reuse an existing duration formatter in the app) so displayed values use **human-readable** units: e.g. **X h Y min**, or **X h** when whole hours, per product preference—keep i18n in mind if strings are translated.
 - Ensure weekly limits and “planned” totals use the **same** formatting rules; avoid ambiguous rounding.
 - Add or extend a small test or smoke path if the repo already has `test:working-plan-calendar` or similar; otherwise verify manually on the calendar route.
+
+## Implementation (coder)
+
+- **Reuse** existing `formatMinutes` / `formatSignedMinutes` in `working-plan.component.ts` (same rules as **Planned vs clocked** table: `Xh` or `Xh Ym`).
+- **`complianceWarningText()`** now passes formatted strings into ngx-translate: `planned`, `limit`, `gap`, `required`, `warn` (replacing raw numeric `minutes` / minute counts).
+- **i18n:** `WORKING_PLAN.COMPLIANCE_WEEKLY`, `COMPLIANCE_REST`, `COMPLIANCE_YEARLY` updated in all shipped `front/public/i18n/*.json` locales so sentences no longer append redundant “min” after the formatted duration.
+
+## Testing instructions
+
+1. Sync/build: Angular dev server should show **Application bundle generation complete** with no TS errors (`docker compose … logs --tail=80 front`).
+2. Smoke: `cd front && BASE_URL=http://127.0.0.1:4202 npm run test:working-plan-calendar` (requires owner/admin credentials in env or `.env` as for other working-plan tests).
+3. Manual (optional): Log in as admin → `/working-plan/calendar`. If **Schedule compliance** warnings appear, confirm copy shows **hours-style** values (e.g. `40h`, `48h`) instead of `2400 min` / `2880 min`.

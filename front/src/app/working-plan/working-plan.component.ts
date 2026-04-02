@@ -1498,23 +1498,23 @@ export class WorkingPlanComponent implements OnInit, OnDestroy {
       return this.translate.instant('WORKING_PLAN.COMPLIANCE_WEEKLY', {
         name: w.user_name || '',
         week: w.week_start || '',
-        minutes: w.planned_minutes ?? 0,
-        limit: w.limit_minutes ?? 0,
+        planned: this.formatMinutes(w.planned_minutes ?? 0),
+        limit: this.formatMinutes(w.limit_minutes ?? 0),
       });
     }
     if (w.code === 'rest_between_shifts') {
       return this.translate.instant('WORKING_PLAN.COMPLIANCE_REST', {
         name: w.user_name || '',
-        gap: w.gap_minutes ?? 0,
-        required: w.required_min_rest_minutes ?? 0,
+        gap: this.formatMinutes(w.gap_minutes ?? 0),
+        required: this.formatMinutes(w.required_min_rest_minutes ?? 0),
       });
     }
     if (w.code === 'yearly_planned_hours_threshold') {
       return this.translate.instant('WORKING_PLAN.COMPLIANCE_YEARLY', {
         name: w.user_name || '',
         year: String(w.year ?? ''),
-        minutes: w.planned_minutes ?? 0,
-        warn: w.warn_at_minutes ?? 0,
+        planned: this.formatMinutes(w.planned_minutes ?? 0),
+        warn: this.formatMinutes(w.warn_at_minutes ?? 0),
       });
     }
     return JSON.stringify(w);
