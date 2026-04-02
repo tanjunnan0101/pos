@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- **My shift / clock QR (GitHub #151):** **Scan venue QR** on `/my-shift` opens a camera scanner (`html5-qrcode`) so staff can validate the same **`clock_qr`** token as printed QR / staff links without manually adding query strings. Token storage and API payloads unchanged. Task: `agents/tasks/UNTESTED-20260402-1507-my-shift-scan-venue-qr-from-page.md`.
+- **My shift / clock QR (GitHub #151):** **Scan venue QR** on `/my-shift` opens a camera scanner (`html5-qrcode`) so staff can validate the same **`clock_qr`** token as printed QR / staff links without manually adding query strings. Token storage and API payloads unchanged. Puppeteer: `npm run test:my-shift-clock-qr --prefix front`. Task: `agents/tasks/UNTESTED-20260402-1507-my-shift-scan-venue-qr-from-page.md`.
 
 - **Tables / floor canvas (GitHub #141):** Tablet-oriented **join by drag** on `/tables/canvas` — overlap is evaluated in **floor canvas coordinates** (stable with zoom/pan); brief hold (~160 ms) before release reduces accidental joins; **confirmation** dialog before `POST /table-groups`; Ctrl/Cmd multi-select + **Join** unchanged. See **`docs/0051-table-groups-mvp.md`**. (GitHub #142 tightens overlap to require real footprint intersection, not mere proximity.)
 

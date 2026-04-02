@@ -40,6 +40,7 @@
     "test:book-whatsapp": "node scripts/test-book-whatsapp-puppeteer.mjs",
     "test:reservation-create": "node scripts/test-reservation-create.mjs",
     "test:feedback-public-i18n": "node scripts/test-feedback-public-i18n.mjs",
+    "test:my-shift-clock-qr": "node scripts/test-my-shift-clock-qr.mjs",
     "capture-screenshots": "node scripts/capture-screenshots.mjs"
   },
   "prettier": {
