@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The forgot-password flow could imply success while the server was not configured to send reset mail or build correct links.
+- **What was done:** Backend now returns **503** with `password_reset_not_configured` when `PUBLIC_APP_BASE_URL` is missing (before user lookup), with documented env expectations; frontend surfaces the error via i18n; pytest and manual/API/Puppeteer checks verified behavior and non-enumeration paths.
+- **What was tested:** **PASS** — `tests/test_password_reset.py` (8 passed), 503 + UI error banner when base URL unset, mocked happy-path email/token tests; landing smoke with `SKIP_LANDING_PACKAGE_VERSION_CHECK=1` (tester noted live SMTP inbox not exercised in that run).
+- **Why closed:** Tester **Test report** overall **PASS**; task-relevant acceptance criteria met.
+- **Closed at (UTC):** 2026-04-02 10:14
+---
+
 # Fix: “Forgot password” does not send the reset email (Login)
 
 ## GitHub
