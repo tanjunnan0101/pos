@@ -48,9 +48,10 @@ issue_linked_in_root_tasks() {
 }
 
 # ISO timestamp from first line of time-of-last-review.txt, or empty.
+# grep exits 1 when no match; with set -o pipefail that must not fail the caller.
 last_review_iso_utc() {
   [[ -f "$LAST_REVIEW_FILE" ]] || return 0
-  head -1 "$LAST_REVIEW_FILE" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z' | head -1
+  head -1 "$LAST_REVIEW_FILE" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z' | head -1 || true
 }
 
 # True if gh stderr file looks like auth failure (401, bad token, not logged in).
@@ -267,7 +268,7 @@ sync_repo() {
   echo "-----> git sync development $(date "+%Y-%m-%d %H:%M:%S") <----"
   if ! bash "${REPO_ROOT}/scripts/git-sync-development.sh"; then
     echo "ERROR: git sync failed (conflicts, network, or missing origin/development). Resolve and retry." >&2
-    exit 1
+    return 1
   fi
 }
 
@@ -308,7 +309,13 @@ run_agent() {
     echo "starting cursor-agent with prompt: $prompt"
     echo "msg: $msg"
     echo "---"
+    set +e
     cursor-agent --yolo -p "$prompt" "$msg"
+    local _ca_rc=$?
+    set -e
+    if ((_ca_rc != 0)); then
+      echo "----- $desc: cursor-agent exited ${_ca_rc} (continuing loop — non-fatal)" >&2
+    fi
   else
     echo "----- $desc (skip: nothing to do)"
   fi
@@ -342,7 +349,10 @@ step_log_reviewer() {
     return 0
   fi
   if should_run_001_cursor_agent; then
-    sync_repo
+    if ! sync_repo; then
+      echo "----- log reviewer (001) (skip this run: git sync failed — loop continues)" >&2
+      return 0
+    fi
     prepare_001_preflight_context "$ctx"
     maybe_local_llm_downgrade_log_signals "$ctx"
     warn_001_github_auth_if_needed
@@ -368,7 +378,10 @@ step_feat() {
     echo "----- feature coding (FEAT) (skip: no FEAT-*.md — no sync, no agent)"
     return 0
   fi
-  sync_repo
+  if ! sync_repo; then
+    echo "----- feature coding (FEAT) (skip: git sync failed)" >&2
+    return 0
+  fi
   echo "-----> feature coding (FEAT) <----"
   run_agent "feature coding (FEAT)" \
     "any_root_task_glob 'FEAT-*.md'" \
@@ -381,7 +394,10 @@ step_coder() {
     echo "----- coding (skip: no NEW-*.md or WIP-*.md — no sync, no agent)"
     return 0
   fi
-  sync_repo
+  if ! sync_repo; then
+    echo "----- coding (skip: git sync failed)" >&2
+    return 0
+  fi
   echo "-----> coding (NEW / WIP) <----"
   run_agent "coding" \
     "any_root_task_glob 'NEW-*.md' 'WIP-*.md'" \
@@ -394,7 +410,10 @@ step_tester() {
     echo "----- testing (skip: no UNTESTED-*.md or TESTING-*.md — no sync, no agent)"
     return 0
   fi
-  sync_repo
+  if ! sync_repo; then
+    echo "----- testing (skip: git sync failed)" >&2
+    return 0
+  fi
   echo "-----> testing <----"
   run_agent "testing" \
     "any_root_task_glob 'UNTESTED-*.md' 'TESTING-*.md'" \
@@ -407,7 +426,10 @@ step_closing_review() {
     echo "----- closing reviewer (skip: no CLOSED-*.md in tasks/ — no sync, no agent)"
     return 0
   fi
-  sync_repo
+  if ! sync_repo; then
+    echo "----- closing reviewer (skip: git sync failed)" >&2
+    return 0
+  fi
   echo "-----> closing reviewer (CLOSED in tasks/) <----"
   run_agent "closing" \
     "any_root_task_glob 'CLOSED-*.md'" \
@@ -420,7 +442,10 @@ step_committer() {
     echo "----- committer (changelog + commit) (skip: no uncommitted changes — no sync, no agent)"
     return 0
   fi
-  sync_repo
+  if ! sync_repo; then
+    echo "----- committer (skip: git sync failed)" >&2
+    return 0
+  fi
   if ! has_pos_repo_uncommitted_changes; then
     echo "----- committer (skip after sync: working tree clean)"
     return 0
