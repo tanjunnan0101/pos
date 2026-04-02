@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** My shift now supports **Scan venue QR** on the page so staff are not forced to open a bookmarked URL with **`?clock_qr=`** to clock in when the tenant requires a venue token.
+- **What was done:** Frontend changes in **my-shift** (camera scan via **html5-qrcode**), **sessionStorage** / **`clockQrToken`** alignment with the existing query-param path, i18n updates, and Puppeteer script **`test-my-shift-clock-qr`** (**`npm run test:my-shift-clock-qr`**).
+- **What was tested:** Automated script **PASS**, **`npx ng build`** **PASS**, front logs clean, optional landing smoke **PASS**; physical QR camera scan marked N/A in automation with recommendation for optional manual QA.
+- **Why closed:** Tester **PASS** on all automated criteria; coherent with implementation and security notes (server validation unchanged).
+- **Closed at (UTC):** 2026-04-02 16:15
+---
+
 # My shift: scan venue QR from the page instead of requiring `?clock_qr=` in the URL
 
 ## GitHub Issues

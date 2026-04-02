@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Tested `development` work was promoted to `master` and the amvara9 deployment plus production HTTP health were verified.
+- **What was done:** `master` was updated and pushed to include the promotion snapshot; GitHub Actions **Deploy to amvara9** run **23907796006** completed successfully; production checks used `curl` for `/` and `/api/health`.
+- **What was tested:** Tester confirmed the deploy workflow green, **https://www.satisfecho.de/** and **/api/health** healthy, and **origin/master** and **origin/development** both contain commit **357990b** as required.
+- **Why closed:** All criteria in the test report passed (**PASS** overall).
+- **Closed at (UTC):** 2026-04-02 16:15
+---
+
 # Push to master (promote `development`, verify deployment)
 
 ## GitHub Issues
