@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue #157 requested hiding the visible “unsaved changes” label in the tables floor-plan header while keeping dirty tracking, autosave, Save layout, and navigation guards unchanged.
+- **What was done:** The coder removed the header unsaved-changes span and `.unsaved-indicator` styles from `tables-canvas`; `hasUnsavedChanges()` and related save/guard logic were left intact per the task.
+- **What was tested:** Angular front build, `test:landing-version`, `test-tables-canvas-view-options.mjs`, and manual checks (no banner, Save layout when dirty, `canDeactivate` confirm on failed save)—all **PASS** per the tester report.
+- **Why closed:** All testing instructions and acceptance criteria were met; tester overall **PASS**.
+- **Closed at (UTC):** 2026-04-03 10:57
+---
+
 # Hide “unsaved changes” label on tables floor-plan header
 
 ## GitHub Issues
