@@ -32,3 +32,35 @@ On the Reports screen, work-session attendance tables overlap columns (e.g. Adju
    BASE_URL=http://127.0.0.1:4202 npm run test:reports
    ```
    Expect: **Reports smoke test passed.**
+
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window:** 2026-04-03 approx. **12:44–12:46 UTC** (Puppeteer runs + compose log tail ~12:45 UTC).
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`, **BASE_URL** `http://127.0.0.1:4202`, branch **`development`** (synced via `./scripts/git-sync-development.sh` before edits).
+
+3. **What was tested:** Items in **Testing instructions** above: stack/reports load, revenue “by product” layout, attendance table column geometry at **900×720** viewport, `npm run test:reports`.
+
+4. **Results:**
+   - **Docker stack / HAProxy 4202:** **PASS** — `docker compose … ps` shows `pos-haproxy` publishing `4202`, front/back/db up.
+   - **Login → `/reports`, date range, refresh:** **PASS** — same flow as Puppeteer scripts; backend `GET /reports/sales`, `/reports/work-sessions`, `/reports/work-sessions/live` returned **200** in log window.
+   - **Revenue tables (by product, share bars):** **PASS** — `test:reports.mjs`: “By product: single table with inline bar per row (no duplicate chart)”; supplementary check: `table-layout` on revenue `.data-table` (non-attendance) is **`fixed`**.
+   - **Attendance columns at ~900px, no overlap, actions right-aligned:** **PASS** — one-off Puppeteer evaluate on `table.work-sessions-attendance-table`: **0** adjacent-cell horizontal overlaps (tolerance 2px); `th.work-sessions-actions` **text-align: right**. **Note:** Only **one** attendance table was present in the DOM for this tenant/session (staff history); live “who is on shift” may omit a second table when empty — layout rules still verified on the rendered table.
+   - **Automated `npm run test:reports`:** **PASS** — stdout ended with **“Reports smoke test passed.”**
+
+5. **Overall:** **PASS** (all criteria met for the exercised UI state).
+
+6. **Product owner feedback:** Reports still loads sales data and the by-product revenue table keeps its fixed layout and inline share bars. Work-session attendance data displays in a wide, auto-layout table at a narrow viewport without column overlap, and the actions column stays right-aligned. If you rely on the live “on shift” block, spot-check when staff are clocked in to confirm the second table matches the same behavior.
+
+7. **URLs tested:**
+   1. `http://127.0.0.1:4202/login`
+   2. `http://127.0.0.1:4202/dashboard` (post-login redirect)
+   3. `http://127.0.0.1:4202/reports`
+
+8. **Relevant log excerpts:**
+   - **pos-front:** `Application bundle generation complete` for `reports-component` chunk (no TS/build errors in tail).
+   - **pos-back:** `GET /reports/sales?from_date=2026-03-04&to_date=2026-04-03 HTTP/1.1" 200 OK`, `GET /reports/work-sessions/live HTTP/1.1" 200 OK`, `GET /reports/work-sessions?from_date=2026-03-04&to_date=2026-04-03 HTTP/1.1" 200 OK`.
+
+**GitHub #160:** Comment posted that verification ran locally; `gh issue edit --add-label agent:testing` **failed** (`agent:testing` label not defined in repo — needs label creation in GitHub if team wants it).
