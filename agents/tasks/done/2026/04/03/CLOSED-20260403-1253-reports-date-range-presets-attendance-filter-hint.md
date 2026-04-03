@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Reports gained quick date-range presets, a shared sales/attendance date range with a clear hint, and full i18n; the tester verified presets, reload behavior, hints, and the reports Puppeteer smoke test.
+- **What was done:** Implemented preset controls (local calendar, Monday–Sunday “This week”), same reload path as Refresh, historical attendance hint tied to header From/To, and `REPORTS.*` keys; optional separate attendance-only range was intentionally not implemented.
+- **What was tested:** `npm run test:reports` (PASS), manual/Puppeteer preset date checks and attendance hint (PASS), front compose logs clean (PASS); overall tester outcome **PASS**.
+- **Why closed:** All acceptance criteria met; tester test report documents full pass.
+- **Closed at (UTC):** 2026-04-03 13:00
+---
+
 # Reports: date-range presets + attendance filter hint
 
 ## GitHub Issues
