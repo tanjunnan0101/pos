@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Issue #156 (tables canvas UX) was implemented and handed off to testing; the tester reported results and marked the task ready to close.
+- **What was done:** Move-mode toggle and Alt-gated layout drag were removed in favor of default draggable tables; join-on-overlap flow remains, with cancel/dismiss restoring pre-drag positions; i18n/hints were aligned; automation covered header, hints, drag, join cancel, and ctrl+click multi-select.
+- **What was tested:** Front build (steady state), `npm run test:landing-version`, `test-tables-canvas-view-options.mjs`, and Puppeteer checks on `/tables/canvas` — **PASS** overall; confirm-join and touch drag were **NT** this run.
+- **Why closed:** Core acceptance criteria passed per the test report; remaining NT items are optional spot-checks, not failures.
+- **Closed at (UTC):** 2026-04-03 10:36
+---
+
 # Tables canvas: remove move-mode toggle; revert layout on join dialog cancel
 
 ## GitHub Issues
