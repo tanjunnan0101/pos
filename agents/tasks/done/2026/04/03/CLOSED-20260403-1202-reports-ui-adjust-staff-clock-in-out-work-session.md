@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Tester verified the Reports work-session **Adjust** UI and related behaviour on Docker dev (HAProxy 4202) against issue **#159**.
+- **What was done:** Implementation delivered **Adjust** (modal with **datetime-local** start/end, note, ISO UTC payload), **postReportWorkSessionAdjust** wiring with reloads, **ApiErrorMessageService** for failures, deduplicated **“Who is on shift now”**, and **REPORTS.*** / **WORK_SESSIONS_LIVE_*** i18n across locales as described in the task.
+- **What was tested:** Live section single-instance check, Adjust modal fields, invalid range message, valid save + API 200 + table refetch, i18n key presence (incl. **de** spot-check), **`npm run test:landing-version`** (with semver skip) and **`npm run test:reports`** — **overall PASS** per test report.
+- **Why closed:** All acceptance criteria met; test report **Overall: PASS**.
+- **Closed at (UTC):** 2026-04-03 12:10
+---
+
 # Reports UI: adjust staff clock-in/out (work session)
 
 ## GitHub Issues
