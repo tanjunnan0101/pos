@@ -31,3 +31,25 @@ Add or adjust message keys for supported languages and tests covering rendered o
    ```
 2. Confirm new/updated cases: English defaults unchanged for `lang=en`; Spanish body/subject/prepayment/arrival/map/contact strings for `lang=es`; `reservation_transactional_lang` prefers a non-empty reservation `locale` when present, else tenant `default_language`.
 3. Optional manual: set tenant `default_language` to `es`, create a reservation with email and SMTP configured; confirm confirmation email uses Spanish for server-built lines (custom subject/body in Settings remain tenant-authored).
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-04-03 13:15–13:16 UTC (pytest run and log snapshot).
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; branch `development` @ `962b401`; no browser / `BASE_URL` N/A for this run.
+3. **What was tested:** Task **Testing instructions** §1–§2 (automated). Optional §3 (manual SMTP/tenant) **not** run.
+4. **Results:**
+   - **Pytest suites** (`test_reservation_email_template.py`, `test_reservation_reminder_email.py`): **PASS** — `19 passed in 0.30s` (compose `run --rm back`).
+   - **English defaults for `lang=en`, Spanish strings for `lang=es`, `reservation_transactional_lang` (locale vs tenant default):** **PASS** — asserted by the same passing tests (per task §2).
+   - **Optional manual confirmation email:** **N/A** (skipped; not required for closure of automated scope).
+5. **Overall:** **PASS**
+6. **Product owner feedback:** Confirmation and reminder email rendering is covered by focused backend tests in English and Spanish, including transactional language selection. No duplicate-prepay or hard-coded English regressions were observed in this suite. End-to-end SMTP verification remains optional if you want a live inbox check.
+7. **URLs tested:** N/A — no browser.
+8. **Relevant log excerpts:** Pytest stdout (primary evidence):
+   ```text
+   19 passed in 0.30s
+   ```
+   Long-running `pos-back` service logs around the window showed routine `GET /docs` 200s only; the test job used `docker compose run --rm back` (ephemeral), so pytest output is the definitive pass signal.
+
+**GitHub:** Comment posted on issue #162 when testing started. `gh issue edit --add-label "agent:testing"` failed: label `agent:testing` is not defined in the repo (documented here for the closer).
