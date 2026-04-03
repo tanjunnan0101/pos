@@ -336,14 +336,14 @@
           <p class="muted">{{ 'REPORTS.WORK_SESSIONS_LIVE_EMPTY' | translate }}</p>
         } @else {
           <div class="data-table-wrap">
-            <table class="data-table reports-work-sessions-table">
+            <table class="data-table work-sessions-attendance-table">
               <thead>
                 <tr>
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_STAFF' | translate }}</th>
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_STATUS' | translate }}</th>
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_START' | translate }}</th>
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_NET' | translate }}</th>
-                  <th class="col-actions">{{ 'REPORTS.WORK_SESSION_ADJUST_COL_ACTIONS' | translate }}</th>
+                  <th class="work-sessions-actions">{{ 'REPORTS.WORK_SESSION_ADJUST_COL_ACTIONS' | translate }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -353,7 +353,7 @@
                     <td>{{ liveAttendanceStatus(row) }}</td>
                     <td>{{ formatWorkSessionDt(row.started_at) }}</td>
                     <td>{{ formatWorkSessionDuration(row) }}</td>
-                    <td class="col-actions">
+                    <td class="work-sessions-actions">
                       <button type="button" class="btn btn-secondary btn-sm" (click)="openWorkSessionAdjust(row)">
                         {{ 'REPORTS.WORK_SESSION_ADJUST' | translate }}
                       </button>
@@ -379,7 +379,7 @@
           <p class="muted">{{ 'REPORTS.WORK_SESSIONS_EMPTY' | translate }}</p>
         } @else {
           <div class="data-table-wrap">
-            <table class="data-table reports-work-sessions-table">
+            <table class="data-table work-sessions-attendance-table">
               <thead>
                 <tr>
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_STAFF' | translate }}</th>
@@ -388,7 +388,7 @@
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_DURATION' | translate }}</th>
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_START_IP' | translate }}</th>
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_END_IP' | translate }}</th>
-                  <th class="col-actions">{{ 'REPORTS.WORK_SESSION_ADJUST_COL_ACTIONS' | translate }}</th>
+                  <th class="work-sessions-actions">{{ 'REPORTS.WORK_SESSION_ADJUST_COL_ACTIONS' | translate }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -400,7 +400,7 @@
                     <td>{{ formatWorkSessionDuration(row) }}</td>
                     <td class="muted">{{ row.start_ip || '—' }}</td>
                     <td class="muted">{{ row.end_ip || '—' }}</td>
-                    <td class="col-actions">
+                    <td class="work-sessions-actions">
                       <button type="button" class="btn btn-secondary btn-sm" (click)="openWorkSessionAdjust(row)">
                         {{ 'REPORTS.WORK_SESSION_ADJUST' | translate }}
                       </button>

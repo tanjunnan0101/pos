@@ -425,8 +425,8 @@
   }
 }
 
-/* Align report tables: same column widths across By product / category / table / waiter */
-.report-section .data-table {
+/* Revenue breakdown tables only — fixed column template; do not apply to work-session attendance tables */
+.report-section .data-table:not(.work-sessions-attendance-table) {
   table-layout: fixed;
 
   th:nth-child(1),
@@ -444,6 +444,25 @@
   th:nth-child(4),
   td:nth-child(4) {
     width: 40%;
+  }
+}
+
+.work-sessions-attendance-table {
+  table-layout: auto;
+  width: max(100%, 52rem);
+
+  th,
+  td {
+    white-space: nowrap;
+  }
+
+  th.work-sessions-actions,
+  td.work-sessions-actions {
+    width: 1%;
+    text-align: right;
+    padding-left: var(--space-6);
+    white-space: nowrap;
+    vertical-align: middle;
   }
 }
 
@@ -474,15 +493,6 @@
   &.btn-sm {
     padding: var(--space-1) var(--space-2);
     font-size: 0.8125rem;
-  }
-}
-
-.reports-work-sessions-table {
-  th.col-actions,
-  td.col-actions {
-    width: 1%;
-    white-space: nowrap;
-    vertical-align: middle;
   }
 }
 
