@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Reservation confirmation and reminder emails were aligned to a single transactional language and duplicate prepayment wording was removed from the server-built template flow.
+- **What was done:** Hard-coded English in the confirmation path was routed through localized messaging; prepayment notice vs body placeholders were reconciled; en/es keys and tests were extended per the task.
+- **What was tested:** Pytest `test_reservation_email_template.py` and `test_reservation_reminder_email.py` — **19 passed** in ~0.30s; optional manual SMTP/tenant check was not run.
+- **Why closed:** Tester **Overall: PASS**; automated scope (§1–§2) satisfied.
+- **Closed at (UTC):** 2026-04-03 13:17
+---
+
 # Reservation confirmation emails: consistent language + no duplicate prepay text
 
 ## GitHub Issues
