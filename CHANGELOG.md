@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.70] - 2026-04-03
+
+### Added
+
+- **Settings → Security (GitHub #155):** After **Generate new token**, **Staff clock-in QR** offers **Download QR for printing** — client-side **1200px PNG** of the full app URL with `/my-shift?clock_qr=…` (same pattern as **SETTINGS.CLOCK_QR_URL_HINT**). Shown only when QR protection is active and the plain token is available in-session (unchanged from regenerate). Dependencies: **`qrcode`**, **`@types/qrcode`**.
+
 ## [Unreleased]
 
 ### Added

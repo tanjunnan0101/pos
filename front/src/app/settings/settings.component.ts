@@ -599,7 +599,19 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
               @if (clockQrLastToken()) {
                 <p class="hint" style="margin-top: 1rem;">{{ 'SETTINGS.CLOCK_QR_URL_HINT' | translate }}</p>
                 <code class="otp-secret" style="word-break: break-all;">{{ clockQrLastToken() }}</code>
-                <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;" (click)="copyClockQrToken()">{{ 'COMMON.COPY' | translate }}</button>
+                <div class="clock-qr-token-actions" style="margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="copyClockQrToken()">{{ 'COMMON.COPY' | translate }}</button>
+                  @if (settings()?.clock_qr_active) {
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-sm"
+                      data-testid="settings-download-clock-qr-png"
+                      (click)="downloadClockQrForPrinting()"
+                      [disabled]="clockQrDownloadBusy()">
+                      {{ clockQrDownloadBusy() ? ('COMMON.LOADING' | translate) : ('SETTINGS.CLOCK_QR_DOWNLOAD_PRINT' | translate) }}
+                    </button>
+                  }
+                </div>
               }
             </div>
           </div>
@@ -2690,6 +2702,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   otpSettingUp = signal(false);
 
   clockQrBusy = signal(false);
+  clockQrDownloadBusy = signal(false);
   /** Plain token shown once after regenerate (not stored on server). */
   clockQrLastToken = signal<string | null>(null);
 
@@ -3798,5 +3811,45 @@ export class SettingsComponent implements OnInit, OnDestroy {
     const t = this.clockQrLastToken();
     if (!t || !navigator.clipboard?.writeText) return;
     navigator.clipboard.writeText(t).catch(() => {});
+  }
+
+  /** Full app URL encoded in the printable QR (same pattern as SETTINGS.CLOCK_QR_URL_HINT). */
+  private clockInQrPrintPayloadUrl(): string | null {
+    const token = this.clockQrLastToken();
+    if (!token || typeof window === 'undefined') return null;
+    const origin = window.location.origin.replace(/\/$/, '');
+    return `${origin}/my-shift?clock_qr=${encodeURIComponent(token)}`;
+  }
+
+  async downloadClockQrForPrinting(): Promise<void> {
+    const payload = this.clockInQrPrintPayloadUrl();
+    if (!payload || !this.settings()?.clock_qr_active) return;
+    this.clockQrDownloadBusy.set(true);
+    this.error.set(null);
+    try {
+      const QR = await import('qrcode');
+      const dataUrl = await QR.toDataURL(payload, {
+        width: 1200,
+        margin: 2,
+        errorCorrectionLevel: 'M',
+        color: { dark: '#000000', light: '#ffffff' },
+      });
+      const blob = await (await fetch(dataUrl)).blob();
+      const tid = this.settings()?.id;
+      const suffix = tid != null && tid > 0 ? String(tid) : 'tenant';
+      const a = document.createElement('a');
+      const objectUrl = URL.createObjectURL(blob);
+      a.href = objectUrl;
+      a.download = `staff-clock-in-qr-${suffix}.png`;
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      this.error.set(this.translate.instant('SETTINGS.CLOCK_QR_DOWNLOAD_FAILED'));
+    } finally {
+      this.clockQrDownloadBusy.set(false);
+    }
   }
 }

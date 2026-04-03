@@ -1,6 +1,6 @@
 {
   "name": "front",
-  "version": "2.0.69",
+  "version": "2.0.70",
   "scripts": {
     "ng": "ng",
     "prebuild": "node scripts/get-commit-hash.js",
@@ -72,6 +72,7 @@
     "angularx-qrcode": "21.0.4",
     "express": "5.2.1",
     "html5-qrcode": "2.3.8",
+    "qrcode": "1.5.4",
     "rxjs": "7.8.2",
     "tslib": "2.8.1",
     "zone.js": "0.15.1"
@@ -83,6 +84,7 @@
     "@types/express": "5.0.6",
     "@types/jasmine": "5.1.13",
     "@types/node": "20.19.27",
+    "@types/qrcode": "1.5.6",
     "jasmine-core": "5.9.0",
     "karma": "6.4.4",
     "karma-chrome-launcher": "3.2.0",

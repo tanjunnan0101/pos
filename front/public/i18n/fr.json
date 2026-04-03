@@ -1205,6 +1205,8 @@
     "CLOCK_QR_REGENERATE": "Generate new token",
     "CLOCK_QR_DISABLE": "Disable QR requirement",
     "CLOCK_QR_URL_HINT": "Example path for links: /my-shift?clock_qr=YOUR_TOKEN (use your real app URL).",
+    "CLOCK_QR_DOWNLOAD_PRINT": "Télécharger le QR pour l'impression",
+    "CLOCK_QR_DOWNLOAD_FAILED": "Impossible de générer l'image QR. Réessayez ou copiez le jeton et utilisez un outil externe.",
     "CLOCK_QR_SAVED": "New clock QR token generated.",
     "CLOCK_QR_DISABLED": "Clock QR requirement disabled.",
     "CLOCK_QR_LOCATION_VERIFY": "Require GPS at venue for clock",
