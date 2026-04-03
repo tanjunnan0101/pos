@@ -995,7 +995,19 @@
     "WORK_SESSIONS_COL_STATUS": "Status",
     "WORK_SESSIONS_COL_NET": "Netto-Zeit (Arbeit)",
     "WORK_SESSIONS_STATUS_WORKING": "Arbeitet",
-    "WORK_SESSIONS_STATUS_BREAK": "In Pause"
+    "WORK_SESSIONS_STATUS_BREAK": "In Pause",
+    "WORK_SESSION_ADJUST": "Anpassen",
+    "WORK_SESSION_ADJUST_COL_ACTIONS": "Aktionen",
+    "WORK_SESSION_ADJUST_TITLE": "Stempelzeiten korrigieren",
+    "WORK_SESSION_ADJUST_START": "Einstechen",
+    "WORK_SESSION_ADJUST_END": "Ausstechen",
+    "WORK_SESSION_ADJUST_END_HINT": "Leer lassen, wenn die Schicht noch läuft. Zeiten in lokaler Zeitzone des Geräts; der Server speichert UTC.",
+    "WORK_SESSION_ADJUST_NOTE": "Notiz (Prüfpfad)",
+    "WORK_SESSION_ADJUST_SAVE": "Korrektur speichern",
+    "WORK_SESSION_ADJUST_INVALID_START": "Bitte gültiges Einstech-Datum und -Uhrzeit eingeben.",
+    "WORK_SESSION_ADJUST_INVALID_END": "Bitte gültiges Ausstech-Datum eingeben oder Feld bei offener Schicht leeren.",
+    "WORK_SESSION_ADJUST_INVALID_RANGE": "Ausstechen muss am oder nach dem Einstechen liegen.",
+    "WORK_SESSION_ADJUST_ERROR": "Korrektur konnte nicht gespeichert werden. Bitte prüfen und erneut versuchen."
   },
   "WORKING_PLAN": {
     "TITLE": "Schichtplan",

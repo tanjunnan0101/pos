@@ -336,13 +336,14 @@
           <p class="muted">{{ 'REPORTS.WORK_SESSIONS_LIVE_EMPTY' | translate }}</p>
         } @else {
           <div class="data-table-wrap">
-            <table class="data-table">
+            <table class="data-table reports-work-sessions-table">
               <thead>
                 <tr>
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_STAFF' | translate }}</th>
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_STATUS' | translate }}</th>
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_START' | translate }}</th>
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_NET' | translate }}</th>
+                  <th class="col-actions">{{ 'REPORTS.WORK_SESSION_ADJUST_COL_ACTIONS' | translate }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -352,43 +353,11 @@
                     <td>{{ liveAttendanceStatus(row) }}</td>
                     <td>{{ formatWorkSessionDt(row.started_at) }}</td>
                     <td>{{ formatWorkSessionDuration(row) }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        }
-      </section>
-    }
-
-    @if (canViewAttendance()) {
-      <section class="report-section" data-testid="reports-work-sessions-live">
-        <h2>{{ 'REPORTS.WORK_SESSIONS_LIVE_TITLE' | translate }}</h2>
-        <p class="muted work-sessions-hint">{{ 'REPORTS.WORK_SESSIONS_LIVE_HINT' | translate }}</p>
-        @if (workSessionsLiveLoading()) {
-          <p class="muted">{{ 'REPORTS.WORK_SESSIONS_LOADING' | translate }}</p>
-        } @else if (workSessionsLiveError()) {
-          <div class="error-banner">{{ workSessionsLiveError() }}</div>
-        } @else if (workSessionsLive().length === 0) {
-          <p class="muted">{{ 'REPORTS.WORK_SESSIONS_LIVE_EMPTY' | translate }}</p>
-        } @else {
-          <div class="data-table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>{{ 'REPORTS.WORK_SESSIONS_COL_STAFF' | translate }}</th>
-                  <th>{{ 'REPORTS.WORK_SESSIONS_COL_STATUS' | translate }}</th>
-                  <th>{{ 'REPORTS.WORK_SESSIONS_COL_START' | translate }}</th>
-                  <th>{{ 'REPORTS.WORK_SESSIONS_COL_NET' | translate }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (row of workSessionsLive(); track row.id) {
-                  <tr>
-                    <td>{{ row.user_name }}</td>
-                    <td>{{ liveAttendanceStatus(row) }}</td>
-                    <td>{{ formatWorkSessionDt(row.started_at) }}</td>
-                    <td>{{ formatWorkSessionDuration(row) }}</td>
+                    <td class="col-actions">
+                      <button type="button" class="btn btn-secondary btn-sm" (click)="openWorkSessionAdjust(row)">
+                        {{ 'REPORTS.WORK_SESSION_ADJUST' | translate }}
+                      </button>
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -410,7 +379,7 @@
           <p class="muted">{{ 'REPORTS.WORK_SESSIONS_EMPTY' | translate }}</p>
         } @else {
           <div class="data-table-wrap">
-            <table class="data-table">
+            <table class="data-table reports-work-sessions-table">
               <thead>
                 <tr>
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_STAFF' | translate }}</th>
@@ -419,6 +388,7 @@
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_DURATION' | translate }}</th>
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_START_IP' | translate }}</th>
                   <th>{{ 'REPORTS.WORK_SESSIONS_COL_END_IP' | translate }}</th>
+                  <th class="col-actions">{{ 'REPORTS.WORK_SESSION_ADJUST_COL_ACTIONS' | translate }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -430,6 +400,11 @@
                     <td>{{ formatWorkSessionDuration(row) }}</td>
                     <td class="muted">{{ row.start_ip || '—' }}</td>
                     <td class="muted">{{ row.end_ip || '—' }}</td>
+                    <td class="col-actions">
+                      <button type="button" class="btn btn-secondary btn-sm" (click)="openWorkSessionAdjust(row)">
+                        {{ 'REPORTS.WORK_SESSION_ADJUST' | translate }}
+                      </button>
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -440,4 +415,39 @@
     }
   }
   </div>
+
+  @if (workSessionAdjustOpen()) {
+    <div class="reports-modal-overlay" (click)="closeWorkSessionAdjust()" role="presentation">
+    <div class="reports-modal-panel" role="dialog" aria-modal="true" [attr.aria-label]="'REPORTS.WORK_SESSION_ADJUST_TITLE' | translate" (click)="$event.stopPropagation()">
+      <h3 class="reports-modal-title">{{ 'REPORTS.WORK_SESSION_ADJUST_TITLE' | translate }}</h3>
+      @if (workSessionAdjustTarget(); as adjRow) {
+        <p class="muted reports-modal-staff">{{ adjRow.user_name }}</p>
+      }
+      @if (workSessionAdjustError()) {
+        <div class="error-banner reports-modal-error">{{ workSessionAdjustError() }}</div>
+      }
+      <div class="reports-modal-field">
+        <label for="ws-adjust-start">{{ 'REPORTS.WORK_SESSION_ADJUST_START' | translate }}</label>
+        <input id="ws-adjust-start" type="datetime-local" [ngModel]="workSessionAdjustStartedLocal()" (ngModelChange)="workSessionAdjustStartedLocal.set($event)" />
+      </div>
+      <div class="reports-modal-field">
+        <label for="ws-adjust-end">{{ 'REPORTS.WORK_SESSION_ADJUST_END' | translate }}</label>
+        <input id="ws-adjust-end" type="datetime-local" [ngModel]="workSessionAdjustEndedLocal()" (ngModelChange)="workSessionAdjustEndedLocal.set($event)" />
+        <p class="muted reports-modal-hint">{{ 'REPORTS.WORK_SESSION_ADJUST_END_HINT' | translate }}</p>
+      </div>
+      <div class="reports-modal-field">
+        <label for="ws-adjust-note">{{ 'REPORTS.WORK_SESSION_ADJUST_NOTE' | translate }}</label>
+        <textarea id="ws-adjust-note" rows="3" [ngModel]="workSessionAdjustNote()" (ngModelChange)="workSessionAdjustNote.set($event)"></textarea>
+      </div>
+      <div class="reports-modal-actions">
+        <button type="button" class="btn btn-secondary" (click)="closeWorkSessionAdjust()" [disabled]="workSessionAdjustSaving()">
+          {{ 'COMMON.CANCEL' | translate }}
+        </button>
+        <button type="button" class="btn btn-primary" (click)="submitWorkSessionAdjust()" [disabled]="workSessionAdjustSaving()">
+          {{ workSessionAdjustSaving() ? ('COMMON.SAVING' | translate) : ('REPORTS.WORK_SESSION_ADJUST_SAVE' | translate) }}
+        </button>
+      </div>
+    </div>
+    </div>
+  }
 </app-sidebar>

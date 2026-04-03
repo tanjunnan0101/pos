@@ -774,7 +774,19 @@
     "WORK_SESSIONS_COL_STATUS": "Status",
     "WORK_SESSIONS_COL_NET": "Net time (work)",
     "WORK_SESSIONS_STATUS_WORKING": "Working",
-    "WORK_SESSIONS_STATUS_BREAK": "On break"
+    "WORK_SESSIONS_STATUS_BREAK": "On break",
+    "WORK_SESSION_ADJUST": "Коригиране",
+    "WORK_SESSION_ADJUST_COL_ACTIONS": "Действия",
+    "WORK_SESSION_ADJUST_TITLE": "Коригиране на часове за отчитане",
+    "WORK_SESSION_ADJUST_START": "Влизане",
+    "WORK_SESSION_ADJUST_END": "Излизане",
+    "WORK_SESSION_ADJUST_END_HINT": "Оставете празно, ако смяната все още е отворена. Часовете са в местната часова зона на устройството; сървърът съхранява UTC.",
+    "WORK_SESSION_ADJUST_NOTE": "Бележка (одит)",
+    "WORK_SESSION_ADJUST_SAVE": "Запазване на корекцията",
+    "WORK_SESSION_ADJUST_INVALID_START": "Въведете валидна дата и час за влизане.",
+    "WORK_SESSION_ADJUST_INVALID_END": "Въведете валидно излизане или изчистете полето за отворена смяна.",
+    "WORK_SESSION_ADJUST_INVALID_RANGE": "Излизането трябва да е след или в същия момент като влизането.",
+    "WORK_SESSION_ADJUST_ERROR": "Корекцията не можа да бъде запазена. Проверете стойностите и опитайте отново."
   },
   "TABLES": {
     "TITLE": "Маси",

@@ -774,7 +774,19 @@
     "WORK_SESSIONS_COL_STATUS": "Status",
     "WORK_SESSIONS_COL_NET": "Net time (work)",
     "WORK_SESSIONS_STATUS_WORKING": "Working",
-    "WORK_SESSIONS_STATUS_BREAK": "On break"
+    "WORK_SESSIONS_STATUS_BREAK": "On break",
+    "WORK_SESSION_ADJUST": "Adjust",
+    "WORK_SESSION_ADJUST_COL_ACTIONS": "Actions",
+    "WORK_SESSION_ADJUST_TITLE": "Adjust clock times",
+    "WORK_SESSION_ADJUST_START": "Clock in",
+    "WORK_SESSION_ADJUST_END": "Clock out",
+    "WORK_SESSION_ADJUST_END_HINT": "Leave empty if the shift is still open. Times use your device’s local timezone; the server stores UTC.",
+    "WORK_SESSION_ADJUST_NOTE": "Note (audit trail)",
+    "WORK_SESSION_ADJUST_SAVE": "Save adjustment",
+    "WORK_SESSION_ADJUST_INVALID_START": "Enter a valid clock-in date and time.",
+    "WORK_SESSION_ADJUST_INVALID_END": "Enter a valid clock-out date and time, or clear the field for an open shift.",
+    "WORK_SESSION_ADJUST_INVALID_RANGE": "Clock out must be on or after clock in.",
+    "WORK_SESSION_ADJUST_ERROR": "Could not save this adjustment. Check the values and try again."
   },
   "TABLES": {
     "TITLE": "Tables",

@@ -967,7 +967,19 @@
     "WORK_SESSIONS_COL_STATUS": "Status",
     "WORK_SESSIONS_COL_NET": "Net time (work)",
     "WORK_SESSIONS_STATUS_WORKING": "Working",
-    "WORK_SESSIONS_STATUS_BREAK": "On break"
+    "WORK_SESSIONS_STATUS_BREAK": "On break",
+    "WORK_SESSION_ADJUST": "समायोजित करें",
+    "WORK_SESSION_ADJUST_COL_ACTIONS": "कार्रवाई",
+    "WORK_SESSION_ADJUST_TITLE": "क्लॉक समय समायोजित करें",
+    "WORK_SESSION_ADJUST_START": "क्लॉक इन",
+    "WORK_SESSION_ADJUST_END": "क्लॉक आउट",
+    "WORK_SESSION_ADJUST_END_HINT": "यदि शिफ्ट अभी भी खुली है तो खाली छोड़ें। समय आपके डिवाइस के स्थानीय समय क्षेत्र का उपयोग करता है; सर्वर UTC में संग्रहीत करता है।",
+    "WORK_SESSION_ADJUST_NOTE": "टिप्पणी (ऑडिट ट्रेल)",
+    "WORK_SESSION_ADJUST_SAVE": "समायोजन सहेजें",
+    "WORK_SESSION_ADJUST_INVALID_START": "मान्य क्लॉक-इन दिनांक और समय दर्ज करें।",
+    "WORK_SESSION_ADJUST_INVALID_END": "मान्य क्लॉक-आउट दर्ज करें या खुली शिफ्ट के लिए फ़ील्ड खाली छोड़ें।",
+    "WORK_SESSION_ADJUST_INVALID_RANGE": "क्लॉक-आउट क्लॉक-इन के बाद या उसी समय होना चाहिए।",
+    "WORK_SESSION_ADJUST_ERROR": "यह समायोजन सहेजा नहीं जा सका। मान जांचें और पुनः प्रयास करें।"
   },
   "WORKING_PLAN": {
     "TITLE": "कार्य योजना",

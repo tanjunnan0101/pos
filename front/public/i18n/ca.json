@@ -957,7 +957,19 @@
     "WORK_SESSIONS_COL_STATUS": "Status",
     "WORK_SESSIONS_COL_NET": "Net time (work)",
     "WORK_SESSIONS_STATUS_WORKING": "Working",
-    "WORK_SESSIONS_STATUS_BREAK": "On break"
+    "WORK_SESSIONS_STATUS_BREAK": "On break",
+    "WORK_SESSION_ADJUST": "Ajustar",
+    "WORK_SESSION_ADJUST_COL_ACTIONS": "Accions",
+    "WORK_SESSION_ADJUST_TITLE": "Ajustar hores de fitxatge",
+    "WORK_SESSION_ADJUST_START": "Entrada",
+    "WORK_SESSION_ADJUST_END": "Sortida",
+    "WORK_SESSION_ADJUST_END_HINT": "Deixa’l buit si el torn segueix obert. Les hores usen la zona horària local del dispositiu; el servidor desa en UTC.",
+    "WORK_SESSION_ADJUST_NOTE": "Nota (auditoria)",
+    "WORK_SESSION_ADJUST_SAVE": "Desar correcció",
+    "WORK_SESSION_ADJUST_INVALID_START": "Introdueix una data i hora d’entrada vàlides.",
+    "WORK_SESSION_ADJUST_INVALID_END": "Introdueix una sortida vàlida o buida el camp si el torn segueix obert.",
+    "WORK_SESSION_ADJUST_INVALID_RANGE": "La sortida ha de ser igual o posterior a l’entrada.",
+    "WORK_SESSION_ADJUST_ERROR": "No s’ha pogut desar la correcció. Revisa els valors i torna-ho a provar."
   },
   "WORKING_PLAN": {
     "TITLE": "Pla de treball",

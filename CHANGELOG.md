@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.71] - 2026-04-03
+
+### Added
+
+- **Reports / attendance (GitHub #159):** Users with **`report:read`** can **Adjust** work sessions from **Who is on shift now** and **Staff attendance** — modal with **datetime-local** clock in/out (local time → UTC ISO for **`POST /reports/work-sessions/{id}/adjust`**), optional note, validation and API errors via **`ApiErrorMessageService`**; tables refresh on success. Removed duplicate live-attendance block on the Reports page. New **`REPORTS.WORK_SESSION_ADJUST_*`** strings in all **`front/public/i18n/*.json`** files; **`es.json`** also gains the missing live attendance keys. Task: `agents/tasks/UNTESTED-20260403-1202-reports-ui-adjust-staff-clock-in-out-work-session.md`.
+
 ## [2.0.70] - 2026-04-03
 
 ### Added

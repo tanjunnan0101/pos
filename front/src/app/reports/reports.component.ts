@@ -6,9 +6,11 @@
  */
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from '../shared/sidebar.component';
 import { ApiService, SalesReport, WorkSession, workSessionNetWorkSeconds } from '../services/api.service';
+import { ApiErrorMessageService } from '../services/api-error-message.service';
 import { PermissionService } from '../services/permission.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '../services/language.service';
@@ -27,6 +29,7 @@ export class ReportsComponent implements OnInit {
   private translate = inject(TranslateService);
   private languageService = inject(LanguageService);
   private permissions = inject(PermissionService);
+  private apiErr = inject(ApiErrorMessageService);
 
   report = signal<SalesReport | null>(null);
   loading = signal(true);
@@ -38,6 +41,14 @@ export class ReportsComponent implements OnInit {
   workSessionsLive = signal<WorkSession[]>([]);
   workSessionsLiveLoading = signal(false);
   workSessionsLiveError = signal<string | null>(null);
+  /** Modal: correct clock-in/out (report:read). */
+  workSessionAdjustOpen = signal(false);
+  workSessionAdjustTarget = signal<WorkSession | null>(null);
+  workSessionAdjustStartedLocal = signal('');
+  workSessionAdjustEndedLocal = signal('');
+  workSessionAdjustNote = signal('');
+  workSessionAdjustSaving = signal(false);
+  workSessionAdjustError = signal<string | null>(null);
   fromDate = signal('');
   toDate = signal('');
   currency = signal('€');
@@ -204,6 +215,84 @@ export class ReportsComponent implements OnInit {
       return this.translate.instant('REPORTS.WORK_SESSIONS_STATUS_BREAK');
     }
     return this.translate.instant('REPORTS.WORK_SESSIONS_STATUS_WORKING');
+  }
+
+  openWorkSessionAdjust(row: WorkSession): void {
+    if (!this.canViewAttendance()) return;
+    this.workSessionAdjustTarget.set(row);
+    this.workSessionAdjustStartedLocal.set(this.isoToDatetimeLocalValue(row.started_at));
+    this.workSessionAdjustEndedLocal.set(row.ended_at ? this.isoToDatetimeLocalValue(row.ended_at) : '');
+    this.workSessionAdjustNote.set('');
+    this.workSessionAdjustError.set(null);
+    this.workSessionAdjustOpen.set(true);
+  }
+
+  closeWorkSessionAdjust(): void {
+    if (this.workSessionAdjustSaving()) return;
+    this.workSessionAdjustOpen.set(false);
+    this.workSessionAdjustTarget.set(null);
+    this.workSessionAdjustError.set(null);
+  }
+
+  submitWorkSessionAdjust(): void {
+    const row = this.workSessionAdjustTarget();
+    if (!row) return;
+    const startLocal = (this.workSessionAdjustStartedLocal() || '').trim();
+    const endLocal = (this.workSessionAdjustEndedLocal() || '').trim();
+    const startIso = this.datetimeLocalToUtcIso(startLocal);
+    if (!startIso) {
+      this.workSessionAdjustError.set(this.translate.instant('REPORTS.WORK_SESSION_ADJUST_INVALID_START'));
+      return;
+    }
+    let endIso: string | null = null;
+    if (endLocal) {
+      endIso = this.datetimeLocalToUtcIso(endLocal);
+      if (!endIso) {
+        this.workSessionAdjustError.set(this.translate.instant('REPORTS.WORK_SESSION_ADJUST_INVALID_END'));
+        return;
+      }
+      if (new Date(endIso).getTime() < new Date(startIso).getTime()) {
+        this.workSessionAdjustError.set(this.translate.instant('REPORTS.WORK_SESSION_ADJUST_INVALID_RANGE'));
+        return;
+      }
+    }
+    const body: { note: string; started_at: string; ended_at?: string | null } = {
+      note: (this.workSessionAdjustNote() || '').trim(),
+      started_at: startIso,
+    };
+    if (endIso) {
+      body.ended_at = endIso;
+    }
+    this.workSessionAdjustSaving.set(true);
+    this.workSessionAdjustError.set(null);
+    this.api.postReportWorkSessionAdjust(row.id, body).subscribe({
+      next: () => {
+        this.workSessionAdjustSaving.set(false);
+        this.closeWorkSessionAdjust();
+        this.loadWorkSessions();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.workSessionAdjustSaving.set(false);
+        this.workSessionAdjustError.set(
+          this.apiErr.fromHttpError(err, 'REPORTS.WORK_SESSION_ADJUST_ERROR'),
+        );
+      },
+    });
+  }
+
+  /** `datetime-local` value in the user’s local timezone from an API ISO timestamp. */
+  private isoToDatetimeLocalValue(iso: string): string {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  /** Parse `datetime-local` as local civil time → UTC ISO for the API. */
+  private datetimeLocalToUtcIso(localValue: string): string | null {
+    const d = new Date(localValue);
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString();
   }
 
   formatCurrency(cents: number): string {

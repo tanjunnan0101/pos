@@ -748,7 +748,19 @@
     "WORK_SESSIONS_COL_STATUS": "Status",
     "WORK_SESSIONS_COL_NET": "Net time (work)",
     "WORK_SESSIONS_STATUS_WORKING": "Working",
-    "WORK_SESSIONS_STATUS_BREAK": "On break"
+    "WORK_SESSIONS_STATUS_BREAK": "On break",
+    "WORK_SESSION_ADJUST": "Corriger",
+    "WORK_SESSION_ADJUST_COL_ACTIONS": "Actions",
+    "WORK_SESSION_ADJUST_TITLE": "Ajuster les heures de pointage",
+    "WORK_SESSION_ADJUST_START": "Entrée",
+    "WORK_SESSION_ADJUST_END": "Sortie",
+    "WORK_SESSION_ADJUST_END_HINT": "Laisser vide si le service est encore ouvert. Fuseau horaire local de l’appareil ; le serveur enregistre en UTC.",
+    "WORK_SESSION_ADJUST_NOTE": "Note (piste d’audit)",
+    "WORK_SESSION_ADJUST_SAVE": "Enregistrer la correction",
+    "WORK_SESSION_ADJUST_INVALID_START": "Saisissez une date et heure d’entrée valides.",
+    "WORK_SESSION_ADJUST_INVALID_END": "Saisissez une sortie valide ou videz le champ pour un service ouvert.",
+    "WORK_SESSION_ADJUST_INVALID_RANGE": "La sortie doit être au même moment ou après l’entrée.",
+    "WORK_SESSION_ADJUST_ERROR": "Impossible d’enregistrer la correction. Vérifiez les valeurs et réessayez."
   },
   "TABLES": {
     "TITLE": "Tables",

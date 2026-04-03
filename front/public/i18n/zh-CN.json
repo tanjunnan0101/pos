@@ -967,7 +967,19 @@
     "WORK_SESSIONS_COL_STATUS": "Status",
     "WORK_SESSIONS_COL_NET": "Net time (work)",
     "WORK_SESSIONS_STATUS_WORKING": "Working",
-    "WORK_SESSIONS_STATUS_BREAK": "On break"
+    "WORK_SESSIONS_STATUS_BREAK": "On break",
+    "WORK_SESSION_ADJUST": "调整",
+    "WORK_SESSION_ADJUST_COL_ACTIONS": "操作",
+    "WORK_SESSION_ADJUST_TITLE": "调整打卡时间",
+    "WORK_SESSION_ADJUST_START": "上班打卡",
+    "WORK_SESSION_ADJUST_END": "下班打卡",
+    "WORK_SESSION_ADJUST_END_HINT": "若班次仍在进行请留空。时间按设备本地时区；服务器以 UTC 存储。",
+    "WORK_SESSION_ADJUST_NOTE": "备注（审计）",
+    "WORK_SESSION_ADJUST_SAVE": "保存调整",
+    "WORK_SESSION_ADJUST_INVALID_START": "请输入有效的上班日期和时间。",
+    "WORK_SESSION_ADJUST_INVALID_END": "请输入有效的下班时间，或在未结束班次时留空。",
+    "WORK_SESSION_ADJUST_INVALID_RANGE": "下班时间必须晚于或等于上班时间。",
+    "WORK_SESSION_ADJUST_ERROR": "无法保存调整。请检查填写内容后重试。"
   },
   "WORKING_PLAN": {
     "TITLE": "排班计划",
