@@ -36,6 +36,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Tables / floor plan (GitHub #157):** `/tables/canvas` header no longer shows the **Unsaved changes** text; dirty state is still reflected by **Save layout** (enabled when dirty) and unchanged autosave, `canDeactivate`, and `beforeunload` behavior.
+
 - **Tables / floor canvas (GitHub #156):** **Move tables** toggle and **Alt+drag** gating removed — table drag **always** updates layout positions (with autosave). **Join-by-drag** still uses overlap + short hold → **Join tables?** confirmation; **cancel** restores the **whole floor** layout from the drag-start snapshot. Successful join keeps the existing API + post-join snap-back path. i18n: `TABLES.JOIN_HINT` updated; `ARRANGE_LAYOUT_*` keys removed.
 
 - **Working plan / compliance (GitHub #153):** **Schedule compliance (heuristic checks)** on `/working-plan/calendar` (and week view) formats planned time, weekly limits, rest gaps, and yearly thresholds with the same **`formatMinutes`** helper as **Planned vs clocked** (`Xh` / `Xh Ym`), instead of raw minute counts in translated strings. Task: `agents/tasks/UNTESTED-20260402-1606-change-minutes-to-hours.md`.

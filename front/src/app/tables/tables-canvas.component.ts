@@ -76,9 +76,6 @@ const STAFF_ORDERS_ROLES = new Set([
             }
           </div>
           <div class="header-actions">
-            @if (hasUnsavedChanges()) {
-              <span class="unsaved-indicator">{{ 'TABLES.UNSAVED_CHANGES' | translate }}</span>
-            }
             @if (floors().length > 0) {
               <button type="button" class="btn btn-primary" (click)="focusAddTablePalette()" [title]="'TABLES.ADD_TABLE' | translate" data-testid="tables-canvas-add-table-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -770,11 +767,6 @@ const STAFF_ORDERS_ROLES = new Set([
     .header-actions .btn-secondary.active {
       border-color: color-mix(in srgb, var(--color-primary, #6366f1) 55%, transparent);
       background: color-mix(in srgb, var(--color-primary, #6366f1) 14%, transparent);
-    }
-
-    .unsaved-indicator {
-      color: var(--color-warning);
-      font-size: 0.875rem;
     }
 
     .error-banner {
