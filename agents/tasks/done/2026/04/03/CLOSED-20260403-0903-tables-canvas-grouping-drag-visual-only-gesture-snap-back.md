@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub #154 was delivered: the tables canvas **join** gesture no longer persists drag positions or dirties the layout; only explicit layout moves (Alt+drag or **Move tables** mode) update stored coordinates and autosave.
+- **What was done:** Implementation uses a transient `groupingDragOffset` and effective positions for hit-testing; join modal confirm/cancel paths keep stored layout consistent; i18n keys added for join hint and arrange-layout controls across locale files.
+- **What was tested:** Docker dev stack on port 4202; Puppeteer checks confirmed snap-back and no unsaved indicator for quick join drags, join dialog **Cancel**, Alt+layout drag with save, arrange-toggle layout drag, canvas view-options script, and clean Angular build in front logs — **overall PASS** (Join **Confirm** / group create and a few regression bullets were intentionally or partially skipped per test report).
+- **Why closed:** Tester **Test report** records **PASS** against the agreed criteria with documented N/partial scope.
+- **Closed at (UTC):** 2026-04-03 09:22
+---
+
 # Tables canvas: grouping drag as visual-only gesture with snap-back
 
 ## GitHub Issues
