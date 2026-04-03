@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Agent loop — local LLM triage:** Default **`OLLAMA_MODEL`** when unset is **`Gemma4:latest`** (was **`qwen2.5:1.5b`**) for Ollama fallback labeling and use in **`agents/pos-agent-loop.sh`**.
+
 ### Added
 
 - **My shift / clock QR (GitHub #151):** **Scan venue QR** on `/my-shift` opens a camera scanner (`html5-qrcode`) so staff can validate the same **`clock_qr`** token as printed QR / staff links without manually adding query strings. Token storage and API payloads unchanged. Puppeteer: `npm run test:my-shift-clock-qr --prefix front`. Task: `agents/tasks/UNTESTED-20260402-1507-my-shift-scan-venue-qr-from-page.md`.

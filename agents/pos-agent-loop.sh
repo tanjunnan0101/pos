@@ -232,7 +232,7 @@ local_llm_triage_available() {
 # If only Docker heuristics fired (no untracked issues), local LLM may clear G001_LOG_SIGNALS (llama.cpp first, else Ollama).
 maybe_local_llm_downgrade_log_signals() {
   local ctx="$1"
-  local ollama_model="${OLLAMA_MODEL:-qwen2.5:1.5b}"
+  local ollama_model="${OLLAMA_MODEL:-Gemma4:latest}"
   local llama_model="${LLAMA_CPP_MODEL:-Bonsai-8B.gguf}"
   local llama_base="${LLAMA_CPP_BASE_URL:-http://127.0.0.1:8080/v1}"
   local triage_label="llama.cpp @ ${llama_base} (${llama_model}) → Ollama fallback (${ollama_model})"
