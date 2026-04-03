@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub #160 (Reports attendance tables column overlap) was implemented and the tester recorded a full PASS with Docker + Puppeteer evidence.
+- **What was done:** Revenue-only scoping for the fixed four-column `.data-table` layout; new `.work-sessions-attendance-table` and `.work-sessions-actions` styles and HTML class wiring on work-session tables so columns stay readable.
+- **What was tested:** Reports load, revenue “by product” layout, attendance table geometry at ~900px (no adjacent-cell overlap), and `npm run test:reports` — all passed.
+- **Why closed:** All verification criteria in the test report were met.
+- **Closed at (UTC):** 2026-04-03 12:46
+---
+
 # Fix attendance table column overlap on Reports
 
 ## GitHub Issues
