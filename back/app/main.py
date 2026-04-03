@@ -7274,6 +7274,7 @@ def _reservation_to_dict(
         "allergies_has": bool(getattr(r, "allergies_has", False)),
         "allergies_detail": getattr(r, "allergies_detail", None),
         "preferred_floor_id": getattr(r, "preferred_floor_id", None),
+        "locale": getattr(r, "locale", None),
     }
     pfid = getattr(r, "preferred_floor_id", None)
     if pfid is not None and session:
@@ -8094,6 +8095,7 @@ def create_reservation(
         allergies_has=allergies_has,
         allergies_detail=allergies_detail,
         preferred_floor_id=eff_floor,
+        locale=lang,
     )
     session.add(reservation)
     session.commit()
@@ -9007,6 +9009,7 @@ async def send_reservation_reminder(
             tenant_name=tenant_name,
             view_url=view_url,
             tenant=tenant,
+            reservation=reservation,
         )
         email_sent = ok
 

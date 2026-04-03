@@ -28,3 +28,9 @@ See **`docs/0030-reservation-confirmation-email-troubleshooting.md`** (and relat
 - Tighten HTML spacing (blank lines / repeated breaks) in the server-built confirmation path; verify HTML + plain-text parts still read well in clients.
 - Extend **`tests/test_reservation_email_template.py`** (and reminder tests if touched) for **en** and **es** snapshots or substring assertions on localized fragments.
 - Run targeted pytest per **`AGENTS.md`**; optional manual SMTP check with a real test inbox (not `@example.com`).
+
+## Testing instructions
+
+1. **Migrate:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python3 -m app.migrate` (expect version **20260403150000**).
+2. **Pytest:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python3 -m pytest tests/test_reservation_email_template.py tests/test_reservation_reminder_email.py -q`
+3. **Manual (optional):** Create a public booking with `?lang=es` (or `Accept-Language: es`) and a customer email; confirm the received confirmation is Spanish end-to-end (subject, labels, button, footer). Staff-created bookings use the request language captured in **`locale`**; reminders use the same **`reservation_transactional_lang`** path when **`send_reservation_reminder`** runs.

@@ -313,6 +313,18 @@ def _collapse_blank_lines(s: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", s.strip())
 
 
+def normalize_confirmation_html_fragment(fragment: str) -> str:
+    """
+    Build the HTML multipart body fragment: newlines become <br>, with tighter vertical rhythm.
+    Used after render_html_body so default/custom templates do not produce long runs of empty space.
+    """
+    s = fragment.replace("\r\n", "\n").replace("\r", "\n")
+    s = _collapse_blank_lines(s)
+    s = s.replace("\n", "<br>\n")
+    s = re.sub(r"(?:<br\s*/?>\s*){3,}", "<br><br>", s, flags=re.IGNORECASE)
+    return s
+
+
 def normalize_subject(subject: str) -> str:
     one_line = " ".join(subject.split())
     if len(one_line) > MAX_SUBJECT_LEN:
@@ -344,6 +356,10 @@ def render_confirmation_email(
     plain, html_map = build_value_maps(
         tenant, customer_name, reservation_date, reservation_time, party_size, view_url, lang
     )
+    # {{prepayment_notice}} already includes tenant prepayment text; omit duplicate {{prepayment_text}}.
+    if "{{prepayment_notice}}" in body_t and "{{prepayment_text}}" in body_t:
+        plain["prepayment_text"] = ""
+        html_map["prepayment_text"] = ""
     subject = normalize_subject(render_plain_body(sub_t, plain))
     text_body = _collapse_blank_lines(render_plain_body(body_t, plain))
     html_inner = render_html_body(body_t, html_map)

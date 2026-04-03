@@ -18,6 +18,7 @@ try:
     from back.app.reservation_email_template import (
         ALLOWED_PLACEHOLDERS,
         build_value_maps,
+        normalize_confirmation_html_fragment,
         render_confirmation_email,
         render_html_body,
         render_plain_body,
@@ -28,6 +29,7 @@ except ImportError:
     from app.reservation_email_template import (
         ALLOWED_PLACEHOLDERS,
         build_value_maps,
+        normalize_confirmation_html_fragment,
         render_confirmation_email,
         render_html_body,
         render_plain_body,
@@ -84,11 +86,16 @@ class TestReservationEmailTemplate(unittest.TestCase):
         sub, text, inner = render_confirmation_email(
             tenant, "Ann", "2026-03-22", "19:00", 3, "https://app.test/r?t=1"
         )
+        self.assertIn("Reservation confirmed", sub)
         self.assertIn("Café Demo", sub)
         self.assertIn("Ann", text)
         self.assertIn("Cancel 24h", text)
         self.assertIn("https://app.test/r?t=1", text)
+        self.assertIn("View or change", text)
         self.assertIn("View or change", inner)
+        self.assertIn("Date:", text)
+        self.assertIn("Time:", text)
+        self.assertIn("Party size:", text)
         self.assertIn("Contact us", text)
         self.assertIn("+1 555", text)
         self.assertIn("info@demo.test", text)
@@ -146,6 +153,43 @@ class TestReservationEmailTemplate(unittest.TestCase):
         self.assertIn("minutos", text.lower())
         self.assertIn("Importe del prepago", inner)
         self.assertIn("Pague al llegar.", inner)
+
+    def test_confirmation_german_default_body_and_labels(self):
+        tenant = _tenant(
+            default_language="de",
+            public_google_maps_url="https://maps.app.goo.gl/de-test",
+        )
+        sub, text, inner = render_confirmation_email(
+            tenant, "Anna", "2026-03-22", "19:00", 2, "https://app.test/r?t=1", lang="de"
+        )
+        self.assertIn("Reservierung bestätigt", sub)
+        self.assertIn("Café Demo", sub)
+        self.assertIn("Hallo Anna", text)
+        self.assertIn("bestätigt", text.lower())
+        self.assertIn("Datum:", text)
+        self.assertIn("Uhrzeit:", text)
+        self.assertIn("Personen:", text)
+        self.assertIn("Reservierung online ansehen", text)
+        self.assertIn("https://app.test/r?t=1", text)
+        self.assertIn("Kontakt:", text)
+        self.assertIn("In Google Maps öffnen", inner)
+
+    def test_normalize_confirmation_html_fragment_collapses_extra_breaks(self):
+        raw = "a\n\n\n\nb"
+        html = normalize_confirmation_html_fragment(raw)
+        self.assertNotRegex(html, r"(?i)(<br\s*/?>\s*){3,}")
+
+    def test_duplicate_prepayment_notice_and_text_suppresses_second(self):
+        tenant = _tenant(
+            reservation_prepayment_text="Pay at door.",
+            reservation_confirmation_email_body=(
+                "Hi\n{{prepayment_notice}}\n---\n{{prepayment_text}}\n"
+            ),
+        )
+        _sub, text, _inner = render_confirmation_email(
+            tenant, "Ann", "2026-03-22", "19:00", 2, None, lang="en"
+        )
+        self.assertEqual(text.count("Pay at door."), 1)
 
     def test_reservation_transactional_lang_prefers_booking_locale_when_set(self):
         tenant = SimpleNamespace(default_language="en")

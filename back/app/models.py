@@ -637,6 +637,8 @@ class Reservation(TenantMixin, table=True):
     allergies_has: bool = Field(default=False)
     allergies_detail: str | None = Field(default=None)
     preferred_floor_id: int | None = Field(default=None, foreign_key="floor.id")
+    # BCP 47-ish tag from booking request (?lang= / Accept-Language); overrides tenant default_language for emails
+    locale: str | None = Field(default=None, max_length=16)
 
 
 class GuestFeedback(TenantMixin, table=True):

@@ -143,6 +143,7 @@ async def _send_one_reminder(
             tenant_name=tenant_name,
             view_url=view_url,
             tenant=tenant,
+            reservation=reservation,
         )
     if has_phone and whatsapp_ok:
         whatsapp_sent = await whatsapp_svc.send_reservation_reminder_whatsapp_async(

@@ -14,6 +14,7 @@ import aiosmtplib
 
 from .messages import get_message, reservation_transactional_lang
 from .reservation_email_template import (
+    normalize_confirmation_html_fragment,
     render_confirmation_email,
     render_reminder_email,
     wrap_html_email,
@@ -303,7 +304,7 @@ async def send_reservation_confirmation(
         lang=lang,
     )
     html_content = wrap_html_email(
-        html_inner.replace("\n", "<br>\n"),
+        normalize_confirmation_html_fragment(html_inner),
         tenant=tenant,
         public_app_base_url=settings.public_app_base_url,
         lang=lang,
@@ -320,9 +321,10 @@ async def send_reservation_reminder(
     tenant_name: str,
     view_url: Optional[str] = None,
     tenant: Optional["Tenant"] = None,
+    reservation: Optional[object] = None,
 ) -> bool:
     """Send a reminder email for an upcoming reservation. Helps reduce no-shows."""
-    lang = reservation_transactional_lang(tenant, None)
+    lang = reservation_transactional_lang(tenant, reservation)
     subject, text_content, html_content = render_reminder_email(
         customer_name=customer_name,
         reservation_date=reservation_date,
