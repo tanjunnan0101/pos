@@ -1,0 +1,30 @@
+# Reservation emails: full i18n, no mixed language, tighter HTML spacing
+
+## GitHub Issues
+- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
+- `gh issue list --repo satisfecho/pos --state open --limit 40`
+- Optional: `--json number,title,labels,updatedAt,url`
+- **Issue:** https://github.com/satisfecho/pos/issues/163
+
+## Problem / goal
+Reservation confirmation emails must use **one** language end-to-end: derive language from tenant `default_language` (normalized), and if the reservation model already stores a booking locale, **prefer that** when sending.
+
+All server-built strings in the confirmation path (prepayment line, arrival note, map link labels, contact block, and any remaining literals) should go through **`get_message(..., lang)`** with keys added for **all shipped locales** in `messages.py`.
+
+Avoid redundant prepayment wording: `DEFAULT_BODY` and tenant-authored templates must not stack **`{{prepayment_notice}}`** and **`{{prepayment_text}}`** in a duplicate way—document the intended combination in code/comments.
+
+Reduce excessive vertical whitespace: collapse extra blank lines before HTML conversion and/or post-process repeated `<br>` in the confirmation fragment so default templates are tighter.
+
+Do **not** auto-correct tenant policy typos; optional Settings hint copy only if product wants it.
+
+Add or extend tests so rendered output is asserted for at least **en** and **es**.
+
+See **`docs/0030-reservation-confirmation-email-troubleshooting.md`** (and related reservation/email docs under **`docs/`**) if they describe current behavior.
+
+## High-level instructions for coder
+- Audit **`back/app/reservation_email_template.py`**, **`back/app/email_service.py`**, and any helpers used when building confirmation (and reminder if the issue scope implies shared fragments); list every hard-coded English string and replace with **`get_message`** keys.
+- Add missing message keys across **`back/app`** locale tables / `messages.py` for every language the product ships.
+- Implement prepayment placeholder rules without duplicate prepay text; update comments and any template hints for tenant custom bodies.
+- Tighten HTML spacing (blank lines / repeated breaks) in the server-built confirmation path; verify HTML + plain-text parts still read well in clients.
+- Extend **`tests/test_reservation_email_template.py`** (and reminder tests if touched) for **en** and **es** snapshots or substring assertions on localized fragments.
+- Run targeted pytest per **`AGENTS.md`**; optional manual SMTP check with a real test inbox (not `@example.com`).
