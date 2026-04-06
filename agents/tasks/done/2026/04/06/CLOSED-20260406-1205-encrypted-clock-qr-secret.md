@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The tester verified the encrypted staff clock-in QR secret work end-to-end after implementation (DB, API, Settings UI).
+- **What was done:** Encrypted storage for the clock QR token (`tenant.clock_qr_token_encrypted`), Fernet-based crypto, regenerate/token GET endpoints, and Settings → Security behavior for downloadable/persistent token were exercised per the task notes.
+- **What was tested:** Migrations, pytest `tests/test_work_session.py` (including legacy 409 and round-trip cases), landing smoke, `test:my-shift-clock-qr`, and a headless Settings → Security reload check — **all PASS** with overall **PASS**.
+- **Why closed:** All stated pass/fail criteria were met; tester signed off with overall PASS.
+- **Closed at (UTC):** 2026-04-06 15:11
+---
+
 # Encrypted clock QR secret + persistent download in Settings
 
 ## GitHub Issues
