@@ -163,9 +163,9 @@ def export_attendance_excel(
 
     # Style the sheet
     for row in range(2, current_row):
-        # Center-align the numeric/date columns
-        for col in range(3, 8):
-            ws_sheet.cell(row=row, column=col).alignment = Alignment(horizontal="center")
+        # Center-align the numeric/date columns (avoid name `col`: shadows sqlmodel.col)
+        for col_idx in range(3, 8):
+            ws_sheet.cell(row=row, column=col_idx).alignment = Alignment(horizontal="center")
 
     buf = BytesIO()
     wb.save(buf)

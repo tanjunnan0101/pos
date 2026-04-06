@@ -15,21 +15,27 @@ The goal is to allow users to download the monthly attendance Excel file while o
 ## Implementation summary
 - **Backend** (`back/app/attendance_routes.py`): Optional repeated query parameter `staff_ids` on `GET /reports/attendance-excel`. Omitted = all staff with sessions in the month. Each ID must be a user in the current tenant; duplicates are accepted; empty list when the parameter is used returns 400.
 - **Frontend** (`reports` + `api.service`): Multi-select of tenant users next to the month picker; no selection = export everyone (no `staff_ids` sent). XLSX download unchanged.
+- **Coder fix (2026-04-06):** Resolved `UnboundLocalError` when `staff_ids` was present: the styling loop used `for col in range(...)`, which shadowed `sqlmodel.col` used earlier in the same function. Renamed the loop variable to `col_idx`. Added `tests/test_attendance_excel.py` (filtered export 200 + invalid id 400).
 
 ## Feature-coder verification (2026-04-06)
 Duplicate **FEAT-168-20260406-1627-monthly-attendance-excel.md** was removed; scope was already implemented on `development`. Confirmed: `attendance_routes` is mounted in `main.py` under `/reports`; optional `staff_ids` query matches issue **#168**. Quick checks: `tests/test_work_session.py` (9 passed); `curl` to HAProxy `http://127.0.0.1:4202/` returned 200.
 
 ## Testing instructions
-1. Log in as a user with `report:read` on a tenant that has multiple users and at least some work sessions in a chosen month.
-2. Open **Reports** → **Monthly attendance (Excel)**.
-3. Pick a month that has attendance data. Leave **Staff** unselected → **Download Excel** → confirm file opens and includes all staff who had sessions that month.
-4. Select one staff member only → download again → spreadsheet must only contain rows for that user (employee name/number columns only on that user’s block).
-5. Select two staff members → download → both appear; others must not.
-6. **API (optional):** With a valid bearer token, `GET /reports/attendance-excel?year=YYYY&month=M&staff_ids=<id>` (repeat `staff_ids` for multiple) returns `200` and `Content-Type` suitable for XLSX; invalid tenant user id → `400` with detail about invalid staff IDs; wrong month with filter but no matching sessions → `404`.
+1. **Regression (API):** From repo root, `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python3 -m pytest tests/test_attendance_excel.py -q` — expect **2 passed** (covers `staff_ids` filter path and invalid id `400`).
+2. Log in as a user with `report:read` on a tenant that has multiple users and at least some work sessions in a chosen month.
+3. Open **Reports** → **Monthly attendance (Excel)**.
+4. Pick a month that has attendance data. Leave **Staff** unselected → **Download Excel** → confirm file opens and includes all staff who had sessions that month.
+5. Select one staff member only → download again → spreadsheet must only contain rows for that user (employee name/number columns only on that user’s block).
+6. Select two staff members → download → both appear; others must not.
+7. **API (optional):** With a valid bearer token, `GET /reports/attendance-excel?year=YYYY&month=M&staff_ids=<id>` (repeat `staff_ids` for multiple) returns `200` and `Content-Type` suitable for XLSX; invalid tenant user id → `400` with detail about invalid staff IDs; wrong month with filter but no matching sessions → `404`.
+
+**Pass/fail criteria:** Pytest step passes; browser steps 2–6 behave as described; no `500` on requests that include valid `staff_ids`.
 
 ---
 
 ## Test report
+
+> **Note:** The following report documents a **pre-fix** run (500 on `staff_ids`). Coder renamed the Excel styling loop variable so `sqlmodel.col` is no longer shadowed; re-verify with **Testing instructions** above.
 
 1. **Date/time (UTC):** 2026-04-06 — verification started ~**16:55 UTC**; log window for evidence: back container lines showing `GET /reports/attendance-excel` through **~16:56 UTC**.
 
