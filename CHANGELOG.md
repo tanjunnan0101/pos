@@ -18,6 +18,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Obsolete agent loop script:** Removed `agents/pi-pos-loop.sh`.
+
 ### Changed
 
 - **Reservation confirmation & reminder email (GitHub #162, #163):** Server-built copy uses **`get_message`** and **`reservation_transactional_lang`**. **`reservation.locale`** (migration **`20260403150000_reservation_locale.sql`**) is set from the booking request language on **`POST /reservations`** and overrides the tenant default for confirmations and reminders. Full confirmation-email keys added for **`ca`**, **`de`**, **`zh-CN`**, **`hi`**, **`bg`**, **`fr`**. If a custom body includes both **`{{prepayment_notice}}`** and **`{{prepayment_text}}`**, the latter is cleared so prepay policy is not duplicated. HTML part uses **`normalize_confirmation_html_fragment`** for tighter line breaks. **`docs/0030-reservation-confirmation-email-troubleshooting.md`** updated. Tests: **`back/tests/test_reservation_email_template.py`** (en, es, de + spacing/prepay cases); **`back/tests/test_reservation_reminder_email.py`** unchanged API surface.
