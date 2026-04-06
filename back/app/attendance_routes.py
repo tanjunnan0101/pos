@@ -131,7 +131,7 @@ def export_attendance_excel(
                 display_end.strftime("%H:%M") if sess.ended_at else "OPEN",
                 break_min,
                 round(net_hours, 2),
-                sess.notes or ""
+                "",
             ]
             ws_sheet.append(row)
             current_row += 1
