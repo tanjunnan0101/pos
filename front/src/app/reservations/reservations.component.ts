@@ -13,7 +13,6 @@ import {
   OverbookingReport,
   TenantSummary,
   ReservationBookZone,
-  ReservationBookZonesResponse,
 } from '../services/api.service';
 import { PermissionService } from '../services/permission.service';
 import { SidebarComponent } from '../shared/sidebar.component';
@@ -199,19 +198,33 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
                     <span class="label-block">{{ 'BOOK.SEATING_PREFERENCE' | translate }}</span>
                     <div class="radio-row">
                       <label class="radio-label">
-                        <input type="radio" name="resSeating" [(ngModel)]="formSeating" (ngModelChange)="loadSlotCapacity()" value="no_preference" />
+                        <input type="radio" name="resSeating" [(ngModel)]="formSeating" (ngModelChange)="onSeatingPreferenceChange(); loadSlotCapacity()" value="no_preference" />
                         {{ 'BOOK.SEATING_ANY' | translate }}
                       </label>
                       <label class="radio-label">
-                        <input type="radio" name="resSeating" [(ngModel)]="formSeating" (ngModelChange)="loadSlotCapacity()" value="indoor" />
+                        <input type="radio" name="resSeating" [(ngModel)]="formSeating" (ngModelChange)="onSeatingPreferenceChange(); loadSlotCapacity()" value="indoor" />
                         {{ 'BOOK.SEATING_INDOOR' | translate }}
                       </label>
                       <label class="radio-label">
-                        <input type="radio" name="resSeating" [(ngModel)]="formSeating" (ngModelChange)="loadSlotCapacity()" value="terrace" />
+                        <input type="radio" name="resSeating" [(ngModel)]="formSeating" (ngModelChange)="onSeatingPreferenceChange(); loadSlotCapacity()" value="terrace" />
                         {{ 'BOOK.SEATING_TERRACE' | translate }}
                       </label>
                     </div>
                   </div>
+                  @if (bookZones().length >= 1 && bookZonesForSeating().length === 0) {
+                    <div class="form-error form-hint-block">{{ 'BOOK.NO_ZONE_FOR_SEATING' | translate }}</div>
+                  }
+                  @if (bookZonesForSeating().length >= 2) {
+                    <div class="form-group">
+                      <label for="res-modal-zone">{{ 'BOOK.LOCATION_ZONE' | translate }}</label>
+                      <select id="res-modal-zone" [(ngModel)]="formFloorId" name="resFloorId" required (ngModelChange)="loadSlotCapacity()">
+                        <option [ngValue]="null" disabled>{{ 'BOOK.LOCATION_ZONE_PLACEHOLDER' | translate }}</option>
+                        @for (z of bookZonesForSeating(); track z.id) {
+                          <option [ngValue]="z.id">{{ z.name }}</option>
+                        }
+                      </select>
+                    </div>
+                  }
                   <div class="form-group">
                     <label for="res-modal-dietary">{{ 'RESERVATIONS.CUSTOMER_NOTES' | translate }}</label>
                     <textarea
@@ -232,7 +245,7 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
                     [weekAnchorSeed]="formDate"
                     [excludeReservationId]="editingReservation()?.id ?? null"
                     [serviceType]="hasMealSplit() ? formService : 'all'"
-                    [bookFloorId]="weekGridBookFloorId()"
+                    [bookFloorId]="formFloorId"
                     [(selectedDate)]="formDate"
                     [(selectedTime)]="formTime"
                     (selectedDateChange)="loadSlotCapacity()"
@@ -399,6 +412,7 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
     .modal-footer { display: flex; justify-content: flex-end; gap: 0.5rem; padding: 1rem; border-top: 1px solid #e5e7eb; }
     .reservation-modal-hint { font-size: 0.875rem; color: var(--color-text-muted); margin: 0 0 var(--space-3) 0; line-height: 1.45; }
     .form-error { color: var(--color-error); font-size: 0.875rem; margin-top: var(--space-2); }
+    .form-hint-block { margin-bottom: 0.5rem; }
     .table-list { display: flex; flex-direction: column; gap: 0.5rem; }
     .table-option { padding: 0.5rem 1rem; text-align: left; border: 1px solid #e5e7eb; border-radius: 4px; background: #fff; cursor: pointer; }
     .table-option:hover { background: #f3f4f6; }
@@ -464,8 +478,8 @@ export class ReservationsComponent implements OnInit, OnDestroy {
   /** Allergies / special requirements (synced to allergies_* and customer_notes on save). */
   formDietaryNotes = '';
   formSeating: 'no_preference' | 'indoor' | 'terrace' = 'no_preference';
-  /** When editing: original seating from the reservation; used to scope the week grid to preferred_floor_id until staff changes zone. */
-  editBaselineSeating: 'no_preference' | 'indoor' | 'terrace' | null = null;
+  /** Bookable floor for zone-scoped slot grid (same semantics as public /book `formFloorId`). */
+  formFloorId: number | null = null;
   bookZones = signal<ReservationBookZone[]>([]);
   formError = signal<string | null>(null);
   reservationToSeat = signal<Reservation | null>(null);
@@ -503,7 +517,10 @@ export class ReservationsComponent implements OnInit, OnDestroy {
         next: (t) => {
           this.tenantSummary.set(t);
           this.api.getReservationBookZones(tid).subscribe({
-            next: (z) => this.bookZones.set(z.floors),
+            next: (z) => {
+              this.bookZones.set(z.floors);
+              if (this.showForm()) this.onSeatingPreferenceChange();
+            },
             error: () => this.bookZones.set([]),
           });
         },
@@ -620,17 +637,36 @@ export class ReservationsComponent implements OnInit, OnDestroy {
     return this.localCalendarTodayYyyyMmDd();
   }
 
-  /** Public book zone for slot APIs: same as /book when editing an unchanged zone+seating pair. */
-  weekGridBookFloorId(): number | null {
-    const ed = this.editingReservation();
-    if (!ed) return null;
-    if (this.formSeating !== this.editBaselineSeating) return null;
-    return ed.preferred_floor_id ?? null;
+  /** Floors that match the current seating preference (aligned with public /book). */
+  bookZonesForSeating(): ReservationBookZone[] {
+    return this.bookZones().filter((z) => this.zoneMatchesSeating(z, this.formSeating));
+  }
+
+  private zoneMatchesSeating(
+    z: ReservationBookZone,
+    pref: 'no_preference' | 'indoor' | 'terrace',
+  ): boolean {
+    const zone = (z.seating_zone || 'any').toLowerCase();
+    if (zone === 'any') return true;
+    if (pref === 'no_preference') return true;
+    if (pref === 'indoor') return zone === 'indoor';
+    if (pref === 'terrace') return zone === 'outdoor';
+    return true;
+  }
+
+  onSeatingPreferenceChange(): void {
+    const opts = this.bookZonesForSeating();
+    if (opts.length === 1) {
+      this.formFloorId = opts[0].id;
+    } else if (opts.length === 0) {
+      this.formFloorId = null;
+    } else if (this.formFloorId != null && !opts.some((x) => x.id === this.formFloorId)) {
+      this.formFloorId = null;
+    }
   }
 
   openCreate() {
     this.editingReservation.set(null);
-    this.editBaselineSeating = null;
     this.formName = '';
     this.formPhone = '';
     this.formEmail = '';
@@ -642,6 +678,8 @@ export class ReservationsComponent implements OnInit, OnDestroy {
     this.formService = 'all';
     this.formDietaryNotes = '';
     this.formSeating = 'no_preference';
+    this.formFloorId = null;
+    this.onSeatingPreferenceChange();
     this.formError.set(null);
     this.prefillMessage.set(null);
     this.slotCapacity.set(null);
@@ -653,8 +691,9 @@ export class ReservationsComponent implements OnInit, OnDestroy {
     if (!this.formDate?.trim() || !this.formTime?.trim() || !this.showForm()) return;
     const timeNorm = this.formTime.length >= 5 ? this.formTime.slice(0, 5) : this.formTime;
     const excludeId = this.editingReservation()?.id;
-    const floorId = this.weekGridBookFloorId();
-    this.api.getSlotCapacity(this.formDate, timeNorm, excludeId, floorId ?? undefined).subscribe({
+    const floorId =
+      this.formFloorId != null && !Number.isNaN(this.formFloorId) ? this.formFloorId : undefined;
+    this.api.getSlotCapacity(this.formDate, timeNorm, excludeId, floorId).subscribe({
       next: (cap) => this.slotCapacity.set({ seats_left: cap.seats_left, tables_left: cap.tables_left }),
       error: () => this.slotCapacity.set(null),
     });
@@ -679,6 +718,8 @@ export class ReservationsComponent implements OnInit, OnDestroy {
           const sp = (r.seating_preference || 'no_preference').toLowerCase();
           this.formSeating =
             sp === 'indoor' || sp === 'terrace' ? sp : 'no_preference';
+          this.formFloorId = r.preferred_floor_id ?? null;
+          this.onSeatingPreferenceChange();
           this.prefillSuccess.set(true);
           this.prefillMessage.set(this.translate.instant('RESERVATIONS.PREFILL_SUCCESS'));
         } else {
@@ -709,7 +750,8 @@ export class ReservationsComponent implements OnInit, OnDestroy {
     this.formDietaryNotes = reservationDietaryNotesFormValue(r);
     const sp = (r.seating_preference || 'no_preference').toLowerCase();
     this.formSeating = sp === 'indoor' || sp === 'terrace' ? sp : 'no_preference';
-    this.editBaselineSeating = this.formSeating;
+    this.formFloorId = r.preferred_floor_id ?? null;
+    this.onSeatingPreferenceChange();
     this.formError.set(null);
     this.slotCapacity.set(null);
     this.showForm.set(true);
@@ -719,7 +761,7 @@ export class ReservationsComponent implements OnInit, OnDestroy {
   closeForm() {
     this.showForm.set(false);
     this.editingReservation.set(null);
-    this.editBaselineSeating = null;
+    this.formFloorId = null;
     this.prefillMessage.set(null);
   }
 
@@ -741,6 +783,17 @@ export class ReservationsComponent implements OnInit, OnDestroy {
       : '';
     if (!this.formDate?.trim() || !timeNorm) {
       this.formError.set(this.translate.instant('BOOK.PICK_SLOT'));
+      return;
+    }
+    if (this.bookZones().length >= 1 && this.bookZonesForSeating().length === 0) {
+      this.formError.set(this.translate.instant('BOOK.NO_ZONE_FOR_SEATING'));
+      return;
+    }
+    if (
+      this.bookZonesForSeating().length >= 2 &&
+      (this.formFloorId == null || Number.isNaN(this.formFloorId))
+    ) {
+      this.formError.set(this.translate.instant('BOOK.LOCATION_ZONE_REQUIRED'));
       return;
     }
     const ed0 = this.editingReservation();
@@ -772,6 +825,8 @@ export class ReservationsComponent implements OnInit, OnDestroy {
     }
     const svc = this.hasMealSplit() && this.formService !== 'all' ? this.formService : null;
     const dietary = this.formDietaryNotes.trim();
+    const preferredFloorId =
+      this.formFloorId != null && !Number.isNaN(this.formFloorId) ? this.formFloorId : undefined;
     const payload: ReservationCreate = {
       customer_name: this.formName.trim(),
       customer_phone: this.formPhone.trim(),
@@ -785,6 +840,7 @@ export class ReservationsComponent implements OnInit, OnDestroy {
       seating_preference: this.formSeating,
       allergies_has: dietary.length > 0,
       allergies_detail: dietary || undefined,
+      preferred_floor_id: preferredFloorId,
     };
     if (!this.editingReservation() && tenantId) (payload as ReservationCreate).tenant_id = tenantId;
     if (this.editingReservation()) {
@@ -802,6 +858,7 @@ export class ReservationsComponent implements OnInit, OnDestroy {
         seating_preference: this.formSeating,
         allergies_has: dietary.length > 0,
         allergies_detail: dietary.length > 0 ? dietary : null,
+        preferred_floor_id: preferredFloorId ?? null,
       };
       this.api.updateReservation(this.editingReservation()!.id, update).subscribe({
         next: () => { this.closeForm(); this.load(); this.loadTables(); },

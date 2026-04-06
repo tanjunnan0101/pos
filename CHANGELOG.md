@@ -30,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Staff reservations / multi-zone (GitHub #164):** The create/edit modal on **`/reservations`** now mirrors public **`/book`** for **seating**, **location zone** (when multiple floors match), and **`ReservationWeekSlotGridComponent`** **`bookFloorId`**; staff create/update sends **`preferred_floor_id`**. Duplicate task file **`WIP-20260406-0935-align-staff-reservations-form`** removed (same scope as **`UNTESTED-20260406-0915-align-staff-reservations-form`**).
+
 - **Settings (GitHub #166):** Clarified that **Location verification** coordinates and radius are **shared** with **Require GPS at venue for clock** under Staff clock-in QR—one venue pin for order checks and clock-in, not separate pins. Updated **`SETTINGS.LOCATION_VERIFICATION_DESC`**, **`ENABLE_LOCATION_CHECK_HINT`**, and **`CLOCK_QR_LOCATION_VERIFY_HINT`** in all **`front/public/i18n/*.json`** files.
 
 ### Fixed
