@@ -16,6 +16,9 @@ The goal is to allow users to download the monthly attendance Excel file while o
 - **Backend** (`back/app/attendance_routes.py`): Optional repeated query parameter `staff_ids` on `GET /reports/attendance-excel`. Omitted = all staff with sessions in the month. Each ID must be a user in the current tenant; duplicates are accepted; empty list when the parameter is used returns 400.
 - **Frontend** (`reports` + `api.service`): Multi-select of tenant users next to the month picker; no selection = export everyone (no `staff_ids` sent). XLSX download unchanged.
 
+## Feature-coder verification (2026-04-06)
+Duplicate **FEAT-168-20260406-1627-monthly-attendance-excel.md** was removed; scope was already implemented on `development`. Confirmed: `attendance_routes` is mounted in `main.py` under `/reports`; optional `staff_ids` query matches issue **#168**. Quick checks: `tests/test_work_session.py` (9 passed); `curl` to HAProxy `http://127.0.0.1:4202/` returned 200.
+
 ## Testing instructions
 1. Log in as a user with `report:read` on a tenant that has multiple users and at least some work sessions in a chosen month.
 2. Open **Reports** → **Monthly attendance (Excel)**.
