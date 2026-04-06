@@ -4,7 +4,7 @@
 - **Issue:** https://github.com/satisfecho/pos/issues/165
 
 ## Status
-**UNTESTED** — Backend export no longer references `WorkSession.notes` (field does not exist). Notes column is left empty until a dedicated column exists. Ready for tester verification.
+**CLOSED (PASS)** — Verified 2026-04-06 (UTC); see Test report below.
 
 ## What was done
 - **Backend (already in repo):** `GET /reports/attendance-excel` in `back/app/attendance_routes.py` (mounted under `/api` via HAProxy). Monthly XLSX via **openpyxl**; columns include employee number, name, date, clock in/out, breaks (min), net hours, notes; `User.employee_number` optional.
@@ -41,3 +41,37 @@
 ## Prior test report (before notes fix)
 
 Tester previously reported **FAIL** on “Valid `.xlsx` when work sessions exist” due to `AttributeError: 'WorkSession' object has no attribute 'notes'` at `attendance_routes.py` (~`sess.notes`). That path is fixed; retest required.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-04-06 — verification ~**14:25 UTC** (Puppeteer + API checks; back logs show `POST /token` and `GET /reports/attendance-excel` in that window).
+
+2. **Environment:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202` (HAProxy); branch **`development`**, commit **`d5f1e98`**.
+
+3. **What was tested:** Per “What to verify”: Reports UI block for **`report:read`**; regression export with real work sessions (no HTTP 500); Puppeteer `test:reports`.
+
+4. **Results:**
+   - Monthly attendance (Excel) section visible for admin/owner — **PASS** — Puppeteer found `[data-testid="reports-attendance-excel"]`; script exited 0.
+   - Export with ≥1 work session returns **200** and valid `.xlsx` — **PASS** — DB has 1 `work_session` for tenant 1 on **2026-03-23**; `GET /api/reports/attendance-excel?year=2026&month=3` with session cookie returned **200**; `file` reports `Microsoft Excel 2007+`; magic bytes `50 4b 03 04` (ZIP/XLSX).
+   - No **500** on export path — **PASS** — back log line `GET /reports/attendance-excel?year=2026&month=3 HTTP/1.1" 200 OK`.
+   - Puppeteer `npm run test:reports` — **PASS** — exit code 0.
+
+5. **Overall:** **PASS** (all criteria above).
+
+6. **Product owner feedback:** The monthly attendance Excel flow is ready for staff use: the Reports page exposes the block for privileged users, and the March 2026 month with existing clock data produces a downloadable Office-compatible file without server errors. The prior `WorkSession.notes` regression is confirmed fixed.
+
+7. **URLs tested:**
+   1. `http://127.0.0.1:4202/login`
+   2. `http://127.0.0.1:4202/dashboard` (post-login)
+   3. `http://127.0.0.1:4202/reports`
+   4. `http://127.0.0.1:4202/api/token` (POST, form login — establishes cookies)
+   5. `http://127.0.0.1:4202/api/reports/attendance-excel?year=2026&month=3` (GET with cookies)
+
+8. **Relevant log excerpts (last section):**
+
+```
+pos-back | INFO: ... "POST /token HTTP/1.1" 200 OK
+pos-back | INFO: ... "GET /reports/attendance-excel?year=2026&month=3 HTTP/1.1" 200 OK
+```
