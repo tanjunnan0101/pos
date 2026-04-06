@@ -979,6 +979,8 @@
     "ATTENDANCE_EXCEL_TITLE": "Assistència mensual (Excel)",
     "ATTENDANCE_EXCEL_HINT": "Baixa un full d’hores d’un mes natural: una fila per sessió de treball (inici en UTC). Els números d’empleat opcionals es mostren si consten als perfils.",
     "ATTENDANCE_EXCEL_MONTH": "Mes",
+    "ATTENDANCE_EXCEL_STAFF_FILTER": "Personal (opcional)",
+    "ATTENDANCE_EXCEL_STAFF_FILTER_HINT": "Sense selecció = tothom amb assistència en aquest mes. Mantén Ctrl o ⌘ per triar-ne diversos.",
     "ATTENDANCE_EXCEL_DOWNLOAD": "Baixa Excel",
     "ATTENDANCE_EXCEL_EXPORTING": "S’està baixant...",
     "ATTENDANCE_EXCEL_NO_DATA": "No hi ha registres d’assistència per a aquest mes.",

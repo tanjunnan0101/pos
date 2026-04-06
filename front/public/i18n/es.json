@@ -795,6 +795,8 @@
     "ATTENDANCE_EXCEL_TITLE": "Asistencia mensual (Excel)",
     "ATTENDANCE_EXCEL_HINT": "Descarga un parte de horas de un mes natural: una fila por sesión de trabajo (inicio en UTC). Los números de empleado opcionales aparecen si están definidos en los perfiles.",
     "ATTENDANCE_EXCEL_MONTH": "Mes",
+    "ATTENDANCE_EXCEL_STAFF_FILTER": "Personal (opcional)",
+    "ATTENDANCE_EXCEL_STAFF_FILTER_HINT": "Sin selección = todos con asistencia en ese mes. Mantén Ctrl o ⌘ para elegir varios.",
     "ATTENDANCE_EXCEL_DOWNLOAD": "Descargar Excel",
     "ATTENDANCE_EXCEL_EXPORTING": "Descargando...",
     "ATTENDANCE_EXCEL_NO_DATA": "No hay registros de asistencia para ese mes.",

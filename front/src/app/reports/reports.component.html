@@ -358,6 +358,27 @@
               (ngModelChange)="attendanceExcelMonth.set($event); attendanceExcelError.set(null)"
             />
           </div>
+          @if (attendanceExcelStaffUsers().length > 0) {
+            <div class="attendance-excel-staff">
+              <label for="attendance-excel-staff">{{ 'REPORTS.ATTENDANCE_EXCEL_STAFF_FILTER' | translate }}</label>
+              <select
+                id="attendance-excel-staff"
+                class="attendance-excel-staff-select"
+                multiple
+                size="6"
+                [(ngModel)]="attendanceExcelStaffFilterIds"
+                (ngModelChange)="attendanceExcelError.set(null)"
+                [attr.aria-label]="'REPORTS.ATTENDANCE_EXCEL_STAFF_FILTER' | translate"
+              >
+                @for (u of attendanceExcelStaffUsers(); track u.id) {
+                  <option [ngValue]="u.id">{{ u.full_name || u.email }}</option>
+                }
+              </select>
+              <p class="muted attendance-excel-staff-hint">
+                {{ 'REPORTS.ATTENDANCE_EXCEL_STAFF_FILTER_HINT' | translate }}
+              </p>
+            </div>
+          }
           <button
             type="button"
             class="btn btn-secondary"

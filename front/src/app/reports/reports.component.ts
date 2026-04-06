@@ -9,7 +9,13 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from '../shared/sidebar.component';
-import { ApiService, SalesReport, WorkSession, workSessionNetWorkSeconds } from '../services/api.service';
+import {
+  ApiService,
+  SalesReport,
+  User,
+  WorkSession,
+  workSessionNetWorkSeconds,
+} from '../services/api.service';
 import { ApiErrorMessageService } from '../services/api-error-message.service';
 import { PermissionService } from '../services/permission.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -60,6 +66,9 @@ export class ReportsComponent implements OnInit {
   attendanceExcelMonth = signal('');
   attendanceExcelExporting = signal(false);
   attendanceExcelError = signal<string | null>(null);
+  attendanceExcelStaffUsers = signal<User[]>([]);
+  /** Empty = all tenant staff with data; non-empty = filter export to these user IDs. */
+  attendanceExcelStaffFilterIds: number[] = [];
   fromDate = signal('');
   toDate = signal('');
   currency = signal('€');
@@ -104,6 +113,21 @@ export class ReportsComponent implements OnInit {
       `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
     );
     this.translate.onLangChange.subscribe(() => this.reportIntlRevision.update((n) => n + 1));
+    if (this.canViewAttendance()) {
+      this.api.getUsers().subscribe({
+        next: (users) => {
+          const list = users
+            .filter((u): u is User & { id: number } => u.id != null && Number.isFinite(u.id))
+            .sort((a, b) =>
+              (a.full_name || a.email || '').localeCompare(b.full_name || b.email || '', undefined, {
+                sensitivity: 'base',
+              }),
+            );
+          this.attendanceExcelStaffUsers.set(list);
+        },
+        error: () => {},
+      });
+    }
   }
 
   /** Local calendar date as `YYYY-MM-DD` (not UTC midnight from `toISOString`). */
@@ -218,7 +242,9 @@ export class ReportsComponent implements OnInit {
     const month = parseInt(m[2], 10);
     this.attendanceExcelExporting.set(true);
     this.attendanceExcelError.set(null);
-    this.api.getReportsAttendanceExcel(year, month).subscribe({
+    const staffIds =
+      this.attendanceExcelStaffFilterIds.length > 0 ? this.attendanceExcelStaffFilterIds : undefined;
+    this.api.getReportsAttendanceExcel(year, month, staffIds).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

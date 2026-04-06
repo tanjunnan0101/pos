@@ -989,6 +989,8 @@
     "ATTENDANCE_EXCEL_TITLE": "मासिक उपस्थिति (Excel)",
     "ATTENDANCE_EXCEL_HINT": "एक कैलेंडर माह के लिए टाइमशीट डाउनलोड करें: प्रति कार्य सत्र एक पंक्ति (UTC आरंभ)। वैकल्पिक कर्मचारी संख्या प्रोफ़ाइल में सेट होने पर दिखती है।",
     "ATTENDANCE_EXCEL_MONTH": "माह",
+    "ATTENDANCE_EXCEL_STAFF_FILTER": "स्टाफ़ (वैकल्पिक)",
+    "ATTENDANCE_EXCEL_STAFF_FILTER_HINT": "कुछ न चुनें = उस माह में उपस्थिति वाले सभी। एक से अधिक के लिए Ctrl या ⌘ दबाकर रखें।",
     "ATTENDANCE_EXCEL_DOWNLOAD": "Excel डाउनलोड करें",
     "ATTENDANCE_EXCEL_EXPORTING": "डाउनलोड हो रहा है...",
     "ATTENDANCE_EXCEL_NO_DATA": "उस माह के लिए कोई उपस्थिति रिकॉर्ड नहीं।",

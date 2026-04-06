@@ -2057,9 +2057,19 @@ export class ApiService {
   }
 
   /** Monthly per-staff attendance timesheet (XLSX). Requires `report:read`. */
-  getReportsAttendanceExcel(year: number, month: number): Observable<Blob> {
+  getReportsAttendanceExcel(
+    year: number,
+    month: number,
+    staffIds?: number[] | null,
+  ): Observable<Blob> {
+    let params = new HttpParams().set('year', String(year)).set('month', String(month));
+    if (staffIds?.length) {
+      for (const id of staffIds) {
+        params = params.append('staff_ids', String(id));
+      }
+    }
     return this.http.get(`${this.apiUrl}/reports/attendance-excel`, {
-      params: { year: String(year), month: String(month) },
+      params,
       responseType: 'blob',
     });
   }

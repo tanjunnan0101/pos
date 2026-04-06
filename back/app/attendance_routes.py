@@ -24,10 +24,12 @@ def export_attendance_excel(
     session: Session = Depends(get_session),
     year: int = Query(..., description="Year (YYYY)"),
     month: int = Query(..., ge=1, le=12, description="Month (1-12)"),
+    staff_ids: Annotated[list[int] | None, Query(description="Optional staff user IDs (tenant must match)")] = None,
 ) -> StreamingResponse:
     """
     Export monthly per-employee attendance in Excel format.
     Columns: Date, Clock-In, Clock-Out, Break (min), Total Hours (net), Notes.
+    Omit **staff_ids** to include all staff with sessions in the month; repeat the query param for multiple IDs.
     """
     if current_user.tenant_id is None:
         raise HTTPException(status_code=403, detail="Tenant required")
@@ -47,6 +49,27 @@ def export_attendance_excel(
     start_dt = datetime.combine(start_date, time.min, tzinfo=timezone.utc)
     end_dt = datetime.combine(end_date, time.max, tzinfo=timezone.utc)
 
+    filter_user_ids: list[int] | None = None
+    if staff_ids is not None:
+        unique_ids = list(dict.fromkeys(staff_ids))
+        if not unique_ids:
+            raise HTTPException(
+                status_code=400,
+                detail="staff_ids cannot be empty when provided; omit the parameter to export all staff",
+            )
+        valid_stmt = (
+            select(models.User.id)
+            .where(models.User.tenant_id == tenant_id)
+            .where(col(models.User.id).in_(unique_ids))
+        )
+        found = set(session.exec(valid_stmt).all())
+        if found != set(unique_ids):
+            raise HTTPException(
+                status_code=400,
+                detail="One or more staff_ids are not valid users in this tenant",
+            )
+        filter_user_ids = unique_ids
+
     stmt = (
         select(models.WorkSession)
         .where(models.WorkSession.tenant_id == tenant_id)
@@ -54,6 +77,8 @@ def export_attendance_excel(
         .where(models.WorkSession.started_at <= end_dt)
         .order_by(models.WorkSession.started_at.asc())
     )
+    if filter_user_ids is not None:
+        stmt = stmt.where(col(models.WorkSession.user_id).in_(filter_user_ids))
     sessions = session.exec(stmt).all()
 
     if not sessions:

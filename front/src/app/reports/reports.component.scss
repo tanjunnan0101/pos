@@ -178,6 +178,35 @@
       font-size: 0.875rem;
     }
   }
+
+  .attendance-excel-staff {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: min(100%, 14rem);
+
+    label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--color-text-muted);
+    }
+
+    .attendance-excel-staff-select {
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-size: 0.875rem;
+      min-height: 8rem;
+    }
+
+    .attendance-excel-staff-hint {
+      margin: 0;
+      font-size: 0.75rem;
+      max-width: 18rem;
+    }
+  }
 }
 
 .summary-section {
