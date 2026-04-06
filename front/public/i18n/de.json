@@ -1213,9 +1213,9 @@
     "STRIPE_SECRET_KEY": "Stripe geheimer Schlüssel",
     "STRIPE_SECRET_PLACEHOLDER": "sk_test_... oder leer lassen für aktuellen Wert",
     "LOCATION_VERIFICATION": "Standortüberprüfung",
-    "LOCATION_VERIFICATION_DESC": "Bestellungen von außerhalb Ihres Restaurants markieren",
+    "LOCATION_VERIFICATION_DESC": "Legen Sie unten Koordinaten und Radius des Restaurantstandorts fest. Derselbe Punkt markiert Bestellungen außerhalb des Bereichs und dient bei aktivierter Mitarbeiter-Stempeluhr-QR auch zur GPS-Prüfung beim Stempeln.",
     "ENABLE_LOCATION_CHECK": "Standortüberprüfung aktivieren",
-    "ENABLE_LOCATION_CHECK_HINT": "Bestellungen außerhalb des Radius werden zur Überprüfung markiert",
+    "ENABLE_LOCATION_CHECK_HINT": "Bestellungen außerhalb dieses Radius werden markiert. Standortprüfungen beim Stempeln nutzen bei Aktivierung denselben Mittelpunkt und Radius.",
     "LATITUDE": "Breitengrad",
     "LONGITUDE": "Längengrad",
     "LOCATION_RADIUS": "Radius (Meter)",
@@ -1361,7 +1361,7 @@
     "CLOCK_QR_SAVED": "New clock QR token generated.",
     "CLOCK_QR_DISABLED": "Clock QR requirement disabled.",
     "CLOCK_QR_LOCATION_VERIFY": "Require GPS at venue for clock",
-    "CLOCK_QR_LOCATION_VERIFY_HINT": "Uses latitude, longitude, and radius from the ordering location settings on this page."
+    "CLOCK_QR_LOCATION_VERIFY_HINT": "Wenn aktiv, nutzen Stempelaktionen dieselbe Breite, Länge und denselben Radius wie die Standortprüfung auf dieser Seite—ein gemeinsamer Standort für Bestellprüfung und Stempeln."
   },
   "PAYMENTS": {
     "PAYMENT": "Zahlung",

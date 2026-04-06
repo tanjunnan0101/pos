@@ -24,6 +24,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Settings (GitHub #166):** Clarified that **Location verification** coordinates and radius are **shared** with **Require GPS at venue for clock** under Staff clock-in QR—one venue pin for order checks and clock-in, not separate pins. Updated **`SETTINGS.LOCATION_VERIFICATION_DESC`**, **`ENABLE_LOCATION_CHECK_HINT`**, and **`CLOCK_QR_LOCATION_VERIFY_HINT`** in all **`front/public/i18n/*.json`** files.
+
 ### Fixed
 
 - **Staff reservation edit (PUT `/reservations/{id}`):** Avoid **400** when the guest had a **book zone** (`preferred_floor_id`) and staff changes **seating preference** — the zone is dropped if it no longer matches the preference; explicit `preferred_floor_id` in the body is validated against seating. Staff **week grid** and **slot-capacity** use the same **floor** scope while editing until seating is changed from the opened baseline.
