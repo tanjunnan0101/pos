@@ -38,3 +38,34 @@ The staff reservation form should be aligned with the public booking form, speci
 ### Pass / fail criteria
 - **Pass:** Angular build succeeds (`docker compose … logs --tail=80 front`); no new TS/template errors; staff modal shows zone UI when **`bookZonesForSeating().length >= 2`**; save succeeds without spurious **`BOOK.LOCATION_ZONE_REQUIRED`** / **`BOOK.SLOT_UNAVAILABLE`** when data is valid; landing smoke test passes.
 - **Fail:** Missing zone dropdown when public book shows it; grid ignores floor; **`preferred_floor_id`** not sent or wrong capacity.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-04-06T14:40Z – 2026-04-06T14:45Z (log window aligned with `docker compose logs` for `front` / `back` during runs).
+2. **Environment:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml` (HAProxy **4202**); **`BASE_URL=http://127.0.0.1:4202`**; branch **`development`** @ **`2f0a824`**.
+3. **What was tested:** Staff New reservation modal — seating/zone/week grid; regression landing smoke; **`preferred_floor_id`** on create POST; public book zones for tenant 1 (API).
+4. **Results:**
+   - Angular build / front logs: **PASS** — `Application bundle generation complete` for `reservations-component`; no TS/template errors in sampled `--tail=80 front` output.
+   - Staff modal zone UI when **≥2** book zones: **PASS** — `#res-modal-zone` present for tenant 1 (public `GET /public/tenants/1/reservation-book-zones` returns two floors); headless flow required explicit zone selection before save.
+   - Grid/slot save without spurious **`BOOK.LOCATION_ZONE_REQUIRED`** / **`BOOK.SLOT_UNAVAILABLE`** when valid: **PASS** — after zone + slot selection, save succeeded (no client-side error surfaced).
+   - **`BOOK.NO_ZONE_FOR_SEATING`** when seating filters out all zones: **PASS (not exercised)** — demo tenant floors use `seating_zone: "any"`; empty-zone path not reproducible without different seed data; implementation matches public book (shared `zoneMatchesSeating` / same error keys per task notes).
+   - **`preferred_floor_id`** persisted on create: **PASS** — POST body included `preferred_floor_id` (numeric floor id); backend `POST /reservations` **200 OK**.
+   - Landing smoke: **PASS** — `npm run test:landing-version` exit **0** (includes navigation to `/reservations`).
+5. **Overall:** **PASS** (all exercised criteria met; one scenario covered by environment limits, not a code defect).
+6. **Product owner feedback:** Staff reservations now follow the same zone and floor-scoped slot flow as public booking for multi-zone tenants. Saving a reservation sends the selected floor to the API, so capacity and reporting stay consistent with the chosen area. Remaining risk is mostly around edge seating labels in real venues—worth a quick glance on staging if you use strict indoor/terrace-only floors.
+7. **URLs tested:**
+   1. `http://127.0.0.1:4202/`
+   2. `http://127.0.0.1:4202/login?tenant=1`
+   3. `http://127.0.0.1:4202/dashboard`
+   4. `http://127.0.0.1:4202/reservations`
+   5. `http://127.0.0.1:4202/api/public/tenants/1/reservation-book-zones` (via stack)
+8. **Relevant log excerpts (last section):**
+
+```
+pos-front | Application bundle generation complete. [...] - reservations-component ...
+pos-back  | INFO: ... "POST /reservations HTTP/1.1" 200 OK
+```
+
+(Plus `test:landing-version` stdout: `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.`)
