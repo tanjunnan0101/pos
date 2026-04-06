@@ -26,6 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Agents:** **`agents/001-gh-reviewer/`** — GitHub-focused backlog reviewer (issue sweep, **`gh`** comment + **`agent:planned`** label, **`FEAT-`** task creation); mirrors log-reviewer structure without the Docker log pass.
+
 - **Reports → Monthly attendance Excel (GitHub #168):** Optional **staff** filter before download — `GET /reports/attendance-excel` accepts repeated **`staff_ids`** (tenant users only); Reports UI multi-select when the tenant has users. Omit selection or omit the query param to export all staff with sessions in the month.
 
 - **Settings → Security / Staff clock-in QR (GitHub #167):** Encrypted storage of the plain token (**Fernet**, key from **`SECRET_KEY`**) in **`tenant.clock_qr_token_encrypted`**; **`GET /tenant/settings/clock-qr/token`** for admins to reload/copy/download after page refresh. **`clock_qr_downloadable`** on tenant settings; legacy hash-only rows show a **regenerate** hint. Migration **`20260406140000_tenant_clock_qr_token_encrypted.sql`**.
@@ -33,6 +35,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Reports → Monthly attendance (Excel) (GitHub #165):** Users with **`report:read`** can pick a calendar month and **Download Excel** (`GET /reports/attendance-excel`) from the Reports page. New **`REPORTS.ATTENDANCE_EXCEL_*`** strings in all **`front/public/i18n/*.json`** files.
 
 ### Changed
+
+- **Agents:** **`agents/001-log-reviewer/LOG-REVIEWER-PROMPT.md`** — GitHub sweep step explicitly requires **`agent:planned`** on each touched issue.
+
+- **Agents:** Removed misplaced stubs under **`agents/agents/tasks/`** (`FEAT-20260406-1108-clarify-shared-venue-gps`, `NEW-20260406-1115-api-errors-auth-routes`); canonical tasks live under **`agents/tasks/`**.
 
 - **Staff reservations / multi-zone (GitHub #164):** The create/edit modal on **`/reservations`** now mirrors public **`/book`** for **seating**, **location zone** (when multiple floors match), and **`ReservationWeekSlotGridComponent`** **`bookFloorId`**; staff create/update sends **`preferred_floor_id`**. Duplicate task file **`WIP-20260406-0935-align-staff-reservations-form`** removed (same scope as **`UNTESTED-20260406-0915-align-staff-reservations-form`**).
 
