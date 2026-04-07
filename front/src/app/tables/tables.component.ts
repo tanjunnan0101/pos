@@ -15,6 +15,16 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
 
 const TABLES_VIEW_STORAGE_KEY = 'pos.tables.viewMode';
 
+/** One combined list row per joined group, or one row per ungrouped table. */
+type TablesListRow =
+  | { kind: 'group'; groupId: number; floorId: number; members: Table[]; label: string; seatTotal: number }
+  | { kind: 'single'; table: Table };
+
+/** One combined tile block per floor: joined group or single table. */
+type TablesTileBlock =
+  | { kind: 'group'; groupId: number; members: Table[]; label: string; seatTotal: number }
+  | { kind: 'single'; table: Table };
+
 function getInitialTablesViewMode(): 'tiles' | 'table' {
   if (typeof localStorage === 'undefined') return 'tiles';
   const v = localStorage.getItem(TABLES_VIEW_STORAGE_KEY);
@@ -145,97 +155,139 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
                   </tr>
                 </thead>
                 <tbody>
-                  @for (table of allTablesOrdered(); track table.id) {
-                    <tr>
-                      <td>
-                        @if (editingTableId() === table.id) {
-                          <input type="text" [(ngModel)]="editingName" class="edit-input-inline" (keydown.enter)="saveTable(table)" (keydown.escape)="cancelEdit()">
-                        } @else {
-                          <span class="table-name" (click)="startEdit(table)">{{ table.name }}</span>
-                        }
-                      </td>
-                      <td>
-                        @if (editingTableId() === table.id) {
-                          <select [(ngModel)]="editingFloorId" class="edit-select-inline" (keydown.escape)="cancelEdit()">
-                            @for (floor of floors(); track floor.id) {
-                              <option [ngValue]="floor.id">{{ floor.name }}</option>
-                            }
-                          </select>
-                        } @else {
-                          {{ getFloorName(table.floor_id) }}
-                        }
-                      </td>
-                      @if (editingTableId() !== table.id) {
-                        <td>{{ table.seat_count ?? '—' }}</td>
-                      } @else {
+                  @for (row of listViewRows(); track trackListRow($index, row)) {
+                    @if (row.kind === 'single') {
+                      <tr class="tr-table-row" (dblclick)="onTableCardDoubleClick(row.table)">
+                        <ng-container *ngTemplateOutlet="listTableDataRow; context: {$implicit: row.table}" />
+                      </tr>
+                    } @else {
+                      <tr class="tr-group-summary" (dblclick)="onListGroupDoubleClick(row)">
                         <td>
-                          <input type="number" [(ngModel)]="editingSeatCount" class="edit-input-inline edit-seats" min="1" max="20" (keydown.enter)="saveTable(table)" (keydown.escape)="cancelEdit()">
+                          <button type="button" class="btn-ghost btn-expand-group" (click)="toggleListGroupExpand(row.groupId); $event.stopPropagation()"
+                            [attr.aria-expanded]="isListGroupExpanded(row.groupId)"
+                            [title]="(isListGroupExpanded(row.groupId) ? 'TABLES.GROUP_COLLAPSE_MEMBERS' : 'TABLES.GROUP_EXPAND_MEMBERS') | translate">
+                            {{ isListGroupExpanded(row.groupId) ? '▾' : '▸' }}
+                          </button>
+                          <span class="group-label">{{ row.label }}</span>
+                          @if (groupMembersHaveActivity(row.members)) {
+                            <span class="badge-group-activity">{{ 'TABLES.GROUP_ACTIVITY_BADGE' | translate }}</span>
+                          }
                         </td>
-                      }
-                      <td>
-                        @if (table.is_active) {
-                          <span class="status-badge status-active status-inline"><span class="status-dot"></span>{{ 'TABLES.ACTIVE' | translate }}</span>
-                        } @else {
-                          <span class="status-badge status-inactive status-inline"><span class="status-dot"></span>{{ 'TABLES.INACTIVE' | translate }}</span>
-                        }
-                      </td>
-                      <td class="pin-cell">{{ table.order_pin ?? '—' }}</td>
-                      <td>
-                        @if (canManageTableAssignments()) {
-                          <select class="waiter-select-inline" (change)="onWaiterAssign(table, $event)">
-                            <option value="" [selected]="!table.assigned_waiter_id">{{ 'TABLES.UNASSIGNED' | translate }}</option>
-                            @for (w of waiters(); track w.id) {
-                              <option [value]="w.id" [selected]="table.assigned_waiter_id === w.id">{{ w.full_name || w.email }}</option>
-                            }
-                          </select>
-                          @if (!table.assigned_waiter_id && table.effective_waiter_name) {
-                            <div class="waiter-inherited-inline">{{ table.effective_waiter_name }}</div>
-                          }
-                        } @else {
-                          <div class="waiter-readonly-inline">
-                            @if (table.assigned_waiter_id) {
-                              {{ table.assigned_waiter_name || table.effective_waiter_name || '—' }}
-                            } @else if (table.effective_waiter_name) {
-                              {{ 'TABLES.SECTION_DEFAULT' | translate }}: {{ table.effective_waiter_name }}
-                            } @else {
-                              {{ 'TABLES.UNASSIGNED' | translate }}
-                            }
-                          </div>
-                        }
-                      </td>
-                      <td class="td-actions">
-                        @if (editingTableId() === table.id) {
-                          <button type="button" class="icon-btn icon-btn-success" (click)="saveTable(table)" [title]="'COMMON.SAVE' | translate">✓</button>
-                          <button type="button" class="icon-btn" (click)="cancelEdit()" [title]="'COMMON.CANCEL' | translate">✕</button>
-                        } @else {
-                          <button type="button" class="icon-btn icon-btn-edit" (click)="startEdit(table)" [title]="'COMMON.EDIT' | translate">✎</button>
-                          @if (table.is_active) {
-                            <button type="button" class="btn btn-sm btn-ghost" (click)="regeneratePin(table)" [disabled]="activatingTableId() === table.id" [title]="'TABLES.NEW_PIN' | translate">↻</button>
-                            <button type="button" class="btn btn-sm btn-warning" (click)="confirmCloseTable(table)" [disabled]="activatingTableId() === table.id" [title]="'TABLES.CLOSE_TABLE' | translate">⌫</button>
+                        <td>{{ getFloorName(row.floorId) }}</td>
+                        <td>{{ row.seatTotal }}</td>
+                        <td>
+                          @if (groupMembersHaveActiveSession(row.members)) {
+                            <span class="status-badge status-active status-inline"><span class="status-dot"></span>{{ 'TABLES.ACTIVE' | translate }}</span>
                           } @else {
-                            <button type="button" class="btn btn-sm btn-success" (click)="activateTableSession(table)" [disabled]="activatingTableId() === table.id" [title]="'TABLES.ACTIVATE' | translate">▶</button>
+                            <span class="status-badge status-inactive status-inline"><span class="status-dot"></span>{{ 'TABLES.INACTIVE' | translate }}</span>
                           }
-                          <button type="button" class="btn btn-secondary btn-sm" (click)="openStaffMenu(table)"
-                            [disabled]="staffMenuOpeningTableId() === table.id"
-                            [title]="'TABLES.OPEN_MENU' | translate">↗</button>
-                          <button type="button" class="icon-btn" (click)="copyLink(table)" [title]="'COMMON.COPY' | translate">⎘</button>
-                          <button type="button" class="icon-btn icon-btn-danger" (click)="deleteTable(table)" [title]="'COMMON.DELETE' | translate">🗑</button>
+                        </td>
+                        <td class="pin-cell">—</td>
+                        <td>—</td>
+                        <td class="td-actions">
+                          <button type="button" class="btn btn-ghost btn-sm" (click)="toggleListGroupExpand(row.groupId); $event.stopPropagation()">
+                            {{ (isListGroupExpanded(row.groupId) ? 'TABLES.GROUP_COLLAPSE_MEMBERS' : 'TABLES.GROUP_EXPAND_MEMBERS') | translate }}
+                          </button>
+                        </td>
+                      </tr>
+                      @if (isListGroupExpanded(row.groupId)) {
+                        @for (table of row.members; track table.id) {
+                          <tr class="tr-group-member" (dblclick)="onTableCardDoubleClick(table)">
+                            <ng-container *ngTemplateOutlet="listTableDataRow; context: {$implicit: table}" />
+                          </tr>
                         }
-                      </td>
-                    </tr>
+                      }
+                    }
                   }
                 </tbody>
+                <ng-template #listTableDataRow let-table>
+                  <td>
+                    @if (editingTableId() === table.id) {
+                      <input type="text" [(ngModel)]="editingName" class="edit-input-inline" (keydown.enter)="saveTable(table)" (keydown.escape)="cancelEdit()">
+                    } @else {
+                      <span class="table-name" (click)="startEdit(table)">{{ table.name }}</span>
+                    }
+                  </td>
+                  <td>
+                    @if (editingTableId() === table.id) {
+                      <select [(ngModel)]="editingFloorId" class="edit-select-inline" (keydown.escape)="cancelEdit()">
+                        @for (floor of floors(); track floor.id) {
+                          <option [ngValue]="floor.id">{{ floor.name }}</option>
+                        }
+                      </select>
+                    } @else {
+                      {{ getFloorName(table.floor_id) }}
+                    }
+                  </td>
+                  @if (editingTableId() !== table.id) {
+                    <td>{{ table.seat_count ?? '—' }}</td>
+                  } @else {
+                    <td>
+                      <input type="number" [(ngModel)]="editingSeatCount" class="edit-input-inline edit-seats" min="1" max="20" (keydown.enter)="saveTable(table)" (keydown.escape)="cancelEdit()">
+                    </td>
+                  }
+                  <td>
+                    @if (table.is_active) {
+                      <span class="status-badge status-active status-inline"><span class="status-dot"></span>{{ 'TABLES.ACTIVE' | translate }}</span>
+                    } @else {
+                      <span class="status-badge status-inactive status-inline"><span class="status-dot"></span>{{ 'TABLES.INACTIVE' | translate }}</span>
+                    }
+                  </td>
+                  <td class="pin-cell">{{ table.order_pin ?? '—' }}</td>
+                  <td>
+                    @if (canManageTableAssignments()) {
+                      <select class="waiter-select-inline" (change)="onWaiterAssign(table, $event)">
+                        <option value="" [selected]="!table.assigned_waiter_id">{{ 'TABLES.UNASSIGNED' | translate }}</option>
+                        @for (w of waiters(); track w.id) {
+                          <option [value]="w.id" [selected]="table.assigned_waiter_id === w.id">{{ w.full_name || w.email }}</option>
+                        }
+                      </select>
+                      @if (!table.assigned_waiter_id && table.effective_waiter_name) {
+                        <div class="waiter-inherited-inline">{{ table.effective_waiter_name }}</div>
+                      }
+                    } @else {
+                      <div class="waiter-readonly-inline">
+                        @if (table.assigned_waiter_id) {
+                          {{ table.assigned_waiter_name || table.effective_waiter_name || '—' }}
+                        } @else if (table.effective_waiter_name) {
+                          {{ 'TABLES.SECTION_DEFAULT' | translate }}: {{ table.effective_waiter_name }}
+                        } @else {
+                          {{ 'TABLES.UNASSIGNED' | translate }}
+                        }
+                      </div>
+                    }
+                  </td>
+                  <td class="td-actions">
+                    @if (editingTableId() === table.id) {
+                      <button type="button" class="icon-btn icon-btn-success" (click)="saveTable(table)" [title]="'COMMON.SAVE' | translate">✓</button>
+                      <button type="button" class="icon-btn" (click)="cancelEdit()" [title]="'COMMON.CANCEL' | translate">✕</button>
+                    } @else {
+                      <button type="button" class="icon-btn icon-btn-edit" (click)="startEdit(table)" [title]="'COMMON.EDIT' | translate">✎</button>
+                      @if (table.is_active) {
+                        <button type="button" class="btn btn-sm btn-ghost" (click)="regeneratePin(table)" [disabled]="activatingTableId() === table.id" [title]="'TABLES.NEW_PIN' | translate">↻</button>
+                        <button type="button" class="btn btn-sm btn-warning" (click)="confirmCloseTable(table)" [disabled]="activatingTableId() === table.id" [title]="'TABLES.CLOSE_TABLE' | translate">⌫</button>
+                      } @else {
+                        <button type="button" class="btn btn-sm btn-success" (click)="activateTableSession(table)" [disabled]="activatingTableId() === table.id" [title]="'TABLES.ACTIVATE' | translate">▶</button>
+                      }
+                      <button type="button" class="btn btn-secondary btn-sm" (click)="openStaffMenu(table)"
+                        [disabled]="staffMenuOpeningTableId() === table.id"
+                        [title]="'TABLES.OPEN_MENU' | translate">↗</button>
+                      <button type="button" class="icon-btn" (click)="copyLink(table)" [title]="'COMMON.COPY' | translate">⎘</button>
+                      <button type="button" class="icon-btn icon-btn-danger" (click)="deleteTable(table)" [title]="'COMMON.DELETE' | translate">🗑</button>
+                    }
+                  </td>
+                </ng-template>
               </table>
             </div>
           } @else {
             <!-- Tiles view: grouped by Floor -->
             @for (floor of floorsSorted(); track floor.id) {
-              @if (getTablesByFloor(floor.id!).length > 0) {
+              @if (tileBlocksForFloor(floor.id!).length > 0) {
                 <div class="floor-section">
                   <div class="section-header">
                     <div class="section-header-left">
                       <h2>{{ floor.name }}</h2>
-                      <span class="badge">{{ getTablesByFloor(floor.id!).length }}</span>
+                      <span class="badge">{{ tileBlocksForFloor(floor.id!).length }}</span>
                     </div>
                     @if (canManageFloors()) {
                       <div class="floor-admin-actions">
@@ -295,224 +347,248 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
                   </div>
                   
                   <div class="table-grid">
-                    @for (table of getTablesByFloor(floor.id!); track table.id) {
-                      <div class="table-card" (dblclick)="onTableCardDoubleClick(table)">
-                        <div class="table-header">
-                          @if (editingTableId() === table.id) {
-                            <div class="edit-fields">
-                              <input 
-                                type="text" 
-                                [(ngModel)]="editingName" 
-                                class="edit-input"
-                                (keydown.enter)="saveTable(table)"
-                                (keydown.escape)="cancelEdit()"
-                                autofocus
-                              >
-                              <input 
-                                type="number" 
-                                [(ngModel)]="editingSeatCount" 
-                                class="edit-input edit-input-seats"
-                                min="1"
-                                max="20"
-                                placeholder="Seats"
-                                (keydown.enter)="saveTable(table)"
-                                (keydown.escape)="cancelEdit()"
-                              >
-                              <div class="edit-actions">
-                                <button class="icon-btn icon-btn-success" (click)="saveTable(table)" [title]="'COMMON.SAVE' | translate">
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="20,6 9,17 4,12"/>
-                                  </svg>
-                                </button>
-                                <button class="icon-btn" (click)="cancelEdit()" [title]="'COMMON.CANCEL' | translate">
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M18 6L6 18M6 6l12 12"/>
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                          } @else {
-                            <div class="table-info">
-                              <h3 (click)="startEdit(table)" class="editable-name">{{ table.name }}</h3>
-                              <div class="seat-count" (click)="startEdit(table)">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-                                  <circle cx="9" cy="7" r="4"/>
-                                  <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-                                </svg>
-                                {{ table.seat_count || '0' }} {{ 'TABLES.SEATS' | translate }}
-                              </div>
-                            </div>
-                            <div class="header-actions">
-                              <button class="icon-btn icon-btn-edit" (click)="startEdit(table)" [title]="'COMMON.EDIT' | translate">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                </svg>
-                              </button>
-                              <button class="icon-btn icon-btn-danger" (click)="deleteTable(table)" [title]="'COMMON.DELETE' | translate">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                  <polyline points="3,6 5,6 21,6"/>
-                                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                                </svg>
-                              </button>
-                            </div>
-                          }
+                    @for (block of tileBlocksForFloor(floor.id!); track trackTileBlock($index, block)) {
+                      @if (block.kind === 'single') {
+                        <div class="table-card" (dblclick)="onTableCardDoubleClick(block.table)">
+                          <ng-container *ngTemplateOutlet="tableTileInner; context: {$implicit: block.table}" />
                         </div>
-
-                        <!-- Table Status and PIN Section -->
-                        <div class="status-section">
-                          @if (table.is_active) {
-                            <div class="status-badge status-active">
-                              <span class="status-dot"></span>
-                              {{ 'TABLES.ACTIVE' | translate }}
-                            </div>
-                            @if (table.order_pin) {
-                              <div class="pin-display">
-                                <span class="pin-label">PIN:</span>
-                                <span class="pin-value">{{ table.order_pin }}</span>
-                              </div>
-                            }
-                          } @else {
-                            <div class="status-badge status-inactive">
-                              <span class="status-dot"></span>
-                              {{ 'TABLES.INACTIVE' | translate }}
-                            </div>
-                          }
-                        </div>
-
-                        <!-- Waiter Assignment -->
-                        <div class="waiter-assign-section">
-                          <div class="waiter-assign-row">
-                            <svg class="waiter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-                              <circle cx="12" cy="7" r="4"/>
-                            </svg>
-                            @if (canManageTableAssignments()) {
-                              <select class="waiter-select" (change)="onWaiterAssign(table, $event)">
-                                <option value="" [selected]="!table.assigned_waiter_id">{{ 'TABLES.UNASSIGNED' | translate }}</option>
-                                @for (w of waiters(); track w.id) {
-                                  <option [value]="w.id" [selected]="table.assigned_waiter_id === w.id">{{ w.full_name || w.email }}</option>
-                                }
-                              </select>
-                            } @else {
-                              <span class="waiter-readonly">
-                                @if (table.assigned_waiter_id) {
-                                  {{ table.assigned_waiter_name || table.effective_waiter_name || '—' }}
-                                } @else if (table.effective_waiter_name) {
-                                  {{ 'TABLES.SECTION_DEFAULT' | translate }}: {{ table.effective_waiter_name }}
-                                } @else {
-                                  {{ 'TABLES.UNASSIGNED' | translate }}
-                                }
-                              </span>
-                            }
-                          </div>
-                          @if (canManageTableAssignments() && !table.assigned_waiter_id && table.effective_waiter_name) {
-                            <div class="waiter-inherited">{{ 'TABLES.SECTION_DEFAULT' | translate }}: {{ table.effective_waiter_name }}</div>
-                          }
-                        </div>
-
-                        <div class="qr-section">
-                          <div class="qr-card">
-                            @if (tenantSettings()) {
-                              <div class="qr-header">
-                                <div class="company-name">{{ tenantSettings()!.name }}</div>
-                                @if (tenantSettings()!.phone) {
-                                  <div class="company-phone">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                      <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
-                                    </svg>
-                                    {{ tenantSettings()!.phone }}
-                                  </div>
-                                }
-                              </div>
-                              <div class="qr-code-wrapper">
-                                <qrcode [qrdata]="getMenuUrl(table)" [width]="180" [errorCorrectionLevel]="'M'" cssClass="qr-code"></qrcode>
-                              </div>
-                              <div class="qr-footer">
-                                <div class="table-number">{{ table.name }}</div>
-                              </div>
-                            } @else {
-                              <div class="qr-code-wrapper">
-                                <qrcode [qrdata]="getMenuUrl(table)" [width]="180" [errorCorrectionLevel]="'M'" cssClass="qr-code"></qrcode>
-                              </div>
-                              <div class="qr-footer">
-                                <div class="table-number">{{ table.name }}</div>
-                              </div>
-                            }
-                          </div>
-                        </div>
-
-                        <!-- Session Control Actions -->
-                        <div class="session-actions">
-                          @if (table.is_active) {
-                            <button 
-                              class="btn btn-sm btn-ghost" 
-                              (click)="regeneratePin(table)"
-                              [disabled]="activatingTableId() === table.id"
-                              title="Generate new PIN">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M23 4v6h-6M1 20v-6h6"/>
-                                <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-                              </svg>
-                              {{ 'TABLES.NEW_PIN' | translate }}
-                            </button>
-                            <button 
-                              class="btn btn-sm btn-warning" 
-                              (click)="confirmCloseTable(table)"
-                              [disabled]="activatingTableId() === table.id">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                <path d="M7 11V7a5 5 0 0110 0v4"/>
-                              </svg>
-                              {{ 'TABLES.CLOSE_TABLE' | translate }}
-                            </button>
-                          } @else {
-                            <button 
-                              class="btn btn-sm btn-success" 
-                              (click)="activateTableSession(table)"
-                              [disabled]="activatingTableId() === table.id">
-                              @if (activatingTableId() === table.id) {
-                                <span class="spinner"></span>
-                              } @else {
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                  <path d="M7 11V7a5 5 0 0110 0v4"/>
-                                </svg>
+                      } @else {
+                        <div class="table-card table-card--group">
+                          <div class="group-tile-banner">
+                            <h3 class="group-tile-title">{{ block.label }}</h3>
+                            <div class="group-tile-meta">
+                              <span>{{ block.seatTotal }} {{ 'TABLES.SEATS' | translate }}</span>
+                              @if (groupMembersHaveActivity(block.members)) {
+                                <span class="badge-group-activity">{{ 'TABLES.GROUP_ACTIVITY_BADGE' | translate }}</span>
                               }
-                              {{ 'TABLES.ACTIVATE' | translate }}
-                            </button>
+                            </div>
+                            <p class="group-tile-hint">{{ 'TABLES.GROUP_TILE_MEMBER_HINT' | translate }}</p>
+                          </div>
+                          @for (table of block.members; track table.id) {
+                            <div class="group-tile-member" (dblclick)="onTableCardDoubleClick(table)">
+                              <div class="group-tile-member-label">{{ table.name }}</div>
+                              <ng-container *ngTemplateOutlet="tableTileInner; context: {$implicit: table}" />
+                            </div>
                           }
                         </div>
-
-                        <div class="table-actions">
-                          <button type="button" class="btn btn-secondary btn-sm" (click)="openStaffMenu(table)"
-                            [disabled]="staffMenuOpeningTableId() === table.id">{{ 'TABLES.OPEN_MENU' | translate }}</button>
-                          <button 
-                            class="btn btn-sm" 
-                            [class.btn-ghost]="copiedTableId() !== table.id"
-                            [class.btn-copied]="copiedTableId() === table.id"
-                            (click)="copyLink(table)">
-                            @if (copiedTableId() === table.id) {
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="20,6 9,17 4,12"/>
-                              </svg>
-                              Copied!
-                            } @else {
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-                              </svg>
-                              Copy
-                            }
-                          </button>
-                        </div>
-                      </div>
+                      }
                     }
                   </div>
                 </div>
               }
             }
+            <ng-template #tableTileInner let-table>
+              <div class="table-header">
+                @if (editingTableId() === table.id) {
+                  <div class="edit-fields">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="editingName" 
+                      class="edit-input"
+                      (keydown.enter)="saveTable(table)"
+                      (keydown.escape)="cancelEdit()"
+                      autofocus
+                    >
+                    <input 
+                      type="number" 
+                      [(ngModel)]="editingSeatCount" 
+                      class="edit-input edit-input-seats"
+                      min="1"
+                      max="20"
+                      placeholder="Seats"
+                      (keydown.enter)="saveTable(table)"
+                      (keydown.escape)="cancelEdit()"
+                    >
+                    <div class="edit-actions">
+                      <button class="icon-btn icon-btn-success" (click)="saveTable(table)" [title]="'COMMON.SAVE' | translate">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="20,6 9,17 4,12"/>
+                        </svg>
+                      </button>
+                      <button class="icon-btn" (click)="cancelEdit()" [title]="'COMMON.CANCEL' | translate">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="table-info">
+                    <h3 (click)="startEdit(table)" class="editable-name">{{ table.name }}</h3>
+                    <div class="seat-count" (click)="startEdit(table)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                      </svg>
+                      {{ table.seat_count || '0' }} {{ 'TABLES.SEATS' | translate }}
+                    </div>
+                  </div>
+                  <div class="header-actions">
+                    <button class="icon-btn icon-btn-edit" (click)="startEdit(table)" [title]="'COMMON.EDIT' | translate">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="icon-btn icon-btn-danger" (click)="deleteTable(table)" [title]="'COMMON.DELETE' | translate">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3,6 5,6 21,6"/>
+                        <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <!-- Table Status and PIN Section -->
+              <div class="status-section">
+                @if (table.is_active) {
+                  <div class="status-badge status-active">
+                    <span class="status-dot"></span>
+                    {{ 'TABLES.ACTIVE' | translate }}
+                  </div>
+                  @if (table.order_pin) {
+                    <div class="pin-display">
+                      <span class="pin-label">PIN:</span>
+                      <span class="pin-value">{{ table.order_pin }}</span>
+                    </div>
+                  }
+                } @else {
+                  <div class="status-badge status-inactive">
+                    <span class="status-dot"></span>
+                    {{ 'TABLES.INACTIVE' | translate }}
+                  </div>
+                }
+              </div>
+
+              <!-- Waiter Assignment -->
+              <div class="waiter-assign-section">
+                <div class="waiter-assign-row">
+                  <svg class="waiter-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  @if (canManageTableAssignments()) {
+                    <select class="waiter-select" (change)="onWaiterAssign(table, $event)">
+                      <option value="" [selected]="!table.assigned_waiter_id">{{ 'TABLES.UNASSIGNED' | translate }}</option>
+                      @for (w of waiters(); track w.id) {
+                        <option [value]="w.id" [selected]="table.assigned_waiter_id === w.id">{{ w.full_name || w.email }}</option>
+                      }
+                    </select>
+                  } @else {
+                    <span class="waiter-readonly">
+                      @if (table.assigned_waiter_id) {
+                        {{ table.assigned_waiter_name || table.effective_waiter_name || '—' }}
+                      } @else if (table.effective_waiter_name) {
+                        {{ 'TABLES.SECTION_DEFAULT' | translate }}: {{ table.effective_waiter_name }}
+                      } @else {
+                        {{ 'TABLES.UNASSIGNED' | translate }}
+                      }
+                    </span>
+                  }
+                </div>
+                @if (canManageTableAssignments() && !table.assigned_waiter_id && table.effective_waiter_name) {
+                  <div class="waiter-inherited">{{ 'TABLES.SECTION_DEFAULT' | translate }}: {{ table.effective_waiter_name }}</div>
+                }
+              </div>
+
+              <div class="qr-section">
+                <div class="qr-card">
+                  @if (tenantSettings()) {
+                    <div class="qr-header">
+                      <div class="company-name">{{ tenantSettings()!.name }}</div>
+                      @if (tenantSettings()!.phone) {
+                        <div class="company-phone">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                          </svg>
+                          {{ tenantSettings()!.phone }}
+                        </div>
+                      }
+                    </div>
+                    <div class="qr-code-wrapper">
+                      <qrcode [qrdata]="getMenuUrl(table)" [width]="180" [errorCorrectionLevel]="'M'" cssClass="qr-code"></qrcode>
+                    </div>
+                    <div class="qr-footer">
+                      <div class="table-number">{{ table.name }}</div>
+                    </div>
+                  } @else {
+                    <div class="qr-code-wrapper">
+                      <qrcode [qrdata]="getMenuUrl(table)" [width]="180" [errorCorrectionLevel]="'M'" cssClass="qr-code"></qrcode>
+                    </div>
+                    <div class="qr-footer">
+                      <div class="table-number">{{ table.name }}</div>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Session Control Actions -->
+              <div class="session-actions">
+                @if (table.is_active) {
+                  <button 
+                    class="btn btn-sm btn-ghost" 
+                    (click)="regeneratePin(table)"
+                    [disabled]="activatingTableId() === table.id"
+                    title="Generate new PIN">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M23 4v6h-6M1 20v-6h6"/>
+                      <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                    </svg>
+                    {{ 'TABLES.NEW_PIN' | translate }}
+                  </button>
+                  <button 
+                    class="btn btn-sm btn-warning" 
+                    (click)="confirmCloseTable(table)"
+                    [disabled]="activatingTableId() === table.id">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0110 0v4"/>
+                    </svg>
+                    {{ 'TABLES.CLOSE_TABLE' | translate }}
+                  </button>
+                } @else {
+                  <button 
+                    class="btn btn-sm btn-success" 
+                    (click)="activateTableSession(table)"
+                    [disabled]="activatingTableId() === table.id">
+                    @if (activatingTableId() === table.id) {
+                      <span class="spinner"></span>
+                    } @else {
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0110 0v4"/>
+                      </svg>
+                    }
+                    {{ 'TABLES.ACTIVATE' | translate }}
+                  </button>
+                }
+              </div>
+
+              <div class="table-actions">
+                <button type="button" class="btn btn-secondary btn-sm" (click)="openStaffMenu(table)"
+                  [disabled]="staffMenuOpeningTableId() === table.id">{{ 'TABLES.OPEN_MENU' | translate }}</button>
+                <button 
+                  class="btn btn-sm" 
+                  [class.btn-ghost]="copiedTableId() !== table.id"
+                  [class.btn-copied]="copiedTableId() === table.id"
+                  (click)="copyLink(table)">
+                  @if (copiedTableId() === table.id) {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20,6 9,17 4,12"/>
+                    </svg>
+                    Copied!
+                  } @else {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                    </svg>
+                    Copy
+                  }
+                </button>
+              </div>
+            </ng-template>
           }
         </div>
 
@@ -527,6 +603,19 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
             [confirmBtnClass]="confirmationModal().confirmBtnClass"
             (confirm)="onConfirmationConfirm()"
             (cancel)="onConfirmationCancel()"
+          ></app-confirmation-modal>
+        }
+
+        @if (groupSafetyModal(); as g) {
+          <app-confirmation-modal
+            [title]="'TABLES.GROUP_SIBLING_ACTIVITY_TITLE'"
+            [message]="'TABLES.GROUP_SIBLING_ACTIVITY_MESSAGE'"
+            [messageParams]="{ names: g.siblingNames }"
+            [confirmText]="'TABLES.GROUP_SIBLING_ACTIVITY_CONFIRM'"
+            [cancelText]="'COMMON.CANCEL'"
+            [confirmBtnClass]="'btn-warning'"
+            (confirm)="onGroupSafetyConfirm()"
+            (cancel)="onGroupSafetyCancel()"
           ></app-confirmation-modal>
         }
 
@@ -680,6 +769,32 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
     .badge { background: var(--color-bg); color: var(--color-text-muted); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
 
     .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-4); }
+
+    .btn-expand-group {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 28px; min-height: 28px; padding: 0 6px; margin-right: var(--space-2);
+      border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--color-surface);
+      cursor: pointer; font-size: 0.75rem; color: var(--color-text-muted);
+    }
+    .btn-expand-group:hover { background: var(--color-bg); color: var(--color-text); }
+    .group-label { font-weight: 600; }
+    .badge-group-activity {
+      margin-left: var(--space-2); font-size: 0.625rem; font-weight: 700; text-transform: uppercase;
+      padding: 2px 6px; border-radius: 6px; background: rgba(245, 158, 11, 0.15); color: #b45309;
+    }
+    .tables-data-table .tr-group-summary td { background: var(--color-bg); vertical-align: middle; }
+    .tables-data-table .tr-group-member td { background: var(--color-surface); }
+    .tables-data-table .tr-group-member td:first-child { padding-left: 2.25rem; border-left: 3px solid rgba(168, 85, 247, 0.35); }
+
+    .table-card--group {
+      text-align: left; border-color: rgba(168, 85, 247, 0.35);
+    }
+    .group-tile-banner { margin-bottom: var(--space-2); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border); }
+    .group-tile-title { margin: 0 0 var(--space-2); font-size: 1.125rem; font-weight: 600; text-align: center; }
+    .group-tile-meta { display: flex; align-items: center; justify-content: center; gap: var(--space-2); flex-wrap: wrap; font-size: 0.875rem; color: var(--color-text-muted); }
+    .group-tile-hint { margin: var(--space-2) 0 0; font-size: 0.75rem; color: var(--color-text-muted); text-align: center; }
+    .group-tile-member { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px dashed var(--color-border); }
+    .group-tile-member-label { font-size: 0.8rem; font-weight: 600; margin-bottom: var(--space-2); color: var(--color-primary); text-align: center; }
 
     .table-card {
       background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg);
@@ -954,6 +1069,11 @@ export class TablesComponent implements OnInit {
     return this.tables().filter(t => t.id !== table.id);
   });
 
+  /** List view: which joined groups show member rows (by group id). */
+  expandedListGroupIds = signal<number[]>([]);
+  /** Warn before activate / open menu when another group member already has a session or order. */
+  groupSafetyModal = signal<{ table: Table; action: 'activate' | 'menu'; siblingNames: string } | null>(null);
+
   constructor() {
     effect(() => {
       const mode = this.viewMode();
@@ -1125,16 +1245,167 @@ export class TablesComponent implements OnInit {
     return floor?.name ?? '—';
   }
 
-  /** All tables sorted by floor name then table name, for table view */
-  allTablesOrdered(): Table[] {
-    const floors = this.floors();
+  /** Sorted member names for a joined group (matches backend display). */
+  private groupLabelFromMembers(members: Table[]): string {
+    const names = members.map(m => m.name ?? '').filter(Boolean).sort((a, b) => a.localeCompare(b));
+    return names.join(' + ');
+  }
+
+  tableHasActiveSessionOrOpenOrder(t: Table): boolean {
+    if (t.is_active) return true;
+    const oid = t.active_order_id;
+    return oid != null && oid > 0;
+  }
+
+  /** Other members of the same group that already have an active session or open order. */
+  getGroupSiblingActivityOthers(table: Table): Table[] {
+    if (!table.table_group_id || table.id == null) return [];
+    const gid = table.table_group_id;
+    return this.tables().filter(
+      t =>
+        t.id != null &&
+        t.id !== table.id &&
+        t.table_group_id === gid &&
+        this.tableHasActiveSessionOrOpenOrder(t),
+    );
+  }
+
+  groupMembersHaveActivity(members: Table[]): boolean {
+    return members.some(m => this.tableHasActiveSessionOrOpenOrder(m));
+  }
+
+  groupMembersHaveActiveSession(members: Table[]): boolean {
+    return members.some(m => m.is_active);
+  }
+
+  listViewRows(): TablesListRow[] {
     const tables = this.tables();
-    return [...tables].sort((a, b) => {
-      const nameA = this.getFloorName(a.floor_id);
-      const nameB = this.getFloorName(b.floor_id);
-      if (nameA !== nameB) return nameA.localeCompare(nameB);
-      return (a.name ?? '').localeCompare(b.name ?? '');
+    const byGroup = new Map<number, Table[]>();
+    for (const t of tables) {
+      if (t.table_group_id != null && t.id != null) {
+        const arr = byGroup.get(t.table_group_id) ?? [];
+        arr.push(t);
+        byGroup.set(t.table_group_id, arr);
+      }
+    }
+    for (const [, arr] of byGroup) {
+      arr.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+    }
+
+    const seenGroup = new Set<number>();
+    const rows: TablesListRow[] = [];
+    for (const t of tables) {
+      const gid = t.table_group_id;
+      if (gid == null) {
+        rows.push({ kind: 'single', table: t });
+        continue;
+      }
+      if (seenGroup.has(gid)) continue;
+      seenGroup.add(gid);
+      const members = byGroup.get(gid) ?? [];
+      if (members.length === 0) continue;
+      const label = this.groupLabelFromMembers(members);
+      const seatTotal =
+        members[0].group_seat_total ?? members.reduce((s, m) => s + (m.seat_count ?? 0), 0);
+      rows.push({
+        kind: 'group',
+        groupId: gid,
+        floorId: members[0].floor_id ?? 0,
+        members,
+        label,
+        seatTotal,
+      });
+    }
+    return rows.sort((a, b) => {
+      const floorA = this.getFloorName(a.kind === 'group' ? a.floorId : a.table.floor_id);
+      const floorB = this.getFloorName(b.kind === 'group' ? b.floorId : b.table.floor_id);
+      if (floorA !== floorB) return floorA.localeCompare(floorB);
+      const nameA = a.kind === 'group' ? a.label : (a.table.name ?? '');
+      const nameB = b.kind === 'group' ? b.label : (b.table.name ?? '');
+      return nameA.localeCompare(nameB);
     });
+  }
+
+  trackListRow(_index: number, row: TablesListRow): string {
+    if (row.kind === 'group') return `g-${row.groupId}`;
+    return `t-${row.table.id ?? 0}`;
+  }
+
+  tileBlocksForFloor(floorId: number): TablesTileBlock[] {
+    const onFloor = this.getTablesByFloor(floorId);
+    const byGroup = new Map<number, Table[]>();
+    for (const t of onFloor) {
+      if (t.table_group_id != null && t.id != null) {
+        const arr = byGroup.get(t.table_group_id) ?? [];
+        arr.push(t);
+        byGroup.set(t.table_group_id, arr);
+      }
+    }
+    for (const [, arr] of byGroup) {
+      arr.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+    }
+    const seen = new Set<number>();
+    const blocks: TablesTileBlock[] = [];
+    for (const t of onFloor) {
+      const gid = t.table_group_id;
+      if (gid == null) {
+        blocks.push({ kind: 'single', table: t });
+        continue;
+      }
+      if (seen.has(gid)) continue;
+      seen.add(gid);
+      const members = byGroup.get(gid) ?? [];
+      if (members.length === 0) continue;
+      const label = this.groupLabelFromMembers(members);
+      const seatTotal =
+        members[0].group_seat_total ?? members.reduce((s, m) => s + (m.seat_count ?? 0), 0);
+      blocks.push({ kind: 'group', groupId: gid, members, label, seatTotal });
+    }
+    return blocks.sort((a, b) => {
+      const nameA = a.kind === 'group' ? a.label : (a.table.name ?? '');
+      const nameB = b.kind === 'group' ? b.label : (b.table.name ?? '');
+      return nameA.localeCompare(nameB);
+    });
+  }
+
+  trackTileBlock(_index: number, block: TablesTileBlock): string {
+    if (block.kind === 'group') return `g-${block.groupId}-${_index}`;
+    return `t-${block.table.id ?? _index}`;
+  }
+
+  isListGroupExpanded(groupId: number): boolean {
+    return this.expandedListGroupIds().includes(groupId);
+  }
+
+  toggleListGroupExpand(groupId: number): void {
+    this.expandedListGroupIds.update(ids => {
+      const i = ids.indexOf(groupId);
+      if (i >= 0) {
+        return ids.filter(x => x !== groupId);
+      }
+      return [...ids, groupId];
+    });
+  }
+
+  onListGroupDoubleClick(row: Extract<TablesListRow, { kind: 'group' }>): void {
+    const withOrder = row.members.find(m => m.active_order_id != null && m.active_order_id > 0);
+    const t = withOrder ?? row.members[0];
+    if (t) this.onTableCardDoubleClick(t);
+  }
+
+  onGroupSafetyConfirm(): void {
+    const g = this.groupSafetyModal();
+    this.groupSafetyModal.set(null);
+    if (!g?.table.id) return;
+    if (g.action === 'activate') {
+      this.doActivateTableSession(g.table);
+    } else {
+      this.doOpenStaffMenu(g.table);
+    }
+  }
+
+  onGroupSafetyCancel(): void {
+    this.groupSafetyModal.set(null);
   }
 
   createTable(e: Event) {
@@ -1274,6 +1545,20 @@ export class TablesComponent implements OnInit {
 
   openStaffMenu(table: Table) {
     if (!table.id) return;
+    const others = this.getGroupSiblingActivityOthers(table);
+    if (others.length) {
+      this.groupSafetyModal.set({
+        table,
+        action: 'menu',
+        siblingNames: others.map(t => t.name || '?').join(', '),
+      });
+      return;
+    }
+    this.doOpenStaffMenu(table);
+  }
+
+  private doOpenStaffMenu(table: Table) {
+    if (!table.id) return;
     this.staffMenuOpeningTableId.set(table.id);
     this.api.getStaffMenuToken(table.id).subscribe({
       next: (res) => {
@@ -1378,6 +1663,22 @@ export class TablesComponent implements OnInit {
 
   // Table Session Management
   activateTableSession(table: Table) {
+    if (!table.id) return;
+    if (!table.is_active) {
+      const others = this.getGroupSiblingActivityOthers(table);
+      if (others.length) {
+        this.groupSafetyModal.set({
+          table,
+          action: 'activate',
+          siblingNames: others.map(t => t.name || '?').join(', '),
+        });
+        return;
+      }
+    }
+    this.doActivateTableSession(table);
+  }
+
+  private doActivateTableSession(table: Table) {
     if (!table.id) return;
     this.activatingTableId.set(table.id);
     this.api.activateTable(table.id).subscribe({

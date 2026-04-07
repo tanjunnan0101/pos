@@ -731,7 +731,15 @@
     "SEATING_ZONE_INDOOR": "केवल अंदर",
     "SEATING_ZONE_OUTDOOR": "बरामदा / बाहर",
     "FLOOR_MOVE_UP": "फ़्लोर ऊपर",
-    "FLOOR_MOVE_DOWN": "फ़्लोर नीचे"
+    "FLOOR_MOVE_DOWN": "फ़्लोर नीचे",
+    "GROUP_EXPAND_MEMBERS": "सदस्य टेबल दिखाएँ",
+    "GROUP_COLLAPSE_MEMBERS": "सदस्य टेबल छिपाएँ",
+    "GROUP_ACTIVITY_BADGE": "समूह गतिविधि",
+    "GROUP_TILE_MEMBER_HINT": "प्रत्येक भौतिक टेबल का नीचे अपना QR और क्रियाएँ हैं।",
+    "GROUP_SIBLING_ACTIVITY_TITLE": "इस समूह में एक और टेबल सक्रिय है",
+    "GROUP_SIBLING_ACTIVITY_MESSAGE": "जोड़ा समूह: {{names}} में पहले से सक्रिय सत्र या खुला ऑर्डर है। अलग टिकट की जरूरत न हो तो उसी का उपयोग करें।",
+    "GROUP_SIBLING_ACTIVITY_CONFIRM": "फिर भी जारी रखें",
+    "GROUP_SIBLING_FLOOR_DOT": "इस समूह में किसी अन्य टेबल पर सक्रिय सत्र या खुला ऑर्डर है"
   },
   "TABLE_STATUS": {
     "available": "उपलब्ध",

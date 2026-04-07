@@ -893,7 +893,15 @@
     "SEATING_ZONE_INDOOR": "Само вътре",
     "SEATING_ZONE_OUTDOOR": "Тераса / навън",
     "FLOOR_MOVE_UP": "Премести нагоре",
-    "FLOOR_MOVE_DOWN": "Премести надолу"
+    "FLOOR_MOVE_DOWN": "Премести надолу",
+    "GROUP_EXPAND_MEMBERS": "Покажи масите в групата",
+    "GROUP_COLLAPSE_MEMBERS": "Скрий масите в групата",
+    "GROUP_ACTIVITY_BADGE": "Активност в групата",
+    "GROUP_TILE_MEMBER_HINT": "Всяка физическа маса има собствен QR код и действия по-долу.",
+    "GROUP_SIBLING_ACTIVITY_TITLE": "Друга маса в тази група е активна",
+    "GROUP_SIBLING_ACTIVITY_MESSAGE": "Обединена група: {{names}} вече има активна сесия или отворена поръчка. Използвайте нея, освен ако не ви трябва отделен билет.",
+    "GROUP_SIBLING_ACTIVITY_CONFIRM": "Продължи все пак",
+    "GROUP_SIBLING_FLOOR_DOT": "Друга маса в тази група има активна сесия или отворена поръчка"
   },
   "TABLE_STATUS": {
     "available": "Наличен",

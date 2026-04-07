@@ -387,6 +387,12 @@ const STAFF_ORDERS_ROLES = new Set([
                         </text>
                       </g>
                     }
+                    @if (groupSiblingHasActivity(table)) {
+                      <g [attr.transform]="'translate(' + (-((table.width || 100) / 2) + 10) + ',' + (-((table.height || 70) / 2) + 12) + ')'">
+                        <title>{{ 'TABLES.GROUP_SIBLING_FLOOR_DOT' | translate }}</title>
+                        <circle r="5" fill="#f59e0b" opacity="0.95"/>
+                      </g>
+                    }
                   </g>
                 }
 
@@ -1915,6 +1921,18 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
     return st.group_member_ids
       .map(id => this.tables().find(t => t.id === id)?.name || '?')
       .join(' + ');
+  }
+
+  /** True when another member of the same joined group has an active session or open order (staff hint on floor). */
+  groupSiblingHasActivity(table: CanvasTable): boolean {
+    if (!table.table_group_id || table.id == null) return false;
+    const gid = table.table_group_id;
+    return this.tables().some(t => {
+      if (t.id == null || t.id === table.id || t.table_group_id !== gid) return false;
+      if (t.is_active) return true;
+      const oid = t.active_order_id;
+      return oid != null && oid > 0;
+    });
   }
 
   canJoinSelection(): boolean {

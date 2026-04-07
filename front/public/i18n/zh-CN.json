@@ -731,7 +731,15 @@
     "SEATING_ZONE_INDOOR": "仅室内",
     "SEATING_ZONE_OUTDOOR": "露台 / 户外",
     "FLOOR_MOVE_UP": "上移楼层",
-    "FLOOR_MOVE_DOWN": "下移楼层"
+    "FLOOR_MOVE_DOWN": "下移楼层",
+    "GROUP_EXPAND_MEMBERS": "显示组内餐桌",
+    "GROUP_COLLAPSE_MEMBERS": "隐藏组内餐桌",
+    "GROUP_ACTIVITY_BADGE": "组内活动",
+    "GROUP_TILE_MEMBER_HINT": "每张物理桌在下方有各自的二维码与操作。",
+    "GROUP_SIBLING_ACTIVITY_TITLE": "同组另一张桌已激活",
+    "GROUP_SIBLING_ACTIVITY_MESSAGE": "已合并组：{{names}} 已有活跃会话或未完成订单。除非需要单独一单，请优先使用该桌。",
+    "GROUP_SIBLING_ACTIVITY_CONFIRM": "仍要继续",
+    "GROUP_SIBLING_FLOOR_DOT": "同组另一张桌有活跃会话或未完成订单"
   },
   "TABLE_STATUS": {
     "available": "空闲",

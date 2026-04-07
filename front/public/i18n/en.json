@@ -893,7 +893,15 @@
     "SEATING_ZONE_INDOOR": "Indoor only",
     "SEATING_ZONE_OUTDOOR": "Terrace / outdoor only",
     "FLOOR_MOVE_UP": "Move floor up",
-    "FLOOR_MOVE_DOWN": "Move floor down"
+    "FLOOR_MOVE_DOWN": "Move floor down",
+    "GROUP_EXPAND_MEMBERS": "Show member tables",
+    "GROUP_COLLAPSE_MEMBERS": "Hide member tables",
+    "GROUP_ACTIVITY_BADGE": "Group activity",
+    "GROUP_TILE_MEMBER_HINT": "Each physical table has its own QR code and actions below.",
+    "GROUP_SIBLING_ACTIVITY_TITLE": "Another table in this group is active",
+    "GROUP_SIBLING_ACTIVITY_MESSAGE": "Joined group: {{names}} already has an active session or open order. Prefer using that ticket unless you need a separate one.",
+    "GROUP_SIBLING_ACTIVITY_CONFIRM": "Continue anyway",
+    "GROUP_SIBLING_FLOOR_DOT": "Another table in this group has an active session or open order"
   },
   "TABLE_STATUS": {
     "available": "Available",

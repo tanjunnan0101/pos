@@ -709,7 +709,15 @@
     "SEATING_ZONE_INDOOR": "Nur innen",
     "SEATING_ZONE_OUTDOOR": "Terrasse / draußen",
     "FLOOR_MOVE_UP": "Bereich nach oben",
-    "FLOOR_MOVE_DOWN": "Bereich nach unten"
+    "FLOOR_MOVE_DOWN": "Bereich nach unten",
+    "GROUP_EXPAND_MEMBERS": "Mitgliedstische anzeigen",
+    "GROUP_COLLAPSE_MEMBERS": "Mitgliedstische ausblenden",
+    "GROUP_ACTIVITY_BADGE": "Gruppe aktiv",
+    "GROUP_TILE_MEMBER_HINT": "Jeder physische Tisch hat unten eigenen QR-Code und Aktionen.",
+    "GROUP_SIBLING_ACTIVITY_TITLE": "Ein anderer Tisch in dieser Gruppe ist aktiv",
+    "GROUP_SIBLING_ACTIVITY_MESSAGE": "Verbundene Gruppe: {{names}} hat bereits eine aktive Sitzung oder offene Bestellung. Nutzen Sie diese, sofern möglich, es sei denn, Sie brauchen ein separates Ticket.",
+    "GROUP_SIBLING_ACTIVITY_CONFIRM": "Trotzdem fortfahren",
+    "GROUP_SIBLING_FLOOR_DOT": "Ein anderer Tisch in dieser Gruppe hat eine aktive Sitzung oder offene Bestellung"
   },
   "TABLE_STATUS": {
     "available": "Verfügbar",

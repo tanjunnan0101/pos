@@ -706,7 +706,15 @@
     "SEATING_ZONE_INDOOR": "Només interior",
     "SEATING_ZONE_OUTDOOR": "Terrassa / exterior",
     "FLOOR_MOVE_UP": "Pujar planta",
-    "FLOOR_MOVE_DOWN": "Baixar planta"
+    "FLOOR_MOVE_DOWN": "Baixar planta",
+    "GROUP_EXPAND_MEMBERS": "Mostrar taules del grup",
+    "GROUP_COLLAPSE_MEMBERS": "Amagar taules del grup",
+    "GROUP_ACTIVITY_BADGE": "Activitat del grup",
+    "GROUP_TILE_MEMBER_HINT": "Cada taula física té el seu propi codi QR i accions a sota.",
+    "GROUP_SIBLING_ACTIVITY_TITLE": "Una altra taula d'aquest grup està activa",
+    "GROUP_SIBLING_ACTIVITY_MESSAGE": "Grup unit: {{names}} ja té una sessió activa o una comanda oberta. Preferible usar aquella tret que en necessiteu una de separada.",
+    "GROUP_SIBLING_ACTIVITY_CONFIRM": "Continuar igualment",
+    "GROUP_SIBLING_FLOOR_DOT": "Una altra taula d'aquest grup té sessió activa o comanda oberta"
   },
   "TABLE_STATUS": {
     "available": "Disponible",

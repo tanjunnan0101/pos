@@ -892,7 +892,15 @@
     "SEATING_ZONE_INDOOR": "Solo interior",
     "SEATING_ZONE_OUTDOOR": "Terraza / exterior",
     "FLOOR_MOVE_UP": "Subir planta",
-    "FLOOR_MOVE_DOWN": "Bajar planta"
+    "FLOOR_MOVE_DOWN": "Bajar planta",
+    "GROUP_EXPAND_MEMBERS": "Mostrar mesas del grupo",
+    "GROUP_COLLAPSE_MEMBERS": "Ocultar mesas del grupo",
+    "GROUP_ACTIVITY_BADGE": "Actividad del grupo",
+    "GROUP_TILE_MEMBER_HINT": "Cada mesa física tiene su propio código QR y acciones abajo.",
+    "GROUP_SIBLING_ACTIVITY_TITLE": "Otra mesa de este grupo está activa",
+    "GROUP_SIBLING_ACTIVITY_MESSAGE": "Grupo unido: {{names}} ya tiene una sesión activa o un pedido abierto. Use ese ticket salvo que necesite otro aparte.",
+    "GROUP_SIBLING_ACTIVITY_CONFIRM": "Continuar de todos modos",
+    "GROUP_SIBLING_FLOOR_DOT": "Otra mesa de este grupo tiene sesión activa o pedido abierto"
   },
   "TABLE_STATUS": {
     "available": "Disponible",

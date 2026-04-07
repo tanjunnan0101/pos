@@ -867,7 +867,15 @@
     "SEATING_ZONE_INDOOR": "Intérieur uniquement",
     "SEATING_ZONE_OUTDOOR": "Terrasse / extérieur",
     "FLOOR_MOVE_UP": "Monter l'étage",
-    "FLOOR_MOVE_DOWN": "Descendre l'étage"
+    "FLOOR_MOVE_DOWN": "Descendre l'étage",
+    "GROUP_EXPAND_MEMBERS": "Afficher les tables du groupe",
+    "GROUP_COLLAPSE_MEMBERS": "Masquer les tables du groupe",
+    "GROUP_ACTIVITY_BADGE": "Activité du groupe",
+    "GROUP_TILE_MEMBER_HINT": "Chaque table physique a son propre QR et ses actions ci-dessous.",
+    "GROUP_SIBLING_ACTIVITY_TITLE": "Une autre table du groupe est active",
+    "GROUP_SIBLING_ACTIVITY_MESSAGE": "Groupe lié : {{names}} a déjà une session active ou une commande ouverte. Utilisez ce ticket sauf si vous avez besoin d'un autre.",
+    "GROUP_SIBLING_ACTIVITY_CONFIRM": "Continuer quand même",
+    "GROUP_SIBLING_FLOOR_DOT": "Une autre table du groupe a une session active ou une commande ouverte"
   },
   "TABLE_STATUS": {
     "available": "Disponible",
