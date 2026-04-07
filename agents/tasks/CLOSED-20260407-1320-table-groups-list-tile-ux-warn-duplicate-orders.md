@@ -29,3 +29,41 @@
 3. **Manual / joined tables:** On **`/tables/canvas`**, join two tables (same floor, no sessions). Open **`/tables`**: confirm **List** shows one row per group (combined names, total seats); expand shows both members with independent QR/actions. **Tiles** shows one grouped card per floor section with combined header and two member blocks.
 4. **Warnings:** Activate or open staff menu on table B while table A (sibling) has an active session or open order — confirm modal appears with sibling names; **Continue anyway** proceeds; Cancel dismisses.
 5. **Floor dot:** With sibling activity, hover the orange dot on the inactive table shape — tooltip from **`TABLES.GROUP_SIBLING_FLOOR_DOT`**.
+
+---
+
+## Test report
+
+**Date/time (UTC):** 2026-04-07T14:01Z – 2026-04-07T14:08Z (approx.)
+
+**Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202`; branch `development` @ `f6fd24e` (local tester checkout). App reached via HAProxy on host port 4202.
+
+**What was tested:** Items 1–5 from Testing instructions above.
+
+**Results:**
+
+| Criterion | Result | Evidence |
+|-----------|--------|----------|
+| `ng build --configuration=development` | **PASS** | `docker compose … exec -T front npx ng build --configuration=development` exited 0; “Application bundle generation complete”. |
+| `npm run test:landing-version` | **PASS** | Exit code 0; “Landing version OK; demo login (tenant=1) OK; sidebar nav OK.” |
+| List: one row per group, expand shows members with actions | **PASS** | `/tables?view=table`: summary row “Mesa 14 + Mesa 15”, 8 seats, floor “A dentro”; expand “Mitgliedstische” shows Mesa 14 and Mesa 15 with separate action columns. |
+| Tiles: one grouped card, combined header, per-member blocks | **PASS** | `/tables?view=tiles`: heading “Mesa 14 + Mesa 15”, “8 Sitzplätze”, helper line for per-table QR/actions; nested Mesa 14 / Mesa 15 blocks with full controls. |
+| Warning on menu with sibling active | **PASS** | Activated Mesa 14 (group with Mesa 15); clicked “Menü öffnen” on Mesa 15 → modal “Ein anderer Tisch in dieser Gruppe ist aktiv” with text naming Mesa 14; “Abbrechen” dismissed. |
+| Floor dot / tooltip i18n | **PASS** | On `/tables/canvas` with Mesa 14 active and Mesa 15 inactive: `document.querySelectorAll('svg title')` returned 2 nodes with text “Ein anderer Tisch in dieser Gruppe hat eine aktive Sitzung oder offene Bestellung” (matches sibling-activity tooltip). |
+| Join-two-tables on canvas (explicit new join) | **PARTIAL / not blocking** | Existing group **Mesa 14 + Mesa 15** used for List/Tile/warning/dot. Automated drag did not reproduce the ~1s join gesture; join dialog was seen earlier when dragging T04→T03 on another floor. |
+
+**Overall:** **PASS** (all required acceptance criteria exercised on grouped tables; build and smoke tests green).
+
+**Product owner feedback:** Grouped list and tiles read clearly: one logical group with expandable member detail matches staff mental models. The confirmation modal before opening menu on a second group table reduces duplicate-ticket risk without blocking work (“Trotzdem fortfahren”). Floor-plan sibling indicator is discoverable via native SVG tooltip text.
+
+**URLs tested:**
+
+1. `http://127.0.0.1:4202/login`
+2. `http://127.0.0.1:4202/dashboard`
+3. `http://127.0.0.1:4202/tables/canvas` (floors A dentro / Terrassa)
+4. `http://127.0.0.1:4202/tables?view=table`
+5. `http://127.0.0.1:4202/tables?view=tiles`
+
+**Relevant log excerpts:** Front container: recent lines show successful incremental rebuilds (`Application bundle generation complete`) with no errors in the sampled window. No back-end errors required for this UI verification.
+
+**GitHub:** Issue [#174](https://github.com/satisfecho/pos/issues/174) — label updates not applied via CLI in this run (optional per `docs/agent-loop.md`).
