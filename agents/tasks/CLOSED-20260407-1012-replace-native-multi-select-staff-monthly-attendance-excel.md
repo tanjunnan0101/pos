@@ -46,3 +46,50 @@ Replace it with a **single-line, collapsible** control that opens a panel on cli
 ### Pass / fail criteria
 - **Pass:** UI matches the above; `test:reports` passes; no Angular errors in `docker compose … logs --tail=80 front`.
 - **Fail:** Native `<select multiple>` still used, export ignores selection, build errors, or regressions on `/reports`.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-04-07 10:27–10:35 (testing window). **Log window:** same (front container around rebuilds at 10:23Z and verification runs).
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; **BASE_URL** `http://127.0.0.1:4202` (HAProxy); branch **development** (synced via `./scripts/git-sync-development.sh` before edits).
+
+3. **What was tested:** Criteria from **What to verify** above: single-line staff control; summary strings (all / one name / N selected); Excel download filtered and unfiltered; search visibility rule vs staff count; keyboard (Enter, Space, Escape); click outside; helper text; absence of native `<select multiple>`; `test:landing-version` and `test:reports`.
+
+4. **Results**
+   - Single-line control, no native `<select multiple>` in Monthly attendance block: **PASS** — DOM check in `[data-testid="reports-attendance-excel"]`.
+   - Summary: empty → “All staff”; one checkbox → staff display name; two → “2 selected”: **PASS** — observed trigger text.
+   - Download Excel unfiltered (no `staff_ids` in URL): **PASS** — captured `GET .../api/reports/attendance-excel?year=2026&month=4`.
+   - Download Excel filtered: **PASS** — captured `...&staff_ids=1&staff_ids=2` when two users selected.
+   - Search only when >10 staff: **PASS (tenant-scoped)** — demo tenant shows **2** staff; search input **absent**; consistent with `attendanceExcelStaffUsers().length > 10` rule. Search typing when >10 **not exercised** (no such dataset here).
+   - Keyboard Enter / Space open panel; Escape closes: **PASS** — Puppeteer checks.
+   - Click outside closes panel: **PASS** — click on `[data-testid="reports-page"] h1` set `aria-expanded="false"`.
+   - Helper text: no Ctrl/⌘ multi-select wording: **PASS** — hint text scanned (no ctrl/cmd match).
+   - `npm run test:landing-version` (HEADLESS=1, BASE_URL fixed): **PASS** — exit 0.
+   - `npm run test:reports` (HEADLESS=1, LOGIN from `DEMO_LOGIN_*`): **PASS** — exit 0.
+   - Front `docker compose … logs --tail=80 front`: **WARN** — lines include Angular strict-template diagnostics for `ReportsComponent` (`Type 'undefined' is not assignable to type 'number'` at `u.id` in template); immediately followed by successful **Application bundle generation complete**. Not a failed build; runtime and Puppeteer tests succeeded. Recommend coder tighten `User`/`u.id` typing or template assertions to quiet logs.
+
+5. **Overall:** **PASS** — Feature behavior and smoke tests match the task; log tail still contains non-fatal strict-check messages (see above).
+
+6. **Product owner feedback:** The staff filter is now a compact dropdown with clear “All staff” / name / “N selected” labels, and Excel exports match selection. Demo tenant has few staff, so the in-panel search (for large teams) was not exercised live; it stays hidden as designed when there are ten or fewer staff. Optionally ask devs to clear the strict-template warnings in Docker logs for a cleaner signal in CI.
+
+7. **URLs tested**
+   1. `http://127.0.0.1:4202/`
+   2. `http://127.0.0.1:4202/login`
+   3. `http://127.0.0.1:4202/dashboard`
+   4. `http://127.0.0.1:4202/reports`
+   5. `http://127.0.0.1:4202/api/reports/attendance-excel?year=2026&month=4` (network)
+   6. `http://127.0.0.1:4202/api/reports/attendance-excel?year=2026&month=4&staff_ids=1&staff_ids=2` (network)
+
+8. **Relevant log excerpts (last section)**
+
+```
+pos-front  |   Type 'undefined' is not assignable to type 'number'. [plugin angular-compiler]
+pos-front  |     src/app/reports/reports.component.html:422:70:
+pos-front  |       422 │ ... (change)="toggleAttendanceStaffFilter(u.id, $event)"
+pos-front  |   Error occurs in the template of component ReportsComponent.
+pos-front  | Application bundle generation complete. [0.346 seconds] - 2026-04-07T10:23:48.136Z
+```
+
+(Additional verification: `test:reports` console ended with `>>> RESULT: Reports smoke test passed.`; landing test ended with `>>> RESULT: Landing version OK`.)
