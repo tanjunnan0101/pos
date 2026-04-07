@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Issue #170 requested a Spanish-style monthly **registro horario** `.xlsx` export (official paper-style layout) alongside existing attendance exports.
+- **What was done:** A distinct export path and UI (**Download registro horario (ES)**) were implemented with tenant header fields (including CCC via migration `20260407120000_tenant_ccc`), per-day grid with **Firma del empleado** on every row, and backend aggregation aligned with the spec.
+- **What was tested:** Migration, pytest (`test_registro_horario_excel`, `test_attendance_excel`), Reports flow / network download for a month with data, and frontend build logs — **all PASS** per the tester report.
+- **Why closed:** Acceptance criteria met; tester overall **PASS**.
+- **Closed at (UTC):** 2026-04-07 11:07
+---
+
 # Spanish monthly time record (registro horario) Excel export — spec
 
 ## GitHub Issues
