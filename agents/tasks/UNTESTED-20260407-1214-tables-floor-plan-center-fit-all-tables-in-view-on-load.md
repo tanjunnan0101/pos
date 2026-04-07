@@ -19,3 +19,14 @@ See **`docs/testing.md`** for tables canvas smoke scripts (e.g. `test-tables-can
 - Adjust pan and zoom (or equivalent) so that bounding box is centered with a margin; avoid edge-clipping.
 - Handle empty floors explicitly; align “Reset view” with the same logic if it exists.
 - Smoke the floor plan after edits (switch floors, pan/zoom, ensure no regressions to drag/join flows documented in recent tables canvas work).
+
+## Implementation summary (coder)
+- **`front/src/app/tables/tables-canvas.component.ts`:** `fitViewToCurrentFloorTables()` computes an axis-aligned bounding box from existing `tableCanvasBounds`, applies padding (`viewFitPadding` 48px), sets `zoomLevel` (clamped to min/max) and `panOffset` so the content center matches the canvas center. Empty floor → `zoomLevel = 1`, `panOffset = {0,0}`.
+- **Initial load:** `tryInitialViewFit()` runs once after both a tables API snapshot (`tablesSnapshotReceived`) and floors + `selectedFloorId` are ready — does **not** run on every `loadData()` refresh (join/layout reloads keep user pan/zoom).
+- **Floor switch / new floor / after delete floor:** `fitViewToCurrentFloorTables()` after selection changes.
+- **Reset control:** `resetZoom()` now calls `fitViewToCurrentFloorTables()` (same as fit/center).
+
+## Testing instructions (for tester)
+1. **Stack:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml` with app on HAProxy (e.g. `BASE_URL=http://127.0.0.1:4202`).
+2. **Automated:** From `front/`: `BASE_URL=http://127.0.0.1:4202 HEADLESS=1 npm run test:tables-canvas-view-options` — exit 0. Also `npm run test:landing-version` — exit 0.
+3. **Manual /tables/canvas:** Open floor plan with multiple tables — all should be visible with margin on first load. Switch floor tabs — view should re-fit to that floor’s tables. Empty floor — full canvas at 100% with no odd offset. Pan/zoom, then use reset — should snap to fit. Reload data without changing floor (e.g. after operations that call `loadData`) — pan/zoom should **not** reset unexpectedly.

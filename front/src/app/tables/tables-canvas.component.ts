@@ -1552,6 +1552,11 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
   private panOffset = { x: 0, y: 0 };
   private minZoom = 0.5;
   private maxZoom = 2;
+  /** First time floors + tables are ready, fit the canvas so all tables are in view (not on every `loadData` refresh). */
+  private initialViewFitDone = false;
+  /** True after the first `getTablesWithStatus` response (avoids fitting “empty” before tables load). */
+  private tablesSnapshotReceived = false;
+  private readonly viewFitPadding = 48;
   private lastPinchDistance = 0;
   private isPanning = false;
   private lastPanPosition = { x: 0, y: 0 };
@@ -1637,6 +1642,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
         if (floors.length > 0 && !this.selectedFloorId()) {
           this.selectedFloorId.set(floors[0].id!);
         }
+        this.tryInitialViewFit();
       },
       error: err => {
         this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
@@ -1646,12 +1652,15 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
 
     this.api.getTablesWithStatus().subscribe({
       next: tables => {
+        this.tablesSnapshotReceived = true;
         this.tables.set(tables);
         this.applyPendingJoinGestureLayoutRestore();
         this.syncSelectedTableAfterTablesLoad(this.tables());
+        this.tryInitialViewFit();
       },
       error: err => {
         this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
+        this.tablesSnapshotReceived = true;
         this.tables.set([]);
         this.pendingPostJoinLayoutRestore = null;
         this.preJoinGesturePositions = null;
@@ -1730,6 +1739,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
       this.selectedFloorId.set(id);
       this.selectedTable.set(null);
       this.joinSelectionIds.set([]);
+      this.fitViewToCurrentFloorTables();
     };
     if (!this.hasUnsavedChanges()) {
       apply();
@@ -1760,6 +1770,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
       next: floor => {
         this.floors.update(f => [...f, floor]);
         this.selectedFloorId.set(floor.id!);
+        this.fitViewToCurrentFloorTables();
       },
       error: err => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
     });
@@ -1815,6 +1826,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
         this.floors.update(floors => floors.filter(f => f.id !== id));
         const remaining = this.floors();
         this.selectedFloorId.set(remaining.length > 0 ? remaining[0].id! : null);
+        this.fitViewToCurrentFloorTables();
       },
       error: err => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
     });
@@ -2203,6 +2215,54 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Zoom/pan so the current floor’s tables fit in the viewport with padding; empty floor → full canvas at 1×.
+   * Used on floor switch, new/remaining floor after delete, reset control, and once on first load.
+   */
+  private fitViewToCurrentFloorTables(): void {
+    const floorId = this.selectedFloorId();
+    const floorTables = this.tables().filter(
+      t => t.floor_id === floorId || (!t.floor_id && !floorId)
+    );
+    if (floorTables.length === 0) {
+      this.zoomLevel = 1;
+      this.panOffset = { x: 0, y: 0 };
+      return;
+    }
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const t of floorTables) {
+      const b = this.tableCanvasBounds(t);
+      minX = Math.min(minX, b.left);
+      minY = Math.min(minY, b.top);
+      maxX = Math.max(maxX, b.right);
+      maxY = Math.max(maxY, b.bottom);
+    }
+    const pad = this.viewFitPadding;
+    const contentW = Math.max(maxX - minX + 2 * pad, 1);
+    const contentH = Math.max(maxY - minY + 2 * pad, 1);
+    const zoomW = this.canvasWidth / contentW;
+    const zoomH = this.canvasHeight / contentH;
+    let z = Math.min(zoomW, zoomH, this.maxZoom);
+    z = Math.max(z, this.minZoom);
+    this.zoomLevel = z;
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+    this.panOffset = {
+      x: cx - this.canvasWidth / 2,
+      y: cy - this.canvasHeight / 2,
+    };
+  }
+
+  private tryInitialViewFit(): void {
+    if (this.initialViewFitDone) return;
+    if (!this.tablesSnapshotReceived || !this.floors().length || !this.selectedFloorId()) return;
+    this.fitViewToCurrentFloorTables();
+    this.initialViewFitDone = true;
+  }
+
   // Zoom and pan methods
   getViewBox(): string {
     const viewWidth = this.canvasWidth / this.zoomLevel;
@@ -2222,8 +2282,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
   }
 
   resetZoom() {
-    this.zoomLevel = 1;
-    this.panOffset = { x: 0, y: 0 };
+    this.fitViewToCurrentFloorTables();
   }
 
   private setZoom(level: number) {

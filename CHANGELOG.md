@@ -32,6 +32,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Tables / floor plan (GitHub #172):** On first load and when switching floors (or after adding a floor / deleting the current floor), the canvas **fits and centers** all tables on that floor with padding; empty floors show the full canvas at 1×. The **reset** control uses the same fit logic. Repeated `loadData` refreshes (e.g. after join) no longer reset pan/zoom. **`front/src/app/tables/tables-canvas.component.ts`**.
+
 - **Agents:** Recorded latest **`001-log-reviewer`** sweep in **`agents/001-log-reviewer/time-of-last-review.txt`**.
 
 ### Fixed
