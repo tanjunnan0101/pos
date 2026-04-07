@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The tester completed verification of the floor-plan fit/center behavior for tables canvas (issue #172) after the coder implemented bbox-based fit with padding and aligned reset/floor switching.
+- **What was done:** `tables-canvas.component.ts` now uses `fitViewToCurrentFloorTables()`, `tryInitialViewFit()` for initial load only, re-fit on floor switch, and `resetZoom()` delegates to the same fit logic; empty floors use scale 1 and zero pan.
+- **What was tested:** Automated `test:tables-canvas-view-options` and `test:landing-version` passed; manual checks passed for first load margins, floor-tab re-fit, and reset after zoom; empty floor and `loadData()` pan preservation were not exercised (N/A).
+- **Why closed:** All exercised acceptance criteria passed per the test report (overall PASS).
+- **Closed at (UTC):** 2026-04-07 12:24
+---
+
 # Tables floor plan: center/fit all tables in view on load
 
 ## GitHub Issues
