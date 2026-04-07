@@ -16,3 +16,11 @@ In Reports, the **Monthly attendance (Excel)** / **Asistencia mensual (Excel)** 
 - Remove or adjust `order`, `flex-wrap`, or `align-items` rules that visually invert hint vs control.
 - Do not change translation strings; only structure and CSS.
 - After edits, confirm `docker compose … logs front` shows a successful Angular build (no standing template/type errors).
+
+## Implementation summary
+- **`front/src/app/reports/reports.component.html`:** Moved `<p class="muted attendance-excel-staff-hint">` (staff filter hint) to sit **after** the staff section label and **before** `.attendance-excel-staff-dropdown` so DOM order is label → hint → trigger/panel. Existing `.attendance-excel-staff { flex-direction: column }` in SCSS already stacks children; no i18n or copy changes.
+
+## Testing instructions
+1. **Build:** From `front/`, `npm run build` — expect success (no template/TS errors).
+2. **Smoke (optional):** With stack up on HAProxy (e.g. `http://127.0.0.1:4202`), `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version` — navigates `/reports` among other routes.
+3. **Manual UI:** Log in as a user with **`report:read`** and open **Reports**. In **Monthly attendance (Excel)** (`data-testid="reports-attendance-excel"`), when staff users exist, confirm the muted **staff filter hint** paragraph appears **above** the staff dropdown trigger (not below it). Month picker and download buttons unchanged.

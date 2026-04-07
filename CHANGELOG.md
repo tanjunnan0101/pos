@@ -32,6 +32,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Reports → Monthly attendance Excel (GitHub #171):** Staff filter hint is shown **above** the staff dropdown (template order: label → hint → control); no i18n changes.
+
 - **Reports / attendance Excel (GitHub #168):** `GET /reports/attendance-excel` with **`staff_ids`** no longer returns 500 — the Excel styling loop no longer shadows **`sqlmodel.col`**. Regression coverage: **`tests/test_attendance_excel.py`**.
 
 ### Added
