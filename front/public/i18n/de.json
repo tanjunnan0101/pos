@@ -785,7 +785,8 @@
     "LOCATION_ZONE": "Bereich",
     "LOCATION_ZONE_PLACEHOLDER": "Bereich wählen",
     "LOCATION_ZONE_REQUIRED": "Bitte einen Bereich wählen.",
-    "NO_ZONE_FOR_SEATING": "Kein Bereich passt zu dieser Präferenz. Wählen Sie eine andere Option oder kontaktieren Sie das Restaurant."
+    "NO_ZONE_FOR_SEATING": "Kein Bereich passt zu dieser Präferenz. Wählen Sie eine andere Option oder kontaktieren Sie das Restaurant.",
+    "WEBSITE": "Webseite"
   },
   "FEEDBACK": {
     "TITLE": "Wie war Ihr Besuch?",

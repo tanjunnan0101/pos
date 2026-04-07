@@ -25,17 +25,30 @@
       <div class="hero-overlay"></div>
       <app-language-picker class="book-language-picker"></app-language-picker>
       <div class="hero-content">
-        <div class="hero-top-row">
-          @if (logoUrl()) {
-            <div class="logo-container">
-              <img [src]="getLogoSafeUrl(logoUrl())" [alt]="tenant()?.name" class="tenant-logo" />
-            </div>
-          }
-        </div>
-        <div class="hero-info">
+        <div class="hero-content-panel">
+          <div class="hero-top-row">
+            @if (logoUrl()) {
+              <div class="logo-container">
+                <img [src]="getLogoSafeUrl(logoUrl())" [alt]="tenant()?.name" class="tenant-logo" />
+              </div>
+            }
+          </div>
+          <div class="hero-info">
           <h1 class="restaurant-name">{{ tenant()?.name || ('BOOK.TITLE' | translate) }}</h1>
           @if (tenant()?.description) {
             <p class="restaurant-tagline">{{ tenant()!.description }}</p>
+          }
+          @if (tenant()?.website) {
+            <p class="restaurant-website">
+              <a
+                [href]="tenant()!.website!"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="contact-link restaurant-website-link"
+              >
+                {{ 'BOOK.WEBSITE' | translate }}
+              </a>
+            </p>
           }
           <div class="table-pill book-pill">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -108,6 +121,7 @@
               }
             </div>
           }
+        </div>
         </div>
       </div>
     </header>

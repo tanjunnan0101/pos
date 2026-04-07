@@ -129,6 +129,23 @@
   margin: 0 auto;
 }
 
+/** Readable panel over hero background image (and subtle lift on solid hero). */
+.hero-content-panel {
+  border-radius: var(--radius-lg);
+  padding: var(--space-5) var(--space-4);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+}
+
+.hero-header.has-bg-image .hero-content-panel {
+  background: rgba(0, 0, 0, 0.52);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.38);
+}
+
 .hero-top-row {
   display: flex;
   justify-content: space-between;
@@ -205,6 +222,17 @@
   margin-left: auto;
   margin-right: auto;
   line-height: 1.4;
+}
+
+.restaurant-website {
+  margin: 0 0 var(--space-3);
+  font-size: 0.9375rem;
+}
+
+.restaurant-website-link {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .restaurant-contact {

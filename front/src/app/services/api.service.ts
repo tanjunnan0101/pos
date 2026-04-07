@@ -477,6 +477,8 @@ export interface TenantSummary {
   public_google_maps_url?: string | null;
   /** OpenStreetMap share URL (openstreetmap.org). */
   public_openstreetmap_url?: string | null;
+  /** Restaurant website (http(s), from tenant settings). */
+  website?: string | null;
   /** Effective legal URLs (tenant-specific or server default). */
   terms_of_service_url?: string | null;
   privacy_policy_url?: string | null;

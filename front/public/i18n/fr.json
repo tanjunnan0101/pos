@@ -947,7 +947,8 @@
     "LOCATION_ZONE": "Espace",
     "LOCATION_ZONE_PLACEHOLDER": "Choisir l'espace",
     "LOCATION_ZONE_REQUIRED": "Veuillez choisir un espace.",
-    "NO_ZONE_FOR_SEATING": "Aucun espace ne correspond à cette préférence. Choisissez une autre option ou contactez le restaurant."
+    "NO_ZONE_FOR_SEATING": "Aucun espace ne correspond à cette préférence. Choisissez une autre option ou contactez le restaurant.",
+    "WEBSITE": "Site web"
   },
   "RESERVATIONS": {
     "TITLE": "Réservations",

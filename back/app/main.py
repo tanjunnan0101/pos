@@ -735,6 +735,8 @@ class TenantSummary(_BaseModel):
     public_google_review_url: str | None = None
     public_google_maps_url: str | None = None
     public_openstreetmap_url: str | None = None
+    # Restaurant website (http(s) only; normalized)
+    website: str | None = None
     # Effective legal links: tenant URL if set, else PUBLIC_* from server config
     terms_of_service_url: str | None = None
     privacy_policy_url: str | None = None
@@ -874,6 +876,7 @@ def _tenant_to_summary(t: models.Tenant, session: Session) -> TenantSummary:
         public_google_review_url=t.public_google_review_url,
         public_google_maps_url=t.public_google_maps_url,
         public_openstreetmap_url=t.public_openstreetmap_url,
+        website=_normalize_public_http_url(t.website),
         terms_of_service_url=tos,
         privacy_policy_url=priv,
         timezone=t.timezone,
@@ -947,6 +950,7 @@ def get_public_tenant(
         "public_google_review_url": summary.public_google_review_url,
         "public_google_maps_url": summary.public_google_maps_url,
         "public_openstreetmap_url": summary.public_openstreetmap_url,
+        "website": summary.website,
         "terms_of_service_url": summary.terms_of_service_url,
         "privacy_policy_url": summary.privacy_policy_url,
         "timezone": summary.timezone,

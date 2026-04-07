@@ -786,7 +786,8 @@
     "LOCATION_ZONE": "Zona",
     "LOCATION_ZONE_PLACEHOLDER": "Tria la zona",
     "LOCATION_ZONE_REQUIRED": "Tria una zona.",
-    "NO_ZONE_FOR_SEATING": "Cap zona coincideix amb aquesta preferència. Tria una altra opció o contacta el restaurant."
+    "NO_ZONE_FOR_SEATING": "Cap zona coincideix amb aquesta preferència. Tria una altra opció o contacta el restaurant.",
+    "WEBSITE": "Lloc web"
   },
   "RESERVATIONS": {
     "TITLE": "Reserves",

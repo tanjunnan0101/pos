@@ -968,7 +968,8 @@
     "LOCATION_ZONE": "Zona",
     "LOCATION_ZONE_PLACEHOLDER": "Elige zona",
     "LOCATION_ZONE_REQUIRED": "Elige una zona.",
-    "NO_ZONE_FOR_SEATING": "Ninguna zona coincide con esta preferencia. Elige otra opción o contacta con el restaurante."
+    "NO_ZONE_FOR_SEATING": "Ninguna zona coincide con esta preferencia. Elige otra opción o contacta con el restaurante.",
+    "WEBSITE": "Sitio web"
   },
   "FEEDBACK": {
     "TITLE": "¿Cómo fue tu visita?",

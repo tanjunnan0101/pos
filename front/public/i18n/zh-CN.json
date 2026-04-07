@@ -811,7 +811,8 @@
     "LOCATION_ZONE": "区域",
     "LOCATION_ZONE_PLACEHOLDER": "选择区域",
     "LOCATION_ZONE_REQUIRED": "请选择区域。",
-    "NO_ZONE_FOR_SEATING": "没有符合此偏好的座位区域。请选择其他选项或联系餐厅。"
+    "NO_ZONE_FOR_SEATING": "没有符合此偏好的座位区域。请选择其他选项或联系餐厅。",
+    "WEBSITE": "网站"
   },
   "RESERVATIONS": {
     "TITLE": "预订管理",

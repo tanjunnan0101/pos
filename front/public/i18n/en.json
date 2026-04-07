@@ -973,7 +973,8 @@
     "LOCATION_ZONE": "Seating area",
     "LOCATION_ZONE_PLACEHOLDER": "Choose area",
     "LOCATION_ZONE_REQUIRED": "Please choose a seating area.",
-    "NO_ZONE_FOR_SEATING": "No seating area matches this preference. Choose another option or contact the restaurant."
+    "NO_ZONE_FOR_SEATING": "No seating area matches this preference. Choose another option or contact the restaurant.",
+    "WEBSITE": "Website"
   },
   "FEEDBACK": {
     "TITLE": "How was your visit?",
