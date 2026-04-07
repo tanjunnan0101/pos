@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The Monthly attendance (Excel) staff filter was refactored from a tall native `<select multiple>` to a compact, accessible dropdown-style multi-select aligned with the rest of the reports form.
+- **What was done:** The implementation uses a single-line trigger with a panel, checkboxes, optional search when there are more than ten staff users, updated i18n keys, and the same `staff_ids` query contract for `/reports/attendance-excel`.
+- **What was tested:** Tester ran `test:landing-version` and `test:reports` (both PASS), plus manual checks on `/reports` for UI, Excel download filtered/unfiltered, keyboard behavior, and network requests; overall **PASS** with non-fatal strict-template log notes documented.
+- **Why closed:** All pass/fail criteria in the task were met; tester outcome is **PASS**.
+- **Closed at (UTC):** 2026-04-07 10:32
+---
+
 # Replace native HTML multi-select for Staff (optional) on Monthly attendance (Excel) export
 
 ## GitHub Issues
