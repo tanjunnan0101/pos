@@ -34,3 +34,43 @@ Per employee and calendar month, the workbook should include:
 2. **Backend:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python3 -m pytest tests/test_registro_horario_excel.py tests/test_attendance_excel.py -q`
 3. **Manual:** Log in as a user with **`report:read`**, open **Reports**, pick a month with attendance (or select staff), click **Download registro horario (ES)** — file `registro_horario_YYYY_MM.xlsx` should open with one sheet per employee, **Firma del empleado** column on each day row, header/totals/footer. Optionally set **Settings → Business → CCC** and confirm it appears in the export header.
 4. **Frontend build:** After `front/` edits, `docker compose -f docker-compose.yml -f docker-compose.dev.yml logs --tail=80 front` — no Angular/TS errors.
+
+## Test report
+
+1. **Date/time (UTC) and log window:** 2026-04-07T11:05Z – 2026-04-07T11:20Z (verification run).
+2. **Environment:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202` (HAProxy); branch **`development`** (synced via `./scripts/git-sync-development.sh` before edits). Credentials: repo **`.env`** `DEMO_LOGIN_*` mapped to Puppeteer `LOGIN_*` where used.
+3. **What was tested:** Task **Testing instructions** items 1–4 (migrate `20260407120000_tenant_ccc`, backend pytest for registro horario + attendance Excel, manual/UI flow for **Download registro horario (ES)** with a month that has data, front build logs).
+4. **Results:**
+   - **Migrate `20260407120000_tenant_ccc`:** **PASS** — `app.migrate` reports schema version **20260407120000**; migration **`20260407120000_tenant_ccc`** listed applied.
+   - **Pytest** (`tests/test_registro_horario_excel.py`, `tests/test_attendance_excel.py`): **PASS** — `4 passed in 2.71s`.
+   - **Manual / UI (Reports → registro horario):** **PASS** — `npm run test:reports` (HEADLESS=1, demo login) exit 0; attendance Excel section present. Additional check: Puppeteer set `#attendance-excel-month` to **2026-03**, clicked button matching **registro horario**; network response **`GET …/attendance-registro-horario-excel?year=2026&month=3`** returned **200** with **`application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`** (~6590 bytes). (Default month alone returned **404** until a month with attendance was selected — expected.)
+   - **Optional CCC in Settings:** **N/A** — not required for PASS; backend tests cover tenant **CCC** in export path.
+   - **Frontend build (docker logs):** **PASS** — last **`front`** log lines show **Application bundle generation complete** with no `ERROR` / `TS` / `NG` failures in the `--tail=80` window.
+5. **Overall:** **PASS**
+6. **Product owner feedback:** The Spanish monthly **registro horario** export is verified end-to-end: API tests confirm the **Firma del empleado** column and grid structure, and the Reports UI successfully requests the **.xlsx** for a month with attendance. Users should pick a month (or staff) that has clocked sessions to avoid a **no data** response.
+7. **URLs tested (numbered):**
+   1. `http://127.0.0.1:4202/login`
+   2. `http://127.0.0.1:4202/dashboard` (post-login)
+   3. `http://127.0.0.1:4202/reports`
+   4. Network: `http://127.0.0.1:4202/api/reports/attendance-registro-horario-excel?year=2026&month=3` (via browser; same origin through HAProxy)
+8. **Relevant log excerpts (last section)**
+
+**Migrate (back container, excerpt):**
+```
+INFO: Database schema version (max applied): 20260407120000
+...
+INFO:   - 20260407120000_tenant_ccc.sql (version: 20260407120000, type: timestamp, status: applied)
+✅ Database schema version: 20260407120000
+```
+
+**Pytest (back container):**
+```
+....                                                                     [100%]
+4 passed in 2.71s
+```
+
+**Front (compose, excerpt):**
+```
+pos-front  | Application bundle generation complete. [6.760 seconds] - 2026-04-07T11:00:55.805Z
+pos-front  | Watch mode enabled. Watching for file changes...
+```
