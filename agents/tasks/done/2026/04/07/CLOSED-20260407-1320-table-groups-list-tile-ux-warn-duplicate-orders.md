@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The table-groups MVP UX for List/Tile views and staff warnings for duplicate activity across joined tables was implemented for issue #174 and verified by the tester.
+- **What was done:** Grouped list rows and tile cards with nested per-table actions, confirmation modals when activating or opening the menu on a sibling while another member has activity, floor-plan sibling indicator with i18n tooltips, and CHANGELOG coverage per the task notes.
+- **What was tested:** `ng build` (development), `npm run test:landing-version`, and manual checks for list/tile grouping, warning modal, and floor SVG tooltip — **PASS** (join gesture on canvas noted as partial/non-blocking only).
+- **Why closed:** Tester **PASS** on all required acceptance criteria; optional canvas join gesture gap did not block closure.
+- **Closed at (UTC):** 2026-04-07 14:06
+---
+
 # Table groups: grouped List + Tile UX + warn on duplicate orders across joined tables
 
 ## GitHub Issues

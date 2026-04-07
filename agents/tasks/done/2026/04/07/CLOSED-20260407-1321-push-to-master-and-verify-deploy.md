@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** `development` was fast-forward merged to `master` and the amvara9 deploy pipeline ran for the promoted tip tied to issue #175.
+- **What was done:** `origin/master` was pushed at **`00e7f62`**; GitHub Actions **Deploy to amvara9** run **24084369755** completed successfully; production HTTPS was spot-checked.
+- **What was tested:** Workflow run status via `gh`, `curl` to `https://satisfecho.de/` (200), and alignment of `origin/master` with the documented commit — **all passed**.
+- **Why closed:** Tester report **PASS**; deploy and production health criteria met.
+- **Closed at (UTC):** 2026-04-07 14:06
+---
+
 # Push to master
 
 ## GitHub Issues
