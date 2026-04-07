@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The public booking page hero was updated for readability over header images and the restaurant website was exposed as a proper external link (issue #173).
+- **What was done:** SCSS frosted panel and title shadows on `book` hero; `websiteHref` / `websiteLinkText` in the component; template anchor with accessibility and new-tab behavior per task notes.
+- **What was tested:** Tester verified hero styling, website link, keyboard focus, and `test:landing-version` — overall **PASS** (optional public debug script failed on seating-area precondition only).
+- **Why closed:** All stated acceptance criteria met; tester signed off with no blocking issues for this scope.
+- **Closed at (UTC):** 2026-04-07 13:52
+---
+
 # Nicer booking page
 
 ## GitHub Issues
