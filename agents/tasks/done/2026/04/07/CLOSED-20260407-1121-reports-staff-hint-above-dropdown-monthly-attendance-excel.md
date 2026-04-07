@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** The Monthly attendance (Excel) block on Reports showed the staff filter hint below the staff control instead of the intended label → hint → control order.
+- **What was done:** The hint paragraph was moved before the staff dropdown in `reports.component.html`; vertical stacking in existing CSS preserves order without changing i18n strings.
+- **What was tested:** `npm run build`, `test:landing-version`, `test:reports`, and manual/Puppeteer layout checks all passed; hint is above the trigger in DOM and on screen.
+- **Why closed:** Tester reported overall PASS; all verification criteria met.
+- **Closed at (UTC):** 2026-04-07 11:29
+---
+
 # Reports: staff hint above dropdown — Monthly attendance (Excel) layout
 
 ## GitHub Issues
