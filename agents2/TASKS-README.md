@@ -4,9 +4,9 @@ Tasks move through a single pipeline from creation to closure. See **`docs/agent
 
 ## Filename pattern
 
-`<STATUS>-<YYYYMMDD-HHMM>-<slug>.md`
+`<STATUS>-<GITHUB-ISSUE-NUMBER>-<YYYYMMDD-HHMM>-<slug>.md`
 
-Examples: `NEW-20260323-1030-haproxy-503-on-orders.md`, `CLOSED-20260323-1200-fix-login-banner.md`
+Examples: `NEW-1234-20260323-1030-haproxy-503-on-orders.md`, `CLOSED-1234-20260323-1200-fix-login-banner.md`
 
 The **`<YYYYMMDD>`** segment (8 digits after the first `-`) is used to place archived tasks under **`done/YYYY/MM/DD/`** (see below). When renaming a task to **`CLOSED-…`**, use the **calendar day that work finished** (UTC or your team convention) in `YYYYMMDD` so each day’s folder reflects tasks completed that day.
 
@@ -16,7 +16,7 @@ The **`<YYYYMMDD>`** segment (8 digits after the first `-`) is used to place arc
 |--------------|--------|
 | **new**      | Task is defined and not yet started. |
 | **feat**     | Feature-sized task (optional parallel queue). |
-| **wip**      | Work in progress. |
+| **wip**      | Work in progress until implemented. When implemented rename **WIP*.md** to **UNTESTED*.md** |
 | **untested** | Implementation done; **Testing instructions** appended; waiting for tester. |
 | **testing**  | Tester is running verification. |
 | **closed**   | Verified; ready for closing reviewer to archive. |

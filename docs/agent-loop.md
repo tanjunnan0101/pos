@@ -291,7 +291,7 @@ mac-stats-reviewer’s **`agents/autoresearch/README.md`** describes **Track A**
 ## Implementation checklist (for maintainers)
 
 1. **`agents/tasks/README.md`** and **`agents/tasks/done/README.md`** define the pipeline and **`done/YYYY/MM/DD/`** layout; use **`scripts/move-agent-task-to-done.sh`** when archiving.
-2. **Prompts** ship in **`agents/00*-*/*.md`**; refine them as needed (upstream reference: mac-stats-reviewer).
+2. **Prompts** ship in **`agents/0*.md`**; refine them as needed.
 3. **Link from** **`AGENTS.md`** or **`.cursor/rules`** — one line: “Multi-agent task workflow: **`docs/agent-loop.md`**.”
 4. **Train the team** on task renames and **Testing instructions** / **Test report** format (mirror mac-stats-reviewer for consistency).
 5. **`agents/pos-agent-loop.sh`** — orchestrator for **`cursor-agent`** (see **Agent loop script** above).
