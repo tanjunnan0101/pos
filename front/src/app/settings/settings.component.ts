@@ -862,12 +862,13 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                   </div>
 
                   <div class="form-group">
-                    <div class="form-description">
-                      @if (publicGoogleReviewUrlEmpty()) {
+                    <label for="public_google_review_url">{{ 'SETTINGS.PUBLIC_GOOGLE_REVIEW_URL' | translate }}</label>
+                    @if (publicGoogleReviewUrlEmpty()) {
+                      <div class="form-description">
                         <p>{{ 'SETTINGS.PUBLIC_GOOGLE_REVIEW_DESCRIPTION' | translate }}</p>
                         <p>{{ 'SETTINGS.PUBLIC_GOOGLE_REVIEW_INSTRUCTIONS' | translate }}</p>
-                      }
-                    </div>
+                      </div>
+                    }
                     <label for="public_google_review_url">{{ 'SETTINGS.PUBLIC_GOOGLE_REVIEW_URL' | translate }}</label>
                     <input
                       type="url"
