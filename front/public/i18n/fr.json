@@ -1355,8 +1355,8 @@
     "PUBLIC_PRIVACY_POLICY_PLACEHOLDER": "https://… (lien vers votre politique)",
     "PUBLIC_PRIVACY_POLICY_HINT": "Facultatif. Même logique que les conditions ; repli : PUBLIC_PRIVACY_POLICY_URL dans la configuration serveur.",
     "PUBLIC_GOOGLE_REVIEW_URL_HINT": "Paste the Google Place ID (e.g., 0x...) from Google Place ID Finder: https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder . The app will auto-generate your review URL: https://search.google.com/local/writereview?placeid=YOUR-ID.",
-    "PUBLIC_GOOGLE_REVIEW_DESCRIPTION": "Lien de l'avis Google",
-    "PUBLIC_GOOGLE_REVIEW_INSTRUCTIONS": "Instructions pour l'avis Google"
+    "PUBLIC_GOOGLE_REVIEW_DESCRIPTION": "Ajoutez un lien pour que les clients puissent laisser un avis public sur Google après leur retour privé.",
+    "PUBLIC_GOOGLE_REVIEW_INSTRUCTIONS": "Ouvrez https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder dans votre navigateur, puis copiez-collez l’identifiant de lieu (Place ID) ci-dessous."
   },
   "PAYMENTS": {
     "PAYMENT": "Paiement",

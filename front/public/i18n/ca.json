@@ -1326,6 +1326,8 @@
     "PUBLIC_GOOGLE_REVIEW_URL": "Google review link",
     "PUBLIC_GOOGLE_REVIEW_PLACEHOLDER": "https://g.page/.../review or Google Maps review URL",
     "PUBLIC_GOOGLE_REVIEW_HINT": "Shown on the thank-you page after guests submit private feedback so they can leave a public Google review.",
+    "PUBLIC_GOOGLE_REVIEW_DESCRIPTION": "Afegeix un enlla\u00e7 perqu\u00e8 els clients puguin deixar una ressenya p\u00fablica a Google despr\u00e9s d'enviar la seva opini\u00f3 privada.",
+    "PUBLIC_GOOGLE_REVIEW_INSTRUCTIONS": "Obre https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder al navegador i copia i enganxa el Place ID del teu establiment a continuaci\u00f3.",
     "PUBLIC_GOOGLE_MAPS_URL": "Enlla\u00e7 de Google Maps (lloc o com arribar)",
     "PUBLIC_GOOGLE_MAPS_PLACEHOLDER": "https://maps.app.goo.gl/... o enlla\u00e7 Compartir de Google Maps",
     "PUBLIC_GOOGLE_MAPS_HINT": "Opcional. Es mostra a reserves i feedback per obrir la ubicaci\u00f3 a Google Maps. Utilitza Compartir \u2192 Copiar enlla\u00e7 (no \u00e9s el mateix que l\u2019enlla\u00e7 de ressenya).",

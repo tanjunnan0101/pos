@@ -1280,6 +1280,8 @@
     "PUBLIC_GOOGLE_REVIEW_URL": "Google review link",
     "PUBLIC_GOOGLE_REVIEW_PLACEHOLDER": "https://g.page/.../review or Google Maps review URL",
     "PUBLIC_GOOGLE_REVIEW_HINT": "Shown on the thank-you page after guests submit private feedback so they can leave a public Google review.",
+    "PUBLIC_GOOGLE_REVIEW_DESCRIPTION": "Add a link so guests can leave a public review on Google after they submit their private feedback.",
+    "PUBLIC_GOOGLE_REVIEW_INSTRUCTIONS": "Navigate to https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder in your browser, then copy and paste your place's Place ID below.",
     "PUBLIC_GOOGLE_MAPS_URL": "Google Maps \u0932\u093f\u0902\u0915 (\u0938\u094d\u0925\u093e\u0928 \u092f\u093e \u0926\u093f\u0936\u093e)",
     "PUBLIC_GOOGLE_MAPS_PLACEHOLDER": "https://maps.app.goo.gl/... \u092f\u093e Google Maps \u0938\u0947 \u0938\u093e\u091d\u093e \u0932\u093f\u0902\u0915",
     "PUBLIC_GOOGLE_MAPS_HINT": "\u0935\u0948\u0915\u0932\u094d\u092a\u093f\u0915\u0964 \u092c\u0941\u0915\u093f\u0902\u0917, \u0906\u0930\u0915\u094d\u0937\u0923 \u0914\u0930 \u092b\u093c\u0940\u0921\u092c\u0948\u0915 \u092a\u0943\u0937\u094d\u0920 \u092a\u0930 \u0926\u093f\u0916\u0924\u093e \u0939\u0948\u0964 Maps \u092e\u0947\u0902 \u0938\u093e\u091d\u093e \u0915\u0930\u0947\u0902 \u2192 \u0932\u093f\u0902\u0915 \u0915\u0949\u092a\u093f \u0915\u0930\u0947\u0902 (\u0938\u092e\u0940\u0915\u094d\u0937\u093e \u0932\u093f\u0902\u0915 \u0928\u0939\u0940\u0902)\u0964",

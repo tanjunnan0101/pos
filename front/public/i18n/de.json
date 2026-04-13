@@ -1394,8 +1394,8 @@
     "CLOCK_QR_LEGACY_REGENERATE_HINT": "Dieser QR-Code stammt von vor der dauerhaften Download-Funktion. Erzeugen Sie ein neues Token, um Kopieren, Download und Zugriff nach einem Neuladen zu ermöglichen.",
     "CLOCK_QR_TOKEN_LOADING": "Token wird geladen…",
     "PUBLIC_GOOGLE_REVIEW_URL_HINT": "Paste the Google Place ID (e.g., 0x...) from Google Place ID Finder: https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder . The app will auto-generate your review URL: https://search.google.com/local/writereview?placeid=YOUR-ID.",
-    "PUBLIC_GOOGLE_REVIEW_DESCRIPTION": "Google-Rezensionslink",
-    "PUBLIC_GOOGLE_REVIEW_INSTRUCTIONS": "Google-Rezensionsanweisungen"
+    "PUBLIC_GOOGLE_REVIEW_DESCRIPTION": "Fügen Sie einen Link hinzu, damit Gäste nach dem privaten Feedback eine öffentliche Google-Bewertung abgeben können.",
+    "PUBLIC_GOOGLE_REVIEW_INSTRUCTIONS": "Öffnen Sie https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder im Browser, kopieren Sie dann die Place-ID Ihres Ortes und fügen Sie sie unten ein."
   },
   "PAYMENTS": {
     "PAYMENT": "Zahlung",

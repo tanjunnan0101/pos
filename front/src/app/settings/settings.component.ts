@@ -863,13 +863,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
                   <div class="form-group">
                     <label for="public_google_review_url">{{ 'SETTINGS.PUBLIC_GOOGLE_REVIEW_URL' | translate }}</label>
-                    @if (publicGoogleReviewUrlEmpty()) {
-                      <div class="form-description">
-                        <p>{{ 'SETTINGS.PUBLIC_GOOGLE_REVIEW_DESCRIPTION' | translate }}</p>
-                        <p>{{ 'SETTINGS.PUBLIC_GOOGLE_REVIEW_INSTRUCTIONS' | translate }}</p>
-                      </div>
-                    }
-                    <label for="public_google_review_url">{{ 'SETTINGS.PUBLIC_GOOGLE_REVIEW_URL' | translate }}</label>
                     <input
                       type="url"
                       id="public_google_review_url"
@@ -878,6 +871,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                       (ngModelChange)="autoGenerateReviewUrlFromPlaceId()"
                       [placeholder]="'SETTINGS.PUBLIC_GOOGLE_REVIEW_PLACEHOLDER' | translate"
                     />
+                    @if (publicGoogleReviewUrlEmpty()) {
+                      <div class="form-description">
+                        <p>{{ 'SETTINGS.PUBLIC_GOOGLE_REVIEW_DESCRIPTION' | translate }}</p>
+                        <p>{{ 'SETTINGS.PUBLIC_GOOGLE_REVIEW_INSTRUCTIONS' | translate }}</p>
+                      </div>
+                    }
                     <small class="field-hint">
                       @if (publicGoogleReviewAutoHint()) {
                         {{ 'SETTINGS.PUBLIC_GOOGLE_REVIEW_HINT' | translate }}
@@ -2943,9 +2942,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
           reservation_reminder_24h_enabled: settings.reservation_reminder_24h_enabled ?? false,
           reservation_reminder_2h_enabled: settings.reservation_reminder_2h_enabled ?? false,
           public_google_review_url: settings.public_google_review_url ?? null,
-          publicGoogleReviewUrlEmpty: settings.public_google_review_url
-            ? settings.public_google_review_url.length > 0
-            : true,
           public_google_maps_url: settings.public_google_maps_url ?? null,
           public_openstreetmap_url: settings.public_openstreetmap_url ?? null,
           public_terms_of_service_url: settings.public_terms_of_service_url ?? null,
