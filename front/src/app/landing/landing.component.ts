@@ -290,7 +290,7 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
     }
 
     .landing-hero__inner {
-      max-width: 42rem;
+      max-width: 50rem;
       margin: 0 auto;
       text-align: center;
       padding-top: var(--space-2);
