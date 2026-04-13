@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Landing (GitHub #183):** Removed the **For restaurant staff** panel and **Create staff account** CTA; the **For guests** card is centered with a max width. Dropped unused `LANDING.SECTION_TEAM*`, `LANDING.TEAM_REGISTER` keys from all shipped locales. **`front/src/app/landing/landing.component.ts`**, **`front/public/i18n/*.json`**.
+
 - **Landing hero (GitHub #181):** Inner hero wrapper (`.landing-hero__inner`) **`max-width`** increased from **42rem** to **50rem** so headline and intro stay readable on very wide viewports. **`front/src/app/landing/landing.component.ts`**.
 
 - **Landing (GitHub #182):** Staff panel: removed the extra hint paragraph under the register CTA; merged new/returning guidance into `LANDING.SECTION_TEAM_LEDE` and dropped `LANDING.SECTION_TEAM_HINT` from all locales. **`front/src/app/landing/landing.component.ts`**, **`front/public/i18n/*.json`**.

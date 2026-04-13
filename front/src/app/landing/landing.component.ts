@@ -56,7 +56,7 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
       </header>
 
       <main class="landing-main">
-        <div class="landing-split">
+        <div class="landing-guest">
           <section
             class="landing-panel landing-panel--guests"
             aria-labelledby="landing-guests-heading"
@@ -105,16 +105,6 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
                 <a routerLink="/orders" class="link-takeaway">{{ 'LANDING.ORDER_TAKEAWAY' | translate }}</a>
               </p>
             </div>
-          </section>
-
-          <section class="landing-panel landing-panel--team" aria-labelledby="landing-team-heading">
-            <h2 id="landing-team-heading" class="landing-panel__title">
-              {{ 'LANDING.SECTION_TEAM' | translate }}
-            </h2>
-            <p class="landing-panel__lede">{{ 'LANDING.SECTION_TEAM_LEDE' | translate }}</p>
-            <a routerLink="/register" class="btn-team-register" data-testid="landing-staff-register">
-              {{ 'LANDING.TEAM_REGISTER' | translate }}
-            </a>
           </section>
         </div>
 
@@ -356,18 +346,15 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
       gap: var(--space-8);
     }
 
-    .landing-split {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: var(--space-6);
-      align-items: start;
+    .landing-guest {
+      width: 100%;
+      display: flex;
+      justify-content: center;
     }
 
-    @media (min-width: 768px) {
-      .landing-split {
-        grid-template-columns: 1fr 1fr;
-        gap: var(--space-6);
-      }
+    .landing-panel--guests {
+      width: 100%;
+      max-width: 36rem;
     }
 
     .landing-panel {
@@ -390,30 +377,6 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
       color: var(--color-text-muted);
       line-height: 1.5;
       margin: 0 0 var(--space-4);
-    }
-
-    .landing-panel--team .landing-panel__lede {
-      margin-bottom: var(--space-4);
-    }
-
-    .btn-team-register {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      padding: var(--space-3) var(--space-5);
-      background: var(--color-primary);
-      color: #fff;
-      border-radius: var(--radius-md);
-      font-weight: 600;
-      font-size: 0.9375rem;
-      text-decoration: none;
-      transition: background 0.15s ease;
-    }
-
-    .btn-team-register:hover {
-      background: var(--color-primary-hover);
-      text-decoration: none;
     }
 
     .landing-section-heading {
