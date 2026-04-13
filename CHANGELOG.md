@@ -32,6 +32,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **API:** When PostgreSQL is unreachable or closes the connection, endpoints that use the DB (e.g. **`GET /public/tenants`**) now return **503** with a JSON **`detail`** instead of a generic **500**, so operators and clients can tell **service unavailable** from application bugs.
+
 - **English locale (GitHub #178):** Restored full **`front/public/i18n/en.json`**. A prior chore commit had replaced it with a tiny fragment, so English showed **raw translation keys** (`NAV.*`, `AUTH.*`, etc.) while other locales worked.
 
 - **Frontend public tenant type:** `TenantSummary` in **`front/src/app/services/api.service.ts`** now includes **`take_away_table_token`** and reservation fields (**`reservation_prepayment_*`**, **`reservation_cancellation_policy`**, **`reservation_arrival_tolerance_minutes`**, **`reservation_dress_code`**) to match the backend, fixing Angular compile errors on book and reservation-view templates.

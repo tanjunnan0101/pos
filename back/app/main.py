@@ -30,7 +30,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel as _BaseModel, Field
 from sqlalchemy import event
-from sqlalchemy.exc import IntegrityError, InvalidRequestError
+from sqlalchemy.exc import IntegrityError, InvalidRequestError, OperationalError, StatementError
 from sqlmodel import Session, select
 
 from . import models, security
@@ -386,6 +386,48 @@ if _SLOWAPI_AVAILABLE and Limiter is not None and RateLimitExceeded is not None:
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler_log)
 else:
     limiter = _NoOpLimiter()
+
+
+def _is_connection_or_pool_operational_failure(exc: BaseException) -> bool:
+    """True when the failure is DB connectivity / server crash (503), not bad SQL or constraints."""
+    if isinstance(exc, OperationalError):
+        return True
+    if isinstance(exc, StatementError):
+        orig = getattr(exc, "orig", None)
+        if isinstance(orig, OperationalError):
+            return True
+        # Psycopg (and other drivers) sometimes surface as the wrapped orig only
+        if orig is not None:
+            tn = type(orig).__name__
+            if tn == "OperationalError" or "OperationalError" in tn:
+                return True
+    return False
+
+
+@app.exception_handler(OperationalError)
+async def database_operational_error_handler(request: Request, exc: OperationalError):
+    logger.error("Database operational error on %s %s: %s", request.method, request.url.path, exc)
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={"detail": "Database temporarily unavailable. Try again shortly."},
+    )
+
+
+@app.exception_handler(StatementError)
+async def database_statement_error_handler(request: Request, exc: StatementError):
+    if _is_connection_or_pool_operational_failure(exc):
+        logger.error(
+            "Database statement/connection error on %s %s: %s",
+            request.method,
+            request.url.path,
+            exc,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"detail": "Database temporarily unavailable. Try again shortly."},
+        )
+    raise exc
+
 
 # Uploads directory for product images
 UPLOADS_DIR = Path(__file__).parent.parent / "uploads"
