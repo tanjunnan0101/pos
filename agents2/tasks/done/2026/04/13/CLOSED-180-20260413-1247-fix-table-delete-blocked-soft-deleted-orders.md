@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Deleting a table failed when orders were only soft-deleted, because `has_orders` still counted rows with `deleted_at` set.
+- **What was done:** A migration made `order.table_id` nullable and cleared it for existing soft-deleted orders; soft-delete now unlinks the table, and table delete / `table_has_orders` logic counts only active orders (`deleted_at IS NULL`).
+- **What was tested:** Migration to **20260413150000** and `pytest tests/test_delete_table_api.py` — **3 passed**; optional staff UI flow was not re-run.
+- **Why closed:** Tester marked overall **PASS**; automated criteria satisfied.
+- **Closed at (UTC):** 2026-04-13 12:56
+---
+
 # Fix table delete blocked by soft-deleted orders
 
 ## GitHub Issues

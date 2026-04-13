@@ -36,16 +36,18 @@ if [ ! -f "$TASK_PATH" ]; then
   exit 1
 fi
 
-TASKS_DIR="$REPO_ROOT/agents/tasks"
-EXPECTED_PREFIX="$TASKS_DIR/"
-
-case "$TASK_PATH" in
-  "$EXPECTED_PREFIX"*) ;;
-  *)
-    echo "$0: file must live under $TASKS_DIR (got $TASK_PATH)" >&2
-    exit 1
-    ;;
-esac
+# Canonical task dirs (some clones use agents2/tasks — see agents2/TASKS-README.md).
+TASKS_DIR=""
+for _dir in "$REPO_ROOT/agents/tasks" "$REPO_ROOT/agents2/tasks"; do
+  case "$TASK_PATH" in
+    "$_dir"/*) TASKS_DIR="$_dir" ;;
+  esac
+done
+if [ -z "$TASKS_DIR" ]; then
+  echo "$0: file must live under agents/tasks/ or agents2/tasks/ (got $TASK_PATH)" >&2
+  exit 1
+fi
+TASKS_REL="${TASKS_DIR#"$REPO_ROOT/"}"
 
 # ...YYYYMMDD... -> YYYY MM DD
 YEAR="${YYYYMMDD:0:4}"
@@ -67,4 +69,4 @@ if [ -e "$DEST_PATH" ]; then
 fi
 
 mv "$TASK_PATH" "$DEST_PATH"
-echo "moved to agents/tasks/done/$YEAR/$MONTH/$DAY/$BASENAME"
+echo "moved to $TASKS_REL/done/$YEAR/$MONTH/$DAY/$BASENAME"
