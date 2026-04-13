@@ -25,14 +25,36 @@ Deleting a table uses `DELETE /tables/{id}`. The backend sets or checks `has_ord
 2. **Automated:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back sh -c 'cd /app && python3 -m pytest tests/test_delete_table_api.py -q'` (includes **`test_delete_table_succeeds_when_only_soft_deleted_orders_linked`**).
 3. **Manual (optional):** Staff UI — create or use a table with an order, soft-delete the order, delete the table — should succeed without **`table_has_orders`** error.
 
-## Implementation summary
-- **Migration** `back/migrations/20260413150000_order_table_id_nullable_soft_delete_unlink.sql`: `order.table_id` is nullable; existing rows with `deleted_at` set get `table_id = NULL`.
-- **`Order.table_id`** is optional in **`back/app/models.py`**; **`DELETE /orders/{id}`** sets **`order.table_id = None`** when soft-deleting.
-- **`DELETE /tables/{id}`**: `has_orders` and reassign-only queries filter **`deleted_at IS NULL`**. Reassign moves only active orders.
-- **Open-order detection** (tables list, join-tables guard, public menu fallback): queries include **`deleted_at IS NULL`** where they detect active orders by status.
-- **Reports / tips:** safe **`session.get(Table, …)`** when **`table_id`** is null.
+---
 
-## Testing instructions
-1. **Migrate:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python -m app.migrate` (expect version **20260413150000** applied).
-2. **Automated:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back sh -c 'cd /app && python3 -m pytest tests/test_delete_table_api.py -q'` (includes **`test_delete_table_succeeds_when_only_soft_deleted_orders_linked`**).
-3. **Manual (optional):** Staff UI — create or use a table with an order, soft-delete the order, delete the table — should succeed without **`table_has_orders`** error.
+## Test report
+
+1. **Date/time (UTC) and log window:** 2026-04-13 12:52–12:54 UTC (migration + pytest run; back container logs had no additional request noise during pytest).
+
+2. **Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; branch **development** @ **872d102**; commands run via `docker compose … exec back`.
+
+3. **What was tested:** Per **Testing instructions**: migrate to **20260413150000**; `pytest tests/test_delete_table_api.py` (including soft-deleted-only table delete case). Manual staff UI flow **not** run (marked optional in task).
+
+4. **Results:**
+   - Migration reports max version **20260413150000** — **PASS** — Evidence: `Database schema version: 20260413150000` / “Database is up to date”.
+   - `pytest tests/test_delete_table_api.py -q` — **PASS** — Evidence: `3 passed in 1.54s`.
+   - Optional manual UI — **N/A** (skipped; automated coverage satisfied).
+
+5. **Overall:** **PASS** (no failed criteria).
+
+6. **Product owner feedback:** Soft-deleted orders no longer block table deletion in the API path covered by tests; migration aligns nullable `table_id` with existing deleted rows. Staff UI smoke was not repeated in this run; if anything still surfaces in the floor plan UI, capture steps and reopen.
+
+7. **URLs tested:** **N/A — no browser** (API/pytest only).
+
+8. **Relevant log excerpts (last section)**
+
+```
+$ docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python -m app.migrate
+INFO: Database schema version (max applied): 20260413150000
+...
+✅ Database schema version: 20260413150000
+
+$ docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back sh -c 'cd /app && python3 -m pytest tests/test_delete_table_api.py -q'
+...                                                                      [100%]
+3 passed in 1.54s
+```
