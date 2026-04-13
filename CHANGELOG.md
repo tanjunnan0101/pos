@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Orders (GitHub #179):** While a **line-item** status menu is open, the order card now gets the same `status-dropdown-open` elevation as the order-level status menu, so dropdowns are not covered by the next card in the grid. **`front/src/app/orders/orders.component.ts`**.
+
 - **Local dev proxy (`zz_cursor-agents-do-not-use/proxy.py`):** Default upstream **`http://127.0.0.1:11434`** (Ollama) and listen **port `12345`** (was 8080 / 8081).
 
 - **Staff tables list & tiles (GitHub #174):** Joined table groups show as **one list row** and **one tile card** per group (combined names and seat total; expand list rows for per-table actions). **Activate** / **Open menu** warn when another group member already has a session or open order; optional **activity** badges and a **floor-plan dot** for the same case. i18n: **`TABLES.GROUP_*`**. Files: **`front/src/app/tables/tables.component.ts`**, **`front/src/app/tables/tables-canvas.component.ts`**, **`front/public/i18n/*.json`**.

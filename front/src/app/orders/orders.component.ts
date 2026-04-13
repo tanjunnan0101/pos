@@ -113,7 +113,7 @@ ModuleRegistry.registerModules([
             @if (viewMode() === 'active' && activeOrders().length > 0) {
               <div class="order-grid">
                 @for (order of activeOrders(); track order.id) {
-                  <div class="order-card" [id]="'order-card-' + order.id" [class]="'status-' + order.status + (statusDropdownOpen() === order.id ? ' status-dropdown-open' : '')">
+                  <div class="order-card" [id]="'order-card-' + order.id" [class]="'status-' + order.status + (orderCardHasOpenStatusDropdown(order.id) ? ' status-dropdown-open' : '')">
                     <div class="order-header">
                       <div class="order-header-main">
                         <span class="order-id">#{{ order.id }}</span>
@@ -392,7 +392,7 @@ ModuleRegistry.registerModules([
               @if (notPaidOrders().length > 0) {
                 <div class="order-grid">
                   @for (order of notPaidOrders(); track order.id) {
-                    <div class="order-card" [id]="'order-card-' + order.id" [class]="'status-' + order.status + (statusDropdownOpen() === order.id ? ' status-dropdown-open' : '')">
+                    <div class="order-card" [id]="'order-card-' + order.id" [class]="'status-' + order.status + (orderCardHasOpenStatusDropdown(order.id) ? ' status-dropdown-open' : '')">
                       <div class="order-header">
                         <div class="order-header-main">
                           <span class="order-id">#{{ order.id }}</span>
@@ -3274,6 +3274,20 @@ export class OrdersComponent implements OnInit, OnDestroy {
   toggleItemStatusDropdown(orderId: number, itemId: number) {
     const key = `${orderId}-${itemId}`;
     this.itemStatusDropdownOpen.update(current => current === key ? null : key);
+  }
+
+  /**
+   * Elevate the whole order card while either the order-level or any line-item status menu is open,
+   * so the dropdown is not covered by the next card in the grid (sibling z-index / paint order).
+   */
+  orderCardHasOpenStatusDropdown(orderId: number): boolean {
+    if (this.statusDropdownOpen() === orderId) return true;
+    const key = this.itemStatusDropdownOpen();
+    if (!key) return false;
+    const dash = key.indexOf('-');
+    if (dash <= 0) return false;
+    const oid = Number(key.slice(0, dash));
+    return oid === orderId;
   }
 
   toggleStaffUrgent(order: Order, event?: Event): void {
