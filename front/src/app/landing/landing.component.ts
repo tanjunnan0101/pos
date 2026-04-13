@@ -115,7 +115,6 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
             <a routerLink="/register" class="btn-team-register" data-testid="landing-staff-register">
               {{ 'LANDING.TEAM_REGISTER' | translate }}
             </a>
-            <p class="landing-panel__hint">{{ 'LANDING.SECTION_TEAM_HINT' | translate }}</p>
           </section>
         </div>
 
@@ -415,13 +414,6 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
     .btn-team-register:hover {
       background: var(--color-primary-hover);
       text-decoration: none;
-    }
-
-    .landing-panel__hint {
-      margin: var(--space-4) 0 0;
-      font-size: 0.8125rem;
-      color: var(--color-text-muted);
-      line-height: 1.45;
     }
 
     .landing-section-heading {
