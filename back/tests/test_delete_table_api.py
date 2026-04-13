@@ -78,6 +78,25 @@ class TestDeleteTableApi(PgClientTestCase):
         self.assertEqual(r.status_code, 200, r.text)
         self.assertEqual(r.json().get("status"), "deleted")
 
+    def test_delete_table_succeeds_when_only_soft_deleted_orders_linked(self) -> None:
+        """Soft-deleted orders must not block table delete (has_orders / FK unlink)."""
+        order = models.Order(
+            tenant_id=self.owner.tenant_id,
+            table_id=self.table_id,
+            status=models.OrderStatus.pending,
+        )
+        self.session.add(order)
+        self.session.commit()
+        self.session.refresh(order)
+
+        h = _bearer_headers(self.owner)
+        r_del = self.client.delete(f"/orders/{order.id}", headers=h)
+        self.assertEqual(r_del.status_code, 200, r_del.text)
+
+        r = self.client.delete(f"/tables/{self.table_id}", headers=h)
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertEqual(r.json().get("status"), "deleted")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,38 @@
+# Fix table delete blocked by soft-deleted orders
+
+## GitHub Issues
+- **Issue:** https://github.com/satisfecho/pos/issues/180
+- **180**
+
+## Problem / goal
+Deleting a table uses `DELETE /tables/{id}`. The backend sets or checks `has_orders` using orders linked by `table_id`. Soft-deleted orders (`DELETE /orders/{id}` sets `deleted_at`) still reference the table, so the guard still counts them and users cannot delete the table after “removing” orders in the UI. Align behavior so soft-deleted orders do not block table deletion, consistently with product expectations for `table_has_orders` and any reassign flow.
+
+## High-level instructions for coder
+- In the table-delete path, ensure the “has orders” check only counts **active** orders (e.g. `Order.deleted_at.is_(None)`), **or** clear `order.table_id` when soft-deleting an order—choose one coherent approach across the API.
+- Add or extend a test that covers: table with only soft-deleted orders referencing it → table delete should succeed (or document the chosen rule).
+- Revisit `table_has_orders` / reassignment flows so they stay consistent with the same definition of “active” vs soft-deleted orders.
+- See backend models/routes for `delete_table` and order soft-delete; add pointers to `docs/` if any existing doc describes table/order lifecycle.
+
+## Implementation summary
+- **Migration** `back/migrations/20260413150000_order_table_id_nullable_soft_delete_unlink.sql`: `order.table_id` is nullable; existing rows with `deleted_at` set get `table_id = NULL`.
+- **`Order.table_id`** is optional in **`back/app/models.py`**; **`DELETE /orders/{id}`** sets **`order.table_id = None`** when soft-deleting.
+- **`DELETE /tables/{id}`**: `has_orders` and reassign-only queries filter **`deleted_at IS NULL`**. Reassign moves only active orders.
+- **Open-order detection** (tables list, join-tables guard, public menu fallback): queries include **`deleted_at IS NULL`** where they detect active orders by status.
+- **Reports / tips:** safe **`session.get(Table, …)`** when **`table_id`** is null.
+
+## Testing instructions
+1. **Migrate:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python -m app.migrate` (expect version **20260413150000** applied).
+2. **Automated:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back sh -c 'cd /app && python3 -m pytest tests/test_delete_table_api.py -q'` (includes **`test_delete_table_succeeds_when_only_soft_deleted_orders_linked`**).
+3. **Manual (optional):** Staff UI — create or use a table with an order, soft-delete the order, delete the table — should succeed without **`table_has_orders`** error.
+
+## Implementation summary
+- **Migration** `back/migrations/20260413150000_order_table_id_nullable_soft_delete_unlink.sql`: `order.table_id` is nullable; existing rows with `deleted_at` set get `table_id = NULL`.
+- **`Order.table_id`** is optional in **`back/app/models.py`**; **`DELETE /orders/{id}`** sets **`order.table_id = None`** when soft-deleting.
+- **`DELETE /tables/{id}`**: `has_orders` and reassign-only queries filter **`deleted_at IS NULL`**. Reassign moves only active orders.
+- **Open-order detection** (tables list, join-tables guard, public menu fallback): queries include **`deleted_at IS NULL`** where they detect active orders by status.
+- **Reports / tips:** safe **`session.get(Table, …)`** when **`table_id`** is null.
+
+## Testing instructions
+1. **Migrate:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python -m app.migrate` (expect version **20260413150000** applied).
+2. **Automated:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back sh -c 'cd /app && python3 -m pytest tests/test_delete_table_api.py -q'` (includes **`test_delete_table_succeeds_when_only_soft_deleted_orders_linked`**).
+3. **Manual (optional):** Staff UI — create or use a table with an order, soft-delete the order, delete the table — should succeed without **`table_has_orders`** error.

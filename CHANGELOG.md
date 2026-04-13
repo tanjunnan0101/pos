@@ -34,6 +34,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Tables (GitHub #180):** Deleting a table no longer fails after orders were soft-deleted in the UI. **`DELETE /tables/{id}`** only treats **active** orders as blocking; soft-delete clears **`order.table_id`** (migration makes the column nullable and backfills existing soft-deleted rows). Canvas / join-table queries ignore soft-deleted orders when detecting open orders.
+
 - **API:** When PostgreSQL is unreachable or closes the connection, endpoints that use the DB (e.g. **`GET /public/tenants`**) now return **503** with a JSON **`detail`** instead of a generic **500**, so operators and clients can tell **service unavailable** from application bugs.
 
 - **English locale (GitHub #178):** Restored full **`front/public/i18n/en.json`**. A prior chore commit had replaced it with a tiny fragment, so English showed **raw translation keys** (`NAV.*`, `AUTH.*`, etc.) while other locales worked.

@@ -6736,6 +6736,7 @@ def list_tables_with_status(
         active_order = session.exec(
             select(models.Order).where(
                 models.Order.table_id == table.id,
+                models.Order.deleted_at.is_(None),
                 models.Order.status.in_(
                     [
                         models.OrderStatus.pending,
@@ -6969,6 +6970,7 @@ def create_table_group(
         ao = session.exec(
             select(models.Order).where(
                 models.Order.table_id == t.id,
+                models.Order.deleted_at.is_(None),
                 models.Order.status.in_(
                     [
                         models.OrderStatus.pending,
@@ -7086,6 +7088,7 @@ def delete_table(
         select(models.Order).where(
             models.Order.tenant_id == current_user.tenant_id,
             models.Order.table_id == table_id,
+            models.Order.deleted_at.is_(None),
         )
     ).first() is not None
 
@@ -7112,11 +7115,12 @@ def delete_table(
                 status_code=404,
                 detail=api_error_payload("reassign_target_not_found", lang),
             )
-        # Reassign orders
+        # Reassign active orders only (soft-deleted are unlinked or have no table)
         orders_linked = session.exec(
             select(models.Order).where(
                 models.Order.tenant_id == current_user.tenant_id,
                 models.Order.table_id == table_id,
+                models.Order.deleted_at.is_(None),
             )
         ).all()
         for order in orders_linked:
@@ -9989,6 +9993,7 @@ def get_current_order(
                 select(models.Order).where(
                     models.Order.table_id == table.id,
                     models.Order.session_id == session_id,
+                    models.Order.deleted_at.is_(None),
                     _not_closed,
                 ).order_by(models.Order.created_at.desc())
             ).all()
@@ -9996,6 +10001,7 @@ def get_current_order(
             potential_orders = session.exec(
                 select(models.Order).where(
                     models.Order.table_id == table.id,
+                    models.Order.deleted_at.is_(None),
                     _not_closed,
                 ).order_by(models.Order.created_at.desc())
             ).all()
@@ -10868,6 +10874,8 @@ def _tenant_tip_entry_mode(tenant: models.Tenant) -> str:
 
 
 def _effective_waiter_for_tip(session: Session, order: models.Order) -> int | None:
+    if order.table_id is None:
+        return None
     table = session.get(models.Table, order.table_id)
     if not table:
         return None
@@ -11418,6 +11426,7 @@ def delete_order(
 
     order.deleted_at = datetime.now(timezone.utc)
     order.deleted_by_user_id = current_user.id
+    order.table_id = None
     # Unlink from table so it no longer appears as active order
     tables = session.exec(
         select(models.Table).where(

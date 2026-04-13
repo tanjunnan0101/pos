@@ -49,7 +49,7 @@ def _waiter_name_for_order_tips(session: Session, order: models.Order) -> str:
         u = session.get(models.User, tid)
         if u and u.tenant_id == order.tenant_id:
             return u.full_name or u.email or str(tid)
-    table = session.get(models.Table, order.table_id)
+    table = session.get(models.Table, order.table_id) if order.table_id is not None else None
     if table:
         waiter_id = table.assigned_waiter_id
         if waiter_id is None and table.floor_id:
@@ -88,7 +88,7 @@ def _get_revenue_items(
             .where(models.OrderItem.removed_by_customer == False)
             .where(models.OrderItem.status != models.OrderItemStatus.cancelled)
         ).all()
-        table = session.get(models.Table, order.table_id)
+        table = session.get(models.Table, order.table_id) if order.table_id is not None else None
         waiter_id = None
         waiter_name = None
         if table:

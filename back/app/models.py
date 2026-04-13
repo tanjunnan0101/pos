@@ -680,7 +680,8 @@ class BillingCustomer(TenantMixin, table=True):
 
 class Order(TenantMixin, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    table_id: int = Field(foreign_key="table.id")
+    # Null when soft-deleted and unlinked, or legacy cleanup; active orders always have a table.
+    table_id: int | None = Field(default=None, foreign_key="table.id")
     status: OrderStatus = Field(default=OrderStatus.pending)
     notes: str | None = None  # General order notes
     session_id: str | None = Field(default=None, index=True)  # Unique session identifier per browser
