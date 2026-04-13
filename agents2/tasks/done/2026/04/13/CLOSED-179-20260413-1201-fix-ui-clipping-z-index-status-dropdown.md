@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Orders **status** dropdowns were clipped or covered by adjacent order cards (stacking / overflow), blocking staff from seeing or clicking actions.
+- **What was done:** Layering was fixed so open menus render in a high stacking layer (`z-index` 10000), cards get **`status-dropdown-open`** when a line-item menu is open, and verification confirmed hit targets and visibility on busy lists.
+- **What was tested:** Tester ran Puppeteer on dev **`http://127.0.0.1:4202`**: order footer and line-item dropdowns above the next card, optional **`test:landing-version`** — **all PASS** (report **2026-04-13 12:07:30 UTC**).
+- **Why closed:** All testing criteria met; overall **PASS**.
+- **Closed at (UTC):** 2026-04-13 12:09
+---
+
 # Fix UI clipping and z-index overlap on status dropdown
 
 ## GitHub Issues
