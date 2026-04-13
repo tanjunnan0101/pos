@@ -4,6 +4,7 @@
 #
 # Usage (repo root):
 #   ./scripts/move-agent-task-to-done.sh agents/tasks/CLOSED-20260323-1200-slug.md
+#   ./scripts/move-agent-task-to-done.sh agents/tasks/CLOSED-178-20260413-1033-slug.md
 #   ./scripts/move-agent-task-to-done.sh /absolute/path/to/CLOSED-....md
 
 set -euo pipefail
@@ -19,8 +20,14 @@ fi
 TASK_PATH="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
 BASENAME="$(basename "$TASK_PATH")"
 
-if [[ ! "$BASENAME" =~ ^CLOSED-[0-9]{8}- ]]; then
-  echo "$0: expected basename like CLOSED-YYYYMMDD-HHMM-slug.md, got: $BASENAME" >&2
+# YYYYMMDD is either right after CLOSED- (legacy) or after CLOSED-<issue>- (see agents/TASKS-README.md).
+YYYYMMDD=""
+if [[ "$BASENAME" =~ ^CLOSED-[0-9]+-([0-9]{8})-[0-9]{4}- ]]; then
+  YYYYMMDD="${BASH_REMATCH[1]}"
+elif [[ "$BASENAME" =~ ^CLOSED-([0-9]{8})-[0-9]{4}- ]]; then
+  YYYYMMDD="${BASH_REMATCH[1]}"
+else
+  echo "$0: expected CLOSED-YYYYMMDD-HHMM-slug.md or CLOSED-<issue>-YYYYMMDD-HHMM-slug.md, got: $BASENAME" >&2
   exit 1
 fi
 
@@ -40,11 +47,10 @@ case "$TASK_PATH" in
     ;;
 esac
 
-# CLOSED-20260323-... -> 2026 03 23
-DATE_PART="${BASENAME#CLOSED-}"
-YEAR="${DATE_PART:0:4}"
-MONTH="${DATE_PART:4:2}"
-DAY="${DATE_PART:6:2}"
+# ...YYYYMMDD... -> YYYY MM DD
+YEAR="${YYYYMMDD:0:4}"
+MONTH="${YYYYMMDD:4:2}"
+DAY="${YYYYMMDD:6:2}"
 
 if ! [[ "$YEAR" =~ ^[0-9]{4}$ && "$MONTH" =~ ^(0[1-9]|1[0-2])$ && "$DAY" =~ ^(0[1-9]|[12][0-9]|3[01])$ ]]; then
   echo "$0: could not parse YYYYMMDD from filename: $BASENAME" >&2

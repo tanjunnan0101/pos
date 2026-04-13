@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Selecting English showed raw ngx-translate keys because `front/public/i18n/en.json` had been reduced to a small fragment instead of the full bundle.
+- **What was done:** The full English JSON was restored from history and merged with newer keys (Google review settings copy, product image label); the file is valid JSON and is served in full over HTTP in dev.
+- **What was tested:** Tester **PASS** — `python3 -m json.tool` on `en.json`, Puppeteer on `/login` and `/` with EN selected (human-readable strings, no `AUTH.*` / `NAV.*` keys), `GET /i18n/en.json` ~97KB 200; optional `LANDING_VERSION_ONLY=1` landing smoke **PASS** (API login 500 treated as out of scope).
+- **Why closed:** Test report overall **PASS**; acceptance criteria for the EN locale regression are met.
+- **Closed at (UTC):** 2026-04-13 10:58
+---
+
 # English Localization Resource Failure (i18n)
 
 ## GitHub Issues
