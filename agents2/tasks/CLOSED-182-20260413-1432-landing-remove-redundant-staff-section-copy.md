@@ -25,3 +25,37 @@ The restaurant staff panel on the landing page repeats messaging (heading vs hin
 3. Confirm copy still covers both new registration and returning login (pick restaurant, then Login).
 4. Optional: `docker logs --since 5m pos-front | grep -iE error` — no Angular build errors.
 5. Smoke: `cd front && BASE_URL=http://127.0.0.1:4202 npm run test:landing-version` (exit 0).
+
+---
+
+## Test report
+
+1. **Date/time (UTC)** and log window  
+   - **2026-04-13T14:40Z–14:42Z** (verification).  
+   - Logs: `docker logs --since 5m pos-front` + grep for errors.
+
+2. **Environment**  
+   - **Compose:** `docker-compose.yml` + `docker-compose.dev.yml` (HAProxy **4202**).  
+   - **`BASE_URL`:** `http://127.0.0.1:4202`  
+   - **Branch:** `development` @ **745dffd** (short).
+
+3. **What was tested**  
+   - Staff panel structure (single lede, no secondary hint, CTA); EN copy covers register + login; smoke test; `pos-front` errors.
+
+4. **Results**  
+   - **One intro + CTA, no second hint:** **PASS** — Headless Chrome on `/`: `.landing-panel--team` has **`hintCount: 0`**, **`ledeCount: 1`**, **`hasRegisterCta: true`** (`data-testid="landing-staff-register"`).  
+   - **a11y:** **PASS** — `h2#landing-team-heading`; section **`aria-labelledby="landing-team-heading"`**.  
+   - **Copy (new + returning):** **PASS** — EN lede: *"Need an account for your venue? Register with the button below. Already have access? Pick your restaurant in the list, then use Login."*  
+   - **`LANDING_VERSION_ONLY=1` `test:landing-version`:** **PASS** — exit **0** (`RESULT: Landing page shows version.`).  
+   - **`docker logs` / grep errors:** **PASS** — no matching error lines in reviewed window.
+
+5. **Overall:** **PASS**
+
+6. **Product owner feedback**  
+   The staff panel now presents a single clear paragraph and the register button, without a redundant muted line. Messaging still directs both new registrations and returning staff to the list + Login path.
+
+7. **URLs tested**  
+   1. `http://127.0.0.1:4202/` — landing, staff panel DOM and EN strings (headless).
+
+8. **Relevant log excerpts**  
+   - No `error` / bundle failure lines from `docker logs --since 5m pos-front | grep -iE 'error|Application bundle generation failed'` in this run.
