@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Product requested removal of the public landing “For restaurant staff” column and primary “Create staff account” CTA next to the guest flow.
+- **What was done:** The staff-registration panel was removed from the landing layout, the guest area was rebalanced for a single primary card, and verification covered layout, i18n strings, footer links, and build health.
+- **What was tested:** Tester ran manual checks on `/`, Puppeteer `test:landing-version`, and reviewed `pos-front` logs — overall **PASS** per the test report.
+- **Why closed:** All testing instructions satisfied and test report marked **PASS**; ready for archive.
+- **Closed at (UTC):** 2026-04-13 15:22
+---
+
 # Remove "For restaurant staff" section (landing)
 
 ## GitHub Issues
