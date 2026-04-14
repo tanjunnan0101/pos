@@ -402,9 +402,9 @@ const STAFF_ORDERS_ROLES = new Set([
                         <title>{{ paymentChipLabelKey(table) | translate }}</title>
                         <rect
                           [attr.x]="paymentChipRectX(table)"
-                          y="-8"
+                          [attr.y]="paymentChipRectY(table)"
                           [attr.width]="paymentChipWidth(table)"
-                          height="16"
+                          [attr.height]="paymentChipHeight(table)"
                           rx="3"
                           [attr.fill]="paymentChipFill(table)"
                           stroke="rgba(0,0,0,0.2)"
@@ -414,7 +414,7 @@ const STAFF_ORDERS_ROLES = new Set([
                           text-anchor="middle"
                           dominant-baseline="central"
                           fill="#fafafa"
-                          font-size="8"
+                          [attr.font-size]="paymentChipFontSize(table)"
                           font-weight="600"
                         >
                           {{ paymentChipLabelKey(table) | translate }}
@@ -1988,9 +1988,27 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
     return 70;
   }
 
+  /**
+   * Places the payment pill so its vertical center sits on the table shape's bottom edge
+   * (half overlapping the fill, half extending below), per floor-plan spec.
+   */
   tablePaymentChipTransform(table: CanvasTable): string {
     const h = this.tableShapeHeightForChip(table);
-    return `translate(0,${h / 2 - 9})`;
+    return `translate(0,${h / 2})`;
+  }
+
+  /** Pill height: smaller on compact shapes to limit overlap with neighbors. */
+  paymentChipHeight(table: CanvasTable): number {
+    const h = this.tableShapeHeightForChip(table);
+    return Math.min(16, Math.max(12, Math.round(h * 0.2)));
+  }
+
+  paymentChipRectY(table: CanvasTable): number {
+    return -this.paymentChipHeight(table) / 2;
+  }
+
+  paymentChipFontSize(table: CanvasTable): number {
+    return this.paymentChipHeight(table) <= 13 ? 7 : 8;
   }
 
   paymentChipWidth(table: CanvasTable): number {
