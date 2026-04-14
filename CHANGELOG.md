@@ -2,69 +2,42 @@
 
 All notable changes to this project are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions are listed **newest first**. Entries use **past tense**, one line per item where possible, and emphasize **user-visible impact**. Issue numbers in parentheses point to GitHub when they add context.
+
+**Versioning:** [Semantic Versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`): incompatible API or behavior → major; backward-compatible features → minor; fixes and small improvements → patch.
 
 ## [Unreleased]
 
 ### Added
 
-- **Agents (agents2):** `pos-cursor-loop.sh` orchestrator (Cursor agent loop; reviewer state file **`time-of-last-review.txt`** under `agents2/001-gh-reviewer/` is **gitignored**, local only). Root `run-agents.sh` runs the goose-based agent pipeline (`agents/001` … `agents/040-committer`).
-- **Task file (GitHub #177):** `agents2/tasks/WIP-177-20260408-1339.md` (Google review link / i18n work in progress).
-
-- **Settings → Google Review (GitHub #176):** Added i18n keys for public Google review description and instructions. Updated settings UI to show these as labels instead of just descriptions for better clarity.
-- **AGENTS.md:** Updated tool preference instruction (prefer shell commands over Execute_typescript).
+- Google Review settings: i18n strings for public review description and instructions; settings screen uses proper labels for clarity (#176).
+- Cursor agent loop: `agents2/pos-cursor-loop.sh` orchestrator (local reviewer timestamp file under `agents2/001-gh-reviewer/` is gitignored).
 
 ### Changed
 
-- **Orders / tables floor (GitHub #190):** Staff **mark paid** and **finish order** no longer clear `bill_requested_at`, so after **unmark paid** the floor plan still shows **payment pending** when a bill was requested. Regression: **`back/tests/test_tables_with_status_operational.py`**.
-
-- **Tables floor plan (GitHub #188):** Payment chip on the floor SVG is anchored with its **vertical center on the table shape’s bottom edge** (half inside / half below the fill); pill height and label font scale slightly on very small shapes. **`front/src/app/tables/tables-canvas.component.ts`**.
-
-- **Agent 001 local LLM triage:** `scripts/agent-ollama-log-triage.sh` defaults **`OLLAMA_HOST`** to **`http://127.0.0.1:11434`** so Ollama fallback targets the local daemon (consistent with `agents2/pos-cursor-loop.sh` availability checks). Override **`OLLAMA_HOST`** if the daemon is not on localhost.
-
-- **Landing (GitHub #183):** Removed the **For restaurant staff** panel and **Create staff account** CTA; the **For guests** card is centered with a max width. Dropped unused `LANDING.SECTION_TEAM*`, `LANDING.TEAM_REGISTER` keys from all shipped locales. **`front/src/app/landing/landing.component.ts`**, **`front/public/i18n/*.json`**.
-
-- **Landing hero (GitHub #181):** Inner hero wrapper (`.landing-hero__inner`) **`max-width`** increased from **42rem** to **50rem** so headline and intro stay readable on very wide viewports. **`front/src/app/landing/landing.component.ts`**.
-
-- **Landing (GitHub #182):** Staff panel: removed the extra hint paragraph under the register CTA; merged new/returning guidance into `LANDING.SECTION_TEAM_LEDE` and dropped `LANDING.SECTION_TEAM_HINT` from all locales. **`front/src/app/landing/landing.component.ts`**, **`front/public/i18n/*.json`**.
-
-- **Orders (GitHub #179):** While a **line-item** status menu is open, the order card now gets the same `status-dropdown-open` elevation as the order-level status menu, so dropdowns are not covered by the next card in the grid. **`front/src/app/orders/orders.component.ts`**.
-
-- **Local dev proxy (`zz_cursor-agents-do-not-use/proxy.py`):** Default upstream **`http://127.0.0.1:11434`** (Ollama) and listen **port `12345`** (was 8080 / 8081).
-
-- **Staff tables list & tiles (GitHub #174):** Joined table groups show as **one list row** and **one tile card** per group (combined names and seat total; expand list rows for per-table actions). **Activate** / **Open menu** warn when another group member already has a session or open order; optional **activity** badges and a **floor-plan dot** for the same case. i18n: **`TABLES.GROUP_*`**. Files: **`front/src/app/tables/tables.component.ts`**, **`front/src/app/tables/tables-canvas.component.ts`**, **`front/public/i18n/*.json`**.
-
-- **Public booking page (GitHub #173):** Hero **`hero-content-panel`** uses stronger **frosted glass** (blur, inset highlight, darker tint with header image), **horizontal padding** on the hero column, and **text shadow** on title/tagline over photos. **Website** link: **normalized `https://` href** when the setting omits a scheme, **hostname as link text**, external-link icon, tooltip (`title`), **`focus-visible`** ring. **`front/src/app/book/book.component.{ts,html,scss}`**.
-
-- **Tables / floor plan (GitHub #172):** On first load and when switching floors (or after adding a floor / deleting the current floor), the canvas **fits and centers** all tables on that floor with padding; empty floors show the full canvas at 1×. The **reset** control uses the same fit logic. Repeated `loadData` refreshes (e.g. after join) no longer reset pan/zoom. **`front/src/app/tables/tables-canvas.component.ts`**.
-
-- **Agents:** Recorded latest **`001-log-reviewer`** sweep in **`agents/001-log-reviewer/time-of-last-review.txt`**.
-
-### Removed
-
-- **`agents2/tasks/UNTESTED-177-20260408-1339.md`** (superseded by the WIP task file for #177).
+- Orders / tables: staff **mark paid** and **finish order** no longer cleared `bill_requested_at`, so after **unmark paid** the floor plan still showed **payment pending** when a bill had been requested (#190).
+- Tables floor plan: payment chip on the SVG aligned with the bottom of the table shape; pill and label scale on very small shapes (#188).
+- Landing: removed the **For restaurant staff** block and **Create staff account** CTA; **For guests** card centered with a max width (#183). Hero inner container widened for large viewports (#181). Staff panel hint merged into main copy; removed redundant hint key (#182).
+- Orders: while a **line-item** status menu is open, the order card uses the same elevation as the order-level menu so dropdowns are not covered by the next card (#179).
+- Staff tables: joined groups appear as **one list row** and **one tile**; **Activate** / **Open menu** warn when another group member has a session or order; optional activity badges and floor-plan dot (#174).
+- Public booking page: stronger frosted hero panel; **Website** link gets a normalized `https://` URL and hostname as link text (#173).
+- Tables canvas: on load and when switching floors, the view **fit and centered** tables with padding; **Reset** uses the same logic; repeat refreshes no longer reset pan/zoom (#172).
+- Agent tooling: `scripts/agent-ollama-log-triage.sh` defaults `OLLAMA_HOST` to `http://127.0.0.1:11434` (override if Ollama is not local).
+- Local dev proxy (`zz_cursor-agents-do-not-use/proxy.py`): default upstream `http://127.0.0.1:11434`, listen port `12345`.
+- Documentation: `AGENTS.md` now prefers shell commands over ad hoc TypeScript execution for tooling.
 
 ### Fixed
 
-- **Tables floor plan / payments (GitHub #189):** **`GET /tables/with-status`** no longer drops **`payment_status: pending`** when the session order is kitchen-**ready** or **completed** if another in-flight order existed on the table, or when the primary loop missed **`bill_requested_at`** — resolves **`table.active_order_id`** first, includes **`completed`** in in-flight statuses, and extends the **`active_order_id`** fallback for pending bills. **`back/app/main.py`**, **`back/tests/test_tables_with_status_operational.py`**.
-
-- **Tables / reservations (GitHub #184):** **POST /tables/{id}/close** now marks **seated** reservations on that table as **finished** (same as the finish-reservation flow), so **GET /tables/with-status** no longer shows the table as occupied solely because of a seated booking after staff closed the session from the tile grid. **`back/app/main.py`**, **`back/tests/test_close_table_finishes_seated_reservation.py`**.
-
-- **Tables (GitHub #180):** Deleting a table no longer fails after orders were soft-deleted in the UI. **`DELETE /tables/{id}`** only treats **active** orders as blocking; soft-delete clears **`order.table_id`** (migration makes the column nullable and backfills existing soft-deleted rows). Canvas / join-table queries ignore soft-deleted orders when detecting open orders.
-
-- **API:** When PostgreSQL is unreachable or closes the connection, endpoints that use the DB (e.g. **`GET /public/tenants`**) now return **503** with a JSON **`detail`** instead of a generic **500**, so operators and clients can tell **service unavailable** from application bugs.
-
-- **English locale (GitHub #178):** Restored full **`front/public/i18n/en.json`**. A prior chore commit had replaced it with a tiny fragment, so English showed **raw translation keys** (`NAV.*`, `AUTH.*`, etc.) while other locales worked.
-
-- **Frontend public tenant type:** `TenantSummary` in **`front/src/app/services/api.service.ts`** now includes **`take_away_table_token`** and reservation fields (**`reservation_prepayment_*`**, **`reservation_cancellation_policy`**, **`reservation_arrival_tolerance_minutes`**, **`reservation_dress_code`**) to match the backend, fixing Angular compile errors on book and reservation-view templates.
-
-- **Reports → Monthly attendance Excel (GitHub #171):** Staff filter hint is shown **above** the staff dropdown (template order: label → hint → control); no i18n changes.
-
-- **Reports / attendance Excel (GitHub #168):** `GET /reports/attendance-excel` with **`staff_ids`** no longer returns 500 — the Excel styling loop no longer shadows **`sqlmodel.col`**. Regression coverage: **`tests/test_attendance_excel.py`**.
+- Tables / payments: `GET /tables/with-status` preserves **`payment_status: pending`** when kitchen orders are ready or completed and a bill was still relevant; improved detection of active order and `bill_requested_at` (#189).
+- Tables / reservations: **POST /tables/{id}/close** marks **seated** reservations **finished** like the finish-reservation flow, so tables are not shown occupied only due to an old seated booking (#184).
+- Tables: **DELETE /tables/{id}** no longer blocked after orders were soft-deleted; soft-delete clears `order.table_id` (migration + canvas queries ignore soft-deleted orders for “open order” checks) (#180).
+- API: when PostgreSQL is unreachable, DB-backed endpoints return **503** with JSON **`detail`** instead of a generic **500**.
+- English locale: restored full `front/public/i18n/en.json` after a fragment had broken the UI (#178).
+- Frontend: `TenantSummary` in `api.service.ts` extended to match the backend (`take_away_table_token`, reservation fields), fixing template compile errors on book and reservation views.
+- Reports: monthly attendance Excel — staff filter hint appears above the dropdown (#171). Attendance Excel with **`staff_ids`** no longer returned 500 (Excel styling no longer shadowed `sqlmodel.col`) (#168).
 
 ## [2.0.75] - 2026-04-14
 
 ### Changed
 
-- **Tables floor plan (GitHub #187):** **`GET /tables/with-status`** adds **`payment_status`** (`none` | `pending` | `paid`) and keeps **`operational_status`** as **service-only** (kitchen phase: **`open_order`**, **`ready_to_serve`**, etc. — no **`bill_issued`**). Table **fill** and the **legend** reflect service state; **payment / collection** uses a **bottom chip** on each table SVG (and optional second badge in the properties panel). **`bill_requested_at`** still drives **`payment_status: pending`**; when the table still references a **paid** order before the session clears, **`payment_status` may be `paid`**. Joined table groups merge **`payment_status`** like **`operational_status`**. Frontend **`CanvasTable.payment_status`**, i18n **`TABLES.PAYMENT_*`** / **`TABLES.LEGEND_PAYMENT_*`**. Backend tests: **`back/tests/test_tables_with_status_operational.py`**.
-
+- Tables floor plan: **`GET /tables/with-status`** exposes **`payment_status`** (`none` | `pending` | `paid`) and keeps **`operational_status`** for **kitchen / service** only. Table fill and legend reflect service state; **payment** uses a **bottom chip** on each table SVG. **`bill_requested_at`** drives **`pending`**; a still-referenced **paid** order can show **`paid`**. Joined groups merge **`payment_status`** like **`operational_status`**. Frontend `CanvasTable.payment_status`, i18n **`TABLES.PAYMENT_*`** / **`TABLES.LEGEND_PAYMENT_*`**. Tests: **`back/tests/test_tables_with_status_operational.py`** (#187).
