@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Issue #187 asked to separate floor-plan **service/operational** fill from **payment** state by moving payment to a bottom chip while fill reflects kitchen/service phases only.
+- **What was done:** Backend exposes service-first `operational_status` plus `payment_status`; `tables-canvas` renders a bottom payment chip with i18n; `commit-hash.ts` was aligned with `package.json` so the mandatory landing semver check passes.
+- **What was tested:** Re-verification **PASS** — backend pytest (5/5), `npm run test:landing-version`, canvas/view-options smoke, DE i18n spot-check, and zoom stability on the payment chip per the second test report.
+- **Why closed:** All testing instructions satisfied; tester recorded **Overall: PASS** after semver fix and re-run.
+- **Closed at (UTC):** 2026-04-14 12:04
+---
+
 # Floor plan: decouple payment state from table fill — bottom chip for payment; operational color shows service phase only
 
 ## GitHub Issues
