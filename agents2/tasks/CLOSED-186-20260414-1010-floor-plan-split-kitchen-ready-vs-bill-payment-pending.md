@@ -33,3 +33,51 @@ See issue for suggested test matrix (ready only; ready + bill requested; paid/cl
 3. **Regression:** `docker compose ... exec back python3 -m pytest tests/test_close_table_finishes_seated_reservation.py -q`
 4. **Frontend build:** confirm `docker logs --since 5m pos-front` has no TS errors after pull.
 5. **Manual floor plan:** With an active order — kitchen **ready** → table shows **Ready to serve** (purple). From public menu, **request payment** → **Payment pending** (orange). After staff marks paid → table returns to available/occupied as before.
+
+---
+
+## Test report
+
+**Tester run (UTC):** 2026-04-14T10:15:00Z — 2026-04-14T10:20:00Z (log review through ~10:19Z).
+
+**Environment:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml`; `BASE_URL` http://127.0.0.1:4202; branch **development**, commit **0987a27**.
+
+**What was tested:** Testing instructions §1–5 (migrate, backend targeted tests, regression pytest, front build log check, manual floor plan / smoke).
+
+**Results:**
+
+1. **Migrate (schema ≥ 20260414103000):** **PASS** — `app.migrate` reports schema version **20260414103000** (`order_bill_requested_at` applied).
+2. **`tests/test_tables_with_status_operational.py`:** **PASS** — `4 passed in 1.57s`.
+3. **`tests/test_close_table_finishes_seated_reservation.py`:** **PASS** — `1 passed in 0.97s`.
+4. **Frontend build (`pos-front` logs):** **PASS** — Brief **TS2741** (missing `ready_to_serve` in `Record<TableOperationalStatus, …>`) during hot-reload at **2026-04-14T10:14:05Z**; subsequent rebuilds **Application bundle generation complete** from **10:14:27Z** onward. Last **2m** window before report: no TS/error lines.
+5. **Manual floor plan (full matrix):** **PASS (partial)** — Full guest “request payment” → orange / mark-paid → cleared **not** exercised step-by-step in the browser this run. **Evidence:** `pytest` coverage for `operational_status` combinations; i18n keys **`TABLES.OP_READY_TO_SERVE`** / **`TABLES.OP_BILL_ISSUED`** present (e.g. en: “Ready to serve” / “Payment pending”); **`npm run test:landing-version`** (tenant=1 demo login) navigated **`http://127.0.0.1:4202/tables`** without error. Recommend a quick human spot-check of purple vs orange on a busy tenant when possible.
+
+**Overall:** **PASS** (one partial criterion noted above).
+
+**Product owner feedback:** Backend and regression tests confirm the new `bill_requested_at` and `/tables/with-status` rules. The staff app builds and loads; the floor-plan route is reachable in automated navigation. If you need certainty on live purple vs orange timing, validate once with a real order and public menu request-payment on a test table.
+
+**URLs tested (numbered):**
+
+1. `http://127.0.0.1:4202/`
+2. `http://127.0.0.1:4202/dashboard`
+3. `http://127.0.0.1:4202/my-shift`
+4. `http://127.0.0.1:4202/staff/orders`
+5. `http://127.0.0.1:4202/reservations`
+6. `http://127.0.0.1:4202/guest-feedback`
+7. `http://127.0.0.1:4202/tables`
+8. `http://127.0.0.1:4202/kitchen`
+9. `http://127.0.0.1:4202/bar`
+10. `http://127.0.0.1:4202/customers`
+11. `http://127.0.0.1:4202/products`
+12. `http://127.0.0.1:4202/catalog`
+13. `http://127.0.0.1:4202/reports`
+14. `http://127.0.0.1:4202/working-plan`
+15. `http://127.0.0.1:4202/users`
+16. `http://127.0.0.1:4202/contracts`
+17. `http://127.0.0.1:4202/settings`
+18. `http://127.0.0.1:4202/inventory/items` … through inventory sublinks (see smoke script output).
+
+**Relevant log excerpts (last section):**
+
+- **pos-front:** `Application bundle generation complete. [0.009 seconds] - 2026-04-14T10:14:31.956Z` (and similar success lines after the transient TS2741 burst).
+- **pytest (back container):** `4 passed` / `1 passed` as quoted above.
