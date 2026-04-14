@@ -25,3 +25,28 @@ Improve `CHANGELOG.md` so it stays a clear, scannable, human-facing record of pr
    `BASE_URL=http://127.0.0.1:4202 npm run test:changelog`  
    (requires `LOGIN_EMAIL` / `LOGIN_PASSWORD` or `.env` demo credentials). Expect: **What’s new** modal loads and shows changelog content (length > 100, version headings).
 3. Optional: open Dashboard → **What’s new** and skim the modal for formatting (no raw markdown breakage in the renderer).
+
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window:** 2026-04-14 15:30–15:33 UTC (verification run; front logs sampled immediately after).
+
+2. **Environment:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml` (HAProxy `0.0.0.0:4202→4202`), **`BASE_URL=http://127.0.0.1:4202`**, branch **`development`**, repo synced via `./scripts/git-sync-development.sh` before edits.
+
+3. **What was tested:** Structure/readability of `CHANGELOG.md` (per “What to verify” / testing instructions); Puppeteer **`npm run test:changelog`** for Dashboard **What’s new** modal (API-backed changelog, content length and headings heuristic).
+
+4. **Results:**
+   - **CHANGELOG.md structure (Unreleased → dated release, headings, scannable bullets):** **PASS** — File reviewed: intro + semver note, `## [Unreleased]` with Added/Changed/Fixed, then `## [2.0.75] - 2026-04-14`, consistent Keep a Changelog–style sections.
+   - **`test:changelog` (modal loads, content length > 100, version/Unreleased signal):** **PASS** — Script exited 0; changelog body length **3734**; login reached `/dashboard`; overlay `[data-testid="changelog-overlay"]` and `.changelog-content` present; no `.changelog-error`.
+   - **Optional UI skim (no broken rendering in modal):** **PASS** — Same run; content length and absence of `.changelog-error` imply renderer showed parsed content (not raw failure state).
+
+5. **Overall:** **PASS** (all criteria above).
+
+6. **Product owner feedback:** The in-app **What’s new** flow successfully loads the updated changelog text at meaningful length, so staff see the same structured narrative as in the repo file. The markdown file itself reads clearly with newest-first versioning and grouped sections. No regressions observed in this smoke path.
+
+7. **URLs tested (full URLs):**
+   1. `http://127.0.0.1:4202/login?tenant=1`
+   2. `http://127.0.0.1:4202/dashboard` (after login; **What’s new** opened from this page — modal overlay, no navigation away)
+
+8. **Relevant log excerpts:** `pos-front` (tail): Angular dev build completed without errors around the run window (`Application bundle generation complete`); no error lines in sampled tail. Test script stdout: `Changelog loaded; content length: 3734` → `>>> RESULT: Changelog (What's new) test passed.`
