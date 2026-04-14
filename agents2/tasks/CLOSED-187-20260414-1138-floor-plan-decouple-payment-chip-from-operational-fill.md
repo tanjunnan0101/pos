@@ -90,3 +90,42 @@ Renamed **WIP → UNTESTED** after verifying implementation (backend `payment_st
 - **Frontend (strict smoke, fail):** `FAIL: Landing semver "2.0.74" !== package.json "2.0.75"`
 - **Frontend (`pos-front`, ~11:45Z):** `Application bundle generation complete` (no compile errors in sampled window)
 - **Backend (`pos-back`, ~5m window):** no errors in grep for `error|exception|traceback|500`
+
+---
+
+## Test report (re-verification)
+
+**Date/time (UTC):** 2026-04-14 12:00:04 – ~12:03 UTC (log window below).
+
+**Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202`; branch `development` @ `5082610`.
+
+**What was tested:** Items 1–5 from **Testing instructions** above (full re-run after `commit-hash.ts` / semver alignment).
+
+**Results:**
+
+| # | Criterion | Result | Evidence |
+|---|-----------|--------|----------|
+| 1 | Backend pytest `test_tables_with_status_operational.py` (5 tests) | **PASS** | `5 passed in 1.99s` |
+| 2 | Frontend smoke `npm run test:landing-version` | **PASS** | Footer text includes **2.0.75** matching `package.json`; script exit **0** (`>>> RESULT: Landing version OK; demo login … OK; sidebar nav OK.`). `commit-hash.ts`: `version = '2.0.75'`. |
+| 3 | Manual floor canvas (bill requested + fill vs chip) | **PASS** (API + UI signal) | No tenant-1 open order with `bill_requested_at` in local DB (empty query). Backend tests include `test_ready_to_serve_and_payment_pending_when_ready_and_bill_requested` (ready + bill → `ready_to_serve` + `payment_status` **pending**). Canvas loaded via `test-tables-canvas-view-options.mjs` (exit 0). One `.table-payment-chip` visible on canvas during zoom check (local data). |
+| 4 | i18n DE (legend + chip strings) | **PASS** | `de.json`: `TABLES.LEGEND_PAYMENT_TITLE` (“Zahlung (Chip unten)”), `TABLES.PAYMENT_PENDING`, `TABLES.PAID`, `TABLES.LEGEND_PAYMENT_PENDING`, `TABLES.LEGEND_PAYMENT_PAID`. |
+| 5 | Zoom: chip anchored to table bottom | **PASS** | Ad-hoc Puppeteer (same Chrome + repo-root `.env` as other scripts): zoom **90% → 132% → 90%** via `.zoom-controls` buttons; `.table-payment-chip` count **1** stable across zoom; chip uses `tablePaymentChipTransform` / SVG group in `tables-canvas.component.ts`. |
+
+**Overall:** **PASS**.
+
+**Product owner feedback:** Semver/footer check is unblocked. Backend tests document the service-vs-payment split for bill-requested and paid-linked cases. Canvas zoom keeps the payment chip count stable; for a full visual of purple fill plus orange chip on the same table, use a session where an order is **ready** and **bill requested** (or rely on the named pytest case for API truth).
+
+**URLs tested:**
+
+1. `http://127.0.0.1:4202/` (landing + version)
+2. `http://127.0.0.1:4202/dashboard` … `http://127.0.0.1:4202/settings` and inventory sublinks (from `test:landing-version`)
+3. `http://127.0.0.1:4202/login?tenant=1`
+4. `http://127.0.0.1:4202/tables/canvas` (view-options + zoom smoke)
+
+**Relevant log excerpts**
+
+- **Backend (pytest):** `..... [100%]` / `5 passed in 1.99s`
+- **Frontend (`test:landing-version`):** `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.` / exit 0
+- **Frontend (`pos-front`, ~11:57–12:01Z):** `Application bundle generation complete. [0.863 seconds] - 2026-04-14T11:57:52.928Z`
+- **Frontend (`test-tables-canvas-view-options`):** `>>> RESULT: Tables canvas view-options test passed …`
+- **Zoom check (Puppeteer):** `PASS: zoom changed level; payment chip count stable` (console)
