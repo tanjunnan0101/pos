@@ -881,7 +881,7 @@
     "OP_RESERVED": "Reservada",
     "OP_OCCUPIED": "Ocupada (sin pedido abierto)",
     "OP_OPEN_ORDER": "Pedido abierto",
-    "OP_BILL_ISSUED": "Cuenta / cobro",
+    "OP_BILL_ISSUED": "Listo para servir",
     "FLOOR_PUBLIC_BOOKING": "Abierto para reserva online",
     "FLOOR_SEATING_ZONE": "Zona de reserva",
     "SEATING_ZONE_ANY": "Interior o terraza",

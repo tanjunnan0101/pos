@@ -698,7 +698,7 @@
     "OP_RESERVED": "Reserviert",
     "OP_OCCUPIED": "Besetzt (kein offener Auftrag)",
     "OP_OPEN_ORDER": "Offene Bestellung",
-    "OP_BILL_ISSUED": "Rechnung / zahlen",
+    "OP_BILL_ISSUED": "Servierbereit",
     "FLOOR_PUBLIC_BOOKING": "Online-Reservierung offen",
     "FLOOR_SEATING_ZONE": "Reservierung: Sitzbereich",
     "SEATING_ZONE_ANY": "Innen oder Terrasse",

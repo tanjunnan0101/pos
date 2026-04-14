@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Tables floor plan (GitHub #185):** Legend and badges using **`TABLES.OP_BILL_ISSUED`** now read **ready to serve** (and locale equivalents) instead of bill/payment wording; API **`bill_issued`** unchanged. **`front/public/i18n/*.json`**.
+
 - **Agent 001 local LLM triage:** `scripts/agent-ollama-log-triage.sh` defaults **`OLLAMA_HOST`** to **`http://127.0.0.1:11434`** so Ollama fallback targets the local daemon (consistent with `agents2/pos-cursor-loop.sh` availability checks). Override **`OLLAMA_HOST`** if the daemon is not on localhost.
 
 - **Landing (GitHub #183):** Removed the **For restaurant staff** panel and **Create staff account** CTA; the **For guests** card is centered with a max width. Dropped unused `LANDING.SECTION_TEAM*`, `LANDING.TEAM_REGISTER` keys from all shipped locales. **`front/src/app/landing/landing.component.ts`**, **`front/public/i18n/*.json`**.
