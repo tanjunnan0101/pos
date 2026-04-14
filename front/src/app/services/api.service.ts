@@ -756,13 +756,17 @@ export type TableOperationalStatus =
   | 'reserved'
   | 'occupied'
   | 'open_order'
-  | 'ready_to_serve'
-  | 'bill_issued';
+  | 'ready_to_serve';
+
+/** Payment/collection indicator for floor chip; separate from operational_status (service fill). */
+export type TablePaymentStatus = 'none' | 'pending' | 'paid';
 
 export interface CanvasTable extends Table {
   status?: 'available' | 'occupied' | 'reserved';
   /** Finer state for floor canvas (order pipeline vs seated without order). From GET /tables/with-status. */
   operational_status?: TableOperationalStatus;
+  /** Bill/payment vs paid chip; does not drive table fill color. */
+  payment_status?: TablePaymentStatus;
   assigned_waiter_id?: number | null;
   assigned_waiter_name?: string | null;
   effective_waiter_id?: number | null;

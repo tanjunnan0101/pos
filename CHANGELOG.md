@@ -16,8 +16,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- **Tables floor plan (GitHub #186):** **`GET /tables/with-status`** now distinguishes **`ready_to_serve`** (kitchen-ready order, no bill request) from **`bill_issued`** (customer requested payment — **`bill_requested_at`** set). Public **`POST .../request-payment`** sets **`bill_requested_at`** idempotently; it is cleared when the order is marked paid (cash/finish/Stripe/Revolut). Floor legend: purple **ready to serve**, orange **payment pending**. Migration **`order.bill_requested_at`**. Tests: **`back/tests/test_tables_with_status_operational.py`**.
-
 - **Agent 001 local LLM triage:** `scripts/agent-ollama-log-triage.sh` defaults **`OLLAMA_HOST`** to **`http://127.0.0.1:11434`** so Ollama fallback targets the local daemon (consistent with `agents2/pos-cursor-loop.sh` availability checks). Override **`OLLAMA_HOST`** if the daemon is not on localhost.
 
 - **Landing (GitHub #183):** Removed the **For restaurant staff** panel and **Create staff account** CTA; the **For guests** card is centered with a max width. Dropped unused `LANDING.SECTION_TEAM*`, `LANDING.TEAM_REGISTER` keys from all shipped locales. **`front/src/app/landing/landing.component.ts`**, **`front/public/i18n/*.json`**.
@@ -57,4 +55,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Reports → Monthly attendance Excel (GitHub #171):** Staff filter hint is shown **above** the staff dropdown (template order: label → hint → control); no i18n changes.
 
 - **Reports / attendance Excel (GitHub #168):** `GET /reports/attendance-excel` with **`staff_ids`** no longer returns 500 — the Excel styling loop no longer shadows **`sqlmodel.col`**. Regression coverage: **`tests/test_attendance_excel.py`**.
+
+## [2.0.75] - 2026-04-14
+
+### Changed
+
+- **Tables floor plan (GitHub #187):** **`GET /tables/with-status`** adds **`payment_status`** (`none` | `pending` | `paid`) and keeps **`operational_status`** as **service-only** (kitchen phase: **`open_order`**, **`ready_to_serve`**, etc. — no **`bill_issued`**). Table **fill** and the **legend** reflect service state; **payment / collection** uses a **bottom chip** on each table SVG (and optional second badge in the properties panel). **`bill_requested_at`** still drives **`payment_status: pending`**; when the table still references a **paid** order before the session clears, **`payment_status` may be `paid`**. Joined table groups merge **`payment_status`** like **`operational_status`**. Frontend **`CanvasTable.payment_status`**, i18n **`TABLES.PAYMENT_*`** / **`TABLES.LEGEND_PAYMENT_*`**. Backend tests: **`back/tests/test_tables_with_status_operational.py`**.
 

@@ -4,7 +4,14 @@ import { finalize } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { LowerCasePipe } from '@angular/common';
-import { ApiService, Floor, CanvasTable, TableOperationalStatus, User } from '../services/api.service';
+import {
+  ApiService,
+  Floor,
+  CanvasTable,
+  TableOperationalStatus,
+  TablePaymentStatus,
+  User,
+} from '../services/api.service';
 import { PermissionService } from '../services/permission.service';
 import { SidebarComponent } from '../shared/sidebar.component';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal.component';
@@ -172,11 +179,18 @@ const STAFF_ORDERS_ROLES = new Set([
         <!-- Main Canvas -->
         <div class="canvas-wrapper">
           <!-- Zoom Controls -->
-          <div class="floor-legend" data-testid="floor-plan-legend" [attr.aria-label]="'TABLES.LEGEND_TITLE' | translate">
+            <div class="floor-legend" data-testid="floor-plan-legend" [attr.aria-label]="'TABLES.LEGEND_TITLE' | translate">
             <div class="floor-legend-title">{{ 'TABLES.LEGEND_TITLE' | translate }}</div>
             @for (leg of floorLegendItems; track leg.key) {
               <div class="floor-legend-row">
                 <span class="floor-legend-swatch" [style.background]="leg.swatch"></span>
+                <span class="floor-legend-label">{{ leg.labelKey | translate }}</span>
+              </div>
+            }
+            <div class="floor-legend-title floor-legend-title--payment">{{ 'TABLES.LEGEND_PAYMENT_TITLE' | translate }}</div>
+            @for (leg of floorPaymentLegendItems; track leg.key) {
+              <div class="floor-legend-row">
+                <span class="floor-legend-swatch floor-legend-swatch--chip" [style.background]="leg.swatch"></span>
                 <span class="floor-legend-label">{{ leg.labelKey | translate }}</span>
               </div>
             }
@@ -379,6 +393,34 @@ const STAFF_ORDERS_ROLES = new Set([
                       <tspan x="0" dy="-0.2em">{{ tableCaptionName(table) }}</tspan>
                       <tspan x="0" dy="1.15em" font-size="10" font-weight="500" opacity="0.92">— {{ tableSeatLabel(table) }}</tspan>
                     </text>
+                    @if (showPaymentChip(table)) {
+                      <g
+                        [attr.transform]="tablePaymentChipTransform(table)"
+                        pointer-events="none"
+                        class="table-payment-chip"
+                      >
+                        <title>{{ paymentChipLabelKey(table) | translate }}</title>
+                        <rect
+                          [attr.x]="paymentChipRectX(table)"
+                          y="-8"
+                          [attr.width]="paymentChipWidth(table)"
+                          height="16"
+                          rx="3"
+                          [attr.fill]="paymentChipFill(table)"
+                          stroke="rgba(0,0,0,0.2)"
+                          stroke-width="1"
+                        />
+                        <text
+                          text-anchor="middle"
+                          dominant-baseline="central"
+                          fill="#fafafa"
+                          font-size="8"
+                          font-weight="600"
+                        >
+                          {{ paymentChipLabelKey(table) | translate }}
+                        </text>
+                      </g>
+                    }
                     @if (getWaiterInitials(table)) {
                       <g [attr.transform]="'translate(' + ((table.width || 100) / 2 - 10) + ',' + (-((table.height || 70) / 2) - 4) + ')'">
                         <circle r="10" [attr.fill]="getWaiterColor(table)" opacity="0.9"/>
@@ -445,15 +487,26 @@ const STAFF_ORDERS_ROLES = new Set([
               <div class="panel-header">
                   <div class="panel-title-row">
                   <h3>{{ selectedTableName }}</h3>
-                  <div
-                    class="status-badge"
-                    [class.op-available]="operationalKey(selectedTable()!) === 'available'"
-                    [class.op-reserved]="operationalKey(selectedTable()!) === 'reserved'"
-                    [class.op-occupied]="operationalKey(selectedTable()!) === 'occupied'"
-                    [class.op-open-order]="operationalKey(selectedTable()!) === 'open_order'"
-                    [class.op-ready-serve]="operationalKey(selectedTable()!) === 'ready_to_serve'"
-                    [class.op-payment-pending]="operationalKey(selectedTable()!) === 'bill_issued'">
-                    {{ operationalStatusLabelKey(selectedTable()!) | translate }}
+                  <div class="panel-badges">
+                    <div
+                      class="status-badge"
+                      [class.op-available]="operationalKey(selectedTable()!) === 'available'"
+                      [class.op-reserved]="operationalKey(selectedTable()!) === 'reserved'"
+                      [class.op-occupied]="operationalKey(selectedTable()!) === 'occupied'"
+                      [class.op-open-order]="operationalKey(selectedTable()!) === 'open_order'"
+                      [class.op-ready-serve]="operationalKey(selectedTable()!) === 'ready_to_serve'"
+                    >
+                      {{ operationalStatusLabelKey(selectedTable()!) | translate }}
+                    </div>
+                    @if (paymentStatusKey(selectedTable()!) !== 'none') {
+                      <div
+                        class="status-badge"
+                        [class.op-payment-pending]="paymentStatusKey(selectedTable()!) === 'pending'"
+                        [class.op-paid]="paymentStatusKey(selectedTable()!) === 'paid'"
+                      >
+                        {{ paymentStatusLabelKey(selectedTable()!) | translate }}
+                      </div>
+                    }
                   </div>
                 </div>
                 <button class="close-btn" (click)="selectedTable.set(null); joinSelectionIds.set([])">
@@ -695,6 +748,22 @@ const STAFF_ORDERS_ROLES = new Set([
     .floor-legend-label {
       line-height: 1.25;
     }
+    .floor-legend-title--payment {
+      margin-top: 8px;
+      margin-bottom: 4px;
+      font-size: 0.625rem;
+    }
+    .floor-legend-swatch--chip {
+      border-radius: 4px;
+      height: 10px;
+    }
+
+    .panel-badges {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
 
     .status-badge.op-available {
       background: rgba(75, 85, 99, 0.35);
@@ -719,6 +788,10 @@ const STAFF_ORDERS_ROLES = new Set([
     .status-badge.op-payment-pending {
       background: rgba(234, 88, 12, 0.28);
       color: #fed7aa;
+    }
+    .status-badge.op-paid {
+      background: rgba(5, 150, 105, 0.28);
+      color: #6ee7b7;
     }
 
     .table-caption {
@@ -1843,18 +1916,26 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Matches legend swatches and table fills (dark tablet floor). */
+  /** Matches legend swatches and table fills (dark tablet floor) — service phase only. */
   readonly floorLegendItems: { key: TableOperationalStatus; swatch: string; labelKey: string }[] = [
     { key: 'available', swatch: '#4b5563', labelKey: 'TABLES.OP_AVAILABLE' },
     { key: 'reserved', swatch: '#d97706', labelKey: 'TABLES.OP_RESERVED' },
     { key: 'occupied', swatch: '#059669', labelKey: 'TABLES.OP_OCCUPIED' },
     { key: 'open_order', swatch: '#2563eb', labelKey: 'TABLES.OP_OPEN_ORDER' },
     { key: 'ready_to_serve', swatch: '#7c3aed', labelKey: 'TABLES.OP_READY_TO_SERVE' },
-    { key: 'bill_issued', swatch: '#ea580c', labelKey: 'TABLES.OP_BILL_ISSUED' },
+  ];
+
+  /** Bottom chip on floor SVG (payment / collection), separate from table fill. */
+  readonly floorPaymentLegendItems: { key: 'pending' | 'paid'; swatch: string; labelKey: string }[] = [
+    { key: 'pending', swatch: '#ea580c', labelKey: 'TABLES.LEGEND_PAYMENT_PENDING' },
+    { key: 'paid', swatch: '#059669', labelKey: 'TABLES.LEGEND_PAYMENT_PAID' },
   ];
 
   operationalKey(table: CanvasTable): TableOperationalStatus {
-    if (table.operational_status) return table.operational_status;
+    const op = table.operational_status as string | undefined;
+    // Legacy: bill_issued used to drive fill; treat as kitchen-ready for color.
+    if (op === 'bill_issued') return 'ready_to_serve';
+    if (op) return op as TableOperationalStatus;
     if (table.status === 'reserved') return 'reserved';
     if (table.status === 'occupied') return 'occupied';
     return 'available';
@@ -1867,9 +1948,65 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
       occupied: 'TABLES.OP_OCCUPIED',
       open_order: 'TABLES.OP_OPEN_ORDER',
       ready_to_serve: 'TABLES.OP_READY_TO_SERVE',
-      bill_issued: 'TABLES.OP_BILL_ISSUED',
     };
     return m[this.operationalKey(table)];
+  }
+
+  paymentStatusKey(table: CanvasTable): TablePaymentStatus {
+    return table.payment_status ?? 'none';
+  }
+
+  paymentStatusLabelKey(table: CanvasTable): string {
+    const p = this.paymentStatusKey(table);
+    if (p === 'pending') return 'TABLES.PAYMENT_PENDING';
+    if (p === 'paid') return 'TABLES.PAID';
+    return '';
+  }
+
+  /** Show bottom payment chip when API signals bill/payment or paid-linked session. */
+  showPaymentChip(table: CanvasTable): boolean {
+    const p = this.paymentStatusKey(table);
+    return p === 'pending' || p === 'paid';
+  }
+
+  private tableShapeWidthForChip(table: CanvasTable): number {
+    if (table.width != null && table.width > 0) return table.width;
+    const s = table.shape;
+    if (s === 'circle') return 80;
+    if (s === 'oval') return 120;
+    if (s === 'bar') return 160;
+    return 100;
+  }
+
+  private tableShapeHeightForChip(table: CanvasTable): number {
+    if (table.height != null && table.height > 0) return table.height;
+    const s = table.shape;
+    if (s === 'circle') return 80;
+    if (s === 'oval') return 70;
+    if (s === 'bar') return 40;
+    if (s === 'booth') return 80;
+    return 70;
+  }
+
+  tablePaymentChipTransform(table: CanvasTable): string {
+    const h = this.tableShapeHeightForChip(table);
+    return `translate(0,${h / 2 - 9})`;
+  }
+
+  paymentChipWidth(table: CanvasTable): number {
+    return Math.min(120, this.tableShapeWidthForChip(table) * 0.92);
+  }
+
+  paymentChipRectX(table: CanvasTable): number {
+    return -this.paymentChipWidth(table) / 2;
+  }
+
+  paymentChipFill(table: CanvasTable): string {
+    return this.paymentStatusKey(table) === 'paid' ? '#059669' : '#ea580c';
+  }
+
+  paymentChipLabelKey(table: CanvasTable): string {
+    return this.paymentStatusKey(table) === 'paid' ? 'TABLES.PAID' : 'TABLES.PAYMENT_PENDING';
   }
 
   private opColors(key: TableOperationalStatus): { fill: string; stroke: string } {
@@ -1879,7 +2016,6 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
       occupied: { fill: '#065f46', stroke: '#34d399' },
       open_order: { fill: '#1e40af', stroke: '#93c5fd' },
       ready_to_serve: { fill: '#5b21b6', stroke: '#c4b5fd' },
-      bill_issued: { fill: '#c2410c', stroke: '#fdba74' },
     };
     return map[key];
   }

@@ -22,3 +22,11 @@ Redesigning the entire legend palette unless required for contrast with the new 
 - Implement backend response shape and priority rules so **fill = service pipeline**, **chip = payment**.
 - Update Angular types, canvas rendering, and legend; add i18n for all supported locales.
 - Add focused backend tests for status combinations; note manual verification steps in the task when ready for testing.
+
+## Testing instructions
+
+1. **Backend:** From repo root, `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec -T back python3 -m pytest tests/test_tables_with_status_operational.py -q` (expect 5 passes).
+2. **Frontend smoke:** With the stack up on port **4202**, `cd front && BASE_URL=http://127.0.0.1:4202 npm run test:landing-version` (includes navigation to `/tables`).
+3. **Manual (floor canvas):** Open staff **Tables** → **Table view** / canvas. For a table with an active order and **bill requested** (`bill_requested_at`), confirm **fill** matches kitchen/service state (e.g. purple when order is **ready**) and a **bottom chip** shows payment pending (orange); not full-table orange. After **paid** while the table still links the paid order briefly, optional green **Paid** chip.
+4. **i18n:** Spot-check **Payment (bottom chip)** legend and chip strings in another locale (e.g. DE).
+5. **Zoom:** Pinch/zoom canvas; chip stays anchored to table bottom (SVG group transform).

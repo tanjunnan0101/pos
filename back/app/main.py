@@ -6695,10 +6695,12 @@ def list_tables_with_status(
 ) -> list[dict]:
     """List tables with computed status: available, reserved, or occupied.
 
-    Each row also includes ``operational_status`` for the floor canvas: available, reserved,
-    occupied (seated/session without an in-flight kitchen order), open_order (active order
-    not yet kitchen-ready), ready_to_serve (order ``ready`` and no bill request), or
-    bill_issued (``bill_requested_at`` set — payment / bill pending; takes precedence).
+    Each row includes ``operational_status`` for table **surface fill** (service pipeline only):
+    available, reserved, occupied (seated/session without an in-flight kitchen order),
+    open_order (active order not yet kitchen-ready), or ready_to_serve (order ``ready``).
+    Payment/collection is separate: ``payment_status`` is ``none``, ``pending`` (bill or
+    payment requested on the active order), or ``paid`` (table still links to a paid order
+    while staff clears the session — chip only; often absent once the table is released).
     Reserved tables may include ``upcoming_reservation`` when the booking is still in the future.
     """
     tables = session.exec(
@@ -6755,15 +6757,17 @@ def list_tables_with_status(
             )
         ).first()
         upcoming_reservation = None
+        payment_status = "none"
         if table.is_active or active_order or seated_here:
             status = "occupied"
             if active_order:
-                if active_order.bill_requested_at is not None:
-                    operational_status = "bill_issued"
-                elif active_order.status == models.OrderStatus.ready:
+                # Service-only fill: kitchen phase, not payment/bill state.
+                if active_order.status == models.OrderStatus.ready:
                     operational_status = "ready_to_serve"
                 else:
                     operational_status = "open_order"
+                if active_order.bill_requested_at is not None:
+                    payment_status = "pending"
             else:
                 operational_status = "occupied"
         else:
@@ -6786,6 +6790,17 @@ def list_tables_with_status(
                 }
         effective_waiter_id = table.assigned_waiter_id or floor_waiter_map.get(table.floor_id)
 
+        if payment_status == "none" and table.active_order_id:
+            linked = session.get(models.Order, table.active_order_id)
+            if (
+                linked
+                and linked.tenant_id == current_user.tenant_id
+                and linked.deleted_at is None
+                and linked.status == models.OrderStatus.paid
+                and linked.paid_at is not None
+            ):
+                payment_status = "paid"
+
         row = {
             "id": table.id,
             "name": table.name,
@@ -6801,6 +6816,7 @@ def list_tables_with_status(
             "seat_count": table.seat_count,
             "status": status,
             "operational_status": operational_status,
+            "payment_status": payment_status,
             "is_active": table.is_active,
             "active_order_id": table.active_order_id,
             "assigned_waiter_id": table.assigned_waiter_id,
@@ -6825,8 +6841,10 @@ def list_tables_with_status(
             continue
         op_stats = [result[i]["operational_status"] for i in indices]
         st_stats = [result[i]["status"] for i in indices]
+        pay_stats = [result[i].get("payment_status", "none") for i in indices]
         merged_op = _merge_operational_statuses(op_stats)
         merged_st = _merge_table_statuses(st_stats)
+        merged_pay = _merge_payment_statuses(pay_stats)
         upcoming_list = [result[i].get("upcoming_reservation") for i in indices]
         merged_up = next((u for u in upcoming_list if u), None)
         any_active = any(result[i].get("is_active") for i in indices)
@@ -6837,6 +6855,7 @@ def list_tables_with_status(
         for i in indices:
             result[i]["operational_status"] = merged_op
             result[i]["status"] = merged_st
+            result[i]["payment_status"] = merged_pay
             result[i]["is_active"] = any_active
             if active_oid is not None:
                 result[i]["active_order_id"] = active_oid
@@ -7471,8 +7490,15 @@ _OP_STATUS_RANK = {
     "occupied": 3,
     "open_order": 4,
     "ready_to_serve": 5,
-    "bill_issued": 6,
 }
+
+
+def _merge_payment_statuses(statuses: list[str]) -> str:
+    if any(s == "pending" for s in statuses):
+        return "pending"
+    if any(s == "paid" for s in statuses):
+        return "paid"
+    return "none"
 
 
 def _merge_operational_statuses(statuses: list[str]) -> str:

@@ -1,4 +1,4 @@
-"""GET /tables/with-status operational_status: open_order, ready_to_serve, bill_issued."""
+"""GET /tables/with-status: service-only operational_status + payment_status."""
 from __future__ import annotations
 
 import unittest
@@ -84,7 +84,9 @@ class TestTablesWithStatusOperational(PgClientTestCase):
         self.session.add(order)
         self.session.commit()
         self.session.refresh(order)
-        self.assertEqual(self._row()["operational_status"], "open_order")
+        row = self._row()
+        self.assertEqual(row["operational_status"], "open_order")
+        self.assertEqual(row["payment_status"], "none")
 
     def test_ready_to_serve_when_ready_and_no_bill_request(self) -> None:
         order = models.Order(
@@ -94,9 +96,11 @@ class TestTablesWithStatusOperational(PgClientTestCase):
         )
         self.session.add(order)
         self.session.commit()
-        self.assertEqual(self._row()["operational_status"], "ready_to_serve")
+        row = self._row()
+        self.assertEqual(row["operational_status"], "ready_to_serve")
+        self.assertEqual(row["payment_status"], "none")
 
-    def test_bill_issued_when_bill_requested_precedes_kitchen_state(self) -> None:
+    def test_open_order_and_payment_pending_when_bill_requested_preparing(self) -> None:
         order = models.Order(
             table_id=self.table_id,
             tenant_id=self.tenant_id,
@@ -105,9 +109,11 @@ class TestTablesWithStatusOperational(PgClientTestCase):
         )
         self.session.add(order)
         self.session.commit()
-        self.assertEqual(self._row()["operational_status"], "bill_issued")
+        row = self._row()
+        self.assertEqual(row["operational_status"], "open_order")
+        self.assertEqual(row["payment_status"], "pending")
 
-    def test_bill_issued_when_ready_and_bill_requested(self) -> None:
+    def test_ready_to_serve_and_payment_pending_when_ready_and_bill_requested(self) -> None:
         order = models.Order(
             table_id=self.table_id,
             tenant_id=self.tenant_id,
@@ -116,7 +122,31 @@ class TestTablesWithStatusOperational(PgClientTestCase):
         )
         self.session.add(order)
         self.session.commit()
-        self.assertEqual(self._row()["operational_status"], "bill_issued")
+        row = self._row()
+        self.assertEqual(row["operational_status"], "ready_to_serve")
+        self.assertEqual(row["payment_status"], "pending")
+
+    def test_payment_paid_when_table_links_paid_order_only(self) -> None:
+        """No in-flight kitchen order, but table still references a paid order (session clearing)."""
+        order = models.Order(
+            table_id=self.table_id,
+            tenant_id=self.tenant_id,
+            status=models.OrderStatus.paid,
+            paid_at=datetime.now(timezone.utc),
+        )
+        self.session.add(order)
+        self.session.commit()
+        self.session.refresh(order)
+
+        table = self.session.get(models.Table, self.table_id)
+        assert table is not None
+        table.active_order_id = order.id
+        self.session.add(table)
+        self.session.commit()
+
+        row = self._row()
+        self.assertEqual(row["operational_status"], "occupied")
+        self.assertEqual(row["payment_status"], "paid")
 
 
 if __name__ == "__main__":
