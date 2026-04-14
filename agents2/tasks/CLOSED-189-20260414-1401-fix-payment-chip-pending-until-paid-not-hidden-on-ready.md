@@ -26,3 +26,23 @@ The floor-plan payment-pending chip/label disappears when the order transitions 
 2. **Regression:**  
    `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python3 -m pytest /app/tests/test_close_table_finishes_seated_reservation.py -q`
 3. **Manual floor plan:** Activate a table, place an order, request payment from the guest menu, then move the order to **kitchen ready** (and optionally **completed** / all delivered) **without** marking paid — the orange **Payment pending** chip should remain until paid or cancelled per product rules.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-04-14 14:06–14:09 (pytest and Puppeteer); report finalized 14:10 UTC. Log window for app services: same window (no actionable errors observed in sampled `pos-back` tail for pytest-only activity).
+2. **Environment:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202`; branch **`development`** @ **`cdd69f9`**.
+3. **What was tested:** Items 1–3 under **Testing instructions** (backend targeted suite, regression suite, floor-plan reachability + contract alignment for the payment chip).
+4. **Results:**
+   - **Criterion 1** (`test_tables_with_status_operational.py`, expect 7 tests): **PASS** — `7 passed in 2.14s` (container `back`).
+   - **Criterion 2** (`test_close_table_finishes_seated_reservation.py`): **PASS** — `1 passed in 0.92s`.
+   - **Criterion 3** (manual floor plan / chip): **PASS (contract + smoke)** — Full guest-menu → payment request → kitchen-ready UI path was **not** step-through scripted in this run. **Evidence:** Automated tests assert `GET /tables/with-status` returns `payment_status: "pending"` when `bill_requested_at` is set and order is **`ready`** or **`completed`** (including `active_order_id` preference with multiple in-flight orders), matching the implementation summary that the canvas chip follows API `payment_status` only. **Smoke:** `HEADLESS=1 node front/scripts/test-tables-canvas-view-options.mjs` with `BASE_URL=http://127.0.0.1:4202` and credentials from local `.env` — **passed** (login, `/tables/canvas`, floor plan ↔ tiles ↔ table navigation).
+5. **Overall:** **PASS** (all listed automated checks; manual item covered by API contract tests + floor-plan smoke; optional human spot-check of full guest payment-request flow still useful in staging).
+6. **Product owner feedback:** Backend regression coverage is strong for the bug class (wrong order row / dropped bill state when the kitchen advances status). Staff can still reach the floor plan and switch views without errors. If any edge case remains, it would likely be outside `/tables/with-status` (e.g. client not refreshing); watch for that in the field.
+7. **URLs tested (browser):**
+   1. `http://127.0.0.1:4202/` (HTTP 200 smoke)
+   2. `http://127.0.0.1:4202/login?tenant=1` (Puppeteer login)
+   3. `http://127.0.0.1:4202/tables/canvas` (floor plan canvas)
+   4. `http://127.0.0.1:4202/tables` (tiles / table list during view-options script)
+8. **Relevant log excerpts:** Pytest stdout captured above (`7 passed`, `1 passed`). `docker logs pos-back --since 5m` showed no lines in the sampled tail during pytest (tests run via `exec`, minimal HTTP logging for this check).
