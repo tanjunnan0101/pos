@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Issue #186 tracked misleading floor-plan semantics that treated kitchen-ready orders as “bill / ready to pay” instead of distinguishing payment-pending from ready-to-serve.
+- **What was done:** The team added `order.bill_requested_at`, updated `GET /tables/with-status` so `bill_issued` reflects a bill request and `ready_to_serve` maps to kitchen-ready without it, wired request-payment and paid paths to set/clear the field, and aligned Angular legend, types, and i18n (`TABLES.OP_READY_TO_SERVE` / `TABLES.OP_BILL_ISSUED`) plus backend tests in `test_tables_with_status_operational.py`.
+- **What was tested:** Tester **PASS** — migrate to schema `20260414103000`, targeted pytest **4 passed**, regression **1 passed**, frontend build succeeded after a transient TS2741 during hot-reload, `/tables` reachable via smoke; full guest request-payment → orange → mark-paid was not step-by-step in browser (partial), with pytest covering operational combinations.
+- **Why closed:** Overall tester outcome **PASS**; acceptance satisfied with an explicit optional human spot-check noted for purple vs orange on a live table.
+- **Closed at (UTC):** 2026-04-14 10:21
+---
+
 # Floor plan: split kitchen ready vs bill / payment pending; bill_requested signal; copy
 
 ## GitHub Issues
