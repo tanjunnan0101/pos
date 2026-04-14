@@ -33,6 +33,12 @@ Redesigning the entire legend palette unless required for contrast with the new 
 
 ---
 
+## Agent handoff note
+
+Renamed **WIP → UNTESTED** after verifying implementation (backend `payment_status` + service-first `operational_status`, `tables-canvas` payment chip, i18n). Regenerated `front/src/environments/commit-hash.ts` via `node front/scripts/get-commit-hash.js` so displayed semver matches `package.json` (addresses the prior landing smoke failure on criterion #2). GitHub issue **#187** labeled **`agent:untested`**. The **Test report** section below is from an earlier run; the tester should re-run **Testing instructions** items 1–5.
+
+---
+
 ## Test report
 
 **Date/time (UTC):** 2026-04-14 11:47:45 – ~11:52 UTC (log window below).
