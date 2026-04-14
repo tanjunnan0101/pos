@@ -21,7 +21,7 @@ Redesigning the entire legend palette unless required for contrast with the new 
 - Review issue body and floor-plan docs in `docs/` if present; align with tenant scoping on API changes.
 - Implement backend response shape and priority rules so **fill = service pipeline**, **chip = payment**.
 - Update Angular types, canvas rendering, and legend; add i18n for all supported locales.
-- Add focused backend tests for status combinations; note manual verification steps in the task when ready for testing.
+- Add focused backend tests for `/tables/with-status` combinations; note manual verification steps in the task when ready for testing.
 
 ## Testing instructions
 
@@ -30,3 +30,57 @@ Redesigning the entire legend palette unless required for contrast with the new 
 3. **Manual (floor canvas):** Open staff **Tables** → **Table view** / canvas. For a table with an active order and **bill requested** (`bill_requested_at`), confirm **fill** matches kitchen/service state (e.g. purple when order is **ready**) and a **bottom chip** shows payment pending (orange); not full-table orange. After **paid** while the table still links the paid order briefly, optional green **Paid** chip.
 4. **i18n:** Spot-check **Payment (bottom chip)** legend and chip strings in another locale (e.g. DE).
 5. **Zoom:** Pinch/zoom canvas; chip stays anchored to table bottom (SVG group transform).
+
+---
+
+## Test report
+
+**Date/time (UTC):** 2026-04-14 11:47:45 – ~11:52 UTC (log window below).
+
+**Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202`; branch `development` @ `4bf90f4`.
+
+**What was tested:** Items 1–5 from **Testing instructions** above.
+
+**Results:**
+
+| # | Criterion | Result | Evidence |
+|---|-----------|--------|----------|
+| 1 | Backend pytest `test_tables_with_status_operational.py` (5 tests) | **PASS** | `5 passed in 1.77s` |
+| 2 | Frontend smoke `npm run test:landing-version` (as written, no env skip) | **FAIL** | App footer shows semver **2.0.74** while `front/package.json` is **2.0.75** — `front/src/environments/commit-hash.ts` exports `version = '2.0.74'`. Script error: `Landing semver "2.0.74" !== package.json "2.0.75"`. |
+| 3 | Manual floor canvas (bill requested + fill vs chip) | **NOT VERIFIED** | No order with `bill_requested_at` prepared in this run; backend tests cover API split. Re-verify in UI after fixing item 2. |
+| 4 | i18n DE (legend + chip strings) | **PASS** (spot-check) | `front/public/i18n/de.json`: `TABLES.PAYMENT_PENDING` / `TABLES.LEGEND_PAYMENT_PENDING` / `TABLES.PAID` present (e.g. “Zahlung ausstehend”, “Bezahlt”). |
+| 5 | Zoom: chip anchored to table bottom | **NOT VERIFIED** | Not exercised in this automated run. |
+
+**Supplementary (non-substitute):** With `SKIP_LANDING_PACKAGE_VERSION_CHECK=1`, the same Puppeteer script completed: login OK; **all sidebar routes including `/tables`** navigated OK.
+
+**Overall:** **FAIL** — failed criterion **#2** (mandatory smoke command).
+
+**Product owner feedback:** Backend coverage for `/tables/with-status` looks solid. The release checklist is blocked because the landing version check fails: the displayed app version must match `package.json` (update `commit-hash.ts` or align versioning when the committer bumps the front package). Full confirmation of the payment chip versus fill colors still needs a staff session with a bill-requested order and a quick zoom pass on the canvas.
+
+**URLs tested (Puppeteer, with skip flag for supplementary run):**
+
+1. `http://127.0.0.1:4202/`
+2. `http://127.0.0.1:4202/dashboard`
+3. `http://127.0.0.1:4202/my-shift`
+4. `http://127.0.0.1:4202/staff/orders`
+5. `http://127.0.0.1:4202/reservations`
+6. `http://127.0.0.1:4202/guest-feedback`
+7. `http://127.0.0.1:4202/tables`
+8. `http://127.0.0.1:4202/kitchen`
+9. `http://127.0.0.1:4202/bar`
+10. `http://127.0.0.1:4202/customers`
+11. `http://127.0.0.1:4202/products`
+12. `http://127.0.0.1:4202/catalog`
+13. `http://127.0.0.1:4202/reports`
+14. `http://127.0.0.1:4202/working-plan`
+15. `http://127.0.0.1:4202/users`
+16. `http://127.0.0.1:4202/contracts`
+17. `http://127.0.0.1:4202/settings`
+18. `http://127.0.0.1:4202/inventory/items` (and other inventory sublinks as exercised by script)
+
+**Relevant log excerpts**
+
+- **Backend (pytest):** `..... [100%]` / `5 passed in 1.77s`
+- **Frontend (strict smoke, fail):** `FAIL: Landing semver "2.0.74" !== package.json "2.0.75"`
+- **Frontend (`pos-front`, ~11:45Z):** `Application bundle generation complete` (no compile errors in sampled window)
+- **Backend (`pos-back`, ~5m window):** no errors in grep for `error|exception|traceback|500`
