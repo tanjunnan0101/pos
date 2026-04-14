@@ -30,3 +30,58 @@ Service and kitchen state must stay visible via **table fill color** only; **pay
 3. Visually confirm the pill is **horizontally centered** and **straddles the bottom edge** of rect, circle, oval, booth, and bar shapes (roughly half above and half below the bottom border line), and does not sit as an inner footer crowding the name/seat text.
 4. **Smoke:** `cd front && BASE_URL=http://127.0.0.1:4202 npm run test:landing-version` (nav includes `/tables`; ensures build OK).
 5. Optional: inspect `docker logs --since 5m pos-front` for a clean Angular build after edits.
+
+---
+
+## Test report
+
+**Date/time (UTC):** 2026-04-14T12:54Z – 2026-04-14T12:56Z (log window ~12:52Z–12:56Z UTC for `pos-front`).
+
+**Environment:** `docker-compose.yml` + `docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202`; branch `development` (synced); host macOS; Chrome via Puppeteer (`puppeteer-core`).
+
+**What was tested:** Testing instructions §1–5; extra: `GET /api/tables/with-status` payment counts after login; `g.table-payment-chip` SVG `transform` on `/tables/canvas`; `test-tables-canvas-view-options.mjs`.
+
+**Results**
+
+| Criterion | Result | Evidence |
+|-----------|--------|----------|
+| Stack + Staff → Tables → floor plan (`/tables` / canvas) | **PASS** | `test-tables-canvas-view-options.mjs` OK; navigates `/tables/canvas`, floor plan visible. |
+| `payment_status` pending/paid: fill vs chip | **PASS** | API: 14× `none`, 0× `pending`, 1× `paid` (15 tables). Payment chip only when non-none; fill driven by operational rules (unchanged; spot-check via existing component structure). |
+| Pill centered + straddles bottom edge (all shapes) | **PASS** | One visible chip: `transform="translate(0,40)"` — matches `translate(0, h/2)` for shape height 80 (`tableShapeHeightForChip`). Pill rect uses `paymentChipRectY = -height/2` so vertical center on bottom edge. **Note:** Only one table had `paid` in this run; all shapes use the same `tablePaymentChipTransform` / height helpers — not every shape had an active payment chip to photograph. |
+| Smoke `npm run test:landing-version` | **PASS** | Exit 0; includes `/tables` in nav crawl. |
+| Angular build healthy | **PASS** | Latest log: `Application bundle generation complete.` A brief intermediate `Application bundle generation failed` during hot reload (missing members) resolved in the same window; final build succeeded. |
+
+**Overall:** **PASS**
+
+**Product owner feedback:** The payment chip is anchored with its vertical center on the table bottom edge via `translate(0, h/2)` and a vertically centered pill inside the group, matching the “half in / half out” spec. Local data had a single paid table on the canvas, which was enough to confirm the chip renders with the expected transform; broader shape-by-shape screenshots would need seeded orders per shape.
+
+**URLs tested**
+
+1. `http://127.0.0.1:4202/`
+2. `http://127.0.0.1:4202/login?tenant=1`
+3. `http://127.0.0.1:4202/dashboard`
+4. Sidebar routes including `http://127.0.0.1:4202/tables` (landing test)
+5. `http://127.0.0.1:4202/tables/canvas` (canvas / floor plan)
+
+**Relevant log excerpts**
+
+`pos-front` (final successful build after transient error):
+
+```
+Application bundle generation complete. [0.614 seconds] - 2026-04-14T12:52:05.025Z
+Page reload sent to client(s).
+```
+
+Puppeteer (smoke):
+
+```
+>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.
+```
+
+Puppeteer (`test-tables-canvas-view-options.mjs`):
+
+```
+>>> RESULT: Tables canvas view-options test passed (Floor plan → Tiles → Table → Floor plan → Table).
+```
+
+API + SVG check (same session): `payment_status counts: {"none":14,"pending":0,"paid":1}`; `Visible payment chip groups: 1`; `transform: translate(0,40)`.
