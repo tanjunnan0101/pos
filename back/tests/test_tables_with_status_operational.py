@@ -126,6 +126,59 @@ class TestTablesWithStatusOperational(PgClientTestCase):
         self.assertEqual(row["operational_status"], "ready_to_serve")
         self.assertEqual(row["payment_status"], "pending")
 
+    def test_payment_pending_prefers_table_active_order_id_when_multiple_in_flight(self) -> None:
+        """Older preparing order without bill must not hide bill/payment on the session order."""
+        older = models.Order(
+            table_id=self.table_id,
+            tenant_id=self.tenant_id,
+            status=models.OrderStatus.preparing,
+        )
+        self.session.add(older)
+        self.session.commit()
+        self.session.refresh(older)
+
+        newer = models.Order(
+            table_id=self.table_id,
+            tenant_id=self.tenant_id,
+            status=models.OrderStatus.ready,
+            bill_requested_at=datetime.now(timezone.utc),
+        )
+        self.session.add(newer)
+        self.session.commit()
+        self.session.refresh(newer)
+
+        table = self.session.get(models.Table, self.table_id)
+        assert table is not None
+        table.active_order_id = newer.id
+        self.session.add(table)
+        self.session.commit()
+
+        row = self._row()
+        self.assertEqual(row["operational_status"], "ready_to_serve")
+        self.assertEqual(row["payment_status"], "pending")
+
+    def test_ready_to_serve_and_payment_pending_when_completed_and_bill_requested(self) -> None:
+        """All items delivered (completed) but unpaid — bill request must still surface on the floor."""
+        order = models.Order(
+            table_id=self.table_id,
+            tenant_id=self.tenant_id,
+            status=models.OrderStatus.completed,
+            bill_requested_at=datetime.now(timezone.utc),
+        )
+        self.session.add(order)
+        self.session.commit()
+        self.session.refresh(order)
+
+        table = self.session.get(models.Table, self.table_id)
+        assert table is not None
+        table.active_order_id = order.id
+        self.session.add(table)
+        self.session.commit()
+
+        row = self._row()
+        self.assertEqual(row["operational_status"], "ready_to_serve")
+        self.assertEqual(row["payment_status"], "pending")
+
     def test_payment_paid_when_table_links_paid_order_only(self) -> None:
         """No in-flight kitchen order, but table still references a paid order (session clearing)."""
         order = models.Order(

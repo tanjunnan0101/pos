@@ -44,6 +44,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Tables floor plan / payments (GitHub #189):** **`GET /tables/with-status`** no longer drops **`payment_status: pending`** when the session order is kitchen-**ready** or **completed** if another in-flight order existed on the table, or when the primary loop missed **`bill_requested_at`** — resolves **`table.active_order_id`** first, includes **`completed`** in in-flight statuses, and extends the **`active_order_id`** fallback for pending bills. **`back/app/main.py`**, **`back/tests/test_tables_with_status_operational.py`**.
+
 - **Tables / reservations (GitHub #184):** **POST /tables/{id}/close** now marks **seated** reservations on that table as **finished** (same as the finish-reservation flow), so **GET /tables/with-status** no longer shows the table as occupied solely because of a seated booking after staff closed the session from the tile grid. **`back/app/main.py`**, **`back/tests/test_close_table_finishes_seated_reservation.py`**.
 
 - **Tables (GitHub #180):** Deleting a table no longer fails after orders were soft-deleted in the UI. **`DELETE /tables/{id}`** only treats **active** orders as blocking; soft-delete clears **`order.table_id`** (migration makes the column nullable and backfills existing soft-deleted rows). Canvas / join-table queries ignore soft-deleted orders when detecting open orders.

@@ -6697,7 +6697,8 @@ def list_tables_with_status(
 
     Each row includes ``operational_status`` for table **surface fill** (service pipeline only):
     available, reserved, occupied (seated/session without an in-flight kitchen order),
-    open_order (active order not yet kitchen-ready), or ready_to_serve (order ``ready``).
+    open_order (active order not yet kitchen-ready), or ready_to_serve (order ``ready`` or
+    ``completed`` — kitchen/service done; payment may still be pending).
     Payment/collection is separate: ``payment_status`` is ``none``, ``pending`` (bill or
     payment requested on the active order), or ``paid`` (table still links to a paid order
     while staff clears the session — chip only; often absent once the table is released).
@@ -6734,22 +6735,38 @@ def list_tables_with_status(
         ).all()
         waiter_map = {w.id: (w.full_name or w.email) for w in waiters}
 
+    _in_flight_order_statuses = (
+        models.OrderStatus.pending,
+        models.OrderStatus.preparing,
+        models.OrderStatus.ready,
+        models.OrderStatus.partially_delivered,
+        models.OrderStatus.completed,
+    )
+
     result = []
     for table in tables:
-        active_order = session.exec(
-            select(models.Order).where(
-                models.Order.table_id == table.id,
-                models.Order.deleted_at.is_(None),
-                models.Order.status.in_(
-                    [
-                        models.OrderStatus.pending,
-                        models.OrderStatus.preparing,
-                        models.OrderStatus.ready,
-                        models.OrderStatus.partially_delivered,
-                    ]
-                ),
-            )
-        ).first()
+        # Prefer the table's shared session order (same as get_current_order); a bare
+        # .first() can pick another row when multiple in-flight orders exist on the table.
+        active_order = None
+        if table.active_order_id:
+            cand = session.get(models.Order, table.active_order_id)
+            if (
+                cand
+                and cand.table_id == table.id
+                and cand.deleted_at is None
+                and cand.status in _in_flight_order_statuses
+            ):
+                active_order = cand
+        if active_order is None:
+            active_order = session.exec(
+                select(models.Order)
+                .where(
+                    models.Order.table_id == table.id,
+                    models.Order.deleted_at.is_(None),
+                    models.Order.status.in_(_in_flight_order_statuses),
+                )
+                .order_by(models.Order.id.desc())
+            ).first()
         seated_here = session.exec(
             select(models.Reservation).where(
                 models.Reservation.table_id == table.id,
@@ -6762,7 +6779,10 @@ def list_tables_with_status(
             status = "occupied"
             if active_order:
                 # Service-only fill: kitchen phase, not payment/bill state.
-                if active_order.status == models.OrderStatus.ready:
+                if active_order.status in (
+                    models.OrderStatus.ready,
+                    models.OrderStatus.completed,
+                ):
                     operational_status = "ready_to_serve"
                 else:
                     operational_status = "open_order"
@@ -6792,14 +6812,14 @@ def list_tables_with_status(
 
         if payment_status == "none" and table.active_order_id:
             linked = session.get(models.Order, table.active_order_id)
-            if (
-                linked
-                and linked.tenant_id == current_user.tenant_id
-                and linked.deleted_at is None
-                and linked.status == models.OrderStatus.paid
-                and linked.paid_at is not None
-            ):
-                payment_status = "paid"
+            if linked and linked.tenant_id == current_user.tenant_id and linked.deleted_at is None:
+                if linked.status == models.OrderStatus.paid and linked.paid_at is not None:
+                    payment_status = "paid"
+                elif linked.bill_requested_at is not None and linked.status not in (
+                    models.OrderStatus.paid,
+                    models.OrderStatus.cancelled,
+                ):
+                    payment_status = "pending"
 
         row = {
             "id": table.id,
