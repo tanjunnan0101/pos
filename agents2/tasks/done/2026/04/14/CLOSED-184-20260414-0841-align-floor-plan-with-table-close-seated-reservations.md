@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Staff could close a table from the tile grid while the floor plan still showed the table as occupied because seated reservations were not finished when `POST /tables/{id}/close` ran.
+- **What was done:** A shared `_mark_reservation_finished()` helper was added and wired from the finish/status endpoints and from `close_table`, so seated reservations on that table are finished (with consistent WebSocket side effects) when the table is closed; pytest `test_close_table_finishes_seated_reservation.py` was added.
+- **What was tested:** Pytest for close + `GET /tables/with-status` alignment passed; `npm run test:landing-version` passed; back logs showed no errors in the reviewed window.
+- **Why closed:** Test report **PASS**; all stated criteria met.
+- **Closed at (UTC):** 2026-04-14 08:52
+---
+
 # Align floor plan status with table close: finish seated reservations on POST /tables/{id}/close
 
 ## GitHub Issues
