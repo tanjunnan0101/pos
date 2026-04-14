@@ -8870,9 +8870,7 @@ def update_reservation_status(
         reservation.table_id = None
         reservation.seated_at = None
     elif body.status == models.ReservationStatus.finished:
-        reservation.status = models.ReservationStatus.finished
-        reservation.table_id = None
-        reservation.seated_at = None
+        _mark_reservation_finished(reservation)
     else:
         reservation.status = body.status
     reservation.updated_at = datetime.now(timezone.utc)
@@ -8962,6 +8960,14 @@ def seat_reservation(
     return out
 
 
+def _mark_reservation_finished(reservation: models.Reservation) -> None:
+    """Set reservation to finished and clear table assignment. Caller commits and publishes."""
+    reservation.status = models.ReservationStatus.finished
+    reservation.table_id = None
+    reservation.seated_at = None
+    reservation.updated_at = datetime.now(timezone.utc)
+
+
 @app.put("/reservations/{reservation_id}/finish")
 def finish_reservation(
     reservation_id: int,
@@ -8977,10 +8983,7 @@ def finish_reservation(
     ).first()
     if not reservation:
         raise HTTPException(status_code=404, detail="Reservation not found")
-    reservation.status = models.ReservationStatus.finished
-    reservation.table_id = None
-    reservation.seated_at = None
-    reservation.updated_at = datetime.now(timezone.utc)
+    _mark_reservation_finished(reservation)
     session.add(reservation)
     session.commit()
     session.refresh(reservation)
@@ -9239,6 +9242,20 @@ def close_table(
     if not table:
         raise HTTPException(status_code=404, detail="Table not found")
 
+    seated_at_table = session.exec(
+        select(models.Reservation).where(
+            models.Reservation.tenant_id == current_user.tenant_id,
+            models.Reservation.table_id == table_id,
+            models.Reservation.status == models.ReservationStatus.seated,
+        )
+    ).all()
+    finished_reservation_ids: list[int] = []
+    for res in seated_at_table:
+        _mark_reservation_finished(res)
+        session.add(res)
+        if res.id is not None:
+            finished_reservation_ids.append(res.id)
+
     # If there is an active order with no (active) items, delete it so we don't keep empty orders
     if table.active_order_id:
         order = session.get(models.Order, table.active_order_id)
@@ -9262,6 +9279,14 @@ def close_table(
 
     session.commit()
     session.refresh(table)
+
+    for rid in finished_reservation_ids:
+        r = session.get(models.Reservation, rid)
+        if r:
+            out = _reservation_to_dict(r, session, include_client_tech=True)
+            publish_reservation_update(
+                current_user.tenant_id, {"type": "reservation_finished", "reservation": out}
+            )
 
     # Notify connected customers via WebSocket that the table has been closed
     publish_order_update(

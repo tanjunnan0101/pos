@@ -42,6 +42,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Tables / reservations (GitHub #184):** **POST /tables/{id}/close** now marks **seated** reservations on that table as **finished** (same as the finish-reservation flow), so **GET /tables/with-status** no longer shows the table as occupied solely because of a seated booking after staff closed the session from the tile grid. **`back/app/main.py`**, **`back/tests/test_close_table_finishes_seated_reservation.py`**.
+
 - **Tables (GitHub #180):** Deleting a table no longer fails after orders were soft-deleted in the UI. **`DELETE /tables/{id}`** only treats **active** orders as blocking; soft-delete clears **`order.table_id`** (migration makes the column nullable and backfills existing soft-deleted rows). Canvas / join-table queries ignore soft-deleted orders when detecting open orders.
 
 - **API:** When PostgreSQL is unreachable or closes the connection, endpoints that use the DB (e.g. **`GET /public/tenants`**) now return **503** with a JSON **`detail`** instead of a generic **500**, so operators and clients can tell **service unavailable** from application bugs.
