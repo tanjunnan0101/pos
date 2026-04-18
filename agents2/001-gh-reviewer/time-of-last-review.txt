@@ -1948,3 +1948,13 @@ Docker (B, verified live): `docker logs pos-front --since 48h` → **0** lines m
 `./scripts/git-sync-development.sh` — already up to date before this append.
 Counts this run: FEAT=0, NEW=0.
 
+
+---
+2026-04-18T23:36:33Z — 001-gh-reviewer run (Run 001; preflight digest read first)
+Preflight digest: `/var/folders/pm/lvxj2qcj03v2qqtb8sf5rryc0000gn/T/pos-agent-loop/001-latest-context.txt` (2026-04-18T23:35:42Z UTC) — GitHub open `[]`; digest `pos-front` TS/`bill_issued` scrollback dated 2026-04-14 (heuristic); verified live below.
+GitHub (A): `gh issue list --repo satisfecho/pos --state open --limit 40` → **no rows**; `python3 issue_checker_agent.py` (cwd `agents2/`) → PASS — **0 × FEAT-***; **no** `gh issue comment` / `agent:planned`.
+Dedupe: N/A (no open issues); `agents2/tasks/` no `FEAT-*` / `WIP-*` / `NEW-*` at queue root (per glob; `TEMPLATE.md`, `done/` only).
+Docker (B, verified live): `docker logs pos-front --tail 25` ends with **Application bundle generation complete** + **Page reload sent** (2026-04-14T12:52:05Z); `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:4202/` → **200**. Earlier TS errors in buffer are superseded by successful compile — **not** a standing incident. `docker logs pos-back --tail 80` → no ERROR/Exception match; `docker logs pos-postgres --tail 40` shows old ERROR lines only — **0 × NEW-***.
+`./scripts/git-sync-development.sh` — already up to date before append.
+Counts this run: FEAT=0, NEW=0.
+
