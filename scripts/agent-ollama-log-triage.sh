@@ -10,7 +10,7 @@
 #   LLAMA_CPP_REQUEST_TIMEOUT  Seconds for HTTP request (default 180)
 #   AGENT_001_SKIP_LLAMA_CPP   If 1, only use Ollama (skip llama.cpp attempt)
 #   AGENT_001_LOG_TRIAGE_DEBUG If 1, print llama.cpp / ollama stderr (default suppresses stderr)
-#   OLLAMA_MODEL           Default qwen2.5:1.5b
+#   OLLAMA_MODEL           Default Gemma4:latest
 #   OLLAMA_HOST            Defaults to http://127.0.0.1:11434 only when unset; if set in the environment (e.g. remote daemon), that value is used.
 #
 # Exit: 0 = ESCALATE (keep log incident flag for 001)
@@ -20,7 +20,7 @@
 set -euo pipefail
 
 ctx="${1:?usage: $0 /path/to/001-latest-context.txt}"
-ollama_model="${OLLAMA_MODEL:-qwen2.5:1.5b}"
+ollama_model="${OLLAMA_MODEL:-Gemma4:latest}"
 : "${OLLAMA_HOST:=http://127.0.0.1:11434}"
 export OLLAMA_HOST
 

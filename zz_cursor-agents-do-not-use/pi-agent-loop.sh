@@ -20,7 +20,7 @@ unset _tdir
 GH_REPO="${AGENT_GH_REPO:-satisfecho/pos}"
 LAST_REVIEW_FILE="${SCRIPTDIR}/001-log-reviewer/time-of-last-review.txt"
 OLLAMA_URL="http://localhost:11434/api/generate"
-TRIAGE_MODEL="qwen2.5:1.5b"
+TRIAGE_MODEL="Gemma4:latest"
 
 cd "$REPO_ROOT" || exit 1
 
@@ -519,7 +519,7 @@ Environment:
   AGENT_001_SKIP_PREFLIGHT   If 1, always invoke 001 (legacy).
   AGENT_001_RUN_WHEN_GH_UNKNOWN  If 1, run 001 when gh failed/missing and digest otherwise empty.
   OLLAMA_URL                  URL for Ollama API (default: http://localhost:11434/api/generate).
-  TRIAGE_MODEL               Ollama model for triage (default: qwen2.5:1.5b).
+  TRIAGE_MODEL               Ollama model for triage (default: Gemma4:latest).
 
 Docker / app stack: start separately from repo root with ./run.sh -dev
 
