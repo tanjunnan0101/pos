@@ -2262,3 +2262,16 @@ Dedupe: N/A (no open issues); `agents2/tasks/` has no active `FEAT-*` queue file
 
 **Counts this run:** FEAT=0, NEW=0.
 
+---
+2026-04-19T03:01:16Z — 001-gh-reviewer run (Run 001; preflight digest read first)
+
+Preflight digest: `/var/folders/pm/lvxj2qcj03v2qqtb8sf5rryc0000gn/T/pos-agent-loop/001-latest-context.txt` — GitHub open `[]`; digest `pos-front` heuristic TS errors from 2026-04-14 scrollback; `G001_LOG_SIGNALS=1` from buffer not current failure.
+
+**GitHub (A):** `gh issue list --repo satisfecho/pos --state open --limit 40` → **no rows**. **0 × FEAT-*** created; **no** `gh issue comment` / `agent:planned`.
+
+**Docker (B, verified live):** `docker logs pos-front` tail shows **Application bundle generation complete** after Apr-14 intermediate failures; errors in full log are **historical** (2026-04-14 timestamps only). **Not** a standing incident — **0 × NEW-***.
+
+`./scripts/git-sync-development.sh` — OK at run start.
+
+**Counts this run:** FEAT=0, NEW=0.
+
