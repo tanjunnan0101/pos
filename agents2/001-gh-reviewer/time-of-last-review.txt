@@ -3010,3 +3010,16 @@ Preflight digest read: /var/folders/pm/lvxj2qcj03v2qqtb8sf5rryc0000gn/T/pos-agen
 
 2026-04-19T09:46:35Z UTC | Agent 001 | FEAT created: 0 | NEW created: 0 | Open GitHub issues: 0 | Docker standing incident: none (24h/48h live + 200)
 
+2026-04-20T06:33:56Z UTC | Agent 001 (Run: preflight digest + 001-gh-reviewer.md)
+
+**Preflight digest (read first):** `/var/folders/pm/lvxj2qcj03v2qqtb8sf5rryc0000gn/T/pos-agent-loop/001-latest-context.txt` — **2026-04-20T06:32:55Z** UTC — GitHub open **`[]`**; `G001_GH_OK=1`, `G001_UNTRACKED_ISSUES=0`, `G001_LOG_SIGNALS=1` (heuristic: historical **2026-04-14** pos-front TS scrollback in ring buffer; not evidence of a current build break).
+
+**(A) GitHub:** `./scripts/git-sync-development.sh` — OK. `gh issue list --repo satisfecho/pos --state open --limit 40` → **0** issues. **0 × `FEAT-*`** — dedupe N/A (no candidates; no **`FEAT-<n>-*.md`** in **`agents2/tasks/`** root). **No** `gh issue comment` / **`agent:planned`** (nothing to attach).
+
+**(B) Docker (live):** `docker logs pos-front --since 24h` → **0** lines (idle window); ring-buffer tail still contains **2026-04-14** rebuild noise followed by **`Application bundle generation complete`**; `docker logs pos-front --since 24h | grep -iE '\[ERROR\]|Application bundle generation failed'` → **no matches** (empty input); `docker logs pos-back --since 24h` error-style grep → **empty**; `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:4202/` → **200** → **no standing incident** → **0 × `NEW-*`**.
+
+**Counts this run:** FEAT=0, NEW=0.
+
+2026-04-20T06:33:56Z UTC | Agent 001 | FEAT created: 0 | NEW created: 0 | Open GitHub issues: 0 | Docker standing incident: none
+
+---
