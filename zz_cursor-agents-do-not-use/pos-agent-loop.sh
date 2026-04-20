@@ -5,7 +5,7 @@
 #   cd agents && ./pos-agent-loop.sh [COMMAND]
 #
 # Starts Docker stack: use ./run.sh -dev at repo root (separate from this file).
-# Requires: cursor-agent on PATH for steps that invoke it (001 can skip cursor when AGENT_001_LOCAL_LOG_REVIEWER is on and only Docker heuristics fire with no untracked GitHub issues).
+# Requires: cursor-agent on PATH for steps that invoke it (001/committer can skip cursor when local modes are on; see AGENT_001_LOCAL_LOG_REVIEWER, AGENT_COMMITTER_LOCAL, AGENT_COMMITTER_USE_CURSOR).
 #
 # Task dir: agents/tasks/ (sibling of this script).
 
@@ -300,6 +300,64 @@ has_pos_repo_uncommitted_changes() {
   ( cd "$REPO_ROOT" && { ! git diff --quiet 2>/dev/null || ! git diff --staged --quiet 2>/dev/null; } )
 }
 
+committer_changed_paths() {
+  ( cd "$REPO_ROOT" && {
+    git diff --name-only HEAD 2>/dev/null || true
+    git ls-files --others --exclude-standard 2>/dev/null || true
+  } | sort -u )
+}
+
+committer_paths_all_local_stamp_allowlist() {
+  local f had=0
+  while IFS= read -r f; do
+    [[ -z "$f" ]] && continue
+    had=1
+    case "$f" in
+      agents2/001-gh-reviewer/time-of-last-review.txt) ;;
+      *) return 1 ;;
+    esac
+  done < <(committer_changed_paths)
+  ((had == 1))
+}
+
+committer_try_local_stamp_only() {
+  [[ "${AGENT_COMMITTER_LOCAL:-1}" == "0" ]] && return 1
+  local br
+  br=$(cd "$REPO_ROOT" && git rev-parse --abbrev-ref HEAD 2>/dev/null) || return 1
+  if [[ "$br" != "development" ]]; then
+    echo "----- committer (local skip: repo not on development — use cursor or checkout)" >&2
+    return 1
+  fi
+  if ! committer_paths_all_local_stamp_allowlist; then
+    return 1
+  fi
+  (
+    cd "$REPO_ROOT" || exit 1
+    git add -- agents2/001-gh-reviewer/time-of-last-review.txt
+    if git diff --staged --quiet; then
+      exit 1
+    fi
+    git commit -m "chore(agents2): update 001 reviewer time-of-last-review stamp"
+    set +e
+    git pull --rebase --autostash origin development
+    local prc=$?
+    set -e
+    if ((prc != 0)); then
+      echo "----- committer (local: git pull --rebase failed — resolve and retry)" >&2
+      exit 1
+    fi
+    set +e
+    git push origin development
+    local psh=$?
+    set -e
+    if ((psh != 0)); then
+      echo "----- committer (local: git push failed — check network or permissions)" >&2
+      exit 1
+    fi
+    exit 0
+  )
+}
+
 # Only invoke agent if condition is true and prompt file exists.
 # Usage: run_agent "description" "condition_cmd" "prompt_relative_path" "message"
 run_agent() {
@@ -478,6 +536,22 @@ step_committer() {
     return 0
   fi
   echo "-----> committer (changelog + commit, POS repo) <----"
+
+  if [[ "${AGENT_COMMITTER_LOCAL:-1}" != "0" ]] && committer_try_local_stamp_only; then
+    echo "----- committer (local: committed and pushed stamp-only changes; no cursor-agent)"
+    return 0
+  fi
+
+  if [[ "${AGENT_COMMITTER_USE_CURSOR:-0}" != "1" ]] && [[ "${AGENT_COMMITTER_LOCAL:-1}" != "0" ]]; then
+    echo "----- committer (skip cursor-agent: local mode — non-stamp changes or stamp path not eligible; set AGENT_COMMITTER_USE_CURSOR=1 for full committer cursor-agent)"
+    ( cd "$REPO_ROOT" && git status -sb ) || true
+    return 0
+  fi
+
+  if ! have_cursor_agent; then
+    echo "----- committer (skip: cursor-agent not on PATH — set AGENT_COMMITTER_USE_CURSOR=1 after installing, or commit manually)"
+    return 0
+  fi
   run_agent "committer (changelog + commit)" \
     "has_pos_repo_uncommitted_changes" \
     "007-committer/COMMITTER.md" \
@@ -531,6 +605,8 @@ Environment:
   AGENT_LOG_REVIEWER_ALWAYS  If 1, always invoke 001 cursor-agent (skip preflight gate).
   AGENT_001_SKIP_PREFLIGHT   If 1, always invoke 001 (legacy); digest still written when built.
   AGENT_001_RUN_WHEN_GH_UNKNOWN  If 1, run 001 when gh failed/missing and digest otherwise empty.
+  AGENT_COMMITTER_LOCAL        If not 0 (default 1), committer tries local git commit+push for allowlisted paths only (agents2/001-gh-reviewer/time-of-last-review.txt). No cursor-agent for that case.
+  AGENT_COMMITTER_USE_CURSOR   If 1, run committer via cursor-agent when local stamp-only does not apply (default 0).
   AGENT_001_LOCAL_LOG_REVIEWER  If not 0 (default 1), never invoke cursor-agent for 001 when only Docker log heuristics fired and GitHub preflight succeeded with zero untracked issues (fully local digest + optional Ollama triage). Set to 0 to allow cursor-agent for that case.
   AGENT_001_OLLAMA_LOG_TRIAGE  If 0, never run local LLM triage. Otherwise (default) triage runs when llama.cpp OpenAI API responds (GET \$LLAMA_CPP_BASE_URL/models, default http://127.0.0.1:8080/v1) and python3 exists, or when ollama list shows ≥1 model — only for log-only 001 signals. LLAMA_CPP_MODEL (default Bonsai-8B.gguf); OLLAMA_MODEL (default Gemma4:latest). Default triage order is Ollama first, then llama.cpp; AGENT_001_LLAMA_CPP_FIRST=1 restores llama-first. AGENT_001_SKIP_LLAMA_CPP=1 forces Ollama only. AGENT_001_LOG_TRIAGE_DEBUG=1 prints triage script stderr (llama.cpp / ollama errors).
 
