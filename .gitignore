@@ -1,8 +1,10 @@
+claude-session.log
 tmp/*
 time-of-last-review.txt
 # Agent loop preflight if AGENT_LOOP_TMP points here; optional scratch under agents/ (default: $TMPDIR/pos-agent-loop)
 agents/.pos-agent-loop/
 agents/tmp/
+agents2/001-gh-reviewer/time-of-last-review.txt
 .tmp/
 .DS_Store
 *.swp
