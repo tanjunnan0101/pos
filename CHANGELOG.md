@@ -22,6 +22,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - Tables / payments: `GET /tables/with-status` preserves **`payment_status: pending`** when kitchen orders are ready or completed and a bill was still relevant; improved detection of active order and `bill_requested_at` (#189).
 - Orders / tables: staff **mark paid** and **finish order** no longer cleared `bill_requested_at`, so after **unmark paid** the floor plan still showed **payment pending** when a bill had been requested (#190).
 
+## [2.0.81] - 2026-04-21
+
+### Fixed
+
+- **Deploy (amvara9) / marketing:** **rsync** of **`front/sites/`** now runs **after** **`git reset --hard`** on the server. Previously, reset restored committed **placeholders** and **overwrote** the CI-fetched bundles, so production (e.g. **`/gustazo/`**) served the stub page. **Deploy** still needs **`GUSTAZO_ARTIFACT_TOKEN`** (or **`MARKETING_ARTIFACT_TOKEN`**) in GitHub for the “Fetch marketing” step. **Smoke** warns if Gustazo HTML still contains **“bundle not loaded”**.
+
 ## [2.0.80] - 2026-04-21
 
 ### Fixed

@@ -3,7 +3,7 @@
 # Repository: https://github.com/satisfecho/pos — workflow must run from satisfecho/pos; server clone must have origin = satisfecho/pos.
 # Requires repository secret: SSH_PRIVATE_KEY_AMVARA9 (private key for root@amvara9; raw PEM or base64).
 # Optional: DEPLOY_HOST (default 167.235.138.59), DEPLOY_USER (default root), DEPLOY_PATH (default /development/pos).
-# Marketing sites under /<slug>/ (see config/marketing-sites.json): optional GUSTAZO_ARTIFACT_TOKEN / MARKETING_ARTIFACT_TOKEN (PAT with Actions read on each repo).
+# Marketing sites under /<slug>/ (see config/marketing-sites.json): optional GUSTAZO_ARTIFACT_TOKEN / MARKETING_ARTIFACT_TOKEN (PAT with Actions read on each repo). CI rsync runs after git reset so bundles are not wiped.
 # Optional repo Variables: GUSTAZO_BRANCH, GUSTAZO_ARTIFACT_NAME per legacy Gustazo defaults.
 # Smoke test uses SMOKE_TEST_BASE_URL (default https://www.satisfecho.de) so SSL validates.
 
@@ -56,7 +56,11 @@ jobs:
           fi
           ssh-keyscan -H "${{ secrets.DEPLOY_HOST || '167.235.138.59' }}" >> ~/.ssh/known_hosts 2>/dev/null || true
 
-      - name: Sync marketing sites bundle to server (before docker build)
+      # Git reset must run BEFORE rsync of marketing bundles: deploy-amvara9.sh uses `docker compose build`
+      # which COPYs front/sites/*. If we rsync before `git reset --hard`, placeholders from Git overwrite
+      # fetched artifacts on the server (explains Gustazo staying on placeholder in prod).
+
+      - name: Checkout latest code on amvara9 (git fetch / reset — marketing dirs reset to placeholders)
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || '167.235.138.59' }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'root' }}
@@ -64,20 +68,29 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
             "${DEPLOY_USER}@${DEPLOY_HOST}" "mkdir -p '${DEPLOY_PATH}/front/sites'"
+          BRANCH="${{ github.ref_name }}"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "cd '${DEPLOY_PATH}' && git fetch origin && git checkout '${BRANCH}' && git reset --hard 'origin/${BRANCH}'"
+
+      - name: Sync marketing sites to server (after git reset; bundles from Fetch step above)
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || '167.235.138.59' }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'root' }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || '/development/pos' }}
+        run: |
           rsync -az -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=60" \
             ./front/sites/ "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/front/sites/"
 
-      - name: Deploy on amvara9
+      - name: Build and restart stack on amvara9
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || '167.235.138.59' }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'root' }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || '/development/pos' }}
         timeout-minutes: 20
         run: |
-          # Run script from server repo (after reset) so long-running build does not rely on piped stdin
-          BRANCH="${{ github.ref_name }}"
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=60 -o ServerAliveCountMax=10 \
-            "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH} && git fetch origin && git checkout ${BRANCH} && git reset --hard origin/${BRANCH} && bash scripts/deploy-amvara9.sh"
+            "${DEPLOY_USER}@${DEPLOY_HOST}" "cd '${DEPLOY_PATH}' && bash scripts/deploy-amvara9.sh"
 
       - name: Smoke test (landing, version, API health)
         env:
@@ -123,9 +136,14 @@ jobs:
           done
           [ -n "$HEALTH_OK" ] || (echo "API health failed after retries"; exit 1)
           echo "Smoke test passed."
-          echo "Optional: Gustazo path"
-          if curl -sf -o /dev/null "$BASE/gustazo/"; then
-            echo "GET $BASE/gustazo/ returned 200."
+          echo "Marketing /gustazo/ (expect real bundle, not repo placeholder)"
+          if ! curl -sf -o /dev/null "$BASE/gustazo/"; then
+            echo "::warning::GET $BASE/gustazo/ did not return 200."
           else
-            echo "::warning::GET $BASE/gustazo/ did not return 200 (configure GUSTAZO_ARTIFACT_TOKEN + Gustazo artifact name or base href)."
+            GZ_HTML=$(curl -sfL "$BASE/gustazo/?t=$(date +%s)" || true)
+            if echo "$GZ_HTML" | grep -q 'bundle not loaded'; then
+              echo "::warning::Gustazo still serves placeholder HTML (verify GUSTAZO_ARTIFACT_TOKEN and deploy rsync runs after git reset)."
+            else
+              echo "Gustazo path OK (no placeholder title)."
+            fi
           fi
