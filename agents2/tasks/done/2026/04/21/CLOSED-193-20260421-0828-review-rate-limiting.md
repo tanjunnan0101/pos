@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** GitHub issue #193 asked for consistent SlowAPI rate limiting across new backend endpoints, aligned with production docs and reduced brute-force risk.
+- **What was done:** Central `rate_limits` helpers were added and applied to public discovery/internal validate routes and admin routers; `docs/0020-rate-limiting-production.md` was updated to match.
+- **What was tested:** Tester ran backend import, SlowAPI subprocess pytest, `npm run test:rate-limit` (smoke under relaxed dev limits), and manual `GET /public/tenants` headers — overall **PASS** per task criteria.
+- **Why closed:** All verification steps passed; local-dev behaviour for strict 429 on login/register is documented and not required for sign-off.
+- **Closed at (UTC):** 2026-04-21 08:36
+---
+
 # Review rate limiting
 
 ## GitHub Issues
