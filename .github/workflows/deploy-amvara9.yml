@@ -36,6 +36,8 @@ jobs:
           MARKETING_ARTIFACT_TOKEN: ${{ secrets.GUSTAZO_ARTIFACT_TOKEN }}
           GH_TOKEN: ${{ secrets.GUSTAZO_ARTIFACT_TOKEN }}
           MARKETING_SYNC_FORCE: "1"
+          # Fails the job if any listed site is still the placeholder (e.g. fine-grained PAT only on 040_gustazo)
+          MARKETING_VERIFY_NO_PLACEHOLDERS: "1"
         run: bash scripts/sync-all-marketing-sites.sh
 
       - name: Set up SSH

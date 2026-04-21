@@ -187,4 +187,22 @@ discover_siblings
 
 bash "$ROOT/scripts/flatten-marketing-for-angular.sh"
 
+if [[ "${MARKETING_VERIFY_NO_PLACEHOLDERS:-0}" == "1" ]]; then
+  _ph_fail=0
+  while IFS= read -r obj; do
+    [[ -z "$obj" ]] || [[ "$obj" == "null" ]] && continue
+    _slug=$(echo "$obj" | jq -r '.slug')
+    [[ -n "$_slug" && "$_slug" != "null" ]] || continue
+    _idx="${ROOT}/front/sites/${_slug}/index.html"
+    if [[ -f "$_idx" ]] && grep -q "${PLACEHOLDER_SIG}" "$_idx" 2>/dev/null; then
+      log "::error::placeholder still present for slug=${_slug} — missing artifact or PAT scope; use a token with Actions read on every repo in config/marketing-sites.json (not only 040_gustazo)."
+      _ph_fail=1
+    fi
+  done < <(jq -c '.sites[]?' "$MANIFEST")
+  if [[ "$_ph_fail" -ne 0 ]]; then
+    exit 1
+  fi
+  log "verify: no placeholder index.html in manifest sites"
+fi
+
 log "done."

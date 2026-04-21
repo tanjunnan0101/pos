@@ -22,6 +22,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - Tables / payments: `GET /tables/with-status` preserves **`payment_status: pending`** when kitchen orders are ready or completed and a bill was still relevant; improved detection of active order and `bill_requested_at` (#189).
 - Orders / tables: staff **mark paid** and **finish order** no longer cleared `bill_requested_at`, so after **unmark paid** the floor plan still showed **payment pending** when a bill had been requested (#190).
 
+## [2.0.83] - 2026-04-21
+
+### Fixed
+
+- **Marketing deploy:** **`sync-all-marketing-sites.sh`** honors **`MARKETING_VERIFY_NO_PLACEHOLDERS=1`** (set in **`deploy-amvara9`** fetch step): if any **`config/marketing-sites.json`** slug still has **`bundle not loaded`** after sync, the workflow **fails** instead of deploying placeholders. Typical cause: PAT scoped only to **`040_gustazo`** while **`010_antillana`** and other repos need **Actions** artifact access.
+
+### Changed
+
+- **Documentation:** **`config.env.example`** — PAT must cover **every** listed marketing repo, not Gustazo alone.
+
 ## [2.0.82] - 2026-04-21
 
 ### Changed
