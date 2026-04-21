@@ -56,6 +56,13 @@ services:
       - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-}
       # Optional: host git short hash — bind mount is ./front only (no .git); entrypoint runs get-commit-hash.js
       - COMMIT_HASH=${COMMIT_HASH:-}
+      # Gustazo under /gustazo/: optional sync on container start (see scripts/sync-gustazo-for-dev.sh)
+      - GUSTAZO_ARTIFACT_TOKEN=${GUSTAZO_ARTIFACT_TOKEN:-}
+      - GUSTAZO_LOCAL_REPO=${GUSTAZO_LOCAL_REPO:-}
+      - SYNC_GUSTAZO_ON_START=${SYNC_GUSTAZO_ON_START:-1}
+      - GUSTAZO_REFRESH_EVERY_START=${GUSTAZO_REFRESH_EVERY_START:-0}
+      - GUSTAZO_SYNC_FORCE=${GUSTAZO_SYNC_FORCE:-0}
+      - GUSTAZO_NG_CONFIGURATION=${GUSTAZO_NG_CONFIGURATION:-production}
     volumes:
       - ./front:/app
       - /app/node_modules

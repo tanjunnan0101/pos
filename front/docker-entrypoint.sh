@@ -27,7 +27,12 @@ fi
 
 # Sync version in commit-hash.ts from package.json (preserve existing git hash if .git is missing, e.g. Docker bind-mount of ./front only)
 if [ -f /app/scripts/get-commit-hash.js ]; then
-    node /app/scripts/get-commit-hash.js || true
+  node /app/scripts/get-commit-hash.js || true
+fi
+
+# Optional: populate front/gustazo from CI artifact or local 040_gustazo build (docker-compose.dev mounts ./scripts → /pos-scripts)
+if [ -f /pos-scripts/sync-gustazo-for-dev.sh ] && [ "${SYNC_GUSTAZO_ON_START:-1}" != "0" ]; then
+  /bin/bash /pos-scripts/sync-gustazo-for-dev.sh || true
 fi
 
 # Execute the original command

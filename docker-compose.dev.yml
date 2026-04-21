@@ -2,7 +2,16 @@
 #   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 # HAProxy uses haproxy.cfg (no HTTPS, no certs). App on http://localhost:4202
 # Also maps host 127.0.0.1:80 -> HAProxy so http://127.0.0.1/gustazo/ matches prod-style URLs (may fail if port 80 is taken).
+#
+# Gustazo local build without token: clone 040_gustazo beside pos (../040_gustazo), or add a bind mount + GUSTAZO_LOCAL_REPO=/gustazo-src.
 services:
+  front:
+    environment:
+      - POS_REPO_ROOT=/repo
+    volumes:
+      - ./scripts:/pos-scripts:ro
+      - .:/repo:rw
+
   haproxy:
     ports:
       - "0.0.0.0:${FRONTEND_PORT:-4202}:4202"
