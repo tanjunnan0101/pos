@@ -6,12 +6,13 @@ import re
 from datetime import datetime, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlmodel import Session, select
 
 from . import models
 from .db import get_session
 from .permissions import Permission, require_permission
+from .rate_limits import admin_user_limit
 from .staff_contract_template_presets import list_presets_for_tenant
 
 router = APIRouter()
@@ -74,7 +75,10 @@ def _usage_count(session: Session, tenant_id: int, template_key: str) -> int:
 
 
 @router.get("", response_model=list[models.StaffContractTemplateRead])
+@admin_user_limit()
 def list_staff_contract_templates(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.STAFF_CONTRACT_MANAGE))],
     session: Session = Depends(get_session),
 ):
@@ -90,7 +94,10 @@ def list_staff_contract_templates(
 
 
 @router.get("/presets", response_model=list[models.StaffContractTemplatePresetRead])
+@admin_user_limit()
 def list_contract_template_presets(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.STAFF_CONTRACT_MANAGE))],
     session: Session = Depends(get_session),
 ):
@@ -104,7 +111,10 @@ def list_contract_template_presets(
 
 
 @router.post("/import-preset", response_model=models.StaffContractTemplateRead)
+@admin_user_limit()
 def import_staff_contract_template_from_preset(
+    request: Request,
+    response: Response,
     body: models.StaffContractTemplateImportPreset,
     current_user: Annotated[models.User, Depends(require_permission(Permission.STAFF_CONTRACT_MANAGE))],
     session: Session = Depends(get_session),
@@ -147,7 +157,10 @@ def import_staff_contract_template_from_preset(
 
 
 @router.post("", response_model=models.StaffContractTemplateRead)
+@admin_user_limit()
 def create_staff_contract_template(
+    request: Request,
+    response: Response,
     body: models.StaffContractTemplateCreate,
     current_user: Annotated[models.User, Depends(require_permission(Permission.STAFF_CONTRACT_MANAGE))],
     session: Session = Depends(get_session),
@@ -185,7 +198,10 @@ def create_staff_contract_template(
 
 
 @router.get("/{template_id}", response_model=models.StaffContractTemplateRead)
+@admin_user_limit()
 def get_staff_contract_template(
+    request: Request,
+    response: Response,
     template_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.STAFF_CONTRACT_MANAGE))],
     session: Session = Depends(get_session),
@@ -200,7 +216,10 @@ def get_staff_contract_template(
 
 
 @router.patch("/{template_id}", response_model=models.StaffContractTemplateRead)
+@admin_user_limit()
 def update_staff_contract_template(
+    request: Request,
+    response: Response,
     template_id: int,
     body: models.StaffContractTemplateUpdate,
     current_user: Annotated[models.User, Depends(require_permission(Permission.STAFF_CONTRACT_MANAGE))],
@@ -230,7 +249,10 @@ def update_staff_contract_template(
 
 
 @router.delete("/{template_id}")
+@admin_user_limit()
 def delete_staff_contract_template(
+    request: Request,
+    response: Response,
     template_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.STAFF_CONTRACT_MANAGE))],
     session: Session = Depends(get_session),

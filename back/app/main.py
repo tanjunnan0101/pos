@@ -86,79 +86,21 @@ from .kitchen_stations_util import (
 )
 from .schedule_export_i18n import planned_vs_export_labels, schedule_export_labels
 
-# Rate limiting (slowapi)
-try:
-    from slowapi import Limiter, _rate_limit_exceeded_handler
-    from slowapi.util import get_remote_address
-    from slowapi.errors import RateLimitExceeded
-    _SLOWAPI_AVAILABLE = True
-except ImportError:
-    _SLOWAPI_AVAILABLE = False
-    Limiter = None  # type: ignore[misc, assignment]
-    RateLimitExceeded = None  # type: ignore[misc, assignment]
-
-
-def _rate_limit_key(request: Request) -> str:
-    """Client IP for rate limiting: X-Forwarded-For (first hop) when behind proxy, else client host."""
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        # First IP is the client when behind a single trusted proxy (e.g. HAProxy)
-        return forwarded.split(",")[0].strip()
-    if request.client:
-        return request.client.host
-    return "unknown"
-
-
-def _rate_limit_key_user(request: Request) -> str:
-    """Per-user rate limit key when authenticated, else IP (for upload/admin limits)."""
-    from . import security
-
-    user_key = security.get_rate_limit_user_key(request)
-    return user_key if user_key else _rate_limit_key(request)
-
-
-def _rate_limit_key_payment_order(request: Request) -> str:
-    """Per-order per-IP key for payment attempt limits (e.g. 3/hour per order)."""
-    # Path is /orders/{order_id}/create-payment-intent or /orders/{order_id}/confirm-payment
-    parts = request.url.path.rstrip("/").split("/")
-    order_id = "0"
-    for i, p in enumerate(parts):
-        if p == "orders" and i + 1 < len(parts) and parts[i + 1].isdigit():
-            order_id = parts[i + 1]
-            break
-    return f"po:{order_id}:{_rate_limit_key(request)}"
-
-
-def _rate_limit_exceeded_handler_log(request: Request, exc: "RateLimitExceeded"):
-    """Log rate limit violations then return 429 (for security monitoring)."""
-    logger.warning(
-        "Rate limit exceeded: path=%s method=%s client=%s",
-        request.url.path,
-        request.method,
-        _rate_limit_key(request),
-    )
-    return _rate_limit_exceeded_handler(request, exc)
-
-
-class _NoOpLimiter:
-    """No-op limiter when slowapi is not installed; allows same decorator pattern."""
-
-    @staticmethod
-    def limit(*args, **kwargs):
-        def decorator(f):
-            return f
-        return decorator
+from .rate_limits import (
+    _rate_limit_key,
+    _rate_limit_key_payment_order,
+    _rate_limit_key_user,
+    limiter,
+    public_menu_ip_limit,
+    rate_limit_redis_url,
+    register_rate_limit_exception_handler,
+)
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
-
-
-def _public_redis_url() -> str:
-    u = (settings.rate_limit_redis_url or os.getenv("REDIS_URL", "redis://localhost:6379")).strip()
-    return u or "redis://localhost:6379"
 
 
 def _enforce_reservation_delay_notice_rate_limit(request: Request, reservation_id: int) -> None:
@@ -171,7 +113,7 @@ def _enforce_reservation_delay_notice_rate_limit(request: Request, reservation_i
     key = f"rl:delay_notice:{reservation_id}:{_rate_limit_key(request)}"
     try:
         r = redis.Redis.from_url(
-            _public_redis_url(),
+            rate_limit_redis_url(),
             decode_responses=True,
             socket_connect_timeout=1.0,
             socket_timeout=1.0,
@@ -365,27 +307,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Rate limiter (global + per-route limits; Redis or in-memory fallback)
-if _SLOWAPI_AVAILABLE and Limiter is not None and RateLimitExceeded is not None:
-    _rate_limit_storage = (
-        settings.rate_limit_redis_url
-        or os.getenv("REDIS_URL", "redis://localhost:6379")
-    )
-    _global_limit = f"{settings.rate_limit_global_per_minute}/minute"
-    limiter = Limiter(
-        key_func=_rate_limit_key,
-        default_limits=[_global_limit],
-        storage_uri=_rate_limit_storage,
-        enabled=settings.rate_limit_enabled,
-        headers_enabled=True,
-        swallow_errors=True,
-        in_memory_fallback_enabled=True,
-        in_memory_fallback=[_global_limit],
-    )
-    app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler_log)
-else:
-    limiter = _NoOpLimiter()
+register_rate_limit_exception_handler(app)
 
 
 def _is_connection_or_pool_operational_failure(exc: BaseException) -> bool:
@@ -944,14 +866,23 @@ def _normalize_public_http_url(raw: str | None) -> str | None:
 
 
 @app.get("/public/tenants", response_model=list[TenantSummary])
-def list_public_tenants(session: Session = Depends(get_session)) -> list:
+@public_menu_ip_limit()
+def list_public_tenants(
+    request: Request,
+    response: Response,
+    session: Session = Depends(get_session),
+) -> list:
     """List all tenants (id, name, logo, description, phone, email). Public, no authentication."""
     tenants = session.exec(select(models.Tenant).order_by(models.Tenant.name)).all()
     return [_tenant_to_summary(t, session) for t in tenants]
 
 
 @app.get("/public/legal-urls")
-def get_public_legal_urls() -> dict[str, str | None]:
+@public_menu_ip_limit()
+def get_public_legal_urls(
+    request: Request,
+    response: Response,
+) -> dict[str, str | None]:
     """Product-wide terms and privacy URLs from server config (for landing/auth when no tenant context)."""
     return {
         "terms_of_service_url": _global_terms_url(),
@@ -960,7 +891,10 @@ def get_public_legal_urls() -> dict[str, str | None]:
 
 
 @app.get("/public/tenants/{tenant_id}")
+@public_menu_ip_limit()
 def get_public_tenant(
+    request: Request,
+    response: Response,
     tenant_id: int,
     session: Session = Depends(get_session),
     lang: str = Depends(_get_requested_language),
@@ -1002,7 +936,10 @@ def get_public_tenant(
 
 
 @app.get("/public/tenants/{tenant_id}/reservation-book-zones")
+@public_menu_ip_limit()
 def get_public_reservation_book_zones(
+    request: Request,
+    response: Response,
     tenant_id: int,
     session: Session = Depends(get_session),
     lang: str = Depends(_get_requested_language),
@@ -9478,9 +9415,12 @@ def get_staff_menu_token(
 # ============ INTERNAL VALIDATION (for ws-bridge) ============
 
 @app.get("/internal/validate-table/{table_token}")
+@public_menu_ip_limit()
 def validate_table_token(
+    request: Request,
+    response: Response,
     table_token: str,
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
 ) -> dict:
     """Internal endpoint for ws-bridge to validate table tokens."""
     table = session.exec(select(models.Table).where(models.Table.token == table_token)).first()

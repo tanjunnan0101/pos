@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
 
@@ -22,6 +22,7 @@ from .db import get_session
 from .security import get_current_user
 from . import models
 from .permissions import Permission, require_permission
+from .rate_limits import admin_user_limit
 from .inventory_models import (
     InventoryBatch,
     InventoryCategory,
@@ -66,7 +67,10 @@ router = APIRouter()
 # ============ INVENTORY ITEMS ============
 
 @router.get("/items", response_model=list[InventoryItemResponse])
+@admin_user_limit()
 def list_inventory_items(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_READ))],
     session: Session = Depends(get_session),
     category: InventoryCategory | None = None,
@@ -121,7 +125,10 @@ def list_inventory_items(
 
 
 @router.post("/items", response_model=InventoryItemResponse)
+@admin_user_limit()
 def create_inventory_item(
+    request: Request,
+    response: Response,
     item_create: InventoryItemCreate,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_WRITE))],
     session: Session = Depends(get_session),
@@ -166,7 +173,10 @@ def create_inventory_item(
 
 
 @router.get("/items/{item_id}", response_model=InventoryItemResponse)
+@admin_user_limit()
 def get_inventory_item(
+    request: Request,
+    response: Response,
     item_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_READ))],
     session: Session = Depends(get_session),
@@ -197,7 +207,10 @@ def get_inventory_item(
 
 
 @router.put("/items/{item_id}", response_model=InventoryItemResponse)
+@admin_user_limit()
 def update_inventory_item(
+    request: Request,
+    response: Response,
     item_id: int,
     item_update: InventoryItemUpdate,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_WRITE))],
@@ -252,7 +265,10 @@ def update_inventory_item(
 
 
 @router.delete("/items/{item_id}")
+@admin_user_limit()
 def delete_inventory_item(
+    request: Request,
+    response: Response,
     item_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_WRITE))],
     session: Session = Depends(get_session),
@@ -273,7 +289,10 @@ def delete_inventory_item(
 
 
 @router.post("/items/{item_id}/adjust")
+@admin_user_limit()
 def adjust_inventory_stock(
+    request: Request,
+    response: Response,
     item_id: int,
     adjustment: StockAdjustment,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_WRITE))],
@@ -321,7 +340,10 @@ def adjust_inventory_stock(
 # ============ SUPPLIERS ============
 
 @router.get("/suppliers", response_model=list[Supplier])
+@admin_user_limit()
 def list_suppliers(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_READ))],
     session: Session = Depends(get_session),
     active_only: bool = True,
@@ -341,7 +363,10 @@ def list_suppliers(
 
 
 @router.post("/suppliers", response_model=Supplier)
+@admin_user_limit()
 def create_supplier(
+    request: Request,
+    response: Response,
     supplier_create: SupplierCreate,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_WRITE))],
     session: Session = Depends(get_session),
@@ -358,7 +383,10 @@ def create_supplier(
 
 
 @router.get("/suppliers/{supplier_id}", response_model=Supplier)
+@admin_user_limit()
 def get_supplier(
+    request: Request,
+    response: Response,
     supplier_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_READ))],
     session: Session = Depends(get_session),
@@ -373,7 +401,10 @@ def get_supplier(
 
 
 @router.put("/suppliers/{supplier_id}", response_model=Supplier)
+@admin_user_limit()
 def update_supplier(
+    request: Request,
+    response: Response,
     supplier_id: int,
     supplier_update: SupplierUpdate,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_WRITE))],
@@ -397,7 +428,10 @@ def update_supplier(
 
 
 @router.delete("/suppliers/{supplier_id}")
+@admin_user_limit()
 def delete_supplier(
+    request: Request,
+    response: Response,
     supplier_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_WRITE))],
     session: Session = Depends(get_session),
@@ -420,7 +454,10 @@ def delete_supplier(
 # ============ PURCHASE ORDERS ============
 
 @router.get("/purchase-orders")
+@admin_user_limit()
 def list_purchase_orders(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_READ))],
     session: Session = Depends(get_session),
     status: PurchaseOrderStatus | None = None,
@@ -469,7 +506,10 @@ def list_purchase_orders(
 
 
 @router.post("/purchase-orders")
+@admin_user_limit()
 def create_purchase_order(
+    request: Request,
+    response: Response,
     po_create: PurchaseOrderCreate,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_WRITE))],
     session: Session = Depends(get_session),
@@ -535,7 +575,10 @@ def create_purchase_order(
 
 
 @router.get("/purchase-orders/{po_id}")
+@admin_user_limit()
 def get_purchase_order(
+    request: Request,
+    response: Response,
     po_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_READ))],
     session: Session = Depends(get_session),
@@ -587,7 +630,10 @@ def get_purchase_order(
 
 
 @router.put("/purchase-orders/{po_id}")
+@admin_user_limit()
 def update_purchase_order(
+    request: Request,
+    response: Response,
     po_id: int,
     po_update: PurchaseOrderUpdate,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_WRITE))],
@@ -618,7 +664,10 @@ def update_purchase_order(
 
 
 @router.put("/purchase-orders/{po_id}/status")
+@admin_user_limit()
 def update_purchase_order_status(
+    request: Request,
+    response: Response,
     po_id: int,
     new_status: PurchaseOrderStatus,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_WRITE))],
@@ -655,7 +704,10 @@ def update_purchase_order_status(
 
 
 @router.post("/purchase-orders/{po_id}/receive")
+@admin_user_limit()
 def receive_purchase_order(
+    request: Request,
+    response: Response,
     po_id: int,
     receive_input: ReceiveGoodsInput,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_WRITE))],
@@ -702,7 +754,10 @@ def receive_purchase_order(
 
 
 @router.delete("/purchase-orders/{po_id}")
+@admin_user_limit()
 def cancel_purchase_order(
+    request: Request,
+    response: Response,
     po_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_WRITE))],
     session: Session = Depends(get_session),
@@ -728,7 +783,10 @@ def cancel_purchase_order(
 
 
 @router.get("/purchase-orders/{po_id}/pdf")
+@admin_user_limit()
 def get_purchase_order_pdf(
+    request: Request,
+    response: Response,
     po_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_READ))],
     session: Session = Depends(get_session),
@@ -814,7 +872,10 @@ def get_purchase_order_pdf(
 # ============ PRODUCT RECIPES ============
 
 @router.get("/recipes/product/{product_id}")
+@admin_user_limit()
 def get_product_recipe(
+    request: Request,
+    response: Response,
     product_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_READ))],
     session: Session = Depends(get_session),
@@ -856,7 +917,10 @@ def get_product_recipe(
 
 
 @router.put("/recipes/product/{product_id}")
+@admin_user_limit()
 def update_product_recipe(
+    request: Request,
+    response: Response,
     product_id: int,
     recipe_update: ProductRecipeUpdate,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_WRITE))],
@@ -905,7 +969,10 @@ def update_product_recipe(
 
 
 @router.get("/recipes/product/{product_id}/cost", response_model=ProductCostResponse)
+@admin_user_limit()
 def get_product_cost(
+    request: Request,
+    response: Response,
     product_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_READ))],
     session: Session = Depends(get_session),
@@ -930,7 +997,10 @@ def get_product_cost(
 # ============ STOCK REPORTS ============
 
 @router.get("/stock-levels", response_model=list[StockLevelResponse])
+@admin_user_limit()
 def get_stock_levels(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_READ))],
     session: Session = Depends(get_session),
     category: InventoryCategory | None = None,
@@ -970,7 +1040,10 @@ def get_stock_levels(
 
 
 @router.get("/low-stock")
+@admin_user_limit()
 def get_low_stock_alerts(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_READ))],
     session: Session = Depends(get_session),
 ):
@@ -994,7 +1067,10 @@ def get_low_stock_alerts(
 
 
 @router.get("/valuation", response_model=InventoryValuationResponse)
+@admin_user_limit()
 def get_inventory_valuation(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_READ))],
     session: Session = Depends(get_session),
 ):
@@ -1009,7 +1085,10 @@ def get_inventory_valuation(
 
 
 @router.get("/transactions")
+@admin_user_limit()
 def get_inventory_transactions(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.INVENTORY_READ))],
     session: Session = Depends(get_session),
     item_id: int | None = None,
@@ -1060,7 +1139,11 @@ def get_inventory_transactions(
 # ============ UNIT OF MEASURE INFO ============
 
 @router.get("/units")
-def get_available_units():
+@admin_user_limit()
+def get_available_units(
+    request: Request,
+    response: Response,
+):
     """Get list of available units of measure with metadata"""
     return {
         "units": [

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Request, Response
 from fastapi.responses import FileResponse, HTMLResponse
 from sqlalchemy import desc, func
 from sqlmodel import Session, col, select
@@ -16,6 +16,7 @@ from sqlmodel import Session, col, select
 from . import models
 from .db import get_session
 from .permissions import Permission, has_permission, require_permission
+from .rate_limits import admin_user_limit
 from .staff_contract_template_merge import (
     fallback_contract_html,
     merge_placeholders,
@@ -94,7 +95,10 @@ def _serialize_contract(
 
 
 @router.get("", response_model=list[models.StaffContractRead])
+@admin_user_limit()
 def list_staff_contracts(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.STAFF_CONTRACT_READ))],
     session: Session = Depends(get_session),
 ):
@@ -131,7 +135,10 @@ def list_staff_contracts(
 
 
 @router.post("", response_model=models.StaffContractRead)
+@admin_user_limit()
 def create_staff_contract(
+    request: Request,
+    response: Response,
     body: models.StaffContractCreate,
     current_user: Annotated[models.User, Depends(require_permission(Permission.STAFF_CONTRACT_MANAGE))],
     session: Session = Depends(get_session),
@@ -191,7 +198,10 @@ def _can_access_contract(actor: models.User, c: models.StaffContract) -> bool:
 
 
 @router.get("/{contract_id}", response_model=models.StaffContractRead)
+@admin_user_limit()
 def get_staff_contract(
+    request: Request,
+    response: Response,
     contract_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.STAFF_CONTRACT_READ))],
     session: Session = Depends(get_session),
@@ -215,7 +225,10 @@ def get_staff_contract(
 
 
 @router.get("/{contract_id}/print", response_class=HTMLResponse)
+@admin_user_limit()
 def print_staff_contract_html(
+    request: Request,
+    response: Response,
     contract_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.STAFF_CONTRACT_READ))],
     session: Session = Depends(get_session),
@@ -256,7 +269,10 @@ def print_staff_contract_html(
 
 
 @router.patch("/{contract_id}", response_model=models.StaffContractRead)
+@admin_user_limit()
 def update_staff_contract(
+    request: Request,
+    response: Response,
     contract_id: int,
     body: models.StaffContractUpdate,
     current_user: Annotated[models.User, Depends(require_permission(Permission.STAFF_CONTRACT_MANAGE))],
@@ -281,7 +297,10 @@ def update_staff_contract(
 
 
 @router.post("/{contract_id}/new-version", response_model=models.StaffContractRead)
+@admin_user_limit()
 def new_version_staff_contract(
+    request: Request,
+    response: Response,
     contract_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.STAFF_CONTRACT_MANAGE))],
     session: Session = Depends(get_session),
@@ -370,7 +389,10 @@ async def upload_staff_contract_document(
 
 
 @router.get("/{contract_id}/document")
+@admin_user_limit()
 def download_staff_contract_document(
+    request: Request,
+    response: Response,
     contract_id: int,
     current_user: Annotated[models.User, Depends(require_permission(Permission.STAFF_CONTRACT_READ))],
     session: Session = Depends(get_session),

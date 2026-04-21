@@ -10,7 +10,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from io import BytesIO, StringIO
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
@@ -18,6 +18,7 @@ from sqlmodel import Session, select
 from . import models
 from .db import get_session
 from .permissions import Permission, require_permission
+from .rate_limits import admin_user_limit
 from .report_export_i18n import report_export_labels
 from .security import get_current_user
 from .work_session_serialization import serialize_work_session
@@ -333,7 +334,10 @@ def _build_report_payload(tenant_id: int, session: Session, from_date: date, to_
 
 
 @router.get("/sales")
+@admin_user_limit()
 def get_sales_reports(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.REPORT_READ))],
     session: Session = Depends(get_session),
     from_date: date = Query(..., description="Start date (YYYY-MM-DD)"),
@@ -357,7 +361,10 @@ def _csv_stream(rows: list[dict], keys: list[str], header_row: list[str]) -> byt
 
 
 @router.get("/export")
+@admin_user_limit()
 def export_report(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.REPORT_READ))],
     session: Session = Depends(get_session),
     from_date: date = Query(..., description="Start date (YYYY-MM-DD)"),
@@ -596,7 +603,10 @@ def export_report(
 
 
 @router.get("/work-sessions")
+@admin_user_limit()
 def report_work_sessions(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.REPORT_READ))],
     session: Session = Depends(get_session),
     from_date: str = Query(..., description="Start date YYYY-MM-DD (UTC day)"),
@@ -641,7 +651,10 @@ class WorkSessionAdjustBody(BaseModel):
 
 
 @router.get("/work-sessions/live")
+@admin_user_limit()
 def report_work_sessions_live(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.REPORT_READ))],
     session: Session = Depends(get_session),
 ) -> list[dict]:
@@ -665,7 +678,10 @@ def report_work_sessions_live(
 
 
 @router.post("/work-sessions/{work_session_id}/adjust")
+@admin_user_limit()
 def adjust_work_session_times(
+    request: Request,
+    response: Response,
     work_session_id: int,
     body: WorkSessionAdjustBody,
     current_user: Annotated[models.User, Depends(require_permission(Permission.REPORT_READ))],

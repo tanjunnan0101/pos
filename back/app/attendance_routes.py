@@ -7,20 +7,24 @@ from datetime import date, datetime, time, timedelta, timezone
 from io import BytesIO
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select, col
 
 from . import models
 from .db import get_session
 from .permissions import Permission, require_permission
+from .rate_limits import admin_user_limit
 from .registro_horario_excel import build_registro_horario_xlsx_bytes
 from .work_session_serialization import _total_break_seconds
 
 router = APIRouter()
 
 @router.get("/attendance-excel")
+@admin_user_limit()
 def export_attendance_excel(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.REPORT_READ))],
     session: Session = Depends(get_session),
     year: int = Query(..., description="Year (YYYY)"),
@@ -181,7 +185,10 @@ def export_attendance_excel(
 
 
 @router.get("/attendance-registro-horario-excel")
+@admin_user_limit()
 def export_attendance_registro_horario_excel(
+    request: Request,
+    response: Response,
     current_user: Annotated[models.User, Depends(require_permission(Permission.REPORT_READ))],
     session: Session = Depends(get_session),
     year: int = Query(..., description="Year (YYYY)"),

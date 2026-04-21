@@ -8,7 +8,7 @@ import zipfile
 from io import BytesIO
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlmodel import Session
@@ -16,6 +16,7 @@ from sqlmodel import Session
 from .db import get_session
 from . import models
 from .permissions import require_role
+from .rate_limits import admin_user_limit
 from .tenant_lifecycle import (
     bundle_to_json_bytes,
     delete_tenant_cascade,
@@ -37,7 +38,10 @@ class TenantPurgeBody(BaseModel):
 
 
 @router.get("/data-export")
+@admin_user_limit()
 def download_tenant_data_export(
+    request: Request,
+    response: Response,
     current_user: models.User = Depends(require_role(models.UserRole.owner)),
     session: Session = Depends(get_session),
 ):
@@ -73,7 +77,10 @@ def _purge_cleanup_job(tenant_id: int, provider_tokens: list[str]) -> None:
 
 
 @router.post("/purge")
+@admin_user_limit()
 def purge_tenant(
+    request: Request,
+    response: Response,
     body: TenantPurgeBody,
     background_tasks: BackgroundTasks,
     current_user: models.User = Depends(require_role(models.UserRole.owner)),
