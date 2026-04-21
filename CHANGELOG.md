@@ -22,6 +22,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - Tables / payments: `GET /tables/with-status` preserves **`payment_status: pending`** when kitchen orders are ready or completed and a bill was still relevant; improved detection of active order and `bill_requested_at` (#189).
 - Orders / tables: staff **mark paid** and **finish order** no longer cleared `bill_requested_at`, so after **unmark paid** the floor plan still showed **payment pending** when a bill had been requested (#190).
 
+## [2.0.78] - 2026-04-21
+
+### Changed
+
+- **Production (amvara9):** Promotes the current **`development`** line, including multi-repo **marketing** static sites (**`front/sites/<slug>/`**, generated nginx locations, deploy-time **`sync-all-marketing-sites.sh`** with **`MARKETING_ARTIFACT_TOKEN`**) as documented in **2.0.76** and **2.0.77**.
+
 ## [2.0.77] - 2026-04-21
 
 ### Changed
