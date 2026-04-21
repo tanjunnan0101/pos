@@ -1,11 +1,35 @@
 {
   "autoDiscoverSiblingRepos": true,
-  "description": "Marketing SPAs under /<slug>/ from GitHub repos named NNN_slug (three digits + underscore). Optional explicit entries override discovery.",
+  "description": "Marketing SPAs under /<slug>/ from GitHub repos named NNN_slug (three digits + underscore). Entries mirror satisfecho org repos 010–050; optional discovery adds any sibling NNN_* with package.json.",
   "sites": [
+    {
+      "slug": "antillana",
+      "repo": "satisfecho/010_antillana",
+      "branch": "main",
+      "artifact": "dist"
+    },
+    {
+      "slug": "dilruba",
+      "repo": "satisfecho/020_dilruba",
+      "branch": "main",
+      "artifact": "dist"
+    },
+    {
+      "slug": "flamanapolitana",
+      "repo": "satisfecho/030_flamanapolitana",
+      "branch": "main",
+      "artifact": "dist"
+    },
     {
       "slug": "gustazo",
       "repo": "satisfecho/040_gustazo",
-      "branch": "development",
+      "branch": "main",
+      "artifact": "gustazo-dist"
+    },
+    {
+      "slug": "hakone",
+      "repo": "satisfecho/050_hakone",
+      "branch": "main",
       "artifact": "dist"
     }
   ]
