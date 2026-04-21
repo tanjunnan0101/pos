@@ -1,5 +1,5 @@
-# Deploy to amvara9 when master (or main) is updated.
-# Also deploys from `development` for pre-production validation (same host/path unless you override secrets).
+# Deploy to amvara9 only when the production branch is pushed (this repo: `master`).
+# Pushes to `development` do not run this workflow (merge to `master` to deploy). Use workflow_dispatch for manual runs.
 # Repository: https://github.com/satisfecho/pos — workflow must run from satisfecho/pos; server clone must have origin = satisfecho/pos.
 # Requires repository secret: SSH_PRIVATE_KEY_AMVARA9 (private key for root@amvara9; raw PEM or base64).
 # Optional: DEPLOY_HOST (default 167.235.138.59), DEPLOY_USER (default root), DEPLOY_PATH (default /development/pos).
@@ -11,7 +11,8 @@ name: Deploy to amvara9
 
 on:
   push:
-    branches: [master, main, development]
+    branches:
+      - master
   workflow_dispatch:
 
 jobs:

@@ -1,6 +1,6 @@
 # CI/CD: Deploy to amvara9 on push to master
 
-When code is pushed to the **master** (or **main**) branch of **https://github.com/satisfecho/pos**, GitHub Actions deploys to **amvara9** (167.235.138.59).
+When code is pushed to the **production branch** (**`master`**) of **https://github.com/satisfecho/pos**, GitHub Actions deploys to **amvara9** (167.235.138.59). Pushes to **`development`** do **not** trigger deploy (merge **`development` → `master`** to ship). Rename **`master` → `main`** on GitHub if your policy uses **`main`**; then update `.github/workflows/deploy-amvara9.yml` **`push.branches`** accordingly.
 
 ## Server setup (already done)
 
@@ -44,7 +44,7 @@ You can override defaults with these repository secrets:
 ## Workflow
 
 - **File:** `.github/workflows/deploy-amvara9.yml`
-- **Trigger:** Push to `master` or `main`
+- **Trigger:** Push to **`master`** only (not **`development`**); **`workflow_dispatch`** for manual deploy
 - **Concurrency:** A single **`deploy-amvara9`** group queues jobs so two pushes cannot overlap on the same server checkout.
 - **Steps:** SSH to amvara9 → `git fetch` → **`git checkout` + `reset --hard` to the pushed branch** (`${{ github.ref_name }}`, e.g. `master`) → **`bash scripts/deploy-amvara9.sh`**
 - **Deploy script behaviour (GitHub #49):**
