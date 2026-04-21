@@ -8,6 +8,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
+### Added
+
+- Deploy (amvara9): optional **Gustazo** bundle — `scripts/fetch-gustazo-artifact.sh` downloads the latest successful Actions artifact from **040_gustazo** via the GitHub API (`curl` + `jq`), CI **rsync**’s `front/gustazo/` onto the server before deploy, and **`Dockerfile.prod`** copies it to `/usr/share/nginx/html/gustazo/` for `/gustazo/`. Requires repository secret **`GUSTAZO_ARTIFACT_TOKEN`** (PAT with Actions read on that repo); optional Variables **`GUSTAZO_BRANCH`**, **`GUSTAZO_ARTIFACT_NAME`**. Workflow also triggers on **`development`** and **`workflow_dispatch`**.
+
 ### Changed
 
 - Repository: ignored **`claude-session.log`** and **`agents2/001-gh-reviewer/time-of-last-review.txt`** (001 reviewer local stamp) so routine agent runs do not produce recurring diffs; stopped tracking the stamp file in Git.

@@ -52,6 +52,10 @@ certs/*.key
 # Revolut sandbox certificates and private key (never commit)
 revolut-certs/
 
+# Gustazo marketing bundle (CI downloads into front/gustazo/; keep .gitkeep only)
+front/gustazo/*
+!front/gustazo/.gitkeep
+
 # Node / Angular (front has its own .gitignore too, this is just extra safety)
 node_modules/
 dist/

@@ -1,14 +1,18 @@
 # Deploy to amvara9 when master (or main) is updated.
+# Also deploys from `development` for pre-production validation (same host/path unless you override secrets).
 # Repository: https://github.com/satisfecho/pos — workflow must run from satisfecho/pos; server clone must have origin = satisfecho/pos.
 # Requires repository secret: SSH_PRIVATE_KEY_AMVARA9 (private key for root@amvara9; raw PEM or base64).
 # Optional: DEPLOY_HOST (default 167.235.138.59), DEPLOY_USER (default root), DEPLOY_PATH (default /development/pos).
+# Gustazo static site under /gustazo/: optional secret GUSTAZO_ARTIFACT_TOKEN (PAT with Actions + Contents read on 040_gustazo).
+# Optional repo Variables: GUSTAZO_BRANCH, GUSTAZO_ARTIFACT_NAME (defaults: development, dist). Env GUSTAZO_REPO in workflow.
 # Smoke test uses SMOKE_TEST_BASE_URL (default https://www.satisfecho.de) so SSL validates.
 
 name: Deploy to amvara9
 
 on:
   push:
-    branches: [master, main]
+    branches: [master, main, development]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -19,9 +23,17 @@ jobs:
       cancel-in-progress: false
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      GUSTAZO_REPO: satisfecho/040_gustazo
+      GUSTAZO_BRANCH: ${{ vars.GUSTAZO_BRANCH }}
+      GUSTAZO_ARTIFACT_NAME: ${{ vars.GUSTAZO_ARTIFACT_NAME }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Fetch Gustazo artifact (curl + GitHub API)
+        env:
+          GH_TOKEN: ${{ secrets.GUSTAZO_ARTIFACT_TOKEN }}
+        run: bash scripts/fetch-gustazo-artifact.sh
 
       - name: Set up SSH
         run: |
@@ -41,6 +53,17 @@ jobs:
             exit 1
           fi
           ssh-keyscan -H "${{ secrets.DEPLOY_HOST || '167.235.138.59' }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Sync Gustazo bundle to server (before docker build)
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || '167.235.138.59' }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'root' }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || '/development/pos' }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" "mkdir -p '${DEPLOY_PATH}/front/gustazo'"
+          rsync -az -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=60" \
+            ./front/gustazo/ "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/front/gustazo/"
 
       - name: Deploy on amvara9
         env:
@@ -98,3 +121,9 @@ jobs:
           done
           [ -n "$HEALTH_OK" ] || (echo "API health failed after retries"; exit 1)
           echo "Smoke test passed."
+          echo "Optional: Gustazo path"
+          if curl -sf -o /dev/null "$BASE/gustazo/"; then
+            echo "GET $BASE/gustazo/ returned 200."
+          else
+            echo "::warning::GET $BASE/gustazo/ did not return 200 (configure GUSTAZO_ARTIFACT_TOKEN + Gustazo artifact name or base href)."
+          fi
