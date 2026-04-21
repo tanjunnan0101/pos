@@ -56,7 +56,8 @@ services:
       - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-}
       # Optional: host git short hash — bind mount is ./front only (no .git); entrypoint runs get-commit-hash.js
       - COMMIT_HASH=${COMMIT_HASH:-}
-      # Gustazo under /gustazo/: optional sync on container start (see scripts/sync-gustazo-for-dev.sh)
+      # Marketing sites under /<slug>/ (see config/marketing-sites.json, scripts/sync-all-marketing-sites.sh)
+      - MARKETING_ARTIFACT_TOKEN=${MARKETING_ARTIFACT_TOKEN:-${GUSTAZO_ARTIFACT_TOKEN:-}}
       - GUSTAZO_ARTIFACT_TOKEN=${GUSTAZO_ARTIFACT_TOKEN:-}
       - GUSTAZO_LOCAL_REPO=${GUSTAZO_LOCAL_REPO:-}
       - SYNC_GUSTAZO_ON_START=${SYNC_GUSTAZO_ON_START:-1}

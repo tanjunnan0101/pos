@@ -52,6 +52,9 @@ certs/*.key
 # Revolut sandbox certificates and private key (never commit)
 revolut-certs/
 
+# Generated for ng serve (scripts/flatten-marketing-for-angular.sh)
+front/marketing-flat/
+
 # Node / Angular (front has its own .gitignore too, this is just extra safety)
 node_modules/
 dist/

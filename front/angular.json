@@ -80,8 +80,8 @@
                 },
                 {
                   "glob": "**/*",
-                  "input": "gustazo",
-                  "output": "gustazo"
+                  "input": "marketing-flat",
+                  "output": "/"
                 }
               ]
             },

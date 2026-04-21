@@ -1,0 +1,12 @@
+{
+  "autoDiscoverSiblingRepos": true,
+  "description": "Marketing SPAs under /<slug>/ from GitHub repos named NNN_slug (three digits + underscore). Optional explicit entries override discovery.",
+  "sites": [
+    {
+      "slug": "gustazo",
+      "repo": "satisfecho/040_gustazo",
+      "branch": "development",
+      "artifact": "dist"
+    }
+  ]
+}

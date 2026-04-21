@@ -8,12 +8,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
-### Added
-
-- Deploy (amvara9): optional **Gustazo** bundle — `scripts/fetch-gustazo-artifact.sh` downloads the latest successful Actions artifact from **040_gustazo** via the GitHub API (`curl` + `jq`), CI **rsync**’s `front/gustazo/` onto the server before deploy, and **`Dockerfile.prod`** copies it to `/usr/share/nginx/html/gustazo/` for `/gustazo/`. Requires repository secret **`GUSTAZO_ARTIFACT_TOKEN`** (PAT with Actions read on that repo); optional Variables **`GUSTAZO_BRANCH`**, **`GUSTAZO_ARTIFACT_NAME`**. Workflow also triggers on **`development`** and **`workflow_dispatch`**.
-- Local dev: **`development-no-ssr`** includes **`front/gustazo`** as static assets so **`ng serve`** exposes **`/gustazo/`** (same path as prod nginx). **`docker-compose.dev.yml`** maps **`127.0.0.1:80` → HAProxy** so **`http://127.0.0.1/gustazo/`** works when port 80 is free. Run **`scripts/fetch-gustazo-artifact.sh`** (with a PAT) to populate **`index.html`** and assets; placeholder **`front/gustazo/gitkeep.txt`** keeps the folder buildable without the bundle. **`front/gustazo/index.html`** is a committed stub so dev does not fall through to the POS SPA (which would hit **`path: '**'` → redirect to landing).
-- Local dev **optional Gustazo sync on `pos-front` start**: **`scripts/sync-gustazo-for-dev.sh`** tries **`fetch-gustazo-artifact.sh`** when **`GUSTAZO_ARTIFACT_TOKEN`** is in **`config.env`**, otherwise **`ng build`** from **`GUSTAZO_LOCAL_REPO`** or **`../040_gustazo`**. **`docker-compose.dev.yml`** mounts **`./scripts`** and **`.:/repo`** with **`POS_REPO_ROOT=/repo`** so scripts resolve the repo root inside Docker; **`front/Dockerfile`** adds **`bash`**, **`curl`**, **`jq`**, **`unzip`**.
-
 ### Changed
 
 - Repository: ignored **`claude-session.log`** and **`agents2/001-gh-reviewer/time-of-last-review.txt`** (001 reviewer local stamp) so routine agent runs do not produce recurring diffs; stopped tracking the stamp file in Git.
@@ -27,6 +21,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 - Tables / payments: `GET /tables/with-status` preserves **`payment_status: pending`** when kitchen orders are ready or completed and a bill was still relevant; improved detection of active order and `bill_requested_at` (#189).
 - Orders / tables: staff **mark paid** and **finish order** no longer cleared `bill_requested_at`, so after **unmark paid** the floor plan still showed **payment pending** when a bill had been requested (#190).
+
+## [2.0.76] - 2026-04-20
+
+### Added
+
+- **Marketing SPAs** (repos named **`NNN_slug`**, three digits + underscore): **`config/marketing-sites.json`** lists **`slug`**, **`repo`**, **`branch`**, **`artifact`**, optional **`cloneDir`**, and **`autoDiscoverSiblingRepos`** to scan **`POS_REPO_ROOT/../*`** for **`^[0-9]{3}_*/package.json`**. **`scripts/sync-all-marketing-sites.sh`** fills **`front/sites/<slug>/`** from GitHub Actions artifacts (**`curl`/`jq`**, token **`MARKETING_ARTIFACT_TOKEN`** with fallbacks **`GUSTAZO_ARTIFACT_TOKEN`** / **`GH_TOKEN`**) or runs **`ng build`** in a sibling clone with **`--base-href /<slug>/`**. **`flatten-marketing-for-angular.sh`** mirrors into **`front/marketing-flat/<slug>/`** for **`development-no-ssr`**; **`front/scripts/generate-marketing-nginx-include.sh`** emits nginx **`location`** blocks at **prod image** build.
+- **`scripts/fetch-marketing-artifact.sh`** — generic artifact download; **`scripts/fetch-gustazo-artifact.sh`** remains a thin wrapper for **`front/sites/gustazo`**. **`scripts/sync-gustazo-for-dev.sh`** delegates to **`sync-all-marketing-sites.sh`**.
+- **Local dev**: optional sync on **`pos-front` start** via **`SYNC_MARKETING_ON_START`** (fallback **`SYNC_GUSTAZO_ON_START`**). **`docker-compose.dev.yml`** continues to mount **`./scripts`** and **`.:/repo`** with **`POS_REPO_ROOT=/repo`**.
+
+### Changed
+
+- **Deploy (amvara9)**: workflow runs **`sync-all-marketing-sites.sh`** and **rsync**’s **`front/sites/`** to the server before build; **`Dockerfile.prod`** copies **`front/sites`** to **`/usr/share/nginx/html/sites/`** and includes generated per-slug nginx config; **`nginx.conf`** no longer hard-codes Gustazo-only locations.
+- **`docker-compose.yml`**: documents **`MARKETING_ARTIFACT_TOKEN`**; **`config.env.example`** comments updated accordingly.
+- **`.gitignore`**: **`front/marketing-flat/`**.
 
 ## [2.0.75] - 2026-04-14
 

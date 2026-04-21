@@ -1,1 +1,0 @@
-This file keeps the gustazo directory in Git. Populate the folder with the Gustazo static build (see scripts/fetch-gustazo-artifact.sh). Do not commit downloaded bundle files.
