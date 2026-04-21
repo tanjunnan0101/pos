@@ -72,7 +72,18 @@
               "sourceMap": true,
               "server": false,
               "ssr": false,
-              "outputMode": "static"
+              "outputMode": "static",
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "public"
+                },
+                {
+                  "glob": "**/*",
+                  "input": "gustazo",
+                  "output": "gustazo"
+                }
+              ]
             },
             "production-static": {
               "fileReplacements": [

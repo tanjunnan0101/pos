@@ -10,7 +10,7 @@
 #   GUSTAZO_REPO                — default satisfecho/040_gustazo
 #   GUSTAZO_BRANCH              — branch to take latest successful run from (default: development)
 #   GUSTAZO_ARTIFACT_NAME       — artifact name from Gustazo workflow (default: dist)
-#   GUSTAZO_SKIP=1              — skip download (leave front/gustazo as in checkout, e.g. only .gitkeep)
+#   GUSTAZO_SKIP=1              — skip download (leave front/gustazo as in checkout; gitkeep.txt placeholder)
 #   TARGET_DIR                  — default front/gustazo (relative to repo root)
 
 set -euo pipefail
@@ -79,9 +79,9 @@ curl -sfL "${AUTH_HDR[@]}" -o "$TMP_ZIP" "$ZIP_URL" || {
 mkdir -p "$TMP_EX"
 unzip -q -o "$TMP_ZIP" -d "$TMP_EX"
 
-# Normalize extracted layout into TARGET_DIR
-rm -rf "${TARGET_DIR}"
+# Normalize extracted layout into TARGET_DIR (keep tracked placeholder gitkeep.txt if present)
 mkdir -p "${TARGET_DIR}"
+find "${TARGET_DIR}" -mindepth 1 -maxdepth 1 ! -name 'gitkeep.txt' -exec rm -rf {} +
 
 shopt -s dotglob nullglob
 TOP=( "$TMP_EX"/* )

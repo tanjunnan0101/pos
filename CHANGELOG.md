@@ -11,6 +11,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 ### Added
 
 - Deploy (amvara9): optional **Gustazo** bundle — `scripts/fetch-gustazo-artifact.sh` downloads the latest successful Actions artifact from **040_gustazo** via the GitHub API (`curl` + `jq`), CI **rsync**’s `front/gustazo/` onto the server before deploy, and **`Dockerfile.prod`** copies it to `/usr/share/nginx/html/gustazo/` for `/gustazo/`. Requires repository secret **`GUSTAZO_ARTIFACT_TOKEN`** (PAT with Actions read on that repo); optional Variables **`GUSTAZO_BRANCH`**, **`GUSTAZO_ARTIFACT_NAME`**. Workflow also triggers on **`development`** and **`workflow_dispatch`**.
+- Local dev: **`development-no-ssr`** includes **`front/gustazo`** as static assets so **`ng serve`** exposes **`/gustazo/`** (same path as prod nginx). **`docker-compose.dev.yml`** maps **`127.0.0.1:80` → HAProxy** so **`http://127.0.0.1/gustazo/`** works when port 80 is free. Run **`scripts/fetch-gustazo-artifact.sh`** (with a PAT) to populate **`index.html`** and assets; placeholder **`front/gustazo/gitkeep.txt`** keeps the folder buildable without the bundle.
 
 ### Changed
 
