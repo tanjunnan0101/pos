@@ -1647,6 +1647,347 @@ Build and restart stack on amvara9 → skipped
 Smoke test (landing, version, API health) → skipped
 ```
 
+## Test report
+
+### Date/time (UTC) and log window
+
+- **Verification run:** **2026-04-26 00:44 UTC** (`date -u`; `git fetch origin`, `gh run list`, `gh run view`, and `curl` executed in one tester pass after sync).
+- **Workflow evidence:** latest `master` deployment remains run **`24773000757`**, `updatedAt` **2026-04-22T10:18:30Z**, `conclusion` **failure**.
+
+### Environment
+
+- **Repo:** `satisfecho/pos`; synced at step start with `./scripts/git-sync-development.sh`.
+- **Branch:** local `development` tracking `origin/development`.
+- **Remote tips after fetch:** `origin/master` = `7a2c2bd59b2cfb6cbc6a55ac407993494b17256f`, `origin/development` = `b4b222175fd64d26043ba03d052d74f99b9e4122`.
+- **Compose/local Docker:** not used for this verification cycle.
+
+### What was tested
+
+Per **Testing instructions** §1-§3:
+1) branch parity between `origin/master` and `origin/development`,
+2) latest **Deploy to amvara9** workflow status on `master`,
+3) optional production reachability checks for `/` and `/api/health`.
+
+### Results
+
+| # | Criterion | Result | Evidence |
+|---|-----------|--------|----------|
+| 1 | `origin/master` matches `origin/development` at shared tip | **FAIL** | `git rev-list --left-right --count origin/master...origin/development` → **`0	127`** (`development` is 127 commits ahead). |
+| 2 | Latest `master` **Deploy to amvara9** run is green through artifact fetch, SSH, deploy, smoke | **FAIL** | `gh run list --workflow "Deploy to amvara9" --branch master --limit 5` shows latest run **`24773000757`** as **failure**; `gh run view 24773000757 --json jobs` confirms **Fetch marketing site artifacts** failed and downstream steps were skipped. |
+| 3 | Optional live check after green deploy | **N/A** | No green deploy for this promotion; `curl` still returns `200` for `https://satisfecho.de/` and `https://satisfecho.de/api/health` (reachability only). |
+
+### Overall
+
+**FAIL** - promotion is not verified yet.
+
+### Product owner feedback
+
+Issue **#195** remains blocked on the same two gates: `master` is still behind `development` and the latest `master` deployment workflow is still red at marketing artifact fetch. Fix Actions secrets/token scope for marketing artifacts and trigger a new green `master` deploy, then return this task to **UNTESTED** for another verification pass.
+
+---
+
+## Test report
+
+### Date/time (UTC) and log window
+
+- **Verification run:** **2026-04-26 01:04 UTC** (`date -u`; `git fetch origin`, parity checks, `gh run list`, `gh run view`, and production `curl` checks in one pass after sync).
+- **Workflow evidence:** latest `master` deployment remains run **`24773000757`**, `updatedAt` **2026-04-22T10:18:30Z**, `conclusion` **failure**.
+
+### Environment
+
+- **Repo:** `satisfecho/pos`; synced at step start with `./scripts/git-sync-development.sh`.
+- **Branch:** local `development` tracking `origin/development`.
+- **Remote tips after fetch:** `origin/master` = `7a2c2bd59b2cfb6cbc6a55ac407993494b17256f`, `origin/development` = `b4b222175fd64d26043ba03d052d74f99b9e4122`.
+- **Compose/local Docker:** not used for this verification cycle.
+
+### What was tested
+
+Per **Testing instructions** §1-§3:
+1) branch parity between `origin/master` and `origin/development`,
+2) latest **Deploy to amvara9** workflow status on `master`,
+3) optional production reachability checks for `/` and `/api/health`.
+
+### Results
+
+| # | Criterion | Result | Evidence |
+|---|-----------|--------|----------|
+| 1 | `origin/master` matches `origin/development` at shared tip | **FAIL** | `git rev-list --left-right --count origin/master...origin/development` → **`0	127`** (`development` is 127 commits ahead). |
+| 2 | Latest `master` **Deploy to amvara9** run is green through artifact fetch, SSH, deploy, smoke | **FAIL** | `gh run list --workflow "Deploy to amvara9" --branch master --limit 5` shows latest run **`24773000757`** as **failure**; `gh run view 24773000757 --json conclusion,updatedAt,jobs` confirms **Fetch marketing site artifacts** failed and downstream steps were skipped. |
+| 3 | Optional live check after green deploy | **N/A** | No green deploy for this promotion; `curl` returns `200` for `https://satisfecho.de/` and `https://satisfecho.de/api/health` (reachability only). |
+
+### Overall
+
+**FAIL** - promotion is not verified yet.
+
+### Product owner feedback
+
+Issue **#195** remains blocked: `master` does not match `development`, and the latest `master` deploy is still failing at marketing artifact fetch. Fix Actions secrets/token scope for marketing artifacts and trigger a new green `master` deploy, then return this task to **UNTESTED** for another verification pass.
+
+---
+
+## Test report
+
+### Date/time (UTC) and log window
+
+- **Verification run:** **2026-04-26 01:25 UTC** (`date -u`; `git fetch origin`, parity checks, `gh run list`, `gh run view`, and production `curl` checks in one tester pass after sync).
+- **Workflow evidence:** latest `master` deployment is still run **`24773000757`**, `updatedAt` **2026-04-22T10:18:30Z**, `conclusion` **failure**.
+
+### Environment
+
+- **Repo:** `satisfecho/pos`; synced at step start with `./scripts/git-sync-development.sh`.
+- **Branch:** local `development` tracking `origin/development`.
+- **Remote tips after fetch:** `origin/master` = `7a2c2bd59b2cfb6cbc6a55ac407993494b17256f`, `origin/development` = `b4b222175fd64d26043ba03d052d74f99b9e4122`.
+- **Compose/local Docker:** not used for this verification cycle.
+
+### What was tested
+
+Per **Testing instructions** §1-§3:
+1) branch parity between `origin/master` and `origin/development`,
+2) latest **Deploy to amvara9** workflow status on `master`,
+3) optional production reachability checks for `/` and `/api/health`.
+
+### Results
+
+| # | Criterion | Result | Evidence |
+|---|-----------|--------|----------|
+| 1 | `origin/master` matches `origin/development` at shared tip | **FAIL** | `git rev-list --left-right --count origin/master...origin/development` → **`0	127`** (`development` is 127 commits ahead). |
+| 2 | Latest `master` **Deploy to amvara9** run is green through artifact fetch, SSH, deploy, smoke | **FAIL** | `gh run list --workflow "Deploy to amvara9" --branch master --limit 5` still shows latest run **`24773000757`** as **failure**; `gh run view 24773000757 --json conclusion,updatedAt,jobs` confirms **Fetch marketing site artifacts (curl + GitHub API)** failed and downstream deploy/smoke steps were skipped. |
+| 3 | Optional live check after green deploy | **N/A** | No green deploy for this promotion; `curl` returns `200` for `https://satisfecho.de/` and `https://satisfecho.de/api/health` (reachability only). |
+
+### Overall
+
+**FAIL** - promotion is not verified yet.
+
+### Product owner feedback
+
+Issue **#195** remains blocked by unchanged evidence: `master` still does not match `development`, and the latest `master` deploy is still red at marketing artifact fetch. This task has now failed repeated verification cycles beyond the loop-protection threshold, so it is being returned to **WIP** until a real state change occurs (new green `master` deploy and branch parity). Fix Actions secrets/token scope for marketing artifacts, complete a green deploy, then send back to **UNTESTED** for re-verification.
+
+### URLs tested
+
+1. https://github.com/satisfecho/pos/actions/runs/24773000757
+2. https://satisfecho.de/
+3. https://satisfecho.de/api/health
+
+### Relevant log excerpts
+
+**Branch parity (2026-04-26 01:25 UTC):**
+
+```text
+$ git rev-parse origin/master origin/development
+7a2c2bd59b2cfb6cbc6a55ac407993494b17256f
+b4b222175fd64d26043ba03d052d74f99b9e4122
+
+$ git rev-list --left-right --count origin/master...origin/development
+0	127
+```
+
+**GitHub Actions (`gh run view 24773000757 --json conclusion,updatedAt,jobs`):**
+
+```text
+conclusion: failure
+updatedAt: 2026-04-22T10:18:30Z
+Fetch marketing site artifacts (curl + GitHub API) -> failure
+Set up SSH -> skipped
+Checkout latest code on amvara9 -> skipped
+Sync marketing sites to server -> skipped
+Build and restart stack on amvara9 -> skipped
+Smoke test (landing, version, API health) -> skipped
+```
+
+---
+
+## Test report
+
+### Date/time (UTC) and log window
+
+- **Verification run:** **2026-04-26 01:33 UTC** (`date -u`; `git fetch origin`, parity checks, `gh run list`, `gh run view`, and production `curl` checks after sync).
+- **Workflow evidence:** latest `master` deployment remains run **`24773000757`**, `updatedAt` **2026-04-22T10:18:30Z**, `conclusion` **failure**.
+
+### Environment
+
+- **Repo:** `satisfecho/pos`; synced at step start with `./scripts/git-sync-development.sh`.
+- **Branch:** local `development` tracking `origin/development`.
+- **Remote tips after fetch:** `origin/master` = `7a2c2bd59b2cfb6cbc6a55ac407993494b17256f`, `origin/development` = `b4b222175fd64d26043ba03d052d74f99b9e4122`.
+- **Compose/local Docker:** not used for this verification cycle.
+
+### What was tested
+
+Per **Testing instructions** §1-§3:
+1) branch parity between `origin/master` and `origin/development`,
+2) latest **Deploy to amvara9** workflow status on `master`,
+3) optional production reachability checks for `/` and `/api/health`.
+
+### Results
+
+| # | Criterion | Result | Evidence |
+|---|-----------|--------|----------|
+| 1 | `origin/master` matches `origin/development` at shared tip | **FAIL** | `git rev-list --left-right --count origin/master...origin/development` -> **`0	127`** (`development` is 127 commits ahead). |
+| 2 | Latest `master` **Deploy to amvara9** run is green through artifact fetch, SSH, deploy, smoke | **FAIL** | `gh run list --workflow "Deploy to amvara9" --branch master --limit 5` still shows latest run **`24773000757`** as **failure**; `gh run view 24773000757 --json conclusion,status,updatedAt,jobs` confirms **Fetch marketing site artifacts (curl + GitHub API)** failed and downstream deploy/smoke steps were skipped. |
+| 3 | Optional live check after green deploy | **N/A** | No green deploy for this promotion; `curl` returns `200` for `https://satisfecho.de/` and `https://satisfecho.de/api/health` (reachability only). |
+
+### Overall
+
+**FAIL** - promotion is not verified yet.
+
+### Product owner feedback
+
+Issue **#195** remains blocked by unchanged evidence: `master` still does not match `development`, and the latest `master` deploy is still red at marketing artifact fetch. Keep this task in **WIP** until there is a material state change (branch parity and a new green `master` deploy), then return it to **UNTESTED** for re-verification.
+
+### URLs tested
+
+1. https://github.com/satisfecho/pos/actions/runs/24773000757
+2. https://satisfecho.de/
+3. https://satisfecho.de/api/health
+
+### Relevant log excerpts
+
+**Branch parity (2026-04-26 01:33 UTC):**
+
+```text
+$ git rev-parse origin/master origin/development
+7a2c2bd59b2cfb6cbc6a55ac407993494b17256f
+b4b222175fd64d26043ba03d052d74f99b9e4122
+
+$ git rev-list --left-right --count origin/master...origin/development
+0	127
+```
+
+**GitHub Actions (`gh run view 24773000757 --json conclusion,status,updatedAt,jobs`):**
+
+```text
+status: completed
+conclusion: failure
+updatedAt: 2026-04-22T10:18:30Z
+Fetch marketing site artifacts (curl + GitHub API) -> failure
+Set up SSH -> skipped
+Checkout latest code on amvara9 -> skipped
+Sync marketing sites to server -> skipped
+Build and restart stack on amvara9 -> skipped
+Smoke test (landing, version, API health) -> skipped
+```
+
+---
+
+## Test report
+
+### Date/time (UTC) and log window
+
+- **Verification run:** **2026-04-26 01:41 UTC** (`date -u`; `git rev-parse`, `git rev-list`, `gh run list`, `gh run view`, and `curl` executed immediately after `./scripts/git-sync-development.sh`).
+- **Workflow evidence:** **`Deploy to amvara9`** run **`24773000757`** remains **failure**; **`updatedAt`** **`2026-04-22T10:18:30Z`**; failed step **Fetch marketing site artifacts (curl + GitHub API)**; downstream SSH/deploy/smoke steps skipped.
+
+### Environment
+
+- **Repo/branch:** `satisfecho/pos` on local `development` (tracking `origin/development`).
+- **Remote tips:** `origin/master` = `7a2c2bd59b2cfb6cbc6a55ac407993494b17256f`; `origin/development` = `b4b222175fd64d26043ba03d052d74f99b9e4122`.
+- **Compose / local Docker:** not used for this verification pass (git + GitHub Actions + production health endpoints).
+
+### What was tested
+
+Per Testing instructions: (1) `origin/master` vs `origin/development` parity, (2) latest `Deploy to amvara9` run status on `master`, (3) optional production URL reachability checks.
+
+### Results
+
+| # | Criterion | Result | Evidence |
+|---|-----------|--------|----------|
+| 1 | `origin/master` matches `origin/development` at shared promoted tip | **FAIL** | `git rev-list --left-right --count origin/master...origin/development` => `0 127` (`development` ahead by 127 commits). |
+| 2 | Latest `Deploy to amvara9` on `master` is green through marketing fetch, SSH, deploy, smoke | **FAIL** | `gh run list --workflow "Deploy to amvara9" --branch master --limit 5` shows latest run `24773000757` failed; `gh run view 24773000757 --json` shows step **Fetch marketing site artifacts** failed and downstream steps skipped. |
+| 3 | Optional live checks after green deploy | **N/A** | No green replacement deploy exists; `curl` still returns `200` for `https://satisfecho.de/` and `https://satisfecho.de/api/health` (reachability only). |
+
+### Overall
+
+**FAIL** — acceptance criteria 1 and 2 remain failing.
+
+### Loop protection
+
+This task has already failed verification repeatedly on the same two blockers. Loop protection applies: stop further identical tester retries until the underlying deployment/promotion state changes, then return to `UNTESTED` for a fresh verification cycle.
+
+### Product owner feedback
+
+Issue #195 remains unverified: `master` has still not caught up to `development`, and the latest relevant deploy workflow on `master` is still red at marketing artifact fetch. Until that workflow turns green (or deployment scope is explicitly revised), production promotion cannot be accepted as complete. After remediation, move back to `UNTESTED` and re-run verification once.
+
+### URLs tested
+
+1. https://github.com/satisfecho/pos/actions/runs/24773000757
+2. https://satisfecho.de/
+3. https://satisfecho.de/api/health
+
+### Relevant log excerpts
+
+```text
+$ git rev-parse origin/master origin/development
+7a2c2bd59b2cfb6cbc6a55ac407993494b17256f
+b4b222175fd64d26043ba03d052d74f99b9e4122
+
+$ git rev-list --left-right --count origin/master...origin/development
+0	127
+
+$ gh run list --workflow "Deploy to amvara9" --branch master --limit 5
+... 24773000757 ... completed failure ...
+
+$ gh run view 24773000757 --json conclusion,updatedAt,jobs
+conclusion: failure
+deploy step "Fetch marketing site artifacts (curl + GitHub API)": failure
+Set up SSH / Checkout latest code on amvara9 / Build and restart stack / Smoke test: skipped
+
+$ curl -s -o /dev/null -w "%{http_code}" https://satisfecho.de/
+200
+$ curl -s -o /dev/null -w "%{http_code}" https://satisfecho.de/api/health
+200
+```
+
+---
+
+## Test report
+
+### Date/time (UTC) and log window
+
+- **Verification run:** **2026-04-26 01:55 UTC** (`date -u`; `git fetch origin`, `git rev-parse`, `git rev-list`, `gh run list`, `gh run view`, `curl` run immediately after sync).
+- **Workflow evidence:** latest `Deploy to amvara9` on `master` is still run **24773000757**, conclusion **failure**, unchanged `updatedAt` **2026-04-22T10:18:30Z**.
+
+### What was tested
+
+1) parity between `origin/master` and `origin/development`;  
+2) latest `master` deploy workflow status/details;  
+3) optional production reachability checks (`/`, `/api/health`).
+
+### Results
+
+| # | Criterion | Result | Evidence |
+|---|-----------|--------|----------|
+| 1 | `origin/master` matches `origin/development` at shared promoted tip | **FAIL** | `git rev-parse` returns different SHAs; `git rev-list --left-right --count origin/master...origin/development` returns **`0	127`** (`development` ahead by 127 commits). |
+| 2 | Latest `Deploy to amvara9` run on `master` is green through artifact fetch, SSH, deploy, smoke | **FAIL** | `gh run list --workflow "Deploy to amvara9" --branch master --limit 5` still shows latest run **24773000757** as **failure**; `gh run view 24773000757 --json ...` shows **Fetch marketing site artifacts** failed and downstream steps skipped. |
+| 3 | Optional live check after a green deploy | **N/A** | No green replacement deploy exists; `curl` still returns **200** for `https://satisfecho.de/` and `https://satisfecho.de/api/health` (reachability only). |
+
+### Overall
+
+**FAIL** - no acceptance criterion changed since previous tester pass.
+
+### Product owner feedback
+
+Issue **#195** remains blocked with identical evidence: branch parity is still false and the latest `master` deploy is still red at marketing artifact fetch. After repo-side fixes (secrets, new green `master` deploy, or scope change), re-run verification using **Testing instructions** below.
+
+### Relevant log excerpts
+
+```text
+$ date -u
+Sun Apr 26 01:55:08 UTC 2026
+
+$ git rev-parse origin/master origin/development
+7a2c2bd59b2cfb6cbc6a55ac407993494b17256f
+b4b222175fd64d26043ba03d052d74f99b9e4122
+
+$ git rev-list --left-right --count origin/master...origin/development
+0	127
+
+$ gh run list --workflow "Deploy to amvara9" --branch master --limit 5
+... 24773000757 ... completed failure ...
+
+$ curl -s -o /dev/null -w "%{http_code}" https://satisfecho.de/
+200
+$ curl -s -o /dev/null -w "%{http_code}" https://satisfecho.de/api/health
+200
+```
+
 ---
 
 ## Testing instructions
