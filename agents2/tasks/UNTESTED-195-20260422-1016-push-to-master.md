@@ -511,3 +511,10 @@ Follow repo branching rules: routine promotion timing vs urgent production fixes
 8. **Relevant log excerpts (last section)**  
    - `gh run view 24773000757 --repo satisfecho/pos --json conclusion,url,updatedAt` (2026-04-26T22:51Z): **`"conclusion":"failure"`**; `updatedAt` **2026-04-22T10:18:30Z** — no new successful completion.  
    - Step-level: unchanged from prior task reports; use `gh run view 24773000757 --log-failed` for **Fetch marketing site artifacts** if full CI text is needed.
+
+## Testing instructions
+
+1. **Git:** Confirm **`origin/master`** and **`origin/development`** are at the expected points for the promotion under test (e.g. after a new merge, re-check tips): `git fetch origin && git rev-parse origin/master origin/development`
+2. **GitHub Actions:** Open **Actions** → **Deploy to amvara9** — latest **`master`** run (e.g. **`24773000757`**, or a newer one after a re-run). After **Actions** secrets (`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN` per `config/marketing-sites.json`) are fixed, **Re-run failed jobs** or trigger a new deploy from **`master`**; expect **green** through **Fetch marketing site artifacts**, **Set up SSH**, **Build and restart stack on amvara9**, **Smoke test**.
+3. **Optional live check:** After a **green** deploy, verify **`https://satisfecho.de/`** and API health per **`docs/0001-ci-cd-amvara9.md`** / smoke step output.
+4. **Manual fallback:** If CI cannot be fixed immediately, an operator may run **`scripts/deploy-amvara9.sh`** from the server checkout per **`README.md`** / **`AGENTS.md`** (marketing bundles may still be required for full parity with CI).
