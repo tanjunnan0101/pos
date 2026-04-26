@@ -338,3 +338,52 @@ Follow repo branching rules: routine promotion timing vs urgent production fixes
 8. **Relevant log excerpts (last section)**  
    - `gh run view 24773000757 --json conclusion,url,updatedAt` (2026-04-26T17:50Z): **`"conclusion":"failure"`**, `updatedAt` **2026-04-22T10:18:30Z** — no change vs prior verifications.  
    - For step output: `gh run view 24773000757 --log-failed` (marketing token / placeholder slugs) as in earlier task text.
+
+## Test report (2026-04-26, 020-tester)
+
+1. **Date/time (UTC) and log window**  
+   - **Window:** 2026-04-26T19:38Z–19:40Z.  
+   - **Commands:** `git` / `gh` / `curl` on host at `/Users/raro42/projects/pos2` after `./scripts/git-sync-development.sh` (not `docker logs` — not required by Testing instructions).
+
+2. **Environment**  
+   - **Branch (local):** `development` synced. **Remotes (after `git fetch origin`):** `origin/master` = `7a2c2bd59b2cfb6cbc6a55ac407993494b17256f`, `origin/development` = `9cd620d17c06850a34b7ce39b92c309ecb035eab`.  
+   - **Compose / local app:** N/A per task.
+
+3. **What was tested (from "Testing instructions")**  
+   - (1) `git rev-parse origin/master origin/development` and `merge-base` ancestor check.  
+   - (2) **Deploy to amvara9** — latest run on **`master`**, status of **24773000757** vs any newer run with **success** through marketing/SSH/smoke.  
+   - (3) Optional after **green** — N/A (no green **master** deploy).  
+   - (4) Manual server deploy — N/A (not run).
+
+4. **Results**
+
+   | Criterion | Result | Evidence line |
+   |---|---|---|
+   | 1. Git: `origin/master` / `origin/development` and lineage | **PASS** | `git rev-parse` (SHAs above). `git merge-base --is-ancestor origin/master origin/development` → exit **0** (promoted **master** tip is an ancestor of **development**). |
+   | 2. GitHub Actions: **green** for latest **`master`** **Deploy to amvara9** | **FAIL** | `gh run list --repo satisfecho/pos --workflow "Deploy to amvara9" --branch master --limit 10` — most recent is still **24773000757** (2026-04-22T10:18:20Z) **conclusion: failure**; `gh run view 24773000757 --json conclusion,updatedAt` → **`"conclusion":"failure"`**, `updatedAt` **2026-04-22T10:18:30Z**; no newer **success** on `master` supersedes 24773000757 in the listed range. |
+   | 3. Optional after green | **N/A** | Not applicable until (2) passes. |
+   | 4. Manual fallback | **N/A** | Not run. |
+   | Sanity (HTTP) | **INFO** | `curl` — `https://satisfecho.de/api/health` **200**, `https://satisfecho.de/` **200**; does not prove a green **Deploy to amvara9** run. |
+
+5. **Overall: FAIL**  
+   Criterion **2** fails: latest **`master`** **Deploy to amvara9** in scope is still run **24773000757** (**failure**; unchanged from prior **TESTING-**/WIP/UNTESTED verifications). Criterion **1** passes. **Loop protection (per `020-test.md` / prior task text):** do not re-run identical `gh` checks until **Actions** secrets (e.g. **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`**) and/or a **re-run** or new **`master`** deploy change CI state. Rename this task to **WIP-**; return to **UNTESTED-** when operators confirm a new green pipeline is ready to verify.
+
+6. **Product owner feedback**  
+   `origin/development` has moved to **`9cd620d…`** while `origin/master` remains **`7a2c2bd…`**, with correct ancestry for a post-promotion state. The **Deploy to amvara9** run that GitHub still lists as the latest for **`master`** is **not** success—issue #195 is **not** satisfied for “deployment action succeeded on GitHub” until a **success** run completes. Live site HTTP 200 does not replace a green workflow.
+
+7. **URLs tested (numbered list)**  
+   1. `https://github.com/satisfecho/pos/actions/runs/24773000757` (run `conclusion: failure`)  
+   2. `https://satisfecho.de/api/health` (200)  
+   3. `https://satisfecho.de/` (200)
+
+8. **Relevant log excerpts (last section)**  
+   - `gh run view 24773000757 --repo satisfecho/pos --json conclusion,url,updatedAt` (2026-04-26T19:40Z): **`"conclusion":"failure"`**; `updatedAt` **2026-04-22T10:18:30Z**; `url` **https://github.com/satisfecho/pos/actions/runs/24773000757** — no change.  
+   - For step text: `gh run view 24773000757 --log-failed` (marketing token / placeholder slugs) as in the implementation summary; not re-fetched in full.
+
+## Testing instructions
+
+1. **Git:** Confirm **`origin/master`** and **`origin/development`** are at the expected points for the promotion under test (e.g. after a new merge, re-check tips):  
+   `git fetch origin && git rev-parse origin/master origin/development`
+2. **GitHub Actions:** Open **Actions** → **Deploy to amvara9** → run **`24773000757`** (or latest **`master`** deploy). After secrets are fixed, either **Re-run failed jobs** or trigger a new deploy from **`master`** and expect **green** through **Fetch marketing site artifacts**, **Set up SSH**, **Build and restart stack on amvara9**, **Smoke test**.
+3. **Optional live check:** After a **green** deploy, verify **`https://satisfecho.de/`** (or documented prod URL) and API health per **`docs/0001-ci-cd-amvara9.md`** / smoke step output.
+4. **Manual fallback:** If CI cannot be fixed immediately, an operator may run **`scripts/deploy-amvara9.sh`** from the server checkout per **`README.md`** / **`AGENTS.md`** (still needs marketing bundles resolved for full parity with CI).
