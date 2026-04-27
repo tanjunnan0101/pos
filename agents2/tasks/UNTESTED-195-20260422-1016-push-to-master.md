@@ -1756,6 +1756,48 @@ Follow repo branching rules: routine promotion timing vs urgent production fixes
    - `gh run view 24773000757 --repo satisfecho/pos --json conclusion,displayTitle,updatedAt,url` (2026-04-27T09:02Z): **`"conclusion":"failure"`**, **`"updatedAt":"2026-04-22T10:18:30Z"`**, **`url`:** `https://github.com/satisfecho/pos/actions/runs/24773000757`.  
    - `gh run list --workflow "Deploy to amvara9" --branch master --limit 12`: first row **24773000757**, **completed**, **failure** (latest **`master`** deploy in list).
 
+## Test report (2026-04-27, tester — session start **TESTING-**)
+
+1. **Date/time (UTC) and log window**  
+   - **Window:** 2026-04-27T09:22Z–09:25Z.  
+   - **Evidence:** `./scripts/git-sync-development.sh` before edits; `git fetch` / `git rev-parse` / `git merge-base`; `gh run list` / `gh run view`; `curl` to production URLs on host (not `docker logs` — not required by Testing instructions).
+
+2. **Environment**  
+   - **Compose / local app:** N/A.  
+   - **Branch:** `development` after sync (`./scripts/git-sync-development.sh` — already up to date).  
+   - **Remotes (after `git fetch origin`):** `origin/master` = `7a2c2bd59b2cfb6cbc6a55ac407993494b17256f`, `origin/development` = `2abe224640d12d79583c6045cd681fe267273f19`.  
+   - **Evidence:** `gh` to `satisfecho/pos` Actions.
+
+3. **What was tested (from “Testing instructions”)**  
+   - (1) `git rev-parse origin/master origin/development` and `merge-base --is-ancestor`.  
+   - (2) **Deploy to amvara9** — latest **`master`** run (`gh run list --workflow "Deploy to amvara9" --branch master --limit 8`).  
+   - (3) Optional live check after **green** — N/A (deploy not green).  
+   - (4) Manual server deploy — N/A (not run).
+
+4. **Results**
+
+   | Criterion | Result | Evidence line |
+   |---|---|---|
+   | 1. Git: `origin/master` / `origin/development` and lineage | **PASS** | SHAs above; `git merge-base --is-ancestor origin/master origin/development` → exit **0**. |
+   | 2. GitHub Actions: **green** for latest **`master`** **Deploy to amvara9** | **FAIL** | Latest **`master`** run remains **24773000757** (2026-04-22T10:18:20Z), **completed / failure**. `gh run view 24773000757 --json conclusion` → **`failure`**. No newer **`master`** deploy supersedes it in the listed window. |
+   | 3. Optional after green | **N/A** | Not applicable until (2) passes. |
+   | 4. Manual fallback | **N/A** | Not run. |
+   | Sanity (HTTP) | **INFO** | `curl -s -o /dev/null -w "%{http_code}"` → `https://satisfecho.de/api/health` **200**, `https://satisfecho.de/` **200**; does not prove a green pipeline. |
+
+5. **Overall:** **FAIL** — criterion **2** not satisfied (issue requirement: confirm deployment action succeeded on GitHub). **Loop protection:** Same root cause as many prior cycles (latest **`master`** deploy stuck at failed **24773000757**; requires **Actions** secrets / PAT fix and re-run per task summary). Further automated re-verification without CI repair only repeats this outcome.
+
+6. **Product owner feedback**  
+   Branch lineage remains consistent (`origin/master` is an ancestor of `origin/development`), but **Deploy to amvara9** on **`master`** has not turned green since the April 22 failure. Live site HTTP 200 does not close the GitHub Actions verification loop. Operators should configure **`MARKETING_ARTIFACT_TOKEN`** / **`GH_TOKEN`** per **`config/marketing-sites.json`**, then re-run or trigger deploy; return task to **UNTESTED-** after that.
+
+7. **URLs tested (numbered list)**  
+   1. `https://github.com/satisfecho/pos/actions/runs/24773000757` (`conclusion: failure`)  
+   2. `https://satisfecho.de/api/health` (200 — sanity)  
+   3. `https://satisfecho.de/` (200 — sanity)
+
+8. **Relevant log excerpts (last section)**  
+   - `gh run view 24773000757 --repo satisfecho/pos --json conclusion,displayTitle,updatedAt` → **`conclusion":"failure"`**, **`updatedAt":"2026-04-22T10:18:30Z`**.  
+   - `gh run list --workflow "Deploy to amvara9" --branch master --limit 8`: first row **24773000757**, **failure**, **master**, **push** (2026-04-22T10:18:20Z).
+
 ## Testing instructions
 
 (Required for **UNTESTED-** handoff: keep this as the last section. Historical test reports and duplicate blocks appear above; follow these four steps for the next verification run.)
