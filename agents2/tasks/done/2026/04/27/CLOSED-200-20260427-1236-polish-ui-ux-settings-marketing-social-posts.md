@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Issue #200 (Social posts Settings UI/UX polish) was implemented and the tester verified it with a **PASS** report (2026-04-27 UTC).
+- **What was done:** The Settings → Marketing → Social posts screen was aligned with other Settings tabs via section cards (Connected networks, Compose, History), improved caption/scheduling UX, image preview/remove, and gated publish with inline hints when submission is not allowed.
+- **What was tested:** Per testing instructions on dev stack (`BASE_URL` 4202): section structure, image flow, schedule toggle/disabled submit, Meta-disconnected gating, and front build health via `docker logs pos-front` — **overall PASS** (optional locale sweep skipped).
+- **Why closed:** Test report overall **PASS**; no failed criteria; product outcome accepted.
+- **Closed at (UTC):** 2026-04-27 12:44
+---
+
 # Polish UI/UX for Settings → Marketing → Social posts
 
 ## GitHub Issues
