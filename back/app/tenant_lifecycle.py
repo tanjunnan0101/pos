@@ -266,6 +266,21 @@ def delete_tenant_cascade(session: Session, tenant_id: int) -> list[str]:
     order_ids_subq = select(models.Order.id).where(models.Order.tenant_id == tenant_id)
     session.exec(delete(models.OrderItem).where(models.OrderItem.order_id.in_(order_ids_subq)))
     session.exec(delete(models.Order).where(models.Order.tenant_id == tenant_id))
+    session.exec(
+        delete(models.DeliveryIntegrationEventLog).where(
+            models.DeliveryIntegrationEventLog.tenant_id == tenant_id
+        )
+    )
+    session.exec(
+        delete(models.DeliveryCatalogMapping).where(
+            models.DeliveryCatalogMapping.tenant_id == tenant_id
+        )
+    )
+    session.exec(
+        delete(models.DeliveryMarketplaceIntegration).where(
+            models.DeliveryMarketplaceIntegration.tenant_id == tenant_id
+        )
+    )
     po_ids_subq = select(inventory_models.PurchaseOrder.id).where(
         inventory_models.PurchaseOrder.tenant_id == tenant_id
     )

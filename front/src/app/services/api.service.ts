@@ -672,6 +672,53 @@ export interface KitchenStationDefaults {
   default_bar_station_id: number | null;
 }
 
+/** Delivery marketplace (Uber Eats / Glovo / Deliveroo-style) admin integration */
+export interface DeliveryProviderCatalogRow {
+  provider_key: string;
+  display_name: string;
+  configured?: boolean;
+}
+
+export interface DeliveryIntegrationPublic {
+  id: number;
+  tenant_id: number;
+  provider_key: string;
+  display_name: string;
+  connection_status: string;
+  enabled: boolean;
+  external_store_id: string | null;
+  credentials_configured: boolean;
+  webhook_url_hint: string;
+  webhook_ingest_token: string;
+  last_test_at: string | null;
+  last_test_ok: boolean | null;
+  updated_at: string;
+}
+
+export interface DeliveryIntegrationUpsert {
+  provider_key: string;
+  enabled: boolean;
+  external_store_id?: string | null;
+  credentials?: Record<string, unknown> | null;
+}
+
+export interface DeliveryCatalogMappingRow {
+  id?: number;
+  external_item_id: string;
+  product_id: number | null;
+  notes?: string | null;
+}
+
+export interface DeliveryIntegrationEventRow {
+  id: number;
+  event_type: string;
+  summary: string | null;
+  detail: Record<string, unknown> | null;
+  success: boolean;
+  error_message: string | null;
+  created_at: string | null;
+}
+
 /** Product customization question (e.g. meat doneness, spice 1–10, multi toppings) */
 export interface ProductQuestion {
   id: number;
@@ -2332,6 +2379,45 @@ export class ApiService {
 
   updateKitchenStationDefaults(body: Partial<KitchenStationDefaults>): Observable<KitchenStationDefaults> {
     return this.http.put<KitchenStationDefaults>(`${this.apiUrl}/tenant/kitchen-station-defaults`, body);
+  }
+
+  getDeliveryIntegrationCatalog(): Observable<DeliveryProviderCatalogRow[]> {
+    return this.http.get<DeliveryProviderCatalogRow[]>(`${this.apiUrl}/tenant/delivery-integrations/catalog`);
+  }
+
+  getDeliveryIntegrations(): Observable<DeliveryIntegrationPublic[]> {
+    return this.http.get<DeliveryIntegrationPublic[]>(`${this.apiUrl}/tenant/delivery-integrations`);
+  }
+
+  upsertDeliveryIntegration(body: DeliveryIntegrationUpsert): Observable<DeliveryIntegrationPublic> {
+    return this.http.put<DeliveryIntegrationPublic>(`${this.apiUrl}/tenant/delivery-integrations`, body);
+  }
+
+  testDeliveryIntegration(integrationId: number): Observable<{ ok: boolean; message: string }> {
+    return this.http.post<{ ok: boolean; message: string }>(
+      `${this.apiUrl}/tenant/delivery-integrations/${integrationId}/test`,
+      {}
+    );
+  }
+
+  getDeliveryMappings(integrationId: number): Observable<DeliveryCatalogMappingRow[]> {
+    return this.http.get<DeliveryCatalogMappingRow[]>(
+      `${this.apiUrl}/tenant/delivery-integrations/${integrationId}/mappings`
+    );
+  }
+
+  putDeliveryMappings(integrationId: number, mappings: DeliveryCatalogMappingRow[]): Observable<{ ok: boolean; count: number }> {
+    return this.http.put<{ ok: boolean; count: number }>(
+      `${this.apiUrl}/tenant/delivery-integrations/${integrationId}/mappings`,
+      { mappings }
+    );
+  }
+
+  getDeliveryIntegrationEvents(integrationId: number, limit = 50): Observable<DeliveryIntegrationEventRow[]> {
+    return this.http.get<DeliveryIntegrationEventRow[]>(
+      `${this.apiUrl}/tenant/delivery-integrations/${integrationId}/events`,
+      { params: { limit: String(limit) } }
+    );
   }
 
   getKitchenDisplaySettings(): Observable<{ yellow_minutes: number; orange_minutes: number; red_minutes: number }> {

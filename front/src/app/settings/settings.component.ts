@@ -21,6 +21,7 @@ import { SidebarComponent } from '../shared/sidebar.component';
 import { FocusFirstInputDirective } from '../shared/focus-first-input.directive';
 import { TranslationsComponent } from '../translations/translations.component';
 import { KitchenStationsSettingsComponent } from './kitchen-stations-settings.component';
+import { DeliveryIntegrationsSettingsComponent } from './delivery-integrations-settings.component';
 import { ContractTemplatesSettingsComponent } from './contract-templates-settings.component';
 import { PermissionService } from '../services/permission.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -36,6 +37,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     TranslateModule,
     TranslationsComponent,
     KitchenStationsSettingsComponent,
+    DeliveryIntegrationsSettingsComponent,
     ContractTemplatesSettingsComponent,
   ],
   template: `
@@ -170,6 +172,18 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             <span>{{ 'SETTINGS.KITCHEN_STATIONS_TAB' | translate }}</span>
           </button>
           }
+          <button
+            type="button"
+            class="tab"
+            data-testid="settings-delivery-integrations-tab"
+            [class.active]="activeSection() === 'delivery-integrations'"
+            (click)="activeSection.set('delivery-integrations')">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+            <span>{{ 'SETTINGS.DELIVERY_INTEGRATIONS_TAB' | translate }}</span>
+          </button>
           @if (settingsModuleTabVisible('providers')) {
           <button 
             type="button" 
@@ -498,6 +512,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           }
         } @else if (activeSection() === 'kitchen-stations') {
           <app-kitchen-stations-settings />
+        } @else if (activeSection() === 'delivery-integrations') {
+          <app-delivery-integrations-settings />
         } @else if (activeSection() === 'contract-templates') {
           <app-contract-templates-settings />
         } @else if (activeSection() === 'translations') {
@@ -2815,6 +2831,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     | 'reservations'
     | 'taxes'
     | 'kitchen-stations'
+    | 'delivery-integrations'
     | 'contract-templates'
     | 'providers'
     | 'translations'
@@ -3040,6 +3057,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
     if (section === 'contract-templates') {
       this.activeSection.set('contract-templates');
     }
+    if (section === 'delivery-integrations') {
+      this.activeSection.set('delivery-integrations');
+    }
     this.route.queryParams.subscribe((params) => {
       const s = params['section'];
       if (s === 'reservations') {
@@ -3047,6 +3067,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
       }
       if (s === 'contract-templates') {
         this.activeSection.set('contract-templates');
+      }
+      if (s === 'delivery-integrations') {
+        this.activeSection.set('delivery-integrations');
       }
     });
     this.loadSettings();

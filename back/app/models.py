@@ -716,6 +716,12 @@ class Order(TenantMixin, table=True):
 
     # Waiter marked urgent — guest is waiting for food (kitchen/bar display)
     staff_urgent: bool = Field(default=False, index=True)
+
+    # Third-party delivery marketplaces (orders may omit table_id; kitchen uses same Order/OrderItem flow)
+    delivery_integration_id: int | None = Field(
+        default=None, foreign_key="delivery_marketplace_integration.id", index=True
+    )
+    external_order_ref: str | None = Field(default=None, max_length=256, index=True)
     
     items: list["OrderItem"] = Relationship(back_populates="order")
     billing_customer: BillingCustomer | None = Relationship(back_populates="orders")
@@ -1607,3 +1613,72 @@ class OpeningHoursOverrideCreate(SQLModel):
     closed: bool = Field(default=False)
     opening_hours: str | None = None
     note: str | None = Field(default=None, max_length=512)
+
+
+# ============ DELIVERY MARKETPLACE INTEGRATIONS ============
+
+
+class DeliveryMarketplaceIntegration(SQLModel, table=True):
+    """Per-tenant connection to a delivery brand (credentials encrypted at rest)."""
+
+    __tablename__ = "delivery_marketplace_integration"
+
+    id: int | None = Field(default=None, primary_key=True)
+    tenant_id: int = Field(foreign_key="tenant.id", index=True)
+    provider_key: str = Field(max_length=64, index=True)
+    connection_status: str = Field(default="disconnected", max_length=32)
+    credentials_encrypted: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    external_store_id: str | None = Field(default=None, max_length=256)
+    enabled: bool = Field(default=False)
+    webhook_ingest_token: str = Field(max_length=64, unique=True, index=True)
+    last_test_at: datetime | None = None
+    last_test_ok: bool | None = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class DeliveryCatalogMapping(SQLModel, table=True):
+    """Maps external menu SKU to POS product for a given integration."""
+
+    __tablename__ = "delivery_catalog_mapping"
+
+    id: int | None = Field(default=None, primary_key=True)
+    tenant_id: int = Field(foreign_key="tenant.id", index=True)
+    integration_id: int = Field(foreign_key="delivery_marketplace_integration.id", index=True)
+    external_item_id: str = Field(max_length=256)
+    product_id: int | None = Field(default=None, foreign_key="product.id")
+    notes: str | None = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class DeliveryIntegrationEventLog(SQLModel, table=True):
+    """Inbound webhook/API trail and mapping failures (no raw secrets)."""
+
+    __tablename__ = "delivery_integration_event_log"
+
+    id: int | None = Field(default=None, primary_key=True)
+    tenant_id: int = Field(foreign_key="tenant.id", index=True)
+    integration_id: int | None = Field(
+        default=None, foreign_key="delivery_marketplace_integration.id", index=True
+    )
+    provider_key: str = Field(max_length=64)
+    event_type: str = Field(max_length=64)
+    summary: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    detail: dict | None = Field(default=None, sa_column=Column(JSONB, nullable=True))
+    success: bool = Field(default=True)
+    error_message: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class DeliveryIntegrationUpsert(SQLModel):
+    provider_key: str = Field(max_length=64)
+    enabled: bool = False
+    external_store_id: str | None = Field(default=None, max_length=256)
+    credentials: dict | None = None  # replaced server-side; never echoed back
+
+
+class DeliveryCatalogMappingWrite(SQLModel):
+    external_item_id: str = Field(max_length=256)
+    product_id: int | None = None
+    notes: str | None = None

@@ -42,6 +42,10 @@ from .attendance_routes import router as attendance_router
 from .tenant_lifecycle_routes import router as tenant_lifecycle_router
 from .staff_contract_routes import router as staff_contract_router
 from .staff_contract_template_routes import router as staff_contract_template_router
+from .delivery_integration_routes import (
+    router as delivery_integration_router,
+    public_router as delivery_public_router,
+)
 from .work_session_serialization import serialize_work_session, work_session_net_duration_minutes
 from .clock_qr_util import (
     clock_qr_tokens_equal,
@@ -447,6 +451,8 @@ app.include_router(attendance_router, prefix="/reports", tags=["Reports"])
 # Owner-only data export & tenant purge (GitHub #96)
 app.include_router(tenant_lifecycle_router, prefix="/tenant", tags=["Tenant lifecycle"])
 app.include_router(staff_contract_router, prefix="/staff-contracts", tags=["Staff contracts"])
+app.include_router(delivery_integration_router, prefix="/tenant", tags=["Delivery integrations"])
+app.include_router(delivery_public_router, tags=["Delivery integrations"])
 app.include_router(
     staff_contract_template_router,
     prefix="/staff-contract-templates",
@@ -11316,9 +11322,15 @@ def list_orders(
         if table:
             tg_label = _table_group_display_label(session, current_user.tenant_id, table)
 
+        table_display = "Unknown"
+        if getattr(order, "delivery_integration_id", None):
+            table_display = "Delivery"
+        elif table:
+            table_display = table.name
+
         row_out = {
             "id": order.id,
-            "table_name": table.name if table else "Unknown",
+            "table_name": table_display,
             "table_id": table.id if table else None,
             "table_token": table.token if table else None,
             "status": computed_status.value,
