@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Issue #196 requested showing the organization name beside the POS brand in the sidebar, with single-line truncation for long names.
+- **What was done:** The coder wired tenant display name from `/tenant/settings` into the sidebar/desktop and mobile headers with ellipsis CSS; the tester confirmed behavior against the task.
+- **What was tested:** Local Docker stack, `test:landing-version` smoke, sidebar branding, long-name ellipsis, tooltips and aria — overall **PASS**.
+- **Why closed:** Tester test report marked overall PASS with all listed checks passing.
+- **Closed at (UTC):** 2026-04-27 08:05
+---
+
 # Add Organization Name with Text Truncation
 
 ## GitHub Issues
