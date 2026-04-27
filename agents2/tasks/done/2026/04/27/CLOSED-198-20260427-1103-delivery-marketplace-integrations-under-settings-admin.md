@@ -71,3 +71,49 @@ Expose third-party delivery marketplace connectivity under **Settings → Integr
 
 8. **Relevant log excerpts (last section)**  
    - Prior **FAIL** run: `AttributeError: price_cents` on **`Row`** — resolved by **`session.get(Product, pid)`** in **`create_order_from_delivery_payload`**.
+
+---
+
+## Test report (tester agent — independent verification)
+
+1. **Date/time (UTC) and log window**  
+   - **Verification:** 2026-04-27T11:21Z–11:24Z (approx.).  
+   - **Logs reviewed:** `docker logs pos-back` (grep `webhooks/delivery`, `delivery-integrations`); `docker logs pos-front` (tail — confirm bundle **complete** after earlier transient TS errors at 11:08Z).
+
+2. **Environment**  
+   - **Compose:** `docker-compose.yml` + `docker-compose.dev.yml`.  
+   - **`BASE_URL`:** `http://127.0.0.1:4202` (HAProxy).  
+   - **Branch / HEAD:** `development` @ `500846ee`.
+
+3. **What was tested**  
+   Per **Testing instructions**: migrate; pytest `tests/test_delivery_credentials.py` `tests/test_delivery_adapters.py`; admin **Settings → Integrationen → Lieferplattform-Integrationen** (browser); cookie-authenticated API flow (upsert Uber Eats credentials `{"api_key":"test"}`, test connection, mappings `demo-sku-7` → product **7**, enable integration); `POST` public webhook (stub payload); landing smoke; **Bestellungen** UI for **Delivery** label on created order.
+
+4. **Results**
+
+   | # | Criterion | Result | Evidence |
+   |---|-----------|--------|----------|
+   | 1 | Migrate | **PASS** | `Database is up to date (version 20260427120000)`. |
+   | 2 | Unit tests | **PASS** | `4 passed in 0.07s`. |
+   | 3 | Settings → Integrations (admin UI) | **PASS** | Chromium session: logged in as demo owner → `…/settings?section=delivery-integrations` shows **Lieferplattform-Integrationen**, Uber Eats expanded: masked credentials JSON, **Verbindung testen**, webhook URL, mapping row **demo-sku-7** → **Pozole (#7)**, **Letzte Ereignisse** includes `webhook_order`. |
+   | 4 | Webhook ingest → order | **PASS** | `POST …/public/webhooks/delivery/<token>` → HTTP **200**; DB order **708** has `delivery_integration_id=1`, customer **Demo**; API events latest type **webhook_order**. |
+   | 5 | Orders UI — table label **Delivery** | **PASS** | `/staff/orders`: card **#708** shows static text **Delivery**, line item **Pozole**. |
+   | 6 | Smoke `/` | **PASS** | `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:4202/` → **200**. |
+
+5. **Overall:** **PASS** — all Testing instructions satisfied in this run.
+
+6. **Product owner feedback**  
+   Delivery marketplace integrations behave end-to-end on the dev stack: configuration lives under Settings as intended, webhook ingest creates a normal staff-visible order labeled **Delivery**, and recent events surface in the integration panel. No blocker found for merging the feature from a QA perspective.
+
+7. **URLs tested (numbered)**  
+   1. `http://127.0.0.1:4202/login`  
+   2. `http://127.0.0.1:4202/dashboard`  
+   3. `http://127.0.0.1:4202/settings?section=delivery-integrations`  
+   4. `http://127.0.0.1:4202/staff/orders`  
+   5. `http://127.0.0.1:4202/` (smoke)  
+   6. `http://127.0.0.1:4202/api/token?tenant_id=1` (login — cookie auth for API checks; no token printed)
+
+8. **Relevant log excerpts**  
+   - **pos-back:** `POST /tenant/delivery-integrations/1/test HTTP/1.1" 200 OK`; `POST /public/webhooks/delivery/… HTTP/1.1" 200 OK` (latest ingest for this session). Earlier **500** lines exist for older webhook attempts before fix — superseded by **200** on current verification.  
+   - **pos-front:** `Application bundle generation complete` (e.g. 2026-04-27T11:09:07.550Z) — dev server healthy after rebuild.
+
+**Rename:** `TESTING-` → **`CLOSED-`** (PASS).
