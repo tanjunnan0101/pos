@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Issue #199 (Settings → Marketing → Social posts with Meta-first publishing) was implemented and the tester concluded **PASS** for the verifiable checks in this environment.
+- **What was done:** Backend migration, tenant social OAuth/posts APIs, encrypted credentials, Meta adapter and background publish worker; Settings **Social posts** UI and i18n. The tester confirmed schema, protected API, settings route, and correct **503** when Meta OAuth env is unset, plus a clean Angular build in logs.
+- **What was tested:** Migrate to **20260427143000**, unauthenticated **`/api/tenant/social/catalog`** → **401**, **`/settings?section=social-posts`** loads, **`POST …/oauth/meta/authorize-url`** → **503** with not-configured detail, front build OK; landing semver smoke failure noted as pre-existing/unrelated.
+- **Why closed:** Tester **Overall: PASS**; optional Meta E2E not run here but acceptance criteria for implemented paths are satisfied.
+- **Closed at (UTC):** 2026-04-27 12:23
+---
+
 # Social post composer: image + caption, multi-network publish/schedule
 
 ## GitHub Issues
