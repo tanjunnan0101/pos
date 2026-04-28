@@ -261,3 +261,40 @@ GH_TOKEN:
 3. **Optional live check:** After a **green** deploy, verify **`https://satisfecho.de/`** (or documented prod URL) and API health per **`docs/0001-ci-cd-amvara9.md`** / smoke step output.
 
 4. **Manual fallback:** If CI cannot be fixed immediately, an operator may run **`scripts/deploy-amvara9.sh`** on the server per **`README.md`** / **`AGENTS.md`** (marketing bundles may still be required for full parity with CI).
+
+---
+
+## Test report (verification 2026-04-28)
+
+**Date/time (UTC):** 2026-04-28 06:32-06:35 UTC  
+**Log window:** `git fetch` / ref checks ~06:33 UTC; `gh run list` / `gh run view` ~06:33-06:34 UTC.
+
+**Environment:** Local clone at `/Users/raro42/projects/pos2` on `development`, synced with `./scripts/git-sync-development.sh`. Verification performed with `git` and `gh` against `satisfecho/pos`; no Docker/browser runtime required for this task scope.
+
+**What was tested:** `Testing instructions` items 1-2 (git refs/ancestry and latest `Deploy to amvara9` workflow status on `master`). Optional live check (item 3) remains gated on a green deploy.
+
+**Results:**
+
+| Criterion | Result | Evidence |
+|-----------|--------|----------|
+| `origin/master` / `origin/development` refs and ancestry | **PASS** | `git rev-parse origin/master origin/development` -> `7a2c2bd59b2cfb6cbc6a55ac407993494b17256f` (`master`) and `b0a1bff5584e0da54ea9589dff8bb839955d6418` (`development`); `git merge-base --is-ancestor origin/master origin/development` exit `0`. |
+| Latest `Deploy to amvara9` on `master` is green | **FAIL** | `gh run list --workflow "Deploy to amvara9" --branch master --limit 8` shows newest run `24773000757` with `failure`; `gh run view 24773000757 --json conclusion,status,url` reports `{"conclusion":"failure","status":"completed",...}`. |
+| Optional production URL/API check after green deploy | **N/A** | No newer successful deploy run exists to validate against. |
+
+**Overall:** **FAIL** - deployment verification remains blocked because the latest `master` deploy workflow is still failed and no newer successful run supersedes it.
+
+**Product owner feedback:** Promotion ancestry is healthy (`master` remains an ancestor of `development`), so branch state is consistent. The blocking issue is still CI deployment status on `master`, not git state. This task should return to coder/WIP until deployment secrets/workflow are fixed and a green run is available for re-test.
+
+**URLs tested:**
+
+1. https://github.com/satisfecho/pos/actions/runs/24773000757  
+2. https://github.com/satisfecho/pos/issues/195
+
+**N/A - no browser** (optional production check skipped until deploy is green).
+
+**Relevant log excerpts (last section)** - workflow status output:
+
+```text
+completed	failure	Agent 001: add FEAT task for GitHub issue #195 (push to master)	Deploy to amvara9	master	push	24773000757	10s	2026-04-22T10:18:20Z
+{"conclusion":"failure","createdAt":"2026-04-22T10:18:20Z","displayTitle":"Agent 001: add FEAT task for GitHub issue #195 (push to master)","status":"completed","url":"https://github.com/satisfecho/pos/actions/runs/24773000757"}
+```
