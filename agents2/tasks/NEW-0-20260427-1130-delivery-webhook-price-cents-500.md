@@ -7,7 +7,7 @@
 
 ## Problem / goal
 
-Live **`docker logs pos-back`** shows **`POST /public/webhooks/delivery/<ingest_token>`** returning **500** with **`KeyError` / `AttributeError: price_cents`** for some payloads; subsequent posts can return **200**. Preflight **`pos-front`** **`delivery-integrations`** TypeScript noise in the digest was **transient** during rebuild; recent logs show **`Application bundle generation complete`** — no separate front **`NEW-*`**.
+Live **`docker logs pos-back`** shows **`POST /public/webhooks/delivery/<ingest_token>`** returning **500** with **`KeyError` / `AttributeError: price_cents`** for some payloads; some failing requests also show **`KeyError: 'id'`** on the same path. Subsequent posts can return **200**. Preflight **`pos-front`** **`delivery-integrations`** TypeScript noise in the digest was **transient** during rebuild; recent logs show **`Application bundle generation complete`** — no separate front **`NEW-*`**.
 
 Harden webhook order creation so missing or oddly shaped **price** fields and **`Row`** vs model access cannot crash ingest.
 
