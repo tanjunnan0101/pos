@@ -1032,6 +1032,38 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 
 ---
 
+## Test report
+
+**Date/time (UTC):** 2026-04-28 17:35 UTC  
+**Log window:** `./scripts/git-sync-development.sh` (session start); `git fetch origin`; `gh run list` / `gh run view 24773000757`; `curl` to `https://satisfecho.de/api/health` (same session, ~3 minutes).
+
+**Environment:** Repo root **`development`** after **`./scripts/git-sync-development.sh`**. Docker / compose app tests **N/A** (task scope: git + GitHub Actions + optional prod health). **`BASE_URL` (optional):** `https://satisfecho.de/api/health`. Task file: **`UNTESTED-195-20260428-0238-push-to-master.md`** → **`TESTING-195-20260428-0238-push-to-master.md`** at start of this pass; final rename to **`WIP-…`** on **FAIL**.
+
+**What was tested (from Testing instructions):**
+1. **`origin/master`** / **`origin/development`** tips and **`git merge-base --is-ancestor origin/master origin/development`**.  
+2. Latest **Deploy to amvara9** run for **`headBranch: master`** (reference **`24773000757`** until superseded).  
+3. Optional prod **`/api/health`** (informational).
+
+**Results:**
+
+| Criterion | Result | Evidence |
+|-----------|--------|----------|
+| (1) Git | **PASS** | After **`git fetch origin`**: **`git rev-parse origin/master origin/development`** → **`7a2c2bd59b2cfb6cbc6a55ac407993494b17256f`**, **`84325dd6460cd579b8c92a431de45ef23dd20251`**. **`git merge-base --is-ancestor origin/master origin/development`** → exit **0**. |
+| (2) **Deploy to amvara9** green for latest **`master`** | **FAIL** | **`gh run list --repo satisfecho/pos --workflow "Deploy to amvara9" --limit 12`**: most recent **`headBranch: master`** run remains **`24773000757`**, **`conclusion`** **`failure`**, **`updatedAt`** **`2026-04-22T10:18:30Z`**. **`gh run view 24773000757 --repo satisfecho/pos --json conclusion,status,updatedAt,headBranch,url`** → **`failure`**, **`completed`**, **`headBranch: master`**. No newer successful **`master`** deploy supersedes this run. Run URL: https://github.com/satisfecho/pos/actions/runs/24773000757 |
+| (3) Optional live after green deploy | **N/A** | Criterion **(2)** not green; **`curl -sS https://satisfecho.de/api/health`** → **200** body **`{"status":"ok"}`** (does not prove **Deploy to amvara9** completed for commit **`7a2c2bd`**). |
+
+**Overall:** **FAIL** — criterion **(2)**.
+
+**Product owner feedback:** **`origin/master`** is still at promoted commit **`7a2c2bd`**; **`origin/development`** has moved to **`84325dd6`**. The **Deploy to amvara9** workflow for the latest **`master`** push remains run **`24773000757`** with **failure**; no green **`master`** deploy has replaced it. **Loop protection:** Outcome matches prior sessions—blocker is **Actions** secrets (**`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`**) and/or a successful re-run per **`config/marketing-sites.json`**. Coder: return as **`UNTESTED-`** when a **green** **`master`** **Deploy to amvara9** run exists, or document **Testing instructions §4** manual deploy parity.
+
+**URLs tested:**  
+1. `https://github.com/satisfecho/pos/actions/runs/24773000757`  
+2. `https://satisfecho.de/api/health` (HTTP 200 — informational only)
+
+**Relevant log excerpts:** **`gh run view 24773000757 --repo satisfecho/pos --json conclusion,status,updatedAt,headBranch,url`** → **`{"conclusion":"failure","headBranch":"master","status":"completed","updatedAt":"2026-04-22T10:18:30Z","url":"https://github.com/satisfecho/pos/actions/runs/24773000757"}`**.
+
+---
+
 ## Testing instructions
 
 1. **Git:** Confirm **`origin/master`** and **`origin/development`** are at the expected points for the promotion under test (re-check tips after any new merge):  
