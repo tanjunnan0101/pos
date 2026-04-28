@@ -1989,3 +1989,7 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 
 4. **Manual fallback:** If CI cannot be fixed immediately, an operator may run **`scripts/deploy-amvara9.sh`** on the server per **`README.md`** / **`AGENTS.md`** (marketing bundles may still be required for full parity with CI).
 
+---
+
+**Handoff (2026-04-29, coder→testing):** Renamed **`WIP-195-20260428-0238-push-to-master.md`** → **`UNTESTED-195-20260428-0238-push-to-master.md`**. Repository-side promotion work remains as documented in **Implementation summary**; **Deploy to amvara9** green run still depends on Actions secrets / re-run per prior tester notes. Label **`agent:untested`** applied on GitHub issue **#195**.
+
