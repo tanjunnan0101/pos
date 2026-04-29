@@ -24,7 +24,7 @@ Follow repo branching rules: routine promotion timing vs urgent production fixes
 - **Follow-up (repo settings):** ensure Actions secrets include a PAT with **Actions read** on every repo listed in **`config/marketing-sites.json`** (see error text in workflow logs), then re-run the failed workflow or redeploy.
 
 ## Status for tester
-Git promotion to **`origin/master`** is done per above. End-to-end success still depends on a **green** **Deploy to amvara9** run on **`master`** (currently blocked until **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`** are configured in Actions). Verify using **Testing instructions** at the end of this file. Task file: **`WIP-195-20260428-0238-push-to-master.md`** (last verification **FAIL** — see **Test report** at end of file).
+Git promotion to **`origin/master`** is done per above. End-to-end success still depends on a **green** **Deploy to amvara9** run on **`master`** (currently blocked until **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`** are configured in Actions). Verify using **Testing instructions** at the end of this file. Task file: **`UNTESTED-195-20260428-0238-push-to-master.md`** (coder implementation complete; last verification **FAIL** — see **Test report** at end of file).
 
 ---
 
@@ -2153,4 +2153,4 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 
 4. **Manual fallback:** If CI cannot be fixed immediately, an operator may run **`scripts/deploy-amvara9.sh`** on the server per **`README.md`** / **`AGENTS.md`** (marketing bundles may still be required for full parity with CI).
 
-**Handoff (tester 2026-04-29):** Verification **FAIL** (criterion **(2)** — **Deploy to amvara9** not green). Task file **`WIP-195-20260428-0238-push-to-master.md`**; restore **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`**, re-run deploy or use **Testing instructions §4**; return **`UNTESTED-`** when ready for another pass.
+**Handoff (coder → tester 2026-04-29):** **UNTESTED** — git promotion work is documented above; **Deploy to amvara9** in GitHub Actions remains **failure** on run **`24773000757`** until **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`** are set per **`config/marketing-sites.json`** and the workflow is re-run or **`Testing instructions §4`** manual deploy applies. Tester: rename **`UNTESTED-…` → `TESTING-…`** when starting verification.
