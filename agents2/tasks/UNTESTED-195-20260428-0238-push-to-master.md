@@ -24,7 +24,7 @@ Follow repo branching rules: routine promotion timing vs urgent production fixes
 - **Follow-up (repo settings):** ensure Actions secrets include a PAT with **Actions read** on every repo listed in **`config/marketing-sites.json`** (see error text in workflow logs), then re-run the failed workflow or redeploy.
 
 ## Status for tester
-Git promotion to **`origin/master`** is done per above. End-to-end success still depends on a **green** **Deploy to amvara9** run on **`master`** (currently blocked until **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`** are configured in Actions). Verify using **Testing instructions** (also below after historical test reports). Task file: **`UNTESTED-195-20260428-0238-push-to-master.md`**.
+Git promotion to **`origin/master`** is done per above. End-to-end success still depends on a **green** **Deploy to amvara9** run on **`master`** (currently blocked until **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`** are configured in Actions). Verify using **Testing instructions** at the end of this file. Task file: **`UNTESTED-195-20260428-0238-push-to-master.md`**.
 
 ---
 
@@ -1612,22 +1612,6 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 
 **Task file:** **`TESTING-195-20260428-0238-push-to-master.md` → `WIP-195-20260428-0238-push-to-master.md`** (overall **FAIL**).
 
----
-
-## Testing instructions
-
-1. **Git:** Confirm **`origin/master`** and **`origin/development`** are at the expected points for the promotion under test (re-check tips after any new merge):  
-   `git fetch origin && git rev-parse origin/master origin/development`  
-   Optionally: `git merge-base --is-ancestor origin/master origin/development` (exit **0** expected after a promotion when **`development`** has advanced).
-
-2. **GitHub Actions:** Open **Actions** → **Deploy to amvara9** and inspect the latest **`master`** run (reference run **`24773000757`** until a newer one exists). After **Actions** secrets (`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN` with PAT scope per **`config/marketing-sites.json`**) are set, **Re-run failed jobs** or trigger a new deploy from **`master`**. Expect **green** through **Fetch marketing site artifacts**, **Set up SSH**, **Build and restart stack on amvara9**, and **Smoke test**.
-
-3. **Optional live check:** After a **green** deploy, verify **`https://satisfecho.de/`** (or documented prod URL) and API health per **`docs/0001-ci-cd-amvara9.md`** / smoke step output.
-
-4. **Manual fallback:** If CI cannot be fixed immediately, an operator may run **`scripts/deploy-amvara9.sh`** on the server per **`README.md`** / **`AGENTS.md`** (marketing bundles may still be required for full parity with CI).
-
----
-
 ## Test report
 
 **Date/time (UTC):** 2026-04-28 21:41 UTC  
@@ -1759,22 +1743,6 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 2. `https://satisfecho.de/api/health` (HTTP 200 — informational)
 
 **Relevant log excerpts:** **`gh run view 24773000757 --repo satisfecho/pos --json conclusion,status,updatedAt,headBranch,url`** → **`{"conclusion":"failure","headBranch":"master","status":"completed","updatedAt":"2026-04-22T10:18:30Z","url":"https://github.com/satisfecho/pos/actions/runs/24773000757"}`**.
-
----
-
-## Testing instructions
-
-1. **Git:** Confirm **`origin/master`** and **`origin/development`** are at the expected points for the promotion under test (re-check tips after any new merge):  
-   `git fetch origin && git rev-parse origin/master origin/development`  
-   Optionally: `git merge-base --is-ancestor origin/master origin/development` (exit **0** expected after a promotion when **`development`** has advanced).
-
-2. **GitHub Actions:** Open **Actions** → **Deploy to amvara9** and inspect the latest **`master`** run (reference run **`24773000757`** until a newer one exists). After **Actions** secrets (`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN` with PAT scope per **`config/marketing-sites.json`**) are set, **Re-run failed jobs** or trigger a new deploy from **`master`**. Expect **green** through **Fetch marketing site artifacts**, **Set up SSH**, **Build and restart stack on amvara9**, and **Smoke test**.
-
-3. **Optional live check:** After a **green** deploy, verify **`https://satisfecho.de/`** (or documented prod URL) and API health per **`docs/0001-ci-cd-amvara9.md`** / smoke step output.
-
-4. **Manual fallback:** If CI cannot be fixed immediately, an operator may run **`scripts/deploy-amvara9.sh`** on the server per **`README.md`** / **`AGENTS.md`** (marketing bundles may still be required for full parity with CI).
-
----
 
 ## Test report
 
@@ -1977,24 +1945,6 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 
 **Task file:** **`TESTING-195-20260428-0238-push-to-master.md` → `WIP-195-20260428-0238-push-to-master.md`** (overall **FAIL**).
 
-## Testing instructions
-
-1. **Git:** Confirm **`origin/master`** and **`origin/development`** are at the expected points for the promotion under test (re-check tips after any new merge):  
-   `git fetch origin && git rev-parse origin/master origin/development`  
-   Optionally: `git merge-base --is-ancestor origin/master origin/development` (exit **0** expected after a promotion when **`development`** has advanced).
-
-2. **GitHub Actions:** Open **Actions** → **Deploy to amvara9** and inspect the latest **`master`** run (reference run **`24773000757`** until a newer one exists). After **Actions** secrets (`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN` with PAT scope per **`config/marketing-sites.json`**) are set, **Re-run failed jobs** or trigger a new deploy from **`master`**. Expect **green** through **Fetch marketing site artifacts**, **Set up SSH**, **Build and restart stack on amvara9**, and **Smoke test**.
-
-3. **Optional live check:** After a **green** deploy, verify **`https://satisfecho.de/`** (or documented prod URL) and API health per **`docs/0001-ci-cd-amvara9.md`** / smoke step output.
-
-4. **Manual fallback:** If CI cannot be fixed immediately, an operator may run **`scripts/deploy-amvara9.sh`** on the server per **`README.md`** / **`AGENTS.md`** (marketing bundles may still be required for full parity with CI).
-
----
-
-**Handoff (2026-04-29, coder→testing):** Renamed **`WIP-195-20260428-0238-push-to-master.md`** → **`UNTESTED-195-20260428-0238-push-to-master.md`**. Repository-side promotion work remains as documented in **Implementation summary**; **Deploy to amvara9** green run still depends on Actions secrets / re-run per prior tester notes. Label **`agent:untested`** applied on GitHub issue **#195**.
-
----
-
 ## Test report
 
 **Date/time (UTC):** 2026-04-28 23:43 UTC  
@@ -2026,12 +1976,6 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 **Relevant log excerpts:** **`gh run view 24773000757 --repo satisfecho/pos --json conclusion,status,updatedAt,headBranch,url`** → **`{"conclusion":"failure","headBranch":"master","status":"completed","updatedAt":"2026-04-22T10:18:30Z","url":"https://github.com/satisfecho/pos/actions/runs/24773000757"}`**.
 
 **Task file:** **`TESTING-195-20260428-0238-push-to-master.md`** → **`WIP-195-20260428-0238-push-to-master.md`** (overall **FAIL**).
-
----
-
-**Superseded (2026-04-29):** An earlier **`012-feature-coder-handoff`** note here withheld **`UNTESTED-*.md`** until CI green; see final **Handoff (2026-04-29, `agents2/012-feature-coder-handoff`)** at end of file — **`UNTESTED-`** rename and **`agent:untested`** applied per **TASKS-README.md** (coder implementation + **Testing instructions**).
-
----
 
 ## Test report
 
@@ -2065,12 +2009,6 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 
 **Task file:** **`TESTING-195-20260428-0238-push-to-master.md`** → **`WIP-195-20260428-0238-push-to-master.md`** (overall **FAIL**).
 
----
-
-**Handoff (2026-04-29, `agents2/012-feature-coder-handoff`):** **`WIP-195-20260428-0238-push-to-master.md`** renamed to **`UNTESTED-195-20260428-0238-push-to-master.md`** per **TASKS-README.md** (coder implementation documented complete; **Testing instructions** in file). **`agent:untested`** added on GitHub issue **#195**. Tester should pick up from **UNTESTED-** / **Testing instructions**; CI on run **24773000757** may still be **failure** until secrets or §4 manual parity is resolved.
-
----
-
 ## Test report
 
 **Date/time (UTC):** 2026-04-29 13:05 UTC (approx.)  
@@ -2102,24 +2040,6 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 **Relevant log excerpts:** **`gh run view 24773000757 --repo satisfecho/pos --json conclusion,status,updatedAt,headBranch,url`** → **`{"conclusion":"failure","headBranch":"master","status":"completed","updatedAt":"2026-04-22T10:18:30Z","url":"https://github.com/satisfecho/pos/actions/runs/24773000757"}`**.
 
 **Task file:** **`TESTING-195-20260428-0238-push-to-master.md`** → **`WIP-195-20260428-0238-push-to-master.md`** (overall **FAIL**).
-
----
-
-## Testing instructions
-
-1. **Git:** Confirm **`origin/master`** and **`origin/development`** are at the expected points for the promotion under test (re-check tips after any new merge):  
-   `git fetch origin && git rev-parse origin/master origin/development`  
-   Optionally: `git merge-base --is-ancestor origin/master origin/development` (exit **0** expected after a promotion when **`development`** has advanced).
-
-2. **GitHub Actions:** Open **Actions** → **Deploy to amvara9** and inspect the latest **`master`** run (reference run **`24773000757`** until a newer one exists). After **Actions** secrets (`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN` with PAT scope per **`config/marketing-sites.json`**) are set, **Re-run failed jobs** or trigger a new deploy from **`master`**. Expect **green** through **Fetch marketing site artifacts**, **Set up SSH**, **Build and restart stack on amvara9**, and **Smoke test**.
-
-3. **Optional live check:** After a **green** deploy, verify **`https://satisfecho.de/`** (or documented prod URL) and API health per **`docs/0001-ci-cd-amvara9.md`** / smoke step output.
-
-4. **Manual fallback:** If CI cannot be fixed immediately, an operator may run **`scripts/deploy-amvara9.sh`** on the server per **`README.md`** / **`AGENTS.md`** (marketing bundles may still be required for full parity with CI).
-
-**Handoff (`agents2/012-feature-coder-handoff`, 2026-04-29):** Coder work complete per **Implementation summary**; **`WIP-…`** → **`UNTESTED-…`** rename; GitHub issue **#195** label **`agent:untested`**.
-
----
 
 ## Test report
 
@@ -2153,8 +2073,6 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 
 **Task file:** **`TESTING-195-20260428-0238-push-to-master.md`** → **`WIP-195-20260428-0238-push-to-master.md`** (overall **FAIL**).
 
----
-
 ## Test report
 
 **Date/time (UTC):** 2026-04-29 00:33 UTC  
@@ -2186,3 +2104,19 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 **Relevant log excerpts:** **`gh run view 24773000757 --repo satisfecho/pos --json conclusion,status,updatedAt,headBranch,url`** → **`{"conclusion":"failure","headBranch":"master","status":"completed","updatedAt":"2026-04-22T10:18:30Z","url":"https://github.com/satisfecho/pos/actions/runs/24773000757"}`**.
 
 **Task file:** **`TESTING-195-20260428-0238-push-to-master.md`** → **`WIP-195-20260428-0238-push-to-master.md`** (overall **FAIL**).
+
+---
+
+## Testing instructions
+
+1. **Git:** Confirm **`origin/master`** and **`origin/development`** are at the expected points for the promotion under test (re-check tips after any new merge):  
+   `git fetch origin && git rev-parse origin/master origin/development`  
+   Optionally: `git merge-base --is-ancestor origin/master origin/development` (exit **0** expected after a promotion when **`development`** has advanced).
+
+2. **GitHub Actions:** Open **Actions** → **Deploy to amvara9** and inspect the latest **`master`** run (reference run **`24773000757`** until a newer one exists). After **Actions** secrets (`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN` with PAT scope per **`config/marketing-sites.json`**) are set, **Re-run failed jobs** or trigger a new deploy from **`master`**. Expect **green** through **Fetch marketing site artifacts**, **Set up SSH**, **Build and restart stack on amvara9**, and **Smoke test**.
+
+3. **Optional live check:** After a **green** deploy, verify **`https://satisfecho.de/`** (or documented prod URL) and API health per **`docs/0001-ci-cd-amvara9.md`** / smoke step output.
+
+4. **Manual fallback:** If CI cannot be fixed immediately, an operator may run **`scripts/deploy-amvara9.sh`** on the server per **`README.md`** / **`AGENTS.md`** (marketing bundles may still be required for full parity with CI).
+
+**Handoff (`agents2/012-feature-coder-handoff`, 2026-04-29):** Coder work complete per **Implementation summary**; task file **`UNTESTED-195-20260428-0238-push-to-master.md`**; GitHub issue **#195** label **`agent:untested`** applied.
