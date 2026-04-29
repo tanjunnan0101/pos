@@ -24,7 +24,7 @@ Follow repo branching rules: routine promotion timing vs urgent production fixes
 - **Follow-up (repo settings):** ensure Actions secrets include a PAT with **Actions read** on every repo listed in **`config/marketing-sites.json`** (see error text in workflow logs), then re-run the failed workflow or redeploy.
 
 ## Status for tester
-Git promotion to **`origin/master`** is done per above. End-to-end success still depends on a **green** **Deploy to amvara9** run on **`master`** (currently blocked until **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`** are configured in Actions). Verify using **Testing instructions** at the end of this file. Task file: **`WIP-195-20260428-0238-push-to-master.md`** (last verification **FAIL** — see **Test report** at end of file; return **UNTESTED-…** when ready for re-check).
+Git promotion to **`origin/master`** is done per above. End-to-end success still depends on a **green** **Deploy to amvara9** run on **`master`** (currently blocked until **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`** are configured in Actions). Verify using **Testing instructions** at the end of this file. Task file: **`UNTESTED-195-20260428-0238-push-to-master.md`** (last verification **FAIL** — see **Test report** above **Testing instructions**; tester re-runs per instructions below).
 
 ---
 
@@ -2153,38 +2153,4 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 
 4. **Manual fallback:** If CI cannot be fixed immediately, an operator may run **`scripts/deploy-amvara9.sh`** on the server per **`README.md`** / **`AGENTS.md`** (marketing bundles may still be required for full parity with CI).
 
-**Handoff (coder → tester 2026-04-29):** **WIP** — same blocker; coder returns task as **UNTESTED** after a **green** **Deploy to amvara9** on **`master`** or documented **§4** manual deploy parity.
-
----
-
-## Test report
-
-**Date/time (UTC):** 2026-04-29 00:54 UTC  
-**Log window:** `./scripts/git-sync-development.sh`; `git fetch origin`; `gh run list` / `gh run view 24773000757`; `curl https://satisfecho.de/api/health` (~2 min).
-
-**Environment:** Repo `/Users/raro42/projects/pos2`; branch **`development`** after sync. Docker app tests **N/A**. **`BASE_URL` (optional):** `https://satisfecho.de/api/health`. Renamed **`UNTESTED-195-…` → `TESTING-195-…`** at start of this run.
-
-**What was tested:**
-1. **`origin/master`** / **`origin/development`** tips and **`git merge-base --is-ancestor origin/master origin/development`**.  
-2. Latest **Deploy to amvara9** run for **`headBranch: master`** (reference **`24773000757`** until superseded).  
-3. Optional **`/api/health`** (informational).
-
-**Results:**
-
-| Criterion | Result | Evidence |
-|-----------|--------|----------|
-| (1) Git | **PASS** | **`git rev-parse origin/master origin/development`** → **`7a2c2bd59b2cfb6cbc6a55ac407993494b17256f`**, **`7f8024b9367b608a2eb3fd9431ee7cf05eef4ac0`**. **`git merge-base --is-ancestor origin/master origin/development`** → exit **0**. |
-| (2) **Deploy to amvara9** green for latest **`master`** | **FAIL** | **`gh run list --repo satisfecho/pos --workflow "Deploy to amvara9" --limit 15`**: newest **`master`** run remains **`24773000757`**, **`conclusion`** **`failure`**, **`updatedAt`** **`2026-04-22T10:18:30Z`**. No newer successful **`master`** deploy. **`gh run view 24773000757 --repo satisfecho/pos --json conclusion,status,updatedAt,headBranch,url`** → **`failure`**, **`completed`**, **`headBranch: master`**. Run URL: https://github.com/satisfecho/pos/actions/runs/24773000757 |
-| (3) Optional live after green deploy | **N/A** | Criterion **(2)** not green; **`curl -sS https://satisfecho.de/api/health`** → **200** **`{"status":"ok"}`** (does not prove CI deployed **`7a2c2bd`**). |
-
-**Overall:** **FAIL** — criterion **(2)**.
-
-**Product owner feedback:** **`master`** remains at **`7a2c2bd`**; **`development`** is ahead at **`7f8024b9`**. The **Deploy to amvara9** workflow for **`master`** has not recorded a newer run than **`24773000757`**; it still shows **failure**. Configure **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`** per **`config/marketing-sites.json`**, re-run the workflow, or complete **Testing instructions §4** manual deploy with documented parity. **Loop protection (`agents2/020-test.md`):** same outcome as many prior cycles; further idle re-checks will not pass until CI secrets or manual deploy path changes.
-
-**URLs tested:**  
-1. `https://github.com/satisfecho/pos/actions/runs/24773000757`  
-2. `https://satisfecho.de/api/health` (HTTP 200 — informational)
-
-**Relevant log excerpts:** **`gh run view 24773000757 --repo satisfecho/pos --json conclusion,status,updatedAt,headBranch,url`** → **`{"conclusion":"failure","headBranch":"master","status":"completed","updatedAt":"2026-04-22T10:18:30Z","url":"https://github.com/satisfecho/pos/actions/runs/24773000757"}`**.
-
-**Task file:** **`TESTING-195-20260428-0238-push-to-master.md`** → **`WIP-195-20260428-0238-push-to-master.md`** (overall **FAIL**).
+**Handoff (coder → tester 2026-04-29):** Renamed **WIP** → **UNTESTED** for tester verification. Same CI blocker until **§2** green deploy or **§4** manual parity is documented.
