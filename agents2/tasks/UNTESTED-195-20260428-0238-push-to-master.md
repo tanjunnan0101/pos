@@ -24,7 +24,7 @@ Follow repo branching rules: routine promotion timing vs urgent production fixes
 - **Follow-up (repo settings):** ensure Actions secrets include a PAT with **Actions read** on every repo listed in **`config/marketing-sites.json`** (see error text in workflow logs), then re-run the failed workflow or redeploy.
 
 ## Status for tester
-Git promotion to **`origin/master`** is done per above. End-to-end success still depends on a **green** **Deploy to amvara9** run on **`master`** (currently blocked until **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`** are configured in Actions, or **Testing instructions §4** manual deploy). Verify using **Testing instructions** at the end of this file. Task file: **`WIP-195-20260428-0238-push-to-master.md`** — latest verification (**FAIL** on criterion **(2)** — see **Test report** sections in this file, before **Testing instructions**).
+Git promotion to **`origin/master`** is done per above. End-to-end success still depends on a **green** **Deploy to amvara9** run on **`master`** (currently blocked until **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`** are configured in Actions, or **Testing instructions §4** manual deploy). Verify using **Testing instructions** at the end of this file. Task file: **`UNTESTED-195-20260428-0238-push-to-master.md`** — latest verification (**FAIL** on criterion **(2)** — see **Test report** sections in this file, before **Testing instructions**).
 
 ---
 
@@ -2503,6 +2503,8 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 
 **Task file rename (this run):** **`TESTING-195-20260428-0238-push-to-master.md`** → **`WIP-195-20260428-0238-push-to-master.md`** (overall **FAIL**).
 
+**Feature coder handoff (2026-04-29):** **`WIP-195-20260428-0238-push-to-master.md`** → **`UNTESTED-195-20260428-0238-push-to-master.md`** — implementation complete per **TASKS-README** (git promotion + **Testing instructions**); awaiting tester (criterion **(2)** still **FAIL** until green **Deploy to amvara9** or **§4** manual parity).
+
 ---
 
 ## Testing instructions
@@ -2517,4 +2519,4 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 
 4. **Manual fallback:** If CI cannot be fixed immediately, an operator may run **`scripts/deploy-amvara9.sh`** on the server per **`README.md`** / **`AGENTS.md`** (marketing bundles may still be required for full parity with CI).
 
-**Handoff (tester 2026-04-29):** Task **`WIP-195-20260428-0238-push-to-master.md`** — tester **FAIL** (criterion **(2)** unchanged). GitHub issue **#195**: **`agent:wip`** ( **`agent:testing`** / **`agent:untested`** cleared). Coder: resolve **Deploy to amvara9** (**secrets / re-run** or **§4** manual parity), then rename **`WIP-…` → `UNTESTED-…`** when ready for another tester pass.
+**Handoff (feature coder 2026-04-29):** Task **`UNTESTED-195-20260428-0238-push-to-master.md`** — **`agent:wip`** → **`agent:untested`** on GitHub **#195**. Tester: rename **`UNTESTED-…` → `TESTING-…`** when verification starts; success criterion **(2)** remains **Deploy to amvara9** green on latest **`master`** (or documented **§4** parity). Prior tester **FAIL** on **(2)** unchanged until secrets + re-run or manual deploy.
