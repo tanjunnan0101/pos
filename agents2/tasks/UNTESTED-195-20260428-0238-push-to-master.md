@@ -2188,3 +2188,5 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 **Relevant log excerpts:** **`gh run view 24773000757 --repo satisfecho/pos --json conclusion,status,updatedAt,headBranch,url`** → **`{"conclusion":"failure","headBranch":"master","status":"completed","updatedAt":"2026-04-22T10:18:30Z","url":"https://github.com/satisfecho/pos/actions/runs/24773000757"}`**.
 
 **Task file:** **`TESTING-195-20260428-0238-push-to-master.md`** → **`WIP-195-20260428-0238-push-to-master.md`** (overall **FAIL**).
+
+**Handoff (012-feature-coder-handoff 2026-04-29):** Renamed **`WIP-195-20260428-0238-push-to-master.md`** → **`UNTESTED-195-20260428-0238-push-to-master.md`** (coder implementation complete per **Implementation summary** and **TASKS-README.md**; **Testing instructions** below). GitHub issue **#195**: added label **`agent:untested`**.
