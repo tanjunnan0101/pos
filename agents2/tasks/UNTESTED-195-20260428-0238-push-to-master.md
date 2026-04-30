@@ -26,7 +26,7 @@ Follow repo branching rules: routine promotion timing vs urgent production fixes
 ## Status for tester
 Git promotion to **`origin/master`** is done per **Implementation summary**. End-to-end success still depends on a **green** **Deploy to amvara9** run on **`master`** (currently blocked until **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`** are configured in Actions, or **Testing instructions §4** manual deploy). Verify using **Testing instructions** at the end of this file.
 
-**012 handoff (`012-feature-coder-handoff.md`, 2026-04-30):** Ran **`./scripts/git-sync-development.sh`** (development already up to date). Snapshot: **`gh run list --repo satisfecho/pos --workflow "Deploy to amvara9" --branch master --limit 3`** — latest **`master`** run **`24773000757`**, **`conclusion`** **`failure`**, **`headSha`** **`7a2c2bd`**. Per **`TASKS-README.md`**, **wip → untested** because **Implementation summary** is complete and **Testing instructions** are at EOF. Renamed **`WIP-195-20260428-0238-push-to-master.md`** → **`UNTESTED-195-20260428-0238-push-to-master.md`**. **`gh issue edit 195 --repo satisfecho/pos --add-label "agent:untested" --remove-label "agent:wip"`**. **Tester:** rename **UNTESTED → TESTING** when verification starts; criterion **(2)** may **FAIL** until Actions secrets / green **`master`** deploy or **§4** parity.
+**012 handoff (`012-feature-coder-handoff.md`, 2026-04-30 — executed):** Ran **`./scripts/git-sync-development.sh`** (development already up to date). **`gh run list --repo satisfecho/pos --workflow "Deploy to amvara9" --branch master --limit 3`**: latest **`master`** run **`24773000757`**, **`conclusion`** **`failure`**, **`headSha`** **`7a2c2bd`**. Coder work in **Implementation summary** is complete (merge/push + documented CI outcome). Per **`TASKS-README.md`**, renamed **`WIP-195-20260428-0238-push-to-master.md`** → **`UNTESTED-195-20260428-0238-push-to-master.md`**, appended **Testing instructions** at the true end of this file, and ran **`gh issue edit 195 --repo satisfecho/pos --add-label "agent:untested" --remove-label "agent:wip"`**. **Tester:** rename **UNTESTED → TESTING** when verification starts; criterion **(2)** may still **FAIL** until Actions secrets / green **`master`** deploy or **§4** parity.
 
 ---
 
@@ -2990,3 +2990,19 @@ Git promotion to **`origin/master`** is done per **Implementation summary**. End
 **GitHub issue #195:** On **FAIL**, **`agent:testing` → `agent:wip`** (remove **`agent:testing`**).
 
 **Task file rename (this run):** **`TESTING-195-20260428-0238-push-to-master.md` → `WIP-195-20260428-0238-push-to-master.md`** (overall **FAIL**).
+
+---
+
+## Testing instructions
+
+*(Per **TASKS-README.md** — canonical copy at end of file for **untested** handoff. Historical test reports above; use this section for verification.)*
+
+1. **Git:** Confirm **`origin/master`** and **`origin/development`** are at the expected points for the promotion under test (re-check tips after any new merge):  
+   `git fetch origin && git rev-parse origin/master origin/development`  
+   Optionally: `git merge-base --is-ancestor origin/master origin/development` (exit **0** expected after a promotion when **`development`** has advanced).
+
+2. **GitHub Actions:** Open **Actions** → **Deploy to amvara9** and inspect the latest **`master`** run (reference run **`24773000757`** until a newer one exists). After **Actions** secrets (`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN` with PAT scope per **`config/marketing-sites.json`**) are set, **Re-run failed jobs** or trigger a new deploy from **`master`**. Expect **green** through **Fetch marketing site artifacts**, **Set up SSH**, **Build and restart stack on amvara9**, and **Smoke test**.
+
+3. **Optional live check:** After a **green** deploy, verify **`https://satisfecho.de/`** (or documented prod URL) and API health per **`docs/0001-ci-cd-amvara9.md`** / smoke step output.
+
+4. **Manual fallback:** If CI cannot be fixed immediately, an operator may run **`scripts/deploy-amvara9.sh`** on the server per **`README.md`** / **`AGENTS.md`** (marketing bundles may still be required for full parity with CI).
