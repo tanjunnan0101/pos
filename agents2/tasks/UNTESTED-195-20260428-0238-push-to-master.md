@@ -26,7 +26,7 @@ Follow repo branching rules: routine promotion timing vs urgent production fixes
 ## Status for tester
 Git promotion to **`origin/master`** is done per **Implementation summary**. End-to-end success still depends on a **green** **Deploy to amvara9** run on **`master`** (currently blocked until **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`** are configured in Actions, or **Testing instructions §4** manual deploy). Verify using **`## Testing instructions (EOF)`** at the **end** of this file (and earlier **`## Testing instructions`** blocks for historical context).
 
-**Handoff (`012-feature-coder-handoff.md`, 2026-04-30):** Per **`TASKS-README.md`**, **wip → untested** after coder **implementation** is complete and **Testing instructions** are at EOF — merge/push to **`origin/master`** is done; CI/deploy green is **tester** criterion **(2)**. Task file: **`UNTESTED-195-20260428-0238-push-to-master.md`**. **Tester:** **`UNTESTED-…` → `TESTING-…`** when verification starts.
+**Handoff (`012-feature-coder-handoff.md`, 2026-04-30):** Per **`TASKS-README.md`**, **wip → untested** applied — coder **implementation** complete; **Testing instructions** at EOF; merge/push to **`origin/master`** done; CI/deploy green is **tester** criterion **(2)**. Task file: **`UNTESTED-195-20260428-0238-push-to-master.md`**. **`gh issue edit 195 --add-label "agent:untested"`** (and **`agent:wip`** removed). **Tester:** **`UNTESTED-…` → `TESTING-…`** when verification starts.
 
 ---
 
@@ -4187,4 +4187,4 @@ Per **`TASKS-README.md`**, this section appears at the **end** of the task file 
 3. **Optional live:** After a **green** deploy, **`https://satisfecho.de/api/health`** (and UI per **`docs/0001-ci-cd-amvara9.md`**).
 4. **Manual fallback:** **`scripts/deploy-amvara9.sh`** on the server per **`README.md`** / **`AGENTS.md`** if CI cannot be fixed immediately (document parity if used in place of a green run).
 
-**012 handoff (`012-feature-coder-handoff.md`, 2026-04-30):** Applied — renamed **`WIP-195-20260428-0238-push-to-master.md` → `UNTESTED-195-20260428-0238-push-to-master.md`**. GitHub: **`gh issue edit 195 --add-label "agent:untested"`**; removed **`agent:wip`**. Tester: **`UNTESTED-…` → `TESTING-…`** when verification starts.
+**012 handoff (`012-feature-coder-handoff.md`, 2026-04-30):** Applied — renamed **`WIP-195-20260428-0238-push-to-master.md` → `UNTESTED-195-20260428-0238-push-to-master.md`**. GitHub: **`gh issue edit 195 --remove-label "agent:wip" --add-label "agent:untested"`**. Tester: **`UNTESTED-…` → `TESTING-…`** when verification starts.
