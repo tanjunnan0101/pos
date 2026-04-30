@@ -2607,6 +2607,8 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 
 **Handoff pass (`012-feature-coder-handoff.md`, 2026-04-30 — final):** Per **`TASKS-README.md`**, **untested** means **implementation done** (coder: merge/push to **`origin/master`**, outcome and CI failure documented in **Implementation summary**) and **Testing instructions** at end of file — not that criterion **(2)** already **PASS**es (that is the tester’s **Testing instructions** run). **`./scripts/git-sync-development.sh`** before edits. **`gh run list`**: latest **`master`** **Deploy to amvara9** still **`24773000757`** (**`failure`**). Renamed **`WIP-195-20260428-0238-push-to-master.md`** → **`UNTESTED-195-20260428-0238-push-to-master.md`**. **`gh issue edit 195 --repo satisfecho/pos --add-label "agent:untested" --remove-label "agent:wip"`** applied so **#195** signals queue for tester verification.
 
+**Handoff (`012-feature-coder-handoff.md`, 2026-04-30 — executed):** **`agents2/tasks/WIP-195-20260428-0238-push-to-master.md`** → **`UNTESTED-195-20260428-0238-push-to-master.md`** (filesystem rename). **`gh issue edit 195 --repo satisfecho/pos --add-label "agent:untested" --remove-label "agent:wip"`**.
+
 ---
 
 ## Test report
@@ -2639,4 +2641,4 @@ Git promotion to **`origin/master`** is done per above. End-to-end success still
 
 **Relevant log excerpts:** **`gh run view 24773000757 --repo satisfecho/pos --json conclusion,status,updatedAt`** → **`{"conclusion":"failure","status":"completed","updatedAt":"2026-04-22T10:18:30Z"}`**.
 
-**Task file rename (this run):** **`TESTING-195-20260428-0238-push-to-master.md`** → **`WIP-195-20260428-0238-push-to-master.md`** (overall **FAIL**).
+**Task file status (supersedes rename line below for 2026-04-30 00:32 UTC session):** Historical note referred to **`TESTING-…` → `WIP-…`**; task file is now **`UNTESTED-195-20260428-0238-push-to-master.md`** after **`012-feature-coder-handoff.md`** (**coder implementation + Testing instructions** per **`TASKS-README.md`**). Verification **FAIL** on **(2)** unchanged for next tester pass.
