@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Issue #203 (optional per-tenant VeriFactu-ready fiscal invoicing) was implemented and handed to testing; the tester reported **PASS** against the full checklist.
+- **What was done:** Deliverables included docs (`docs/0018-…`), migration `20260501120000`, `FiscalInvoice` model/service/APIs, tenant fiscal settings with masked secrets, Angular Settings → Payments and print flow with QR/disclaimer, and `test_fiscal_invoice_api.py`—all reflected in the task’s implementation summary and test report.
+- **What was tested:** Migration applied, **3** pytest tests passed, Settings persistence and masking, Print Factura with fiscal off vs test, unpaid-order error, idempotency, HTTP 200 smoke (landing version check noted), and front build logs without blocking errors in the verification window—**overall PASS**.
+- **Why closed:** All acceptance/testing criteria in the task were satisfied per the tester’s report.
+- **Closed at (UTC):** 2026-05-01 10:52
+---
+
 # Optional per-tenant VeriFactu-ready fiscal invoicing (server-side issuance, AEAT hooks, print path)
 
 ## GitHub Issues
