@@ -606,7 +606,10 @@
     "PRINT_INVOICE": "Print invoice",
     "INVOICE": "Invoice",
     "INVOICE_FOOTER": "Thank you for your order.",
-    "INVOICE_OSS_PREFIX": "Open source · Made with ♥ in Barcelona and Mexico"
+    "INVOICE_OSS_PREFIX": "Open source · Made with ♥ in Barcelona and Mexico",
+    "FISCAL_INVOICE_LABEL": "Fiscal verification (VeriFactu preparation)",
+    "FISCAL_INVOICE_NUMBER": "Fiscal document no.",
+    "FISCAL_ISSUE_FAILED": "Could not issue fiscal invoice. The order may need to be paid first."
   },
   "CUSTOMERS": {
     "TITLE": "Customers (Invoice)",
@@ -1490,6 +1493,16 @@
     "REVOLUT_INTEGRATION": "Revolut Integration",
     "REVOLUT_MERCHANT_SECRET": "Revolut Merchant API Secret",
     "REVOLUT_MERCHANT_SECRET_HINT": "Merchant secret from Revolut Business. Leave blank to keep current. Enables Pay with Revolut on the customer menu.",
+    "FISCAL_INVOICING_TITLE": "Fiscal invoicing (Spain / VeriFactu preparation)",
+    "FISCAL_INVOICING_DESC": "When enabled, printing a Factura requests a server-issued fiscal record and adds QR code and mandatory disclaimer text. AEAT submission is not performed until wired per official technical documentation.",
+    "FISCAL_MODE": "Fiscal mode",
+    "FISCAL_MODE_OFF": "Off (browser invoice only)",
+    "FISCAL_MODE_TEST": "Test — stub issuance, no AEAT HTTP call",
+    "FISCAL_MODE_LIVE": "Live — internal series/numbering (AEAT integration separate)",
+    "FISCAL_SERIES": "Invoice series prefix",
+    "FISCAL_SERIES_HINT": "Prefix for sequential fiscal numbers (e.g. VF). The next number is allocated on the server when an invoice is issued.",
+    "FISCAL_AEAT_SECRET": "AEAT API secret (optional)",
+    "FISCAL_AEAT_SECRET_HINT": "Reserved for a future AEAT integration. Leave blank to keep the current value.",
     "IMMEDIATE_PAYMENT": "Immediate payment required",
     "IMMEDIATE_PAYMENT_HINT": "When enabled, customers must pay to place an order.",
     "TIP_PRESETS_TITLE": "POS tip buttons",

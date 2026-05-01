@@ -215,6 +215,12 @@ class Tenant(SQLModel, table=True):
     # When clock QR is active, optionally require GPS within tenant latitude/longitude + location_radius_meters
     clock_qr_location_verify: bool = Field(default=False)
 
+    # Spain VeriFactu-oriented fiscal invoicing (server-side issuance; AEAT wiring is separate)
+    fiscal_mode: str = Field(default="off", max_length=16)  # off | test | live
+    fiscal_invoice_series: str = Field(default="VF", max_length=32)
+    fiscal_invoice_next_number: int = Field(default=1)
+    fiscal_aeat_api_secret: str | None = Field(default=None, max_length=512)
+
     users: list["User"] = Relationship(back_populates="tenant")
 
 
@@ -676,6 +682,26 @@ class BillingCustomer(TenantMixin, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     orders: list["Order"] = Relationship(back_populates="billing_customer")
+
+
+class FiscalInvoice(SQLModel, table=True):
+    """Server-issued fiscal document row for an order (VeriFactu preparation; not a substitute for AEAT filing)."""
+
+    __tablename__ = "fiscal_invoice"
+
+    id: int | None = Field(default=None, primary_key=True)
+    tenant_id: int = Field(foreign_key="tenant.id", index=True)
+    order_id: int = Field(foreign_key="order.id", index=True)
+    series: str = Field(max_length=32)
+    doc_number: int = Field()
+    full_number: str = Field(max_length=64)
+    mode: str = Field(max_length=16)
+    status: str = Field(default="issued", max_length=32)
+    issued_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    request_payload: dict | None = Field(default=None, sa_column=Column(JSONB, nullable=True))
+    response_payload: dict | None = Field(default=None, sa_column=Column(JSONB, nullable=True))
+    verification_qr_content: str = Field(default="", sa_column=Column(Text, nullable=False))
+    verification_text: str = Field(default="", sa_column=Column(Text, nullable=False))
 
 
 class Order(TenantMixin, table=True):
@@ -1165,6 +1191,11 @@ class TenantUpdate(SQLModel):
     tip_preset_percents: list | None = None
     tip_tax_rate_percent: int | None = Field(default=None, ge=0, le=100)
     tip_entry_mode: str | None = None  # "preset" | "overpayment"
+
+    # VeriFactu / fiscal invoicing (Spain-oriented)
+    fiscal_mode: str | None = Field(default=None, max_length=16)
+    fiscal_invoice_series: str | None = Field(default=None, max_length=32)
+    fiscal_aeat_api_secret: str | None = Field(default=None, max_length=512)
 
 
 class TenantProductCreate(SQLModel):

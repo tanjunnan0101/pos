@@ -604,7 +604,10 @@
     "PRINT_INVOICE": "Imprimir factura",
     "INVOICE": "Factura",
     "INVOICE_FOOTER": "Gracias por su pedido.",
-    "INVOICE_OSS_PREFIX": "Open source · Hecho con ♥ en Barcelona y México"
+    "INVOICE_OSS_PREFIX": "Open source · Hecho con ♥ en Barcelona y México",
+    "FISCAL_INVOICE_LABEL": "Verificación fiscal (preparación VeriFactu)",
+    "FISCAL_INVOICE_NUMBER": "Nº documento fiscal",
+    "FISCAL_ISSUE_FAILED": "No se pudo emitir la factura fiscal. Quizá el pedido debe estar pagado primero."
   },
   "CUSTOMERS": {
     "TITLE": "Clientes (Factura)",
@@ -1413,6 +1416,16 @@
     "REVOLUT_INTEGRATION": "Integración Revolut",
     "REVOLUT_MERCHANT_SECRET": "Revolut Merchant API Secret",
     "REVOLUT_MERCHANT_SECRET_HINT": "Clave secreta de Revolut Business. Dejar en blanco para mantener. Activa Pagar con Revolut en el menú.",
+    "FISCAL_INVOICING_TITLE": "Facturación fiscal (España / preparación VeriFactu)",
+    "FISCAL_INVOICING_DESC": "Si está activo, al imprimir Factura se registra en el servidor un documento fiscal y se añaden código QR y texto legal. No se envía a la AEAT hasta integrar según la documentación oficial.",
+    "FISCAL_MODE": "Modo fiscal",
+    "FISCAL_MODE_OFF": "Desactivado (solo factura en navegador)",
+    "FISCAL_MODE_TEST": "Prueba — emisión simulada, sin llamada HTTP a la AEAT",
+    "FISCAL_MODE_LIVE": "Producción — numeración interna (integración AEAT aparte)",
+    "FISCAL_SERIES": "Prefijo de serie",
+    "FISCAL_SERIES_HINT": "Prefijo para la numeración fiscal (p. ej. VF). El siguiente número lo asigna el servidor al emitir.",
+    "FISCAL_AEAT_SECRET": "Secreto API AEAT (opcional)",
+    "FISCAL_AEAT_SECRET_HINT": "Reservado para una futura integración con la AEAT. Dejar en blanco para mantener el valor actual.",
     "IMMEDIATE_PAYMENT": "Pago inmediato requerido",
     "IMMEDIATE_PAYMENT_HINT": "Los clientes deben pagar antes de hacer el pedido",
     "TIP_PRESETS_TITLE": "Botones de propina (TPV)",

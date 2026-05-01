@@ -589,7 +589,10 @@
     "PRINT_INVOICE": "Rechnung drucken",
     "INVOICE": "Rechnung",
     "INVOICE_FOOTER": "Vielen Dank für Ihre Bestellung.",
-    "INVOICE_OSS_PREFIX": "Open Source · Mit ♥ in Barcelona und Mexiko"
+    "INVOICE_OSS_PREFIX": "Open Source · Mit ♥ in Barcelona und Mexiko",
+    "FISCAL_INVOICE_LABEL": "Steuerliche Nachweisführung (VeriFactu-Vorbereitung)",
+    "FISCAL_INVOICE_NUMBER": "Steuerbeleg-Nr.",
+    "FISCAL_ISSUE_FAILED": "Steuerbeleg konnte nicht ausgestellt werden. Die Bestellung ist möglicherweise noch nicht bezahlt."
   },
   "CUSTOMERS": {
     "TITLE": "Kunden (Rechnung)",
@@ -1333,6 +1336,16 @@
     "REVOLUT_INTEGRATION": "Revolut-Integration",
     "REVOLUT_MERCHANT_SECRET": "Revolut Merchant API Secret",
     "REVOLUT_MERCHANT_SECRET_HINT": "Merchant-Secret von Revolut Business. Leer lassen, um beizubehalten. Aktiviert „Mit Revolut bezahlen“ in der Karte.",
+    "FISCAL_INVOICING_TITLE": "Steuerliche Rechnungsstellung (Spanien / VeriFactu-Vorbereitung)",
+    "FISCAL_INVOICING_DESC": "Wenn aktiv, wird beim Factura-Druck ein serverseitiger Datensatz erzeugt und QR-Code sowie Hinweistext ergänzt. Keine AEAT-Übermittlung, bis die offizielle Schnittstelle integriert ist.",
+    "FISCAL_MODE": "Steuerlicher Modus",
+    "FISCAL_MODE_OFF": "Aus (nur Browser-Rechnung)",
+    "FISCAL_MODE_TEST": "Test — Stub-Ausstellung, kein AEAT-HTTP-Aufruf",
+    "FISCAL_MODE_LIVE": "Live — interne Nummerierung (AEAT-Anbindung separat)",
+    "FISCAL_SERIES": "Serienpräfix",
+    "FISCAL_SERIES_HINT": "Präfix für fortlaufende Nummern (z. B. VF). Die nächste Nummer vergibt der Server bei Ausstellung.",
+    "FISCAL_AEAT_SECRET": "AEAT-API-Secret (optional)",
+    "FISCAL_AEAT_SECRET_HINT": "Für eine künftige AEAT-Anbindung reserviert. Leer lassen, um den aktuellen Wert zu behalten.",
     "IMMEDIATE_PAYMENT_HINT": "Wenn aktiviert, müssen Kunden bezahlen, um eine Bestellung aufzugeben.",
     "TIP_PRESETS_TITLE": "Trinkgeld-Buttons (POS)",
     "TIP_PRESETS_HINT": "Bis zu vier Prozentsätze beim Bezahlen durch Personal (z. B. 5, 10, 15, 20). Alles auf 0 setzen, um Trinkgeld auszublenden.",

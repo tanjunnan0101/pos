@@ -1017,6 +1017,20 @@ export interface OrderItem {
   kitchen_station_route?: string | null;
 }
 
+/** Server-issued fiscal invoice metadata (VeriFactu preparation). */
+export interface FiscalInvoicePublic {
+  id: number;
+  order_id: number;
+  series: string;
+  doc_number: number;
+  full_number: string;
+  mode: string;
+  status: string;
+  issued_at: string | null;
+  verification_qr_content: string;
+  verification_text: string;
+}
+
 /** Billing customer for Factura (tax invoice) */
 export interface BillingCustomer {
   id: number;
@@ -1178,6 +1192,10 @@ export interface TenantSettings {
   tip_entry_mode?: 'preset' | 'overpayment' | string | null;
   /** Resolved flags for staff UI modules (GET always expands defaults). */
   ui_modules?: Partial<Record<TenantUiModuleKey, boolean>> | null;
+  /** Spain-oriented fiscal invoicing (VeriFactu preparation): off | test | live */
+  fiscal_mode?: 'off' | 'test' | 'live' | string | null;
+  fiscal_invoice_series?: string | null;
+  fiscal_aeat_api_secret?: string | null;
 }
 
 export interface OrderItemCreate {
@@ -2077,6 +2095,14 @@ export class ApiService {
       `${this.apiUrl}/orders/${orderId}/billing-customer`,
       { billing_customer_id: billingCustomerId }
     );
+  }
+
+  issueOrderFiscalInvoice(orderId: number): Observable<FiscalInvoicePublic> {
+    return this.http.post<FiscalInvoicePublic>(`${this.apiUrl}/orders/${orderId}/fiscal-invoice/issue`, {});
+  }
+
+  getOrderFiscalInvoice(orderId: number): Observable<FiscalInvoicePublic> {
+    return this.http.get<FiscalInvoicePublic>(`${this.apiUrl}/orders/${orderId}/fiscal-invoice`);
   }
 
   setOrderStaffUrgent(orderId: number, urgent: boolean): Observable<{ order_id: number; staff_urgent: boolean }> {

@@ -1283,6 +1283,42 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                     <input type="password" [(ngModel)]="formData.revolut_merchant_secret" name="revolut_merchant_secret" placeholder="••••••••••••••••" />
                     <p class="hint">{{ 'SETTINGS.REVOLUT_MERCHANT_SECRET_HINT' | translate }}</p>
                   </div>
+
+                  <div class="divider"></div>
+                  <h3>{{ 'SETTINGS.FISCAL_INVOICING_TITLE' | translate }}</h3>
+                  <p class="hint">{{ 'SETTINGS.FISCAL_INVOICING_DESC' | translate }}</p>
+                  <div class="form-group">
+                    <label for="fiscal_mode">{{ 'SETTINGS.FISCAL_MODE' | translate }}</label>
+                    <select id="fiscal_mode" class="form-select" [(ngModel)]="formData.fiscal_mode" name="fiscal_mode">
+                      <option value="off">{{ 'SETTINGS.FISCAL_MODE_OFF' | translate }}</option>
+                      <option value="test">{{ 'SETTINGS.FISCAL_MODE_TEST' | translate }}</option>
+                      <option value="live">{{ 'SETTINGS.FISCAL_MODE_LIVE' | translate }}</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="fiscal_invoice_series">{{ 'SETTINGS.FISCAL_SERIES' | translate }}</label>
+                    <input
+                      type="text"
+                      id="fiscal_invoice_series"
+                      [(ngModel)]="formData.fiscal_invoice_series"
+                      name="fiscal_invoice_series"
+                      maxlength="32"
+                      class="input-medium"
+                    />
+                    <p class="hint">{{ 'SETTINGS.FISCAL_SERIES_HINT' | translate }}</p>
+                  </div>
+                  <div class="form-group">
+                    <label for="fiscal_aeat_api_secret">{{ 'SETTINGS.FISCAL_AEAT_SECRET' | translate }}</label>
+                    <input
+                      type="password"
+                      id="fiscal_aeat_api_secret"
+                      [(ngModel)]="formData.fiscal_aeat_api_secret"
+                      name="fiscal_aeat_api_secret"
+                      placeholder="••••••••••••••••"
+                      autocomplete="off"
+                    />
+                    <p class="hint">{{ 'SETTINGS.FISCAL_AEAT_SECRET_HINT' | translate }}</p>
+                  </div>
                   
                   <div class="form-group checkbox-row">
                     <label class="switch">
@@ -3054,6 +3090,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
     tip_entry_mode: 'preset' as 'preset' | 'overpayment',
     ui_modules: { ...DEFAULT_TENANT_UI_MODULES },
     clock_qr_location_verify: false,
+    fiscal_mode: 'off' as 'off' | 'test' | 'live',
+    fiscal_invoice_series: 'VF',
+    fiscal_aeat_api_secret: null as string | null,
   };
 
   allTimezones: string[] = [];
@@ -3172,6 +3211,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
           },
           clock_qr_active: settings.clock_qr_active ?? false,
           clock_qr_location_verify: settings.clock_qr_location_verify ?? false,
+          fiscal_mode:
+            settings.fiscal_mode === 'test' || settings.fiscal_mode === 'live'
+              ? settings.fiscal_mode
+              : 'off',
+          fiscal_invoice_series: settings.fiscal_invoice_series?.trim() || 'VF',
+          fiscal_aeat_api_secret: null,
         };
         this.clockQrLastToken.set(null);
         this.clockQrTokenLoading.set(false);
@@ -4114,6 +4159,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
     }
     if (updateData.smtp_password === '') {
       delete updateData.smtp_password;
+    }
+    if (updateData.fiscal_aeat_api_secret === '' || updateData.fiscal_aeat_api_secret == null) {
+      delete updateData.fiscal_aeat_api_secret;
     }
 
     this.api.updateTenantSettings(updateData).subscribe({

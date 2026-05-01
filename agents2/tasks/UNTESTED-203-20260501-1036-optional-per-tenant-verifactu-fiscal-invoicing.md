@@ -18,3 +18,23 @@ Multi-tenant POS (FastAPI + Angular): Spain-oriented fiscal invoicing should mov
 - **Permissions:** Decide whether issuance matches existing roles that can print today or requires a new capability in `permissions.py`; keep behaviour aligned with who can print now.
 - **Non-goals:** Do not ship guessed production AEAT calls without verified spec and tests; thermal printers only render supplied content.
 - **Verification:** With stack up, smoke Puppeteer or manual checks: tenant off → current print unchanged; tenant on (stub or test env) → issuance API returns data and print includes QR block without breaking unpaid/cancelled rules.
+
+## Implementation summary (coder)
+
+- **Docs:** `docs/0018-verifactu-fiscal-invoicing.md`; cross-link from `docs/0017-billing-customers-factura.md`.
+- **DB:** `back/migrations/20260501120000_fiscal_invoice_verifactu.sql` — tenant fiscal columns + `fiscal_invoice` table.
+- **Backend:** `back/app/models.py` (`FiscalInvoice`, tenant fiscal fields), `back/app/fiscal_invoice_service.py`, routes in `main.py`, masking for `fiscal_aeat_api_secret` on tenant settings responses.
+- **Frontend:** `TenantSettings` / API methods; Settings → Payments fiscal block; `orders.component.ts` issues fiscal invoice when mode is test/live; `printInvoice` async + `qrcode` for QR data URL; i18n in all `front/public/i18n/*.json`.
+- **Tests:** `back/tests/test_fiscal_invoice_api.py`.
+
+## Testing instructions
+
+1. **Migrate:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python -m app.migrate` (already applied if schema version **20260501120000**).
+2. **Backend:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python -m pytest tests/test_fiscal_invoice_api.py -q` — expect **3 passed**.
+3. **Settings:** Log in as owner/admin → **Settings → Payments** → set **Fiscal mode** to **Test**, **Series** e.g. `VF`, **Save**. Reload page — mode and series persist; AEAT secret field stays masked when set.
+4. **Print off:** Set **Fiscal mode** to **Off**, save. Open **Orders**, **Print Factura** on a paid order — invoice should match prior behaviour (browser HTML, order id in header).
+5. **Print on:** Set **Fiscal mode** to **Test**, save. Use a **paid** (or completed) order → **Print Factura** — print preview should show **fiscal document number**, **QR**, and **disclaimer** block; header uses fiscal **full_number**.
+6. **Unpaid:** Open an unpaid order with fiscal mode **Test** → **Print Factura** — expect **error toast** (order must be paid first); no blank print.
+7. **Idempotency:** Print the same paid order twice — same **full_number** (check server log or UI).
+8. **Smoke:** `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:4202/` → **200** (or run `npm run test:landing-version` from `front/` when container **`COMMIT_HASH`/version** matches `package.json`).
+9. **Frontend logs:** `docker logs pos-front 2>&1 | grep -iE "error|bundle generation failed"` — should show **no** new errors after edits (ignore unrelated historical rows).

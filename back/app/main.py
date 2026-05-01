@@ -55,6 +55,7 @@ from .clock_qr_util import (
     generate_clock_qr_token,
     hash_clock_qr_token,
 )
+from .fiscal_invoice_service import fiscal_invoice_public_dict, issue_or_get_fiscal_invoice
 from .inventory_service import deduct_inventory_for_order
 from . import inventory_models
 from .translation_service import TranslationService
@@ -2457,6 +2458,11 @@ def get_tenant_settings(
         tenant_dict["revolut_merchant_secret"] = (
             f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
         )
+    if tenant_dict.get("fiscal_aeat_api_secret"):
+        sk = tenant_dict["fiscal_aeat_api_secret"]
+        tenant_dict["fiscal_aeat_api_secret"] = (
+            f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
+        )
 
     # Don't expose SMTP password; indicate if configured
     if tenant_dict.get("smtp_password"):
@@ -2648,6 +2654,27 @@ def update_tenant_settings(
         ):
             tenant.revolut_merchant_secret = tenant_update.revolut_merchant_secret.strip()
         # Empty = don't change (same as Stripe secret)
+
+    if tenant_update.fiscal_mode is not None:
+        fm = tenant_update.fiscal_mode.strip().lower() if isinstance(tenant_update.fiscal_mode, str) else ""
+        if fm in ("off", "test", "live"):
+            tenant.fiscal_mode = fm
+        elif fm == "":
+            tenant.fiscal_mode = "off"
+        else:
+            raise HTTPException(status_code=400, detail="fiscal_mode must be off, test, or live")
+    if tenant_update.fiscal_invoice_series is not None:
+        s = tenant_update.fiscal_invoice_series.strip() if isinstance(tenant_update.fiscal_invoice_series, str) else ""
+        if s:
+            if len(s) > 32:
+                raise HTTPException(status_code=400, detail="fiscal_invoice_series too long")
+            tenant.fiscal_invoice_series = s
+        else:
+            tenant.fiscal_invoice_series = "VF"
+    if tenant_update.fiscal_aeat_api_secret is not None:
+        if isinstance(tenant_update.fiscal_aeat_api_secret, str) and tenant_update.fiscal_aeat_api_secret.strip():
+            tenant.fiscal_aeat_api_secret = tenant_update.fiscal_aeat_api_secret.strip()[:512]
+        # Empty = keep existing
 
     # Per-tenant SMTP / email (optional; fallback to global config)
     if tenant_update.smtp_host is not None:
@@ -2896,6 +2923,11 @@ def update_tenant_settings(
     if tenant_dict.get("revolut_merchant_secret"):
         sk = tenant_dict["revolut_merchant_secret"]
         tenant_dict["revolut_merchant_secret"] = (
+            f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
+        )
+    if tenant_dict.get("fiscal_aeat_api_secret"):
+        sk = tenant_dict["fiscal_aeat_api_secret"]
+        tenant_dict["fiscal_aeat_api_secret"] = (
             f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
         )
 
@@ -11697,6 +11729,58 @@ def set_order_billing_customer(
     session.add(order)
     session.commit()
     return {"order_id": order.id, "billing_customer_id": order.billing_customer_id}
+
+
+@app.get("/orders/{order_id}/fiscal-invoice")
+def get_order_fiscal_invoice(
+    order_id: int,
+    current_user: Annotated[models.User, Depends(require_permission(Permission.ORDER_READ))],
+    session: Session = Depends(get_session),
+) -> dict:
+    """Return persisted fiscal invoice metadata for an order (tenant-scoped)."""
+    order = session.exec(
+        select(models.Order).where(
+            models.Order.id == order_id,
+            models.Order.tenant_id == current_user.tenant_id,
+        )
+    ).first()
+    if not order or order.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    fi = session.exec(
+        select(models.FiscalInvoice).where(
+            models.FiscalInvoice.tenant_id == current_user.tenant_id,
+            models.FiscalInvoice.order_id == order.id,
+        )
+    ).first()
+    if not fi:
+        raise HTTPException(status_code=404, detail="Fiscal invoice not found")
+    return fiscal_invoice_public_dict(fi)
+
+
+@app.post("/orders/{order_id}/fiscal-invoice/issue")
+def issue_order_fiscal_invoice(
+    order_id: int,
+    current_user: Annotated[models.User, Depends(require_permission(Permission.ORDER_READ))],
+    session: Session = Depends(get_session),
+) -> dict:
+    """Issue or return existing fiscal invoice for an order (idempotent per order)."""
+    tenant = session.exec(
+        select(models.Tenant).where(models.Tenant.id == current_user.tenant_id)
+    ).first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    order = session.exec(
+        select(models.Order).where(
+            models.Order.id == order_id,
+            models.Order.tenant_id == current_user.tenant_id,
+        )
+    ).first()
+    if not order or order.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    fi = issue_or_get_fiscal_invoice(session, tenant, order)
+    session.commit()
+    session.refresh(fi)
+    return fiscal_invoice_public_dict(fi)
 
 
 @app.put("/orders/{order_id}/staff-urgent")

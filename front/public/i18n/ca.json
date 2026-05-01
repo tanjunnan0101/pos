@@ -586,7 +586,10 @@
     "PRINT_INVOICE": "Imprimir factura",
     "INVOICE": "Factura",
     "INVOICE_FOOTER": "Gr\u00e0cies per la teva comanda.",
-    "INVOICE_OSS_PREFIX": "Open source \u00b7 Fet amb \u2665 a Barcelona i M\u00e8xic"
+    "INVOICE_OSS_PREFIX": "Open source \u00b7 Fet amb \u2665 a Barcelona i M\u00e8xic",
+    "FISCAL_INVOICE_LABEL": "Verificaci\u00f3 fiscal (preparaci\u00f3 VeriFactu)",
+    "FISCAL_INVOICE_NUMBER": "N\u00fam. document fiscal",
+    "FISCAL_ISSUE_FAILED": "No s'ha pogut emetre la factura fiscal. Potser la comanda ha d'estar pagada primer."
   },
   "CUSTOMERS": {
     "TITLE": "Clients (Factura)",
@@ -1275,6 +1278,16 @@
     "REVOLUT_INTEGRATION": "Integraci\u00f3 Revolut",
     "REVOLUT_MERCHANT_SECRET": "Revolut Merchant API Secret",
     "REVOLUT_MERCHANT_SECRET_HINT": "Clau secreta de Revolut Business. Deixar en blanc per mantenir. Activa \u00abPagar amb Revolut\u00bb al men\u00fa.",
+    "FISCAL_INVOICING_TITLE": "Facturaci\u00f3 fiscal (Espanya / preparaci\u00f3 VeriFactu)",
+    "FISCAL_INVOICING_DESC": "Si est\u00e0 actiu, en imprimir Factura es registra un document al servidor i s'afegeixen codi QR i text legal. No s'envia a l'AEAT fins integrar la documentaci\u00f3 oficial.",
+    "FISCAL_MODE": "Mode fiscal",
+    "FISCAL_MODE_OFF": "Desactivat (nom\u00e9s factura al navegador)",
+    "FISCAL_MODE_TEST": "Prova \u2014 emissi\u00f3 simulada, sense crida HTTP a l'AEAT",
+    "FISCAL_MODE_LIVE": "Producci\u00f3 \u2014 numeraci\u00f3 interna (integraci\u00f3 AEAT a banda)",
+    "FISCAL_SERIES": "Prefix de s\u00e8rie",
+    "FISCAL_SERIES_HINT": "Prefix per a la numeraci\u00f3 fiscal (p. ex. VF). El servidor assigna el seg\u00fcent nombre en emetre.",
+    "FISCAL_AEAT_SECRET": "Secret API AEAT (opcional)",
+    "FISCAL_AEAT_SECRET_HINT": "Reservat per a una futura integraci\u00f3 amb l'AEAT. Deixar en blanc per mantenir el valor actual.",
     "IMMEDIATE_PAYMENT_HINT": "Quan est\u00e0 activat, els clients han de pagar per fer la comanda.",
     "TIP_PRESETS_TITLE": "Botons de propina (TPV)",
     "TIP_PRESETS_HINT": "Fins a quatre percentatges en marcar com a pagada (p. ex. 5, 10, 15, 20). Poseu-ho tot a 0 per amagar propines.",

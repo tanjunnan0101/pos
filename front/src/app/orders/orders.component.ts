@@ -11,6 +11,7 @@ import {
   TenantProduct,
   OrderItemCreate,
   OrderLineModifiers,
+  FiscalInvoicePublic,
 } from '../services/api.service';
 import { AudioService } from '../services/audio.service';
 import { WaiterAlertService, WaiterAlertItem } from '../services/waiter-alert.service';
@@ -2542,7 +2543,18 @@ export class OrdersComponent implements OnInit, OnDestroy {
     const customer = this.editOrderBillingId != null
       ? this.editOrderBillingCustomers().find(c => c.id === this.editOrderBillingId)
       : undefined;
-    this.printInvoice(order, customer ?? undefined);
+    if (this.fiscalInvoicingEnabled()) {
+      this.api.issueOrderFiscalInvoice(order.id).subscribe({
+        next: (fi) => {
+          void this.printInvoice(order, customer ?? undefined, fi);
+        },
+        error: (err: { error?: { detail?: unknown } }) => {
+          this.showToast(this.fiscalIssueErrorMessage(err), 'error');
+        },
+      });
+    } else {
+      void this.printInvoice(order, customer ?? undefined);
+    }
     if (this.editOrderBillingId != null) {
       this.api.setOrderBillingCustomer(order.id, this.editOrderBillingId).subscribe({
         next: () => this.refreshEditOrder(order.id),
@@ -2921,17 +2933,57 @@ export class OrdersComponent implements OnInit, OnDestroy {
     const customer = this.facturaCustomerId != null
       ? this.facturaCustomers().find(c => c.id === this.facturaCustomerId)
       : null;
-    this.printInvoice(order, customer ?? undefined);
-    if (this.facturaCustomerId != null) {
-      this.api.setOrderBillingCustomer(order.id, this.facturaCustomerId).subscribe({
-        next: () => { this.orders.update(list => list.map(o => o.id === order.id ? { ...o, billing_customer_id: this.facturaCustomerId, billing_customer: customer ?? undefined } : o)); },
-        error: () => {}
+    if (this.fiscalInvoicingEnabled()) {
+      this.api.issueOrderFiscalInvoice(order.id).subscribe({
+        next: (fi) => {
+          void this.printInvoice(order, customer ?? undefined, fi);
+          this.afterFacturaPrintPersistCustomer(order, customer);
+          this.closeFacturaModal();
+        },
+        error: (err: { error?: { detail?: unknown } }) => {
+          this.showToast(this.fiscalIssueErrorMessage(err), 'error');
+        },
       });
+      return;
     }
+    void this.printInvoice(order, customer ?? undefined);
+    this.afterFacturaPrintPersistCustomer(order, customer);
     this.closeFacturaModal();
   }
 
-  printInvoice(order: Order, billingCustomer?: BillingCustomer | null) {
+  private fiscalInvoicingEnabled(): boolean {
+    const m = this.tenantSettings()?.fiscal_mode;
+    return m === 'test' || m === 'live';
+  }
+
+  private fiscalIssueErrorMessage(err: { error?: { detail?: unknown } }): string {
+    const d = err?.error?.detail;
+    if (typeof d === 'string' && d.trim()) return d;
+    return this.translate.instant('ORDERS.FISCAL_ISSUE_FAILED') || 'Could not issue fiscal invoice';
+  }
+
+  private afterFacturaPrintPersistCustomer(order: Order, customer: BillingCustomer | null | undefined) {
+    if (this.facturaCustomerId != null) {
+      this.api.setOrderBillingCustomer(order.id, this.facturaCustomerId).subscribe({
+        next: () => {
+          this.orders.update(list =>
+            list.map(o =>
+              o.id === order.id
+                ? { ...o, billing_customer_id: this.facturaCustomerId, billing_customer: customer ?? undefined }
+                : o
+            )
+          );
+        },
+        error: () => {}
+      });
+    }
+  }
+
+  async printInvoice(
+    order: Order,
+    billingCustomer?: BillingCustomer | null,
+    fiscalMeta?: FiscalInvoicePublic | null
+  ) {
     const settings = this.tenantSettings();
     const tenantId = this.api.getCurrentUser()?.tenant_id;
     const logoUrl = settings?.logo_filename && tenantId
@@ -3017,11 +3069,37 @@ export class OrdersComponent implements OnInit, OnDestroy {
         `<tr><td colspan="4" style="text-align:right; font-size: 12px; color: #555;">IVA ${rate}%</td><td style="text-align:right">${this.formatPrice(cents)}</td></tr>`
       ).join('');
 
+    let qrDataUrl = '';
+    if (fiscalMeta?.verification_qr_content) {
+      try {
+        const QRCode = (await import('qrcode')).default;
+        qrDataUrl = await QRCode.toDataURL(fiscalMeta.verification_qr_content, { width: 180, margin: 1 });
+      } catch (e) {
+        console.warn('Fiscal QR generation failed', e);
+      }
+    }
+
+    const fiscalNumberLine = fiscalMeta
+      ? `${this.escapeHtml(this.translate.instant('ORDERS.FISCAL_INVOICE_NUMBER'))}: ${this.escapeHtml(fiscalMeta.full_number)}`
+      : '';
+    const fiscalBlock =
+      fiscalMeta != null
+        ? `
+  <div class="fiscal-verifactu" style="margin-top: 20px; padding: 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc;">
+    <p style="margin: 0 0 10px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: #334155;">
+      ${this.escapeHtml(this.translate.instant('ORDERS.FISCAL_INVOICE_LABEL'))}
+    </p>
+    <p style="margin: 0 0 12px; font-size: 14px;">${fiscalNumberLine}</p>
+    ${qrDataUrl ? `<div style="text-align:center;margin:8px 0;"><img src="${qrDataUrl}" alt="" width="180" height="180" /></div>` : ''}
+    <p style="margin: 8px 0 0; font-size: 10px; color: #475569; line-height: 1.45; white-space: pre-wrap;">${this.escapeHtml(fiscalMeta.verification_text)}</p>
+  </div>`
+        : '';
+
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Invoice #${order.id}</title>
+  <title>${fiscalMeta ? this.escapeHtml(fiscalMeta.full_number) : 'Invoice #' + order.id}</title>
   <style>
     * { box-sizing: border-box; }
     body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.4; color: #1a1a1a; max-width: 400px; margin: 0 auto; padding: 20px; }
@@ -3057,7 +3135,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   </div>
   ` : ''}
   <div class="meta">
-    <strong>${this.translate.instant('ORDERS.INVOICE')}</strong> #${order.id} &nbsp;|&nbsp;
+    <strong>${this.translate.instant('ORDERS.INVOICE')}</strong>${fiscalMeta ? ' ' + this.escapeHtml(fiscalMeta.full_number) : ' #' + order.id} &nbsp;|&nbsp;
     ${this.translate.instant('ORDERS.ORDER_TIME')}: ${this.escapeHtml(dateStr)} &nbsp;|&nbsp;
     ${this.translate.instant('ORDERS.TABLE')}: ${this.escapeHtml(order.table_name || '—')}
     ${order.customer_name ? ` &nbsp;|&nbsp; ${this.translate.instant('ORDERS.CUSTOMER')}: ${this.escapeHtml(order.customer_name)}` : ''}
@@ -3083,6 +3161,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
       <td style="text-align:right">${this.formatPrice(order.total_cents || 0)}</td>
     </tr>
   </table>
+  ${fiscalBlock}
   <div class="footer">${this.translate.instant('ORDERS.INVOICE_FOOTER')}</div>
   <div class="invoice-oss">${this.getInvoiceOssLine()}</div>
   <script>window.onload = function() { window.print(); window.onafterprint = function() { window.close(); }; }</script>
