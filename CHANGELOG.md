@@ -37,6 +37,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### Fixed
 
+- **Landing / mobile:** public **`/`** layout on narrow viewports — language picker sits in the hero toolbar, value bullets stack at a consistent width, and the table-code input row no longer overflows (~320px+); wide desktop layout unchanged (#207).
+
 - **Delivery integrations / webhooks:** creating order lines from marketplace payloads resolved **`Product`** via **`exec(select(...)).first()`**, which could return a SQLAlchemy **`Row`** and broke **`price_cents`** access; loading by primary key restores webhook ingest (**#198**).
 
 - Tables / payments: `GET /tables/with-status` preserves **`payment_status: pending`** when kitchen orders are ready or completed and a bill was still relevant; improved detection of active order and `bill_requested_at` (#189).

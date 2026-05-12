@@ -13,9 +13,10 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
   imports: [RouterLink, TranslateModule, FormsModule, LanguagePickerComponent],
   template: `
     <div class="landing-page">
-      <app-language-picker class="landing-language-picker"></app-language-picker>
-
       <header class="landing-hero">
+        <div class="landing-hero__top">
+          <app-language-picker class="landing-language-picker"></app-language-picker>
+        </div>
         <div class="landing-hero__inner">
           <h1 class="landing-hero__title">{{ 'LANDING.TITLE' | translate }}</h1>
           <p class="landing-hero__subtitle">{{ 'LANDING.SUBTITLE' | translate }}</p>
@@ -260,14 +261,8 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
       color: var(--color-text-muted);
     }
 
-    .landing-language-picker {
-      position: absolute;
-      top: var(--space-4);
-      right: var(--space-4);
-      z-index: 10;
-    }
-
     .landing-hero {
+      position: relative;
       width: 100%;
       padding: var(--space-6) var(--space-4) var(--space-8);
       margin-bottom: var(--space-2);
@@ -277,6 +272,20 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
         transparent 65%
       );
       border-bottom: 1px solid var(--color-border);
+    }
+
+    .landing-hero__top {
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+      max-width: 50rem;
+      margin: 0 auto;
+      padding: 0 0 var(--space-2);
+      box-sizing: border-box;
+    }
+
+    .landing-language-picker {
+      z-index: 10;
     }
 
     .landing-hero__inner {
@@ -333,6 +342,46 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
 
     .landing-value__text {
       line-height: 1.35;
+    }
+
+    @media (max-width: 960px) {
+      .landing-values {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-3);
+        max-width: 20rem;
+        margin-inline: auto;
+        width: 100%;
+      }
+
+      .landing-value {
+        max-width: none;
+        width: 100%;
+        box-sizing: border-box;
+        justify-content: flex-start;
+      }
+    }
+
+    @media (min-width: 961px) {
+      .landing-hero__top {
+        position: absolute;
+        top: var(--space-4);
+        right: var(--space-4);
+        left: auto;
+        width: auto;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        pointer-events: none;
+      }
+
+      .landing-language-picker {
+        pointer-events: auto;
+      }
+
+      .landing-hero__inner {
+        padding-top: var(--space-2);
+      }
     }
 
     .landing-main {
@@ -443,11 +492,16 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
 
     .table-code-row {
       display: flex;
+      flex-wrap: nowrap;
       gap: var(--space-2);
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .table-code-input {
-      flex: 1;
+      flex: 1 1 0;
+      min-width: 0;
       padding: var(--space-3) var(--space-4);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
@@ -455,6 +509,7 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
     }
 
     .btn-go {
+      flex-shrink: 0;
       padding: var(--space-3) var(--space-5);
       background: var(--color-primary);
       color: white;
@@ -462,6 +517,23 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
       border-radius: var(--radius-md);
       font-weight: 500;
       cursor: pointer;
+    }
+
+    @media (max-width: 480px) {
+      .btn-go {
+        padding-inline: var(--space-3);
+      }
+    }
+
+    @media (max-width: 360px) {
+      .table-code-row {
+        flex-wrap: wrap;
+      }
+
+      .btn-go {
+        flex: 1 1 auto;
+        min-width: min(100%, 7rem);
+      }
     }
 
     .btn-go:hover {
