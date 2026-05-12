@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Staff who chose a restaurant on the landing tenant cards landed on `/login?tenant=<id>` with no visible restaurant context; issue #206 asked for a clear sign-in context tied to that choice.
+- **What was done:** Login resolves the `tenant` query via `getPublicTenant()` and shows a compact card (name, optional logo, link back to `/`); `AUTH.LOGGING_INTO` and `AUTH.CHANGE_RESTAURANT` were added across shipped locale files; generic `/login` is unchanged when the param is missing or resolution fails.
+- **What was tested:** i18n JSON validation, `get-commit-hash.js`, `npm run test:landing-version`, `pos-front` docker logs, and headless spot-checks for `/login?tenant=1` vs `/login` — all passed per the tester report (2026-05-12 UTC).
+- **Why closed:** All acceptance criteria met; tester overall **PASS**.
+- **Closed at (UTC):** 2026-05-12 07:56
+---
+
 # Login — show selected restaurant name when arriving from tenant picker
 
 ## GitHub Issues
