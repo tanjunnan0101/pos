@@ -120,3 +120,23 @@ Full pytest run shows **198 passed / 7 failed** — all 7 failures are a pre-exi
 ### Dev-only gotcha
 When `ur.json` is **first** added, restart the front container once so the Angular dev-server registers the new asset (returns 200 on `/i18n/ur.json`). Production builds via the regular Docker image do not need this.
 
+---
+
+## Test report
+
+1. **Date/time (UTC) and log window:** 2026-05-13T06:33:36Z start; evidence collected ~06:33–06:35Z. Log window for front: `docker logs --since 15m pos-front` then `--since 5m` (no Angular/TS errors in last 5m at test time).
+2. **Environment:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202`; branch `development`, commit `928ac374`.
+3. **What was tested:** Task “Testing instructions” — `ur.json` HTTP, backend parity script, API `lang=ur` / `Accept-Language: ur-PK`, pytest subset, automated landing smoke (with version skip), Puppeteer Urdu RTL on `/` and `/login`.
+4. **Results:**
+   - `GET /i18n/ur.json` → **200** (`curl -w '%{http_code}'`).
+   - Backend inline parity (`SUPPORTED_LANGUAGES`, `MESSAGES`, report/schedule/planned-vs labels) → **PASS** (`Urdu backend parity OK`).
+   - `POST /api/token?lang=ur` wrong password → **PASS** (JSON `message`: Urdu incorrect-credentials text).
+   - `POST /api/token` + `Accept-Language: ur-PK` → **PASS** (same Urdu message).
+   - Pytest `tests/test_report_export_i18n.py`, `test_schedule_export.py`, `test_registro_horario_excel.py`, `test_reservation_email_template.py` → **PASS** (`24 passed`).
+   - `npm run test:landing-version` without skip → **FAIL** semver (footer `2.0.75` vs package `2.0.85`); rerun with `SKIP_LANDING_PACKAGE_VERSION_CHECK=1` → **PASS** (landing, login, 16 sidebar routes, inventory sublinks OK).
+   - Puppeteer: `lang=ur`, `dir=rtl`, hero title Urdu, login `h1` خوش آمدید, no raw i18n key pattern → **PASS**.
+5. **Overall:** **PASS** (one smoke run needed `SKIP_LANDING_PACKAGE_VERSION_CHECK=1` per task/dev note for stale footer semver; not a Urdu regression).
+6. **Product owner feedback:** Urdu is wired end-to-end for the checks run: translations load, RTL applies on landing and login, and API errors honor `lang` / `Accept-Language`. Recommend refreshing `COMMIT_HASH` / front image when semver drift matters so the default landing smoke passes without skip.
+7. **URLs tested:** (1) `http://127.0.0.1:4202/i18n/ur.json` (2) `http://127.0.0.1:4202/` (3) `http://127.0.0.1:4202/login` (4) `http://127.0.0.1:4202/api/token?lang=ur` (POST) (5) `http://127.0.0.1:4202/api/token` (POST, `Accept-Language: ur-PK`) (6) smoke script: `/`, `/dashboard`, `/my-shift`, `/staff/orders`, `/reservations`, `/guest-feedback`, `/tables`, `/kitchen`, `/bar`, `/customers`, `/products`, `/catalog`, `/reports`, `/working-plan`, `/users`, `/contracts`, `/settings`, plus five `/inventory/*` paths.
+8. **Relevant log excerpts:** `pytest`: `24 passed in 3.96s`. Backend script: `Urdu backend parity OK`. Front (last 5m): `(no recent errors)` from `grep -iE 'error|failed|TS|NG8|bundle generation failed'`.
+
