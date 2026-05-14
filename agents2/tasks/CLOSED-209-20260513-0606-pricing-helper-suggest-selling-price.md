@@ -119,3 +119,25 @@ Two flows, one UI, one backend module:
 3. **Frontend:** Products → edit or add product → **Calculate ideal price**. With saved product, confirm **From recipe / cost** loads a preview when recipe or cost exists; switch to **Container simulator** and adjust fields — preview updates. **Use this price** fills the price field without saving until user saves the form.
 4. **i18n / RTL:** switch UI to Urdu (`ur`); reopen the helper — layout should not break (logical CSS on modal).
 5. **Smoke:** `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:4202/` → 200; `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` passes (includes navigating to `/products`).
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-05-14 ~08:25–08:35 (log window aligned with `docker logs pos-front` / back pytest).
+2. **Environment:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml`; `BASE_URL=http://127.0.0.1:4202`; branch `development` (synced via `./scripts/git-sync-development.sh` before edits).
+3. **What was tested:** Instructions §1–§5 above (pytest, authenticated pricing API, Products UI helper, i18n/RTL signals, smoke).
+4. **Results:**
+   - **§1 Backend unit tests:** **PASS** — `9 passed in 0.02s` (`tests/test_pricing_service.py`).
+   - **§2 API:** **PASS** — Cookie session after `POST /api/token?tenant_id=1` (form body); `GET /api/pricing/product/3/suggest?target_pour_cost_pct=25` → 200, body includes `suggested_price_cents` (74000 for 25% pour on `cost_cents` 18500). `POST /api/pricing/simulate` with task JSON → 200, `servings_in_container` 100.0, `suggested_price_cents` 200. (Product `1` correctly returns 400 “no cost basis” when neither recipe nor cost applies.)
+   - **§3 Frontend:** **PASS** — Headless Puppeteer: login → `/products` → filter “Enchiladas” → edit → **Calculate ideal price** opens overlay; **Container simulator** tab and field edit refresh preview; **Use this price** updates `#price` without POST save; `price_cents` for product 3 restored to `20000` after test.
+   - **§4 i18n / RTL:** **PASS (partial automation)** — Confirmed `PRICING` block exists in all nine locale files under `front/public/i18n/`. `localStorage.setItem('pos_language','ur')` + reload → `document.documentElement` `dir=rtl`. Modal SCSS uses logical props (e.g. `text-align: start`).
+   - **§5 Smoke:** **PASS with note** — `curl` `/` → `200`. `npm run test:landing-version --prefix front` **fails** strict footer semver (`2.0.75` vs `package.json` `2.0.85`) on this machine’s running front image; **PASS** when rerun with `SKIP_LANDING_PACKAGE_VERSION_CHECK=1` (full login + sidebar including `/products`). Rebuild/restart front image to satisfy strict semver without skip.
+5. **Overall:** **PASS** (pricing feature and regressions per scope; semver mismatch is environment staleness, not pricing logic).
+6. **Product owner feedback:** The pricing helper matches the stated API contract and unit tests, and the Products screen flow works end-to-end in headless smoke. Operators should rebuild or resync the dev front container when the landing footer version check is required to pass without `SKIP_LANDING_PACKAGE_VERSION_CHECK`.
+7. **URLs tested:** (1) `http://127.0.0.1:4202/` (2) `http://127.0.0.1:4202/login?tenant=1` (3) `http://127.0.0.1:4202/dashboard` (4) `http://127.0.0.1:4202/products` (5) `http://127.0.0.1:4202/api/token?tenant_id=1` (POST) (6) `http://127.0.0.1:4202/api/pricing/product/3/suggest?target_pour_cost_pct=25` (7) `http://127.0.0.1:4202/api/pricing/simulate` (POST).
+8. **Relevant log excerpts:** `pos-front`: `Application bundle generation complete. [0.726 seconds] - 2026-05-13T06:30:15.029Z` / `Page reload sent to client(s).` — no `TS2345` / `NG8002` / “Application bundle generation failed” in reviewed window.
+
+**GitHub:** Comment posted on issue **#209** with outcome. Issue labels left as-is (only `agent:planned` present).
+
+**Local data:** `product.id=3` `price_cents` reset to `20000` after UI apply. Owner password restored to value from repo `.env` (login verified via `curl --data-urlencode` for `/api/token`).
