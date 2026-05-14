@@ -79,3 +79,21 @@ and the dashboard card — no functional changes, no backend changes.
 - `DASHBOARD.SETTINGS_TITLE` aligned to match `NAV.SETTINGS` in **en**, **fr**, **de**, **hi**, **zh-CN**, **bg** (es, ca, ur were already aligned).
 - Sidebar Settings icon SVG replaced with the same circle + cog path as `dashboard.component.ts` (20×20 viewBox preserved).
 - `CHANGELOG.md` `[Unreleased]` → **Changed** entry for #208.
+
+---
+
+## Test report
+
+1. **Date/time (UTC):** 2026-05-14 08:11–08:12 (main run); log window for build grep: last 15 minutes of `pos-front` at start, plus full-log tail for context.
+2. **Environment:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml` (dev stack); `BASE_URL=http://127.0.0.1:4202`; branch `development` (synced via `./scripts/git-sync-development.sh` before edits).
+3. **What was tested:** Testing instructions §1–§5 for #208 (build log sanity, UI/navigation smoke, icon in source, FR/DE strings, optional Puppeteer).
+4. **Results:**
+   - **§1 Build / logs:** **PASS** — `docker logs --since 15m pos-front … | grep -iE "error|failed|TS[0-9]"` returned no lines in the 15m window; container history ends with multiple `Application bundle generation complete` entries (2026-05-13). No rebuild occurred during the window; runtime smoke below confirms a working bundle.
+   - **§2 Manual UI (en/es same title):** **PASS** (evidence by i18n + templates) — `NAV.SETTINGS` and `DASHBOARD.SETTINGS_TITLE` are identical per locale in all 9 JSON files (scripted check); templates use those keys on the sidebar row and dashboard card. Headless login reached `/dashboard` and navigated all sidebar links including `/settings` without Angular compile errors in the browser log.
+   - **§3 Icon (gear vs sunburst):** **PASS** — `sidebar.component.ts` Settings row uses the same `<circle cx="12" cy="12" r="3"/>` + cog `path` as `dashboard.component.ts` (lines ~229–231 vs ~205–206).
+   - **§4 FR / DE spot-check:** **PASS** — same scripted equality as §2; `fr.json` shows "Paramètres", `de.json` shows "Einstellungen" for both keys.
+   - **§5 Optional smoke:** **PASS (with note)** — plain `npm run test:landing-version` fails only because the landing footer shows semver **2.0.75** while `front/package.json` is **2.0.85** (stale `COMMIT_HASH` / image vs checkout, unrelated to #208). Re-run with `SKIP_LANDING_PACKAGE_VERSION_CHECK=1`: **exit 0**; login + 16 sidebar nav links + 5 inventory sublinks OK (ended ~08:12 UTC).
+5. **Overall:** **PASS** (all required criteria met; optional smoke passes when version check is skipped for this environment).
+6. **Product owner feedback:** Settings is now one consistent entry: the same translated word appears on the home card and in the sidebar, and the gear icon matches so staff are not wondering if "Configuration" and "Settings" were different areas. No behaviour change beyond clarity and polish.
+7. **URLs tested (numbered):** (1) `http://127.0.0.1:4202/` (2) `http://127.0.0.1:4202/login?tenant=1` (3) `http://127.0.0.1:4202/dashboard` (4) `http://127.0.0.1:4202/settings` — plus other staff routes exercised by the landing-version script during sidebar crawl (`/my-shift`, `/staff/orders`, `/reservations`, …).
+8. **Relevant log excerpts:** Puppeteer: `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.` and `exit_code: 0` (with `SKIP_LANDING_PACKAGE_VERSION_CHECK=1`). `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:4202/` → `200`. `docker logs pos-front` (historical tail): `Application bundle generation complete. [0.726 seconds] - 2026-05-13T06:30:15.029Z`.
