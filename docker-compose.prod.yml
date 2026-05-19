@@ -19,6 +19,8 @@ services:
       - redis
       - ws-bridge
       - back
+    volumes:
+      - ./certbot/www:/var/www/certbot:ro
 
   # Production: HAProxy with HTTPS and HTTP→HTTPS redirect; certs from certbot/haproxy-certs.
   haproxy:
