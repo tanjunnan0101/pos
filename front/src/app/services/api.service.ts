@@ -757,6 +757,39 @@ export interface SocialPostPublic {
 }
 
 /** Product customization question (e.g. meat doneness, spice 1–10, multi toppings) */
+export interface ProductBulkImportPreviewRow {
+  row_index: number;
+  name: string;
+  price_cents: number | null;
+  cost_cents?: number | null;
+  category?: string | null;
+  subcategory?: string | null;
+  description?: string | null;
+  ingredients?: string | null;
+  valid: boolean;
+  errors: string[];
+  action: string;
+  existing_product_id?: number | null;
+}
+
+export interface ProductBulkImportPreviewResponse {
+  items: ProductBulkImportPreviewRow[];
+  summary: {
+    total: number;
+    valid: number;
+    invalid: number;
+    create: number;
+    update: number;
+  };
+}
+
+export interface ProductBulkImportConfirmResult {
+  created: number;
+  updated: number;
+  skipped: number;
+  product_ids: number[];
+}
+
 export interface ProductQuestion {
   id: number;
   type: 'choice' | 'scale' | 'text';
@@ -1607,10 +1640,40 @@ export class ApiService {
     return this.http.delete<void>(`${this.apiUrl}/products/${id}`);
   }
 
+  deleteAllProducts(): Observable<{ status: string; count: number }> {
+    return this.http.delete<{ status: string; count: number }>(`${this.apiUrl}/products/all`);
+  }
+
   uploadProductImage(productId: number, file: File): Observable<Product> {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<Product>(`${this.apiUrl}/products/${productId}/image`, formData);
+  }
+
+  getProductBulkImportVisionStatus(): Observable<{ configured: boolean }> {
+    return this.http.get<{ configured: boolean }>(`${this.apiUrl}/products/bulk-import/vision-status`);
+  }
+
+  previewProductBulkImportJson(payload: unknown): Observable<ProductBulkImportPreviewResponse> {
+    return this.http.post<ProductBulkImportPreviewResponse>(
+      `${this.apiUrl}/products/bulk-import/preview-json`,
+      payload
+    );
+  }
+
+  previewProductBulkImportVision(file: File): Observable<ProductBulkImportPreviewResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<ProductBulkImportPreviewResponse>(
+      `${this.apiUrl}/products/bulk-import/vision/preview`,
+      formData
+    );
+  }
+
+  confirmProductBulkImport(items: ProductBulkImportPreviewRow[]): Observable<ProductBulkImportConfirmResult> {
+    return this.http.post<ProductBulkImportConfirmResult>(`${this.apiUrl}/products/bulk-import/confirm`, {
+      items,
+    });
   }
 
   getProductQuestions(productId: number): Observable<ProductQuestionStaff[]> {

@@ -38,6 +38,7 @@ from .db import check_db_connection, create_db_and_tables, get_session, engine
 from .settings import settings
 from .inventory_routes import router as inventory_router
 from .pricing_routes import router as pricing_router
+from .product_bulk_import_routes import router as product_bulk_import_router
 from .reports_routes import router as reports_router
 from .attendance_routes import router as attendance_router
 from .tenant_lifecycle_routes import router as tenant_lifecycle_router
@@ -469,6 +470,11 @@ app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 # Register Inventory API router
 app.include_router(inventory_router, prefix="/inventory", tags=["Inventory"])
 app.include_router(pricing_router, prefix="/pricing", tags=["Pricing"])
+app.include_router(
+    product_bulk_import_router,
+    prefix="/products/bulk-import",
+    tags=["Products"],
+)
 # Reports (sales / revenue analysis)
 app.include_router(reports_router, prefix="/reports", tags=["Reports"])
 app.include_router(attendance_router, prefix="/reports", tags=["Reports"])
@@ -4145,6 +4151,55 @@ def update_product(
     return product
 
 
+def _clear_product_references_before_delete(
+    session: Session,
+    tenant_id: int,
+    product_ids: list[int],
+) -> None:
+    """Unlink or remove rows that reference product before delete (DB FKs may lack ON DELETE)."""
+    if not product_ids:
+        return
+    for tp in session.exec(
+        select(models.TenantProduct).where(
+            models.TenantProduct.tenant_id == tenant_id,
+            models.TenantProduct.product_id.in_(product_ids),
+        )
+    ).all():
+        session.delete(tp)
+    for recipe in session.exec(
+        select(inventory_models.ProductRecipe).where(
+            inventory_models.ProductRecipe.tenant_id == tenant_id,
+            inventory_models.ProductRecipe.product_id.in_(product_ids),
+        )
+    ).all():
+        session.delete(recipe)
+    for question in session.exec(
+        select(models.ProductQuestion).where(
+            models.ProductQuestion.tenant_id == tenant_id,
+            models.ProductQuestion.product_id.in_(product_ids),
+        )
+    ).all():
+        session.delete(question)
+
+
+@app.delete("/products/all")
+def delete_all_products(
+    current_user: Annotated[models.User, Depends(require_permission(Permission.PRODUCT_WRITE))],
+    session: Session = Depends(get_session),
+) -> dict:
+    """Delete every product for the current tenant."""
+    products = session.exec(
+        select(models.Product).where(models.Product.tenant_id == current_user.tenant_id)
+    ).all()
+    product_ids = [p.id for p in products if p.id is not None]
+    count = len(products)
+    _clear_product_references_before_delete(session, current_user.tenant_id, product_ids)
+    for product in products:
+        session.delete(product)
+    session.commit()
+    return {"status": "deleted", "count": count}
+
+
 @app.delete("/products/{product_id}")
 def delete_product(
     product_id: int,
@@ -4161,6 +4216,7 @@ def delete_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
+    _clear_product_references_before_delete(session, current_user.tenant_id, [product_id])
     session.delete(product)
     session.commit()
     return {"status": "deleted", "id": product_id}

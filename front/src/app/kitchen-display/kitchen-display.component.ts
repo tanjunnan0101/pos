@@ -687,6 +687,8 @@ export class KitchenDisplayComponent implements OnInit, AfterViewInit, OnDestroy
   private wsSub: Subscription | null = null;
   private routeDataSub: Subscription | null = null;
   private queryParamSub: Subscription | null = null;
+  private initialLoadDone = false;
+  private pendingBackgroundRefresh = false;
 
   orders = signal<Order[]>([]);
   loading = signal(true);
@@ -822,8 +824,11 @@ export class KitchenDisplayComponent implements OnInit, AfterViewInit, OnDestroy
     });
 
     this.loadTimerSettings();
-    this.loadOrders();
-    this.refreshIntervalId = setInterval(() => this.loadOrders(), REFRESH_INTERVAL_MS);
+    this.loadOrders({ initial: true });
+    this.refreshIntervalId = setInterval(
+      () => this.loadOrders({ background: true }),
+      REFRESH_INTERVAL_MS
+    );
     this.tickIntervalId = setInterval(() => this.now.set(Date.now()), 1000);
 
     try {
@@ -834,7 +839,7 @@ export class KitchenDisplayComponent implements OnInit, AfterViewInit, OnDestroy
           if (this.soundEnabled() && ['new_order', 'items_added'].includes(type)) {
             this.audio.playRestaurantOrderChange();
           }
-          this.loadOrders();
+          this.loadOrders({ background: true });
         }
       });
     } catch {
@@ -976,7 +981,10 @@ export class KitchenDisplayComponent implements OnInit, AfterViewInit, OnDestroy
   private closeItemStatusDropdown = (e: Event): void => {
     const target = e.target as HTMLElement;
     if (!target.closest('.item-status-control')) {
-      this.itemStatusDropdownOpen.set(null);
+      if (this.itemStatusDropdownOpen()) {
+        this.itemStatusDropdownOpen.set(null);
+        this.flushPendingBackgroundRefresh();
+      }
     }
   };
 
@@ -1012,16 +1020,42 @@ export class KitchenDisplayComponent implements OnInit, AfterViewInit, OnDestroy
     return p;
   }
 
-  loadOrders(): void {
-    this.loading.set(true);
+  loadOrders(options?: { initial?: boolean; background?: boolean }): void {
+    const isInitial = options?.initial ?? (!options?.background && !this.initialLoadDone);
+    const isBackground = options?.background ?? !isInitial;
+
+    if (isBackground && this.itemStatusDropdownOpen()) {
+      this.pendingBackgroundRefresh = true;
+      return;
+    }
+    this.pendingBackgroundRefresh = false;
+
+    if (isInitial) {
+      this.loading.set(true);
+    }
+
     this.api.getOrders(false).subscribe({
       next: (list) => {
         this.orders.set(list);
         this.lastRefreshAt.set(new Date());
-        this.loading.set(false);
+        if (isInitial) {
+          this.loading.set(false);
+          this.initialLoadDone = true;
+        }
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        if (isInitial) {
+          this.loading.set(false);
+          this.initialLoadDone = true;
+        }
+      },
     });
+  }
+
+  private flushPendingBackgroundRefresh(): void {
+    if (!this.pendingBackgroundRefresh) return;
+    this.pendingBackgroundRefresh = false;
+    this.loadOrders({ background: true });
   }
 
   toggleSound(event: Event): void {
@@ -1144,14 +1178,18 @@ export class KitchenDisplayComponent implements OnInit, AfterViewInit, OnDestroy
 
   toggleItemStatusDropdown(orderId: number, itemId: number): void {
     const key = `${orderId}-${itemId}`;
+    const wasOpen = this.itemStatusDropdownOpen() === key;
     this.itemStatusDropdownOpen.update((current) => (current === key ? null : key));
+    if (wasOpen) {
+      this.flushPendingBackgroundRefresh();
+    }
   }
 
   updateItemStatus(orderId: number, itemId: number, status: string): void {
     this.itemStatusDropdownOpen.set(null);
     this.api.updateOrderItemStatus(orderId, itemId, status).subscribe({
-      next: () => this.loadOrders(),
-      error: () => this.loadOrders(),
+      next: () => this.loadOrders({ background: true }),
+      error: () => this.loadOrders({ background: true }),
     });
   }
 }

@@ -1,4 +1,12 @@
 import { Component, inject, signal, computed, OnInit, OnDestroy, ElementRef, ViewChild, HostListener } from '@angular/core';
+import {
+  FLOOR_CANVAS_HEIGHT,
+  FLOOR_CANVAS_WIDTH,
+  findNonOverlappingDefaultPosition,
+  tableCanvasBounds,
+  tableCenter,
+  tablesFootprintsOverlap,
+} from './table-floor-layout.util';
 import { firstValueFrom } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
@@ -24,7 +32,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 interface TableShape {
   id: string;
-  name: string;
+  nameKey: string;
   shape: 'rectangle' | 'circle' | 'oval' | 'booth' | 'bar';
   width: number;
   height: number;
@@ -113,6 +121,11 @@ const STAFF_ORDERS_ROLES = new Set([
         </div>
         @if (floors().length > 0) {
           <p class="join-hint muted">{{ 'TABLES.JOIN_HINT' | translate }}</p>
+        }
+        @if (layoutOverlapPairs().length > 0) {
+          <p class="overlap-layout-hint" role="status" data-testid="tables-layout-overlap-hint">
+            {{ 'TABLES.LAYOUT_OVERLAP_HINT' | translate: { names: layoutOverlapNames() } }}
+          </p>
         }
 
         @if (error()) {
@@ -294,6 +307,7 @@ const STAFF_ORDERS_ROLES = new Set([
                     [class.selected]="isTableVisualSelected(table)"
                     [class.join-picked]="isTableJoinPicked(table)"
                     [class.join-proximity-hint]="joinProximityTargetId() === table.id"
+                    [class.layout-overlap]="isTableInLayoutOverlap(table)"
                     [class.dragging]="isDragging && draggedTable?.id === table.id"
                     [attr.transform]="tableGroupTransform(table)"
                     (mousedown)="onTableMouseDown($event, table)"
@@ -621,8 +635,10 @@ const STAFF_ORDERS_ROLES = new Set([
                         <div class="preview-bar"></div>
                       }
                     </div>
-                    <span class="palette-shape-name">{{ shape.name }}</span>
-                    <small>{{ shape.seats }} {{ 'TABLES.SEATS' | translate | lowercase }}</small>
+                    <div class="palette-shape-labels">
+                      <span class="palette-shape-name">{{ shape.nameKey | translate }}</span>
+                      <small class="palette-shape-seats">{{ shape.seats }} {{ 'TABLES.SEATS' | translate | lowercase }}</small>
+                    </div>
                   </div>
                 }
               </div>
@@ -646,7 +662,7 @@ const STAFF_ORDERS_ROLES = new Set([
 
         <!-- Reassign orders/reservations to another table before delete -->
         @if (reassignTableModal()) {
-          <div class="modal-overlay" (click)="cancelReassign()">
+          <div class="modal-overlay">
             <div class="modal-content reassign-modal" (click)="$event.stopPropagation()" appFocusFirstInput>
               <div class="modal-header">
                 <h3>{{ 'TABLES.REASSIGN_AND_DELETE_TITLE' | translate }}</h3>
@@ -680,6 +696,19 @@ const STAFF_ORDERS_ROLES = new Set([
       font-size: 12px;
       margin: -4px 0 8px 12px;
       opacity: 0.75;
+    }
+    .overlap-layout-hint {
+      font-size: 12px;
+      margin: -4px 0 8px 12px;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      background: rgba(234, 179, 8, 0.15);
+      border: 1px solid rgba(234, 179, 8, 0.45);
+      color: #ca8a04;
+    }
+    .table-group.layout-overlap :is(ellipse, rect) {
+      stroke: #eab308 !important;
+      stroke-width: 3px;
     }
     .panel-group-line {
       font-size: 13px;
@@ -1003,11 +1032,13 @@ const STAFF_ORDERS_ROLES = new Set([
       cursor: grabbing;
     }
 
-    /* Zoom Controls */
+    /* Zoom Controls — top-right on mobile (palette is bottom strip); bottom-left on desktop (palette is top-right) */
     .zoom-controls {
       position: absolute;
-      bottom: var(--space-4);
+      top: var(--space-3);
       right: var(--space-4);
+      bottom: auto;
+      left: auto;
       display: flex;
       align-items: center;
       gap: var(--space-2);
@@ -1315,7 +1346,7 @@ const STAFF_ORDERS_ROLES = new Set([
       display: flex;
       gap: var(--space-2);
       overflow-x: auto;
-      padding-bottom: var(--space-1);
+      padding-bottom: calc(var(--space-1) + var(--space-4));
       -webkit-overflow-scrolling: touch;
     }
     .palette-shapes::-webkit-scrollbar { height: 3px; }
@@ -1350,13 +1381,28 @@ const STAFF_ORDERS_ROLES = new Set([
       box-shadow: 0 0 0 2px var(--color-primary-light, rgba(211, 82, 51, 0.15));
     }
 
+    .palette-shape-labels {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+      min-width: 0;
+      max-width: 100%;
+    }
+    .palette-shape-name,
+    .palette-shape-seats {
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .palette-shape-name {
       font-size: 0.6875rem;
       font-weight: 500;
       color: var(--color-text);
-      white-space: nowrap;
     }
-    .palette-shape small {
+    .palette-shape-seats {
       font-size: 0.5625rem;
       color: var(--color-text-muted);
     }
@@ -1520,16 +1566,32 @@ const STAFF_ORDERS_ROLES = new Set([
         overflow-y: auto;
       }
 
+      .zoom-controls {
+        bottom: var(--space-4);
+        left: var(--space-4);
+        right: auto;
+        top: auto;
+      }
+
       .palette-shapes {
         flex-direction: column;
         overflow-x: visible;
+        padding-bottom: var(--space-2);
       }
 
       .palette-shape {
         flex-direction: row;
+        align-items: center;
         gap: var(--space-2);
-        min-width: unset;
+        min-width: 0;
+        width: 100%;
         padding: var(--space-2) var(--space-3);
+      }
+
+      .palette-shape-labels {
+        flex: 1 1 auto;
+        align-items: flex-start;
+        min-width: 0;
       }
 
       .shape-preview {
@@ -1570,6 +1632,39 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
   joinSelectionIds = signal<number[]>([]);
   /** Prevents duplicate DELETE /table-group calls (stale id → 404 / error banner). */
   unjoinInFlight = signal(false);
+
+  /** Pairs of tables on the current floor whose footprints overlap (layout warning). */
+  layoutOverlapPairs = computed(() => {
+    const floorId = this.selectedFloorId();
+    const onFloor = this.tables().filter(t => t.floor_id === floorId || (!t.floor_id && !floorId));
+    const pairs: { a: CanvasTable; b: CanvasTable }[] = [];
+    for (let i = 0; i < onFloor.length; i++) {
+      for (let j = i + 1; j < onFloor.length; j++) {
+        if (tablesFootprintsOverlap(onFloor[i], onFloor[j])) {
+          pairs.push({ a: onFloor[i], b: onFloor[j] });
+        }
+      }
+    }
+    return pairs;
+  });
+
+  layoutOverlapNames = computed(() => {
+    const names = new Set<string>();
+    for (const { a, b } of this.layoutOverlapPairs()) {
+      if (a.name) names.add(a.name);
+      if (b.name) names.add(b.name);
+    }
+    return Array.from(names).sort((x, y) => x.localeCompare(y)).join(', ');
+  });
+
+  layoutOverlappingTableIds = computed(() => {
+    const ids = new Set<number>();
+    for (const { a, b } of this.layoutOverlapPairs()) {
+      if (a.id != null) ids.add(a.id);
+      if (b.id != null) ids.add(b.id);
+    }
+    return ids;
+  });
   editingFloorId = signal<number | null>(null);
   editingFloorName = '';
   hasUnsavedChanges = signal(false);
@@ -1622,8 +1717,8 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
     return this.tables().filter(t => t.id !== table.id);
   });
 
-  canvasWidth = 1200;
-  canvasHeight = 800;
+  canvasWidth = FLOOR_CANVAS_WIDTH;
+  canvasHeight = FLOOR_CANVAS_HEIGHT;
 
   // Mobile UI state
   propertiesPanelExpanded = false;
@@ -1662,14 +1757,14 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
   private pendingPostJoinLayoutRestore: number[] | null = null;
 
   tableShapes: TableShape[] = [
-    { id: 'square4', name: 'Square 4', shape: 'rectangle', width: 80, height: 80, seats: 4 },
-    { id: 'rect4', name: 'Rectangle 4', shape: 'rectangle', width: 100, height: 70, seats: 4 },
-    { id: 'rect6', name: 'Rectangle 6', shape: 'rectangle', width: 140, height: 70, seats: 6 },
-    { id: 'circle4', name: 'Round 4', shape: 'circle', width: 80, height: 80, seats: 4 },
-    { id: 'circle6', name: 'Round 6', shape: 'circle', width: 100, height: 100, seats: 6 },
-    { id: 'oval6', name: 'Oval 6', shape: 'oval', width: 120, height: 70, seats: 6 },
-    { id: 'booth4', name: 'Booth 4', shape: 'booth', width: 100, height: 80, seats: 4 },
-    { id: 'bar4', name: 'Bar 4', shape: 'bar', width: 160, height: 50, seats: 4 }
+    { id: 'square4', nameKey: 'TABLES.SHAPE_SQUARE_4', shape: 'rectangle', width: 80, height: 80, seats: 4 },
+    { id: 'rect4', nameKey: 'TABLES.SHAPE_RECT_4', shape: 'rectangle', width: 100, height: 70, seats: 4 },
+    { id: 'rect6', nameKey: 'TABLES.SHAPE_RECT_6', shape: 'rectangle', width: 140, height: 70, seats: 6 },
+    { id: 'circle4', nameKey: 'TABLES.SHAPE_ROUND_4', shape: 'circle', width: 80, height: 80, seats: 4 },
+    { id: 'circle6', nameKey: 'TABLES.SHAPE_ROUND_6', shape: 'circle', width: 100, height: 100, seats: 6 },
+    { id: 'oval6', nameKey: 'TABLES.SHAPE_OVAL_6', shape: 'oval', width: 120, height: 70, seats: 6 },
+    { id: 'booth4', nameKey: 'TABLES.SHAPE_BOOTH_4', shape: 'booth', width: 100, height: 80, seats: 4 },
+    { id: 'bar4', nameKey: 'TABLES.SHAPE_BAR_4', shape: 'bar', width: 160, height: 50, seats: 4 }
   ];
 
   ngOnInit() {
@@ -2165,10 +2260,14 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
     });
   }
 
+  isTableInLayoutOverlap(table: CanvasTable): boolean {
+    const id = table.id;
+    return id != null && this.layoutOverlappingTableIds().has(id);
+  }
+
   /** SVG `transform` for a table (positions live in `tables()` during drag). */
   tableGroupTransform(table: CanvasTable): string {
-    const bx = table.x_position || 100;
-    const by = table.y_position || 100;
+    const { x: bx, y: by } = tableCenter(table);
     return `translate(${bx},${by})`;
   }
 
@@ -2178,98 +2277,19 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
     this.joinProximityTargetId.set(null);
   }
 
-  /** Axis-aligned bounds of a table in floor canvas (SVG) coordinates; center is x_position/y_position. */
-  private tableCanvasBounds(t: CanvasTable): { left: number; right: number; top: number; bottom: number; cx: number; cy: number } {
-    const w = t.width || 100;
-    const h = t.height || 70;
-    const cx = t.x_position || 0;
-    const cy = t.y_position || 0;
-    return {
-      left: cx - w / 2,
-      right: cx + w / 2,
-      top: cy - h / 2,
-      bottom: cy + h / 2,
-      cx,
-      cy,
-    };
-  }
-
-  private static readonly joinOverlapEps = 1e-6;
-
-  private isRectLikeTableShape(shape: string | undefined): boolean {
-    if (!shape) return true;
-    return shape === 'rectangle' || shape === 'booth' || shape === 'bar';
-  }
-
-  private isEllipseTableShape(shape: string | undefined): boolean {
-    return shape === 'circle' || shape === 'oval';
-  }
-
-  /**
-   * Join-on-drop: require real overlap in floor SVG space (not proximity / inflated boxes).
-   * - Rectangular footprints (rectangle, booth, bar): strict AABB intersection with positive area
-   *   (edge-only contact does not count — intersection width and height must exceed eps).
-   * - Two ellipses (circle, oval as drawn): overlap if (dx/(rx1+rx2))² + (dy/(ry1+ry2))² < 1
-   *   using the same half-axes as the SVG ellipses and tableCanvasBounds.
-   * - Mixed rect + ellipse: strict AABB overlap between their axis-aligned bounds (approximation).
-   * Zoom/pan only affect the view transform; positions stay in these canvas units.
-   */
-  private tableShapesOverlapForJoin(a: CanvasTable, b: CanvasTable): boolean {
-    const ba = this.tableCanvasBounds(a);
-    const bb = this.tableCanvasBounds(b);
-    const sa = a.shape;
-    const sb = b.shape;
-    if (this.isRectLikeTableShape(sa) && this.isRectLikeTableShape(sb)) {
-      return this.aabbStrictPositiveOverlap(ba, bb);
-    }
-    if (this.isEllipseTableShape(sa) && this.isEllipseTableShape(sb)) {
-      return this.axisAlignedEllipsesOverlapPositive(ba, bb, a, b);
-    }
-    return this.aabbStrictPositiveOverlap(ba, bb);
-  }
-
-  /** True iff axis-aligned rectangles intersect with interior overlap (not edge-only). */
-  private aabbStrictPositiveOverlap(
-    a: { left: number; right: number; top: number; bottom: number },
-    b: { left: number; right: number; top: number; bottom: number }
-  ): boolean {
-    const iw = Math.min(a.right, b.right) - Math.max(a.left, b.left);
-    const ih = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
-    return iw > TablesCanvasComponent.joinOverlapEps && ih > TablesCanvasComponent.joinOverlapEps;
-  }
-
-  private axisAlignedEllipsesOverlapPositive(
-    ba: { cx: number; cy: number },
-    bb: { cx: number; cy: number },
-    ta: CanvasTable,
-    tb: CanvasTable
-  ): boolean {
-    const wa = ta.width || 100;
-    const ha = ta.height || 70;
-    const wb = tb.width || 100;
-    const hb = tb.height || 70;
-    const rxSum = wa / 2 + wb / 2;
-    const rySum = ha / 2 + hb / 2;
-    if (rxSum <= 0 || rySum <= 0) return false;
-    const dx = ba.cx - bb.cx;
-    const dy = ba.cy - bb.cy;
-    const metric = (dx / rxSum) * (dx / rxSum) + (dy / rySum) * (dy / rySum);
-    return metric < 1 - TablesCanvasComponent.joinOverlapEps;
-  }
-
   /**
    * While dragging `dragged`, find the closest other table on the same floor whose footprint
    * overlaps the dragged table (canvas coordinates only).
    */
   private findJoinProximityTarget(dragged: CanvasTable): CanvasTable | null {
     if (dragged.id == null || dragged.table_group_id) return null;
-    const da = this.tableCanvasBounds(dragged);
+    const da = tableCanvasBounds(dragged);
     let best: CanvasTable | null = null;
     let bestDist = Infinity;
     for (const t of this.tablesOnCurrentFloor()) {
       if (t.id == null || t.id === dragged.id || t.table_group_id) continue;
-      if (!this.tableShapesOverlapForJoin(dragged, t)) continue;
-      const db = this.tableCanvasBounds(t);
+      if (!tablesFootprintsOverlap(dragged, t)) continue;
+      const db = tableCanvasBounds(t);
       const dist = Math.hypot(da.cx - db.cx, da.cy - db.cy);
       if (dist < bestDist) {
         bestDist = dist;
@@ -2414,7 +2434,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
     let maxX = -Infinity;
     let maxY = -Infinity;
     for (const t of floorTables) {
-      const b = this.tableCanvasBounds(t);
+      const b = tableCanvasBounds(t);
       minX = Math.min(minX, b.left);
       minY = Math.min(minY, b.top);
       maxX = Math.max(maxX, b.right);
@@ -2616,13 +2636,36 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
   private addTableAtPosition(shape: TableShape, x: number, y: number) {
     this.error.set('');
     if (!this.selectedFloorId() || this.floors().length === 0) return;
+    const floorId = this.selectedFloorId()!;
+    const onFloor = this.tables().filter(t => t.floor_id === floorId || (!t.floor_id && !floorId));
+    let placeX = x;
+    let placeY = y;
+    const probe = {
+      x_position: placeX,
+      y_position: placeY,
+      width: shape.width,
+      height: shape.height,
+      shape: shape.shape,
+    };
+    if (onFloor.some(t => tablesFootprintsOverlap(probe, t))) {
+      const fallback = findNonOverlappingDefaultPosition(
+        onFloor,
+        shape.width,
+        shape.height,
+        shape.shape,
+        this.canvasWidth,
+        this.canvasHeight
+      );
+      placeX = fallback.x;
+      placeY = fallback.y;
+    }
     const tableNumber = this.tables().length + 1;
     const tableName = this.translate.instant('TABLES.DEFAULT_TABLE_NAME', { number: tableNumber });
-    this.api.createTable(tableName, this.selectedFloorId()!).subscribe({
+    this.api.createTable(tableName, floorId).subscribe({
       next: table => {
         this.api.updateTable(table.id!, {
-          x_position: x,
-          y_position: y,
+          x_position: placeX,
+          y_position: placeY,
           shape: shape.shape,
           width: shape.width,
           height: shape.height,
@@ -2692,8 +2735,8 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
     const svgPoint = this.getSvgPoint(event.clientX, event.clientY);
     if (svgPoint) {
       this.dragOffset = {
-        x: svgPoint.x - (table.x_position || 0),
-        y: svgPoint.y - (table.y_position || 0)
+        x: svgPoint.x - (table.x_position ?? 0),
+        y: svgPoint.y - (table.y_position ?? 0)
       };
     }
   }
@@ -2718,8 +2761,8 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
     const svgPoint = this.getSvgPoint(touch.clientX, touch.clientY);
     if (svgPoint) {
       this.dragOffset = {
-        x: svgPoint.x - (table.x_position || 0),
-        y: svgPoint.y - (table.y_position || 0)
+        x: svgPoint.x - (table.x_position ?? 0),
+        y: svgPoint.y - (table.y_position ?? 0)
       };
     }
   }
@@ -3029,6 +3072,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
           },
           error: (err: { error?: { detail?: string } }) => {
             this.pendingPostJoinLayoutRestore = null;
+            this.restorePreJoinGestureLayoutFromSnapshot();
             this.preJoinGesturePositions = null;
             this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
           },
@@ -3041,6 +3085,7 @@ export class TablesCanvasComponent implements OnInit, OnDestroy {
           if (ok) proceed();
           else {
             this.pendingPostJoinLayoutRestore = null;
+            this.restorePreJoinGestureLayoutFromSnapshot();
             this.preJoinGesturePositions = null;
           }
         });

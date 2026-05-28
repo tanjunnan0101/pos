@@ -12,6 +12,7 @@ import { FocusFirstInputDirective } from '../shared/focus-first-input.directive'
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { ApiErrorMessageService } from '../services/api-error-message.service';
+import { findNonOverlappingDefaultPosition } from './table-floor-layout.util';
 
 const TABLES_VIEW_STORAGE_KEY = 'pos.tables.viewMode';
 
@@ -364,12 +365,41 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
                             </div>
                             <p class="group-tile-hint">{{ 'TABLES.GROUP_TILE_MEMBER_HINT' | translate }}</p>
                           </div>
-                          @for (table of block.members; track table.id) {
-                            <div class="group-tile-member" (dblclick)="onTableCardDoubleClick(table)">
-                              <div class="group-tile-member-label">{{ table.name }}</div>
-                              <ng-container *ngTemplateOutlet="tableTileInner; context: {$implicit: table}" />
-                            </div>
-                          }
+                          <div class="group-tile-members">
+                            @for (table of block.members; track table.id) {
+                              <div class="group-tile-member">
+                                <button
+                                  type="button"
+                                  class="group-tile-member-summary"
+                                  (click)="toggleTileGroupMember(block.groupId, table.id!)"
+                                  [attr.aria-expanded]="isTileGroupMemberExpanded(block.groupId, table.id!)"
+                                  [title]="(isTileGroupMemberExpanded(block.groupId, table.id!) ? 'TABLES.GROUP_TILE_HIDE_TABLE' : 'TABLES.GROUP_TILE_SHOW_TABLE') | translate"
+                                >
+                                  <span class="group-tile-member-chevron" aria-hidden="true">
+                                    {{ isTileGroupMemberExpanded(block.groupId, table.id!) ? '▾' : '▸' }}
+                                  </span>
+                                  <span class="group-tile-member-name">{{ table.name }}</span>
+                                  @if (table.is_active) {
+                                    <span class="status-badge status-active status-inline group-tile-member-status">
+                                      <span class="status-dot"></span>{{ 'TABLES.ACTIVE' | translate }}
+                                    </span>
+                                  } @else {
+                                    <span class="status-badge status-inactive status-inline group-tile-member-status">
+                                      <span class="status-dot"></span>{{ 'TABLES.INACTIVE' | translate }}
+                                    </span>
+                                  }
+                                  @if (table.is_active && table.order_pin) {
+                                    <span class="group-tile-member-pin">PIN {{ table.order_pin }}</span>
+                                  }
+                                </button>
+                                @if (isTileGroupMemberExpanded(block.groupId, table.id!)) {
+                                  <div class="group-tile-member-detail" (dblclick)="onTableCardDoubleClick(table)">
+                                    <ng-container *ngTemplateOutlet="tableTileInner; context: { $implicit: table, compact: true, hideTitle: true }" />
+                                  </div>
+                                }
+                              </div>
+                            }
+                          </div>
                         </div>
                       }
                     }
@@ -377,7 +407,8 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
                 </div>
               }
             }
-            <ng-template #tableTileInner let-table>
+            <ng-template #tableTileInner let-table let-compact="compact" let-hideTitle="hideTitle">
+              <div class="table-tile-inner" [class.table-tile-inner--compact]="compact">
               <div class="table-header">
                 @if (editingTableId() === table.id) {
                   <div class="edit-fields">
@@ -413,18 +444,20 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
                     </div>
                   </div>
                 } @else {
-                  <div class="table-info">
-                    <h3 (click)="startEdit(table)" class="editable-name">{{ table.name }}</h3>
-                    <div class="seat-count" (click)="startEdit(table)">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-                      </svg>
-                      {{ table.seat_count || '0' }} {{ 'TABLES.SEATS' | translate }}
+                  @if (!hideTitle) {
+                    <div class="table-info">
+                      <h3 (click)="startEdit(table)" class="editable-name">{{ table.name }}</h3>
+                      <div class="seat-count" (click)="startEdit(table)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                          <circle cx="9" cy="7" r="4"/>
+                          <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                        </svg>
+                        {{ table.seat_count || '0' }} {{ 'TABLES.SEATS' | translate }}
+                      </div>
                     </div>
-                  </div>
-                  <div class="header-actions">
+                  }
+                  <div class="header-actions" [class.header-actions--solo]="hideTitle">
                     <button class="icon-btn icon-btn-edit" (click)="startEdit(table)" [title]="'COMMON.EDIT' | translate">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
@@ -452,6 +485,18 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
                     <div class="pin-display">
                       <span class="pin-label">PIN:</span>
                       <span class="pin-value">{{ table.order_pin }}</span>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-ghost btn-pin-renew"
+                        (click)="regeneratePin(table)"
+                        [disabled]="activatingTableId() === table.id"
+                        [title]="'TABLES.NEW_PIN' | translate">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M23 4v6h-6M1 20v-6h6"/>
+                          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                        </svg>
+                        {{ 'TABLES.NEW_PIN' | translate }}
+                      </button>
                     </div>
                   }
                 } @else {
@@ -495,7 +540,7 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
 
               <div class="qr-section">
                 <div class="qr-card">
-                  @if (tenantSettings()) {
+                  @if (tenantSettings() && !compact) {
                     <div class="qr-header">
                       <div class="company-name">{{ tenantSettings()!.name }}</div>
                       @if (tenantSettings()!.phone) {
@@ -507,39 +552,39 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
                         </div>
                       }
                     </div>
-                    <div class="qr-code-wrapper">
-                      <qrcode [qrdata]="getMenuUrl(table)" [width]="180" [errorCorrectionLevel]="'M'" cssClass="qr-code"></qrcode>
-                    </div>
-                    <div class="qr-footer">
-                      <div class="table-number">{{ table.name }}</div>
-                    </div>
-                  } @else {
-                    <div class="qr-code-wrapper">
-                      <qrcode [qrdata]="getMenuUrl(table)" [width]="180" [errorCorrectionLevel]="'M'" cssClass="qr-code"></qrcode>
-                    </div>
-                    <div class="qr-footer">
-                      <div class="table-number">{{ table.name }}</div>
-                    </div>
                   }
+                  <div class="qr-code-wrapper">
+                    <qrcode [qrdata]="getMenuUrl(table)" [width]="compact ? 96 : 180" [errorCorrectionLevel]="'M'" cssClass="qr-code"></qrcode>
+                  </div>
+                  <div class="qr-footer">
+                    <div class="table-number">{{ table.name }}</div>
+                  </div>
                 </div>
               </div>
 
               <!-- Session Control Actions -->
-              <div class="session-actions">
+              <div
+                class="session-actions"
+                [class.session-actions--inactive]="!table.is_active"
+                [class.session-actions--single]="table.is_active && !!table.order_pin">
                 @if (table.is_active) {
-                  <button 
-                    class="btn btn-sm btn-ghost" 
-                    (click)="regeneratePin(table)"
-                    [disabled]="activatingTableId() === table.id"
-                    title="Generate new PIN">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M23 4v6h-6M1 20v-6h6"/>
-                      <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-                    </svg>
-                    {{ 'TABLES.NEW_PIN' | translate }}
-                  </button>
-                  <button 
-                    class="btn btn-sm btn-warning" 
+                  @if (!table.order_pin) {
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-ghost"
+                      (click)="regeneratePin(table)"
+                      [disabled]="activatingTableId() === table.id"
+                      [title]="'TABLES.NEW_PIN' | translate">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 4v6h-6M1 20v-6h6"/>
+                        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                      </svg>
+                      {{ 'TABLES.NEW_PIN' | translate }}
+                    </button>
+                  }
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-warning"
                     (click)="confirmCloseTable(table)"
                     [disabled]="activatingTableId() === table.id">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -549,8 +594,9 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
                     {{ 'TABLES.CLOSE_TABLE' | translate }}
                   </button>
                 } @else {
-                  <button 
-                    class="btn btn-sm btn-success" 
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-success"
                     (click)="activateTableSession(table)"
                     [disabled]="activatingTableId() === table.id">
                     @if (activatingTableId() === table.id) {
@@ -588,6 +634,7 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
                   }
                 </button>
               </div>
+              </div>
             </ng-template>
           }
         </div>
@@ -621,7 +668,7 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
 
         <!-- Reassign orders/reservations to another table before delete -->
         @if (reassignTableModal()) {
-          <div class="modal-overlay" (click)="cancelReassign()">
+          <div class="modal-overlay">
             <div class="modal-content reassign-modal" (click)="$event.stopPropagation()" appFocusFirstInput>
               <div class="modal-header">
                 <h3>{{ 'TABLES.REASSIGN_AND_DELETE_TITLE' | translate }}</h3>
@@ -768,7 +815,12 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
     .floor-section h2 { margin: 0; font-size: 1.25rem; font-weight: 600; }
     .badge { background: var(--color-bg); color: var(--color-text-muted); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
 
-    .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-4); }
+    .table-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: var(--space-4);
+      align-items: stretch;
+    }
 
     .btn-expand-group {
       display: inline-flex; align-items: center; justify-content: center;
@@ -787,18 +839,82 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
     .tables-data-table .tr-group-member td:first-child { padding-left: 2.25rem; border-left: 3px solid rgba(168, 85, 247, 0.35); }
 
     .table-card--group {
-      text-align: left; border-color: rgba(168, 85, 247, 0.35);
+      align-self: start;
+      text-align: left;
+      border-color: rgba(168, 85, 247, 0.35);
     }
     .group-tile-banner { margin-bottom: var(--space-2); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border); }
     .group-tile-title { margin: 0 0 var(--space-2); font-size: 1.125rem; font-weight: 600; text-align: center; }
     .group-tile-meta { display: flex; align-items: center; justify-content: center; gap: var(--space-2); flex-wrap: wrap; font-size: 0.875rem; color: var(--color-text-muted); }
     .group-tile-hint { margin: var(--space-2) 0 0; font-size: 0.75rem; color: var(--color-text-muted); text-align: center; }
-    .group-tile-member { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px dashed var(--color-border); }
-    .group-tile-member-label { font-size: 0.8rem; font-weight: 600; margin-bottom: var(--space-2); color: var(--color-primary); text-align: center; }
+    .group-tile-members { display: flex; flex-direction: column; gap: var(--space-2); }
+    .group-tile-member-summary {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      width: 100%;
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg);
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+    }
+    .group-tile-member-summary:hover { border-color: rgba(168, 85, 247, 0.45); background: var(--color-surface); }
+    .group-tile-member-chevron {
+      flex-shrink: 0;
+      width: 1rem;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      text-align: center;
+    }
+    .group-tile-member-name { font-size: 0.875rem; font-weight: 600; color: var(--color-primary); }
+    .group-tile-member-status {
+      margin-left: auto;
+      font-size: 0.625rem;
+      padding: 2px 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+    }
+    .group-tile-member-pin {
+      font-size: 0.75rem;
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--color-primary);
+    }
+    .group-tile-member-detail {
+      padding-top: var(--space-2);
+      border-top: 1px dashed var(--color-border);
+    }
+    .header-actions--solo { margin-left: auto; }
+    .table-tile-inner--compact .qr-section { margin-bottom: var(--space-2); }
+    .table-tile-inner--compact .qr-card { padding: var(--space-2); box-shadow: none; }
+    .table-tile-inner--compact .qr-code-wrapper { margin: var(--space-1) 0; }
+    .table-tile-inner--compact .qr-footer { margin-top: var(--space-1); padding-top: var(--space-1); }
+    .table-tile-inner--compact .status-section { padding: var(--space-2); margin-bottom: var(--space-2); }
+    .table-tile-inner--compact .waiter-assign-section { margin-bottom: var(--space-2); }
+    .table-tile-inner--compact .session-actions { min-height: 2.25rem; margin-bottom: var(--space-2); }
 
     .table-card {
-      background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg);
-      padding: var(--space-4); text-align: center;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      text-align: center;
+    }
+    .table-tile-inner {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
     }
     .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); gap: var(--space-2); }
     
@@ -842,11 +958,18 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
     .pin-display {
       display: flex;
       align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
       gap: var(--space-2);
-      padding: var(--space-2) var(--space-4);
+      width: 100%;
+      padding: var(--space-2) var(--space-3);
       background: white;
       border: 2px dashed var(--color-primary);
       border-radius: var(--radius-md);
+    }
+    .btn-pin-renew {
+      flex-shrink: 0;
+      white-space: nowrap;
     }
     .pin-label {
       font-size: 0.875rem;
@@ -949,10 +1072,31 @@ function getInitialTablesViewMode(): 'tiles' | 'table' {
 
     /* Session Actions */
     .session-actions {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: var(--space-2);
-      justify-content: center;
+      align-items: center;
+      min-height: 2.75rem;
+      margin-top: auto;
       margin-bottom: var(--space-3);
+    }
+    .session-actions .btn {
+      width: 100%;
+      justify-content: center;
+    }
+    .session-actions--inactive {
+      display: flex;
+      justify-content: center;
+    }
+    .session-actions--inactive .btn {
+      width: auto;
+      min-width: 8rem;
+    }
+    .session-actions--single {
+      grid-template-columns: 1fr;
+    }
+    .session-actions--single .btn {
+      max-width: 100%;
     }
     .btn-success {
       background: #22c55e;
@@ -1071,6 +1215,8 @@ export class TablesComponent implements OnInit {
 
   /** List view: which joined groups show member rows (by group id). */
   expandedListGroupIds = signal<number[]>([]);
+  /** Tiles view: expanded group member rows as "groupId-tableId". */
+  expandedTileGroupMemberKeys = signal<string[]>([]);
   /** Warn before activate / open menu when another group member already has a session or order. */
   groupSafetyModal = signal<{ table: Table; action: 'activate' | 'menu'; siblingNames: string } | null>(null);
 
@@ -1387,6 +1533,26 @@ export class TablesComponent implements OnInit {
     });
   }
 
+  private tileGroupMemberKey(groupId: number, tableId: number): string {
+    return `${groupId}-${tableId}`;
+  }
+
+  isTileGroupMemberExpanded(groupId: number, tableId: number | undefined): boolean {
+    if (tableId == null) return false;
+    return this.expandedTileGroupMemberKeys().includes(this.tileGroupMemberKey(groupId, tableId));
+  }
+
+  toggleTileGroupMember(groupId: number, tableId: number): void {
+    const key = this.tileGroupMemberKey(groupId, tableId);
+    this.expandedTileGroupMemberKeys.update(keys => {
+      const i = keys.indexOf(key);
+      if (i >= 0) {
+        return keys.filter(x => x !== key);
+      }
+      return [...keys, key];
+    });
+  }
+
   onListGroupDoubleClick(row: Extract<TablesListRow, { kind: 'group' }>): void {
     const withOrder = row.members.find(m => m.active_order_id != null && m.active_order_id > 0);
     const t = withOrder ?? row.members[0];
@@ -1411,11 +1577,40 @@ export class TablesComponent implements OnInit {
   createTable(e: Event) {
     e.preventDefault();
     if (!this.newTableName || !this.selectedFloorId) return;
-    this.api.createTable(this.newTableName, this.selectedFloorId).subscribe({
+    const floorId = this.selectedFloorId;
+    const onFloor = this.tables().filter(t => t.floor_id === floorId || (!t.floor_id && !floorId));
+    const defaultW = 100;
+    const defaultH = 60;
+    const { x, y } = findNonOverlappingDefaultPosition(onFloor, defaultW, defaultH, 'rectangle');
+    this.api.createTable(this.newTableName, floorId).subscribe({
       next: table => {
-        this.tables.update(t => [...t, table]);
-        this.newTableName = '';
-        this.showForm.set(false);
+        if (table.id == null) {
+          this.tables.update(t => [...t, table]);
+          this.newTableName = '';
+          this.showForm.set(false);
+          return;
+        }
+        this.api
+          .updateTable(table.id, {
+            x_position: x,
+            y_position: y,
+            shape: 'rectangle',
+            width: defaultW,
+            height: defaultH,
+          })
+          .subscribe({
+            next: updated => {
+              this.tables.update(t => [...t, updated]);
+              this.newTableName = '';
+              this.showForm.set(false);
+            },
+            error: err => {
+              this.tables.update(t => [...t, table]);
+              this.newTableName = '';
+              this.showForm.set(false);
+              this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'));
+            },
+          });
       },
       error: err => this.error.set(this.apiErr.fromHttpError(err, 'COMMON.API_REQUEST_FAILED'))
     });

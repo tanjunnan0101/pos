@@ -13,13 +13,19 @@ TASKS_DIR = os.path.join(TEMP_DIR, 'tasks')
 
 
 def has_task_file(issue_num):
-    """Check if any FEAT-{issue_num}-*.md exists."""
-    if not os.path.exists(TASKS_DIR):
-        return False
-    return any(
-        f.startswith(f"FEAT-{issue_num}-")
-        for f in os.listdir(TASKS_DIR)
-    )
+    """True if issue is already queued (FEAT/WIP) or archived (CLOSED in done/)."""
+    prefix = f"{issue_num}-"
+    if os.path.exists(TASKS_DIR):
+        for name in os.listdir(TASKS_DIR):
+            if name.startswith(f"FEAT-{prefix}") or name.startswith(f"WIP-{prefix}"):
+                return True
+    done_root = os.path.join(TASKS_DIR, "done")
+    if os.path.isdir(done_root):
+        for root, _dirs, files in os.walk(done_root):
+            for name in files:
+                if name.startswith(f"CLOSED-{prefix}") and name.endswith(".md"):
+                    return True
+    return False
 
 
 GH_REPO = 'satisfecho/pos'

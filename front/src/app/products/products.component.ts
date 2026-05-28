@@ -1,15 +1,17 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ApiService, KitchenStation, Product, ProductQuestionStaff, Tax } from '../services/api.service';
+import { ApiService, KitchenStation, Product, ProductBulkImportConfirmResult, ProductQuestionStaff, Tax } from '../services/api.service';
 import { PermissionService } from '../services/permission.service';
 import { SidebarComponent } from '../shared/sidebar.component';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { intlLocaleFromTranslate } from '../shared/intl-locale';
 import { currencySymbolFromIsoCode } from '../shared/currency-symbol';
+import { getSubcategoryLabel as resolveSubcategoryLabel } from '../shared/product-subcategory-label.util';
 import { CategoriesComponent } from './categories.component';
 import { PricingHelperComponent } from './pricing-helper.component';
+import { ProductBulkImportComponent } from './product-bulk-import.component';
 
 @Component({
   selector: 'app-products',
@@ -21,18 +23,29 @@ import { PricingHelperComponent } from './pricing-helper.component';
     TranslateModule,
     CategoriesComponent,
     PricingHelperComponent,
+    ProductBulkImportComponent,
   ],
   template: `
     <app-sidebar>
         <div class="page-header">
            <h1>{{ 'PRODUCTS.TITLE' | translate }}</h1>
            @if (activeTab() === 'products' && !showAddForm() && !editingProduct() && canEditProducts()) {
+             <div class="page-header-actions">
+             <button type="button" class="btn btn-secondary" (click)="openBulkImport()">
+               {{ 'PRODUCTS.BULK_IMPORT' | translate }}
+             </button>
+             @if (products().length > 0) {
+               <button type="button" class="btn btn-secondary btn-delete-all" (click)="confirmDeleteAll()" [disabled]="deletingAll()">
+                 {{ 'PRODUCTS.DELETE_ALL' | translate }}
+               </button>
+             }
              <button class="btn btn-primary" (click)="openAddForm()">
                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                </svg>
                {{ 'PRODUCTS.ADD_PRODUCT' | translate }}
              </button>
+             </div>
            }
          </div>
 
@@ -141,7 +154,7 @@ import { PricingHelperComponent } from './pricing-helper.component';
                        <select id="subcategory" [(ngModel)]="formData.subcategory" name="subcategory" [disabled]="!canEditProducts() || !formData.category || availableSubcategories().length === 0">
                          <option value="">{{ 'PRODUCTS.SELECT_SUBCATEGORY' | translate }}</option>
                          @for (subcat of availableSubcategories(); track subcat) {
-                           <option [value]="subcat">{{ subcat }}</option>
+                           <option [value]="subcat">{{ getSubcategoryLabel(subcat) }}</option>
                          }
                        </select>
                      </div>
@@ -329,6 +342,16 @@ import { PricingHelperComponent } from './pricing-helper.component';
                 </button>
               </div>
             }
+            @if (successMessage()) {
+              <div class="success-banner">
+                <span>{{ successMessage() }}</span>
+                <button class="icon-btn" (click)="successMessage.set('')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+            }
 
              @if (loading()) {
                <div class="empty-state">
@@ -399,7 +422,7 @@ import { PricingHelperComponent } from './pricing-helper.component';
                           class="ribbon-tab tab-sm" 
                           [class.active]="selectedSubcategory() === subcategory"
                           (click)="selectSubcategory(subcategory)">
-                          {{ subcategory }}
+                          {{ getSubcategoryLabel(subcategory) }}
                         </button>
                       }
                     </div>
@@ -478,12 +501,12 @@ import { PricingHelperComponent } from './pricing-helper.component';
                               (keydown.escape)="cancelCategoryEdit()">
                               <option value="">None</option>
                               @for (subcat of getSubcategoriesForCategory(editingCategory); track subcat) {
-                                <option [value]="subcat">{{ subcat }}</option>
+                                <option [value]="subcat">{{ getSubcategoryLabel(subcat) }}</option>
                               }
                             </select>
                           } @else {
                             <span class="category-cell" [class.clickable]="canEditProducts()" (click)="canEditProducts() && startCategoryEdit(product, $event)">
-                              {{ product.subcategory || '—' }}
+                              {{ product.subcategory ? getSubcategoryLabel(product.subcategory) : '—' }}
                             </span>
                           }
                         </td>
@@ -528,6 +551,18 @@ import { PricingHelperComponent } from './pricing-helper.component';
                </div>
              </div>
            }
+           @if (showDeleteAllModal()) {
+             <div class="modal-overlay" (click)="showDeleteAllModal.set(false)">
+               <div class="modal" (click)="$event.stopPropagation()">
+                 <h3>{{ 'PRODUCTS.DELETE_ALL_TITLE' | translate }}</h3>
+                 <p>{{ 'PRODUCTS.DELETE_ALL_CONFIRM' | translate:{count: products().length} }}</p>
+                 <div class="modal-actions">
+                   <button class="btn btn-secondary" (click)="showDeleteAllModal.set(false)" [disabled]="deletingAll()">{{ 'PRODUCTS.CANCEL' | translate }}</button>
+                   <button class="btn btn-danger" (click)="deleteAllProducts()" [disabled]="deletingAll()">{{ 'PRODUCTS.DELETE_ALL_BUTTON' | translate }}</button>
+                 </div>
+               </div>
+             </div>
+           }
            @if (pricingHelperOpen()) {
              <app-pricing-helper
                [productId]="pricingHelperProductId()"
@@ -536,6 +571,13 @@ import { PricingHelperComponent } from './pricing-helper.component';
                [currencySymbol]="currency()"
                (closed)="closePricingHelper()"
                (applyMajor)="onPricingHelperApply($event)"
+             />
+           }
+           @if (bulkImportOpen()) {
+             <app-product-bulk-import
+               [categories]="categories()"
+               (closed)="closeBulkImport()"
+               (imported)="onBulkImportDone($event)"
              />
            }
         </div>
@@ -557,12 +599,16 @@ export class ProductsComponent implements OnInit {
   loading = signal(true);
   saving = signal(false);
   deleting = signal<number | null>(null);
+  deletingAll = signal(false);
   showAddForm = signal(false);
   editingProduct = signal<Product | null>(null);
   productToDelete = signal<Product | null>(null);
+  showDeleteAllModal = signal(false);
   pricingHelperOpen = signal(false);
   pricingHelperProductId = signal<number | null>(null);
+  bulkImportOpen = signal(false);
   error = signal('');
+  successMessage = signal('');
   /** Set when submit was attempted with invalid required fields; cleared on edit or cancel */
   productFormErrors = signal<{ name?: boolean; price?: boolean } | null>(null);
   formData: {
@@ -675,6 +721,10 @@ export class ProductsComponent implements OnInit {
     const key = keyMap[category];
     if (key) return this.translate.instant(key);
     return category;
+  }
+
+  getSubcategoryLabel(subcategory: string): string {
+    return resolveSubcategoryLabel(subcategory, this.translate);
   }
 
   getSubcategoriesForCategory(category: string): string[] {
@@ -974,6 +1024,25 @@ export class ProductsComponent implements OnInit {
     this.closePricingHelper();
   }
 
+  openBulkImport() {
+    this.bulkImportOpen.set(true);
+  }
+
+  closeBulkImport() {
+    this.bulkImportOpen.set(false);
+  }
+
+  onBulkImportDone(result: ProductBulkImportConfirmResult) {
+    this.bulkImportOpen.set(false);
+    this.loadProducts();
+    this.successMessage.set(
+      this.translate.instant('PRODUCTS.BULK_IMPORT_SUCCESS', {
+        created: result.created,
+        updated: result.updated,
+      })
+    );
+  }
+
   private clearQuestionsState() {
     this.productQuestions.set([]);
     this.questionsLoading.set(false);
@@ -1270,6 +1339,33 @@ export class ProductsComponent implements OnInit {
   }
 
   confirmDelete(product: Product) { this.productToDelete.set(product); }
+
+  confirmDeleteAll() {
+    this.showDeleteAllModal.set(true);
+  }
+
+  deleteAllProducts() {
+    if (this.deletingAll()) return;
+    this.deletingAll.set(true);
+    this.api.deleteAllProducts().subscribe({
+      next: (res) => {
+        this.showDeleteAllModal.set(false);
+        this.products.set([]);
+        this.filteredProducts.set([]);
+        this.updateAvailableCategories();
+        this.applyFilters();
+        this.deletingAll.set(false);
+        this.error.set('');
+        this.successMessage.set(
+          this.translate.instant('PRODUCTS.DELETE_ALL_SUCCESS', { count: res.count })
+        );
+      },
+      error: (err) => {
+        this.error.set(err.error?.detail || this.translate.instant('PRODUCTS.FAILED_TO_DELETE_ALL'));
+        this.deletingAll.set(false);
+      },
+    });
+  }
 
   deleteProduct() {
     const product = this.productToDelete();

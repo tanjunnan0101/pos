@@ -690,7 +690,7 @@
 
   <!-- Customer Name Modal -->
   @if (showNameModal()) {
-  <div class="modal-overlay" (click)="skipName()">
+  <div class="modal-overlay">
     <div class="modal-sheet" (click)="$event.stopPropagation()">
       <div class="modal-handle">
         <span class="handle-bar"></span>
@@ -717,7 +717,7 @@
 
   <!-- Product questions modal (customization before add to cart) -->
   @if (productToAddWithQuestions()) {
-  <div class="modal-overlay" (click)="cancelQuestionsModal()">
+  <div class="modal-overlay">
     <div class="modal-sheet" (click)="$event.stopPropagation()">
       <div class="modal-handle">
         <span class="handle-bar"></span>
@@ -771,7 +771,7 @@
 
   <!-- PIN Modal -->
   @if (showPinModal()) {
-  <div class="modal-overlay" (click)="cancelPinModal()">
+  <div class="modal-overlay">
     <div class="modal-sheet" (click)="$event.stopPropagation()">
       <div class="modal-handle">
         <span class="handle-bar"></span>
@@ -816,7 +816,7 @@
 
   <!-- Payment Options Sheet -->
   @if (showPaymentOptions()) {
-  <div class="modal-overlay" (click)="closePaymentOptions()">
+  <div class="modal-overlay">
     <div class="modal-sheet payment-options-sheet" (click)="$event.stopPropagation()">
       <div class="modal-handle">
         <span class="handle-bar"></span>
@@ -1020,7 +1020,7 @@
 
   <!-- Stripe Payment Modal -->
   @if (showPaymentModal()) {
-  <div class="modal-overlay" (click)="cancelPayment()">
+  <div class="modal-overlay">
     <div class="modal-sheet payment-modal" (click)="$event.stopPropagation()">
       <div class="modal-handle">
         <span class="handle-bar"></span>

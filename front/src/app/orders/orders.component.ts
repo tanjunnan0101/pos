@@ -701,7 +701,7 @@ ModuleRegistry.registerModules([
 
         <!-- Order Edit Widget Modal (add/remove/change items, billing, print) -->
         @if (editOrder(); as order) {
-          <div class="modal-overlay" (click)="closeOrderEdit()">
+          <div class="modal-overlay">
             <div class="modal modal-order-edit" (click)="$event.stopPropagation()" appFocusFirstInput>
               <div class="modal-header">
                 <h3>{{ 'ORDERS.EDIT_ORDER' | translate }} — #{{ order.id }} {{ order.table_name }}</h3>
@@ -809,7 +809,7 @@ ModuleRegistry.registerModules([
 
         <!-- Print Factura Modal -->
         @if (facturaOrder()) {
-          <div class="modal-overlay" (click)="closeFacturaModal()">
+          <div class="modal-overlay">
             <div class="modal modal-edit-order" (click)="$event.stopPropagation()" appFocusFirstInput>
               <div class="modal-header">
                 <h3>{{ facturaModalEditMode() ? ('ORDERS.EDIT_ORDER' | translate) : ('CUSTOMERS.PRINT_FACTURA' | translate) }}</h3>
@@ -852,7 +852,7 @@ ModuleRegistry.registerModules([
 
         <!-- Mark as Paid / Finish order Modal -->
         @if (orderToMarkPaid()) {
-          <div class="modal-overlay" (click)="closePaymentModal()">
+          <div class="modal-overlay">
             <div class="modal" (click)="$event.stopPropagation()" appFocusFirstInput>
               <div class="modal-header">
                 <h3>{{ paymentModalFinishMode() ? ('ORDERS.FINISH_ORDER_TITLE' | translate) : ('ORDERS.MARK_ORDER_AS_PAID' | translate) }}</h3>

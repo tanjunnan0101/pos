@@ -129,6 +129,14 @@ class Settings(BaseSettings):
         description="Optional full OAuth redirect URL; if empty, derived from PUBLIC_APP_BASE_URL + ROOT_PATH.",
     )
 
+    # Optional vision API for menu photo → product bulk import (Products page)
+    product_vision_api_key: str = Field(default="", validation_alias="PRODUCT_VISION_API_KEY")
+    product_vision_api_url: str = Field(
+        default="https://api.openai.com/v1/chat/completions",
+        validation_alias="PRODUCT_VISION_API_URL",
+    )
+    product_vision_model: str = Field(default="gpt-4o-mini", validation_alias="PRODUCT_VISION_MODEL")
+
     # Production mode (enables secure cookies, stricter CORS, etc.)
     is_production: bool = Field(default=False, validation_alias="PRODUCTION")
 

@@ -21,6 +21,7 @@ import {
       role="dialog"
       aria-modal="true"
       [attr.aria-label]="'PRICING.TITLE' | translate"
+      [attr.aria-describedby]="preview() ? 'ph-preview-panel' : null"
       (click)="onOverlay($event)"
     >
       <div class="pricing-helper-dialog" (click)="$event.stopPropagation()">
@@ -32,175 +33,254 @@ import {
             </svg>
           </button>
         </div>
+
+        <p class="pricing-helper-example">{{ 'PRICING.EXAMPLE_LINE' | translate }}</p>
+
         <div class="pricing-helper-body">
           @if (productId() != null) {
-            <div class="mode-tabs">
-              <button
-                type="button"
-                class="btn"
-                [class.btn-primary]="uiMode === 'recipe'"
-                [class.btn-secondary]="uiMode !== 'recipe'"
-                (click)="setUiMode('recipe')"
-              >
-                {{ 'PRICING.MODE_RECIPE' | translate }}
-              </button>
-              <button
-                type="button"
-                class="btn"
-                [class.btn-primary]="uiMode === 'simulate'"
-                [class.btn-secondary]="uiMode !== 'simulate'"
-                (click)="setUiMode('simulate')"
-              >
-                {{ 'PRICING.MODE_SIMULATE' | translate }}
-              </button>
-            </div>
+            <section class="pricing-helper-section" [attr.aria-label]="'PRICING.SECTION_MODE' | translate">
+              <div class="segmented-control mode-tabs" role="tablist">
+                <button
+                  type="button"
+                  role="tab"
+                  [class.active]="uiMode === 'recipe'"
+                  [attr.aria-selected]="uiMode === 'recipe'"
+                  (click)="setUiMode('recipe')"
+                >
+                  {{ 'PRICING.MODE_RECIPE' | translate }}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  [class.active]="uiMode === 'simulate'"
+                  [attr.aria-selected]="uiMode === 'simulate'"
+                  (click)="setUiMode('simulate')"
+                >
+                  {{ 'PRICING.MODE_SIMULATE' | translate }}
+                </button>
+              </div>
+              <p class="field-hint">{{ modeHintI18n() | translate }}</p>
+            </section>
           }
 
           @if (uiMode === 'simulate') {
-            <div class="form-grid">
-              <div class="full-row">
-                <label class="field-label" for="ph-container-cost">{{ 'PRICING.CONTAINER_TOTAL' | translate }}</label>
-                <input
-                  id="ph-container-cost"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  [(ngModel)]="simContainerCostMajor"
-                  (ngModelChange)="scheduleRefresh()"
-                />
+            <section class="pricing-helper-section" [attr.aria-label]="'PRICING.SECTION_CONTAINER' | translate">
+              <h3 class="pricing-helper-section-title">{{ 'PRICING.SECTION_CONTAINER' | translate }}</h3>
+              <div class="form-grid">
+                <div class="form-group full-row">
+                  <label for="ph-container-cost">{{ 'PRICING.CONTAINER_TOTAL' | translate }}</label>
+                  <input
+                    id="ph-container-cost"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    [(ngModel)]="simContainerCostMajor"
+                    (ngModelChange)="scheduleRefresh()"
+                  />
+                  <small class="field-hint">{{ 'PRICING.CONTAINER_TOTAL_HINT' | translate }}</small>
+                </div>
+                <div class="form-group full-row qty-unit-pair">
+                  <label for="ph-cqty">{{ 'PRICING.CONTAINER_AMOUNT' | translate }}</label>
+                  <div class="qty-unit-row">
+                    <input
+                      id="ph-cqty"
+                      type="number"
+                      step="any"
+                      min="0.0001"
+                      [(ngModel)]="simContainerQty"
+                      (ngModelChange)="scheduleRefresh()"
+                    />
+                    <select
+                      id="ph-cunit"
+                      class="unit-select"
+                      [(ngModel)]="simContainerUnit"
+                      (ngModelChange)="scheduleRefresh()"
+                      [attr.aria-label]="'INVENTORY.ITEMS.UNIT' | translate"
+                    >
+                      @for (u of units; track u) {
+                        <option [value]="u">{{ unitLabel(u) | translate }}</option>
+                      }
+                    </select>
+                  </div>
+                  <small class="field-hint">{{ 'PRICING.CONTAINER_AMOUNT_HINT' | translate }}</small>
+                </div>
+                <div class="form-group full-row qty-unit-pair">
+                  <label for="ph-sqty">{{ 'PRICING.SERVING_SIZE' | translate }}</label>
+                  <div class="qty-unit-row">
+                    <input
+                      id="ph-sqty"
+                      type="number"
+                      step="any"
+                      min="0.0001"
+                      [(ngModel)]="simServingQty"
+                      (ngModelChange)="scheduleRefresh()"
+                    />
+                    <select
+                      id="ph-sunit"
+                      class="unit-select"
+                      [(ngModel)]="simServingUnit"
+                      (ngModelChange)="scheduleRefresh()"
+                      [attr.aria-label]="'INVENTORY.ITEMS.UNIT' | translate"
+                    >
+                      @for (u of units; track u) {
+                        <option [value]="u">{{ unitLabel(u) | translate }}</option>
+                      }
+                    </select>
+                  </div>
+                  <small class="field-hint">{{ 'PRICING.SERVING_SIZE_HINT' | translate }}</small>
+                </div>
               </div>
-              <div>
-                <label class="field-label" for="ph-cqty">{{ 'PRICING.CONTAINER_QTY' | translate }}</label>
-                <input id="ph-cqty" type="number" step="any" min="0.0001" [(ngModel)]="simContainerQty" (ngModelChange)="scheduleRefresh()" />
-              </div>
-              <div>
-                <label class="field-label" for="ph-cunit">{{ 'PRICING.CONTAINER_UNIT' | translate }}</label>
-                <select id="ph-cunit" class="unit-select" [(ngModel)]="simContainerUnit" (ngModelChange)="scheduleRefresh()">
-                  @for (u of units; track u) {
-                    <option [value]="u">{{ u }}</option>
-                  }
-                </select>
-              </div>
-              <div>
-                <label class="field-label" for="ph-sqty">{{ 'PRICING.SERVING_QTY' | translate }}</label>
-                <input id="ph-sqty" type="number" step="any" min="0.0001" [(ngModel)]="simServingQty" (ngModelChange)="scheduleRefresh()" />
-              </div>
-              <div>
-                <label class="field-label" for="ph-sunit">{{ 'PRICING.SERVING_UNIT' | translate }}</label>
-                <select id="ph-sunit" class="unit-select" [(ngModel)]="simServingUnit" (ngModelChange)="scheduleRefresh()">
-                  @for (u of units; track u) {
-                    <option [value]="u">{{ u }}</option>
-                  }
-                </select>
-              </div>
-            </div>
+            </section>
           }
 
-          <div class="target-segments">
-            <button
-              type="button"
-              class="btn btn-sm"
-              [class.btn-primary]="targetKind === 'pour'"
-              [class.btn-secondary]="targetKind !== 'pour'"
-              (click)="setTargetKind('pour')"
-            >
-              {{ 'PRICING.TARGET_POUR_COST' | translate }}
-            </button>
-            <button
-              type="button"
-              class="btn btn-sm"
-              [class.btn-primary]="targetKind === 'margin'"
-              [class.btn-secondary]="targetKind !== 'margin'"
-              (click)="setTargetKind('margin')"
-            >
-              {{ 'PRICING.TARGET_MARGIN' | translate }}
-            </button>
-            <button
-              type="button"
-              class="btn btn-sm"
-              [class.btn-primary]="targetKind === 'markup'"
-              [class.btn-secondary]="targetKind !== 'markup'"
-              (click)="setTargetKind('markup')"
-            >
-              {{ 'PRICING.TARGET_MARKUP' | translate }}
-            </button>
-          </div>
-          <div>
-            <label class="field-label" for="ph-target-val">{{ targetValueLabelI18n() | translate }} (%)</label>
-            <input id="ph-target-val" type="number" step="0.1" [(ngModel)]="targetValue" (ngModelChange)="scheduleRefresh()" />
-          </div>
-          <div class="form-grid">
-            <div>
-              <label class="field-label" for="ph-waste">{{ 'PRICING.WASTE_PCT' | translate }}</label>
-              <input id="ph-waste" type="number" step="0.1" min="0" [(ngModel)]="wastePct" (ngModelChange)="scheduleRefresh()" />
+          <section class="pricing-helper-section" [attr.aria-label]="'PRICING.SECTION_TARGET' | translate">
+            <div class="section-title-row">
+              <h3 class="pricing-helper-section-title">{{ 'PRICING.SECTION_TARGET' | translate }}</h3>
+              <button
+                type="button"
+                class="strategy-info-btn"
+                [attr.aria-label]="'PRICING.STRATEGY_INFO' | translate"
+                [attr.title]="'PRICING.STRATEGY_INFO' | translate"
+              >
+                <span aria-hidden="true">ⓘ</span>
+              </button>
             </div>
-            <div>
-              <label class="field-label" for="ph-extra">{{ 'PRICING.EXTRA_FIXED_COST' | translate }}</label>
-              <input id="ph-extra" type="number" step="0.01" min="0" [(ngModel)]="extraFixedMajor" (ngModelChange)="scheduleRefresh()" />
+            <div class="segmented-control target-segments" role="group">
+              <button
+                type="button"
+                [class.active]="targetKind === 'pour'"
+                (click)="setTargetKind('pour')"
+              >
+                {{ 'PRICING.TARGET_POUR_COST' | translate }}
+              </button>
+              <button
+                type="button"
+                [class.active]="targetKind === 'margin'"
+                (click)="setTargetKind('margin')"
+              >
+                {{ 'PRICING.TARGET_MARGIN' | translate }}
+              </button>
+              <button
+                type="button"
+                [class.active]="targetKind === 'markup'"
+                (click)="setTargetKind('markup')"
+              >
+                {{ 'PRICING.TARGET_MARKUP' | translate }}
+              </button>
             </div>
-            <div class="full-row">
-              <label class="field-label" for="ph-round">{{ 'PRICING.ROUNDING' | translate }}</label>
-              <input id="ph-round" type="number" step="0.01" min="0.01" [(ngModel)]="roundingMajor" (ngModelChange)="scheduleRefresh()" />
+            <p class="field-hint strategy-tab-hint">{{ targetStrategyHintI18n() | translate }}</p>
+            <div class="form-group">
+              <label for="ph-target-val">{{ targetValueLabelI18n() | translate }} (%)</label>
+              <input id="ph-target-val" type="number" step="0.1" [(ngModel)]="targetValue" (ngModelChange)="scheduleRefresh()" />
             </div>
-          </div>
+          </section>
 
-          @if (loading()) {
-            <p>{{ 'COMMON.LOADING' | translate }}</p>
-          } @else if (errorMsg()) {
-            <p class="error-text">{{ errorMsg() }}</p>
-          } @else if (preview()) {
-            <div class="preview-panel">
-              <div class="preview-row">
-                <span>{{ 'PRICING.COST_PER_SERVING' | translate }}</span>
-                <span>{{ formatMoney(preview()!.cost_per_serving_cents) }}</span>
-              </div>
-              <div class="preview-row">
-                <span>{{ 'PRICING.SUGGESTED_PRICE' | translate }}</span>
-                <span>{{ formatMoney(preview()!.suggested_price_cents) }}</span>
-              </div>
-              <div class="preview-row">
-                <span>{{ 'PRICING.PROFIT_PER_SERVING' | translate }}</span>
-                <span>{{ formatMoney(preview()!.profit_per_serving_cents) }}</span>
-              </div>
-              <div class="preview-row">
-                <span>{{ 'PRICING.POUR_RESULT' | translate }}</span>
-                <span>{{ preview()!.pour_cost_pct | number: '1.1-1' }}%</span>
-              </div>
-              <div class="preview-row">
-                <span>{{ 'PRICING.MARGIN_RESULT' | translate }}</span>
-                <span>{{ preview()!.margin_pct | number: '1.1-1' }}%</span>
-              </div>
-              <div class="preview-row">
-                <span>{{ 'PRICING.MARKUP_RESULT' | translate }}</span>
-                <span>{{ preview()!.markup_pct | number: '1.1-1' }}%</span>
-              </div>
-              @if (preview()!.servings_in_container != null) {
-                <div class="preview-row">
-                  <span>{{ 'PRICING.SERVINGS_IN_CONTAINER' | translate }}</span>
-                  <span>{{ preview()!.servings_in_container | number: '1.0-2' }}</span>
-                </div>
-              }
-              @if (preview()!.break_even_servings != null) {
-                <div class="preview-row">
-                  <span>{{ 'PRICING.BREAK_EVEN' | translate }}</span>
-                  <span>{{ preview()!.break_even_servings }}</span>
-                </div>
-              }
-              @if (preview()!.total_profit_if_sold_out_cents != null) {
-                <div class="preview-row">
-                  <span>{{ 'PRICING.TOTAL_PROFIT_IF_SOLD_OUT' | translate }}</span>
-                  <span>{{ formatMoney(preview()!.total_profit_if_sold_out_cents!) }}</span>
-                </div>
-              }
-            </div>
-          }
-
-          <div class="actions-row">
-            <button type="button" class="btn btn-secondary" (click)="closed.emit()">{{ 'COMMON.CANCEL' | translate }}</button>
-            <button type="button" class="btn btn-primary" [disabled]="!preview()" (click)="usePrice()">
-              {{ 'PRICING.USE_THIS_PRICE' | translate }}
+          <section class="pricing-helper-section" [attr.aria-label]="'PRICING.SECTION_ADVANCED' | translate">
+            <button
+              type="button"
+              class="more-options-toggle"
+              [attr.aria-expanded]="advancedOpen"
+              (click)="advancedOpen = !advancedOpen"
+            >
+              <span>{{ 'PRICING.MORE_OPTIONS' | translate }}</span>
+              <svg
+                class="more-options-chevron"
+                [class.open]="advancedOpen"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <polyline points="6,9 12,15 18,9" />
+              </svg>
             </button>
-          </div>
+            @if (advancedOpen) {
+              <div class="form-grid advanced-fields">
+                <div class="form-group">
+                  <label for="ph-waste">{{ 'PRICING.WASTE_PCT' | translate }}</label>
+                  <input id="ph-waste" type="number" step="0.1" min="0" [(ngModel)]="wastePct" (ngModelChange)="scheduleRefresh()" />
+                  <small class="field-hint">{{ 'PRICING.WASTE_PCT_HINT' | translate }}</small>
+                </div>
+                <div class="form-group">
+                  <label for="ph-extra">{{ 'PRICING.EXTRA_FIXED_COST' | translate }}</label>
+                  <input id="ph-extra" type="number" step="0.01" min="0" [(ngModel)]="extraFixedMajor" (ngModelChange)="scheduleRefresh()" />
+                  <small class="field-hint">{{ 'PRICING.EXTRA_FIXED_COST_HINT' | translate }}</small>
+                </div>
+                <div class="form-group full-row">
+                  <label for="ph-round">{{ 'PRICING.ROUNDING' | translate }}</label>
+                  <input id="ph-round" type="number" step="0.01" min="0.01" [(ngModel)]="roundingMajor" (ngModelChange)="scheduleRefresh()" />
+                  <small class="field-hint">{{ 'PRICING.ROUNDING_HINT' | translate }}</small>
+                </div>
+              </div>
+            }
+          </section>
+
+          <section class="pricing-helper-section" [attr.aria-label]="'PRICING.SECTION_RESULTS' | translate">
+            <h3 class="pricing-helper-section-title">{{ 'PRICING.SECTION_RESULTS' | translate }}</h3>
+            @if (loading()) {
+              <p class="status-message">{{ 'COMMON.LOADING' | translate }}</p>
+            } @else if (errorMsg()) {
+              <p class="error-text">{{ errorMsg() }}</p>
+            } @else if (preview()) {
+              <div id="ph-preview-panel" class="preview-panel">
+                <div class="preview-hero">
+                  <span class="preview-hero-label">{{ 'PRICING.SUGGESTED_PRICE' | translate }}</span>
+                  <span class="preview-hero-value">{{ formatMoney(preview()!.suggested_price_cents) }}</span>
+                </div>
+                <hr class="preview-divider" />
+                <div class="preview-metrics">
+                  <div class="preview-row">
+                    <span>{{ 'PRICING.COST_PER_SERVING' | translate }}</span>
+                    <span>{{ formatMoney(preview()!.cost_per_serving_cents) }}</span>
+                  </div>
+                  <div class="preview-row">
+                    <span>{{ 'PRICING.PROFIT_PER_SERVING' | translate }}</span>
+                    <span>{{ formatMoney(preview()!.profit_per_serving_cents) }}</span>
+                  </div>
+                  <div class="preview-row">
+                    <span>{{ 'PRICING.POUR_RESULT' | translate }}</span>
+                    <span>{{ preview()!.pour_cost_pct | number: '1.1-1' }}%</span>
+                  </div>
+                  <div class="preview-row">
+                    <span>{{ 'PRICING.MARGIN_RESULT' | translate }}</span>
+                    <span>{{ preview()!.margin_pct | number: '1.1-1' }}%</span>
+                  </div>
+                  <div class="preview-row">
+                    <span>{{ 'PRICING.MARKUP_RESULT' | translate }}</span>
+                    <span>{{ preview()!.markup_pct | number: '1.1-1' }}%</span>
+                  </div>
+                  @if (preview()!.servings_in_container != null) {
+                    <div class="preview-row">
+                      <span>{{ 'PRICING.SERVINGS_IN_CONTAINER' | translate }}</span>
+                      <span>{{ preview()!.servings_in_container | number: '1.0-2' }}</span>
+                    </div>
+                  }
+                  @if (preview()!.break_even_servings != null) {
+                    <div class="preview-row">
+                      <span>{{ 'PRICING.BREAK_EVEN' | translate }}</span>
+                      <span>{{ preview()!.break_even_servings }}</span>
+                    </div>
+                  }
+                  @if (preview()!.total_profit_if_sold_out_cents != null) {
+                    <div class="preview-row">
+                      <span>{{ 'PRICING.TOTAL_PROFIT_IF_SOLD_OUT' | translate }}</span>
+                      <span>{{ formatMoney(preview()!.total_profit_if_sold_out_cents!) }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </section>
+        </div>
+
+        <div class="pricing-helper-footer">
+          <button type="button" class="btn btn-secondary" (click)="closed.emit()">{{ 'COMMON.CANCEL' | translate }}</button>
+          <button type="button" class="btn btn-primary" [disabled]="!preview()" (click)="usePrice()">
+            {{ 'PRICING.USE_THIS_PRICE' | translate }}
+          </button>
         </div>
       </div>
     </div>
@@ -221,6 +301,7 @@ export class PricingHelperComponent implements OnInit, OnDestroy {
 
   readonly units: UnitOfMeasure[] = [
     'milliliter',
+    'centiliter',
     'liter',
     'fluid_ounce',
     'cup',
@@ -234,6 +315,7 @@ export class PricingHelperComponent implements OnInit, OnDestroy {
 
   uiMode: 'recipe' | 'simulate' = 'recipe';
   targetKind: 'pour' | 'margin' | 'markup' = 'pour';
+  advancedOpen = false;
   targetValue = 25;
   wastePct = 0;
   extraFixedMajor = 0;
@@ -265,10 +347,24 @@ export class PricingHelperComponent implements OnInit, OnDestroy {
     if (this.debounceTimer) clearTimeout(this.debounceTimer);
   }
 
+  unitLabel(unit: UnitOfMeasure): string {
+    return `INVENTORY.UNITS.${unit.toUpperCase()}`;
+  }
+
   targetValueLabelI18n(): string {
     if (this.targetKind === 'margin') return 'PRICING.TARGET_MARGIN';
     if (this.targetKind === 'markup') return 'PRICING.TARGET_MARKUP';
     return 'PRICING.TARGET_POUR_COST';
+  }
+
+  modeHintI18n(): string {
+    return this.uiMode === 'simulate' ? 'PRICING.MODE_SIMULATE_HINT' : 'PRICING.MODE_RECIPE_HINT';
+  }
+
+  targetStrategyHintI18n(): string {
+    if (this.targetKind === 'margin') return 'PRICING.TARGET_MARGIN_HINT';
+    if (this.targetKind === 'markup') return 'PRICING.TARGET_MARKUP_HINT';
+    return 'PRICING.TARGET_POUR_COST_HINT';
   }
 
   onOverlay(ev: MouseEvent): void {

@@ -173,6 +173,30 @@ describe('KitchenDisplayComponent', () => {
     expect(mockApi.getOrders).toHaveBeenCalledWith(false);
   }));
 
+  it('should not show full-page loading on background refresh', fakeAsync(() => {
+    const fixture = TestBed.createComponent(KitchenDisplayComponent);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.loading()).toBe(false);
+    fixture.componentInstance.loadOrders({ background: true });
+    expect(fixture.componentInstance.loading()).toBe(false);
+    tick();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.loading()).toBe(false);
+    expect(mockApi.getOrders).toHaveBeenCalled();
+  }));
+
+  it('should defer background refresh until item status dropdown closes', () => {
+    const fixture = TestBed.createComponent(KitchenDisplayComponent);
+    fixture.detectChanges();
+    mockApi.getOrders.calls.reset();
+    fixture.componentInstance.toggleItemStatusDropdown(1, 1);
+    fixture.componentInstance.loadOrders({ background: true });
+    expect(mockApi.getOrders).not.toHaveBeenCalled();
+    mockApi.getOrders.calls.reset();
+    fixture.componentInstance.toggleItemStatusDropdown(1, 1);
+    expect(mockApi.getOrders).toHaveBeenCalledWith(false);
+  });
+
   it('should call requestFullscreen when toggleFullscreen and not already fullscreen', () => {
     const fixture = TestBed.createComponent(KitchenDisplayComponent);
     fixture.detectChanges();

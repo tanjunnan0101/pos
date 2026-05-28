@@ -104,6 +104,9 @@
                 <option [value]="t" [disabled]="!daySlotSelectable(t)">{{ t }}</option>
               }
             </select>
+            @if (isTodaySelected()) {
+              <p class="book-same-day-time-hint">{{ 'BOOK.SAME_DAY_TIME_HINT' | translate }}</p>
+            }
           }
         </div>
       </div>

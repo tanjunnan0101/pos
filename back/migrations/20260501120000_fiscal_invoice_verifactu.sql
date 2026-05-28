@@ -1,15 +1,20 @@
 -- VeriFactu-ready fiscal invoicing: per-tenant mode and persisted issued documents.
 -- AEAT submission payloads/endpoints are not wired here; see docs/0018-verifactu-fiscal-invoicing.md
+-- Idempotent: safe when fiscal_invoice table exists but tenant columns were never added.
 
-ALTER TABLE tenant ADD COLUMN fiscal_mode VARCHAR(16) NOT NULL DEFAULT 'off';
-ALTER TABLE tenant ADD COLUMN fiscal_invoice_series VARCHAR(32) NOT NULL DEFAULT 'VF';
-ALTER TABLE tenant ADD COLUMN fiscal_invoice_next_number INTEGER NOT NULL DEFAULT 1;
-ALTER TABLE tenant ADD COLUMN fiscal_aeat_api_secret VARCHAR(512) NULL;
+ALTER TABLE tenant ADD COLUMN IF NOT EXISTS fiscal_mode VARCHAR(16) NOT NULL DEFAULT 'off';
+ALTER TABLE tenant ADD COLUMN IF NOT EXISTS fiscal_invoice_series VARCHAR(32) NOT NULL DEFAULT 'VF';
+ALTER TABLE tenant ADD COLUMN IF NOT EXISTS fiscal_invoice_next_number INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE tenant ADD COLUMN IF NOT EXISTS fiscal_aeat_api_secret VARCHAR(512) NULL;
 
-ALTER TABLE tenant ADD CONSTRAINT tenant_fiscal_mode_check
-  CHECK (fiscal_mode IN ('off', 'test', 'live'));
+DO $$ BEGIN
+    ALTER TABLE tenant ADD CONSTRAINT tenant_fiscal_mode_check
+      CHECK (fiscal_mode IN ('off', 'test', 'live'));
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
-CREATE TABLE fiscal_invoice (
+CREATE TABLE IF NOT EXISTS fiscal_invoice (
     id SERIAL PRIMARY KEY,
     tenant_id INTEGER NOT NULL REFERENCES tenant(id),
     order_id INTEGER NOT NULL REFERENCES "order"(id),
@@ -26,4 +31,4 @@ CREATE TABLE fiscal_invoice (
     CONSTRAINT uq_fiscal_invoice_tenant_order UNIQUE (tenant_id, order_id)
 );
 
-CREATE INDEX ix_fiscal_invoice_tenant_id ON fiscal_invoice(tenant_id);
+CREATE INDEX IF NOT EXISTS ix_fiscal_invoice_tenant_id ON fiscal_invoice(tenant_id);

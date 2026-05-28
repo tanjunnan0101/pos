@@ -413,7 +413,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           </div>
           <!-- Add Provider Modal -->
           @if (showAddProviderModal()) {
-            <div class="modal-overlay" (click)="closeAddProviderModal()">
+            <div class="modal-overlay">
               <div class="modal-content" (click)="$event.stopPropagation()" appFocusFirstInput>
                 <div class="modal-header">
                   <h3>{{ 'SETTINGS.ADD_PROVIDER' | translate }}</h3>
@@ -447,7 +447,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           }
           <!-- Edit Personal Provider Modal -->
           @if (showEditProviderModal()) {
-            <div class="modal-overlay" (click)="closeEditProviderModal()">
+            <div class="modal-overlay">
               <div class="modal-content" (click)="$event.stopPropagation()" appFocusFirstInput>
                 <div class="modal-header">
                   <h3>{{ 'SETTINGS.EDIT_PROVIDER' | translate }}</h3>
@@ -489,7 +489,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           }
           <!-- Add Product to Provider Modal -->
           @if (showAddProductModal()) {
-            <div class="modal-overlay" (click)="closeAddProductModal()">
+            <div class="modal-overlay">
               <div class="modal-content" (click)="$event.stopPropagation()" appFocusFirstInput>
                 <div class="modal-header">
                   <h3>{{ 'SETTINGS.ADD_PRODUCT_TO_PROVIDER' | translate }} – {{ selectedProviderForProduct()?.name }}</h3>

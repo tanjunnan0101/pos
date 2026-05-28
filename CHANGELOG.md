@@ -6,13 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 **Versioning:** [Semantic Versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`): incompatible API or behavior → major; backward-compatible features → minor; fixes and small improvements → patch.
 
-## [2.0.84] - 2026-04-21
-
-### Added
-
-- **Reservations / opening hours:** database-backed **planned weekly patterns** (effective from a date) and **date-range overrides** (closed or alternate weekly-style hours); staff manage entries under **Settings → Opening hours**. Public `/reservations/book-*` endpoints and reservation validation resolve **effective hours per calendar date** (#194).
-
 ## [Unreleased]
+
+## [2.0.85] - 2026-05-28
 
 ### Added
 
@@ -22,10 +18,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - **Kitchen / bar displays:** header control to enter **browser fullscreen** (Fullscreen API with `webkit` / `moz` / `ms` fallbacks); exit via the same control, Escape, or leaving the page. Shared **`/kitchen`** and **`/bar`** view (`KitchenDisplayComponent`) (#202).
 - **Settings / marketing — social posts (admin):** **Social posts** tab — compose **image + caption**, **Meta OAuth** (tokens encrypted server-side), **Facebook Page** and **Instagram Business** channels (IG needs **`PUBLIC_APP_BASE_URL`** for Graph image URL), **publish now / schedule**, **history** with per-channel status; background worker publishes due posts (#199).
 - **Settings / delivery marketplaces (admin):** **Integrations** tab for third-party delivery brands; per-tenant **encrypted** API credentials, **test connection** (stub adapters for Uber Eats, Glovo, Deliveroo + sandbox), **catalog mapping** (external item id → POS product), **event log**, and **webhook ingest** URL. Ingested orders use the same **Order** / kitchen flow (no `table_id`); list as **Delivery** in the orders UI (#198).
+- **Products / bulk import:** staff **JSON** bulk import (paste or file) with a read-only **preview** and explicit **confirm** before any rows are saved; optional menu-photo **vision** path feeds the same preview. Preview rows use **category** and **subcategory** dropdowns aligned with the single-product form (#242, #244).
+- **Inventory:** **centiliter (cl)** volume unit — migration, API enum, unit pickers in inventory, purchase orders, and pricing helper (#214).
 
 ### Fixed
 
 - **Public API / tenant discovery:** **`GET /public/tenants`** returned **500** on production when migration **`20260501120000_fiscal_invoice_verifactu`** was pending (ORM loaded **`tenant.fiscal_mode`** before columns existed). Migration SQL is now idempotent (**`IF NOT EXISTS`**); repair partial DBs with **`python -m app.migrate --sync-idempotent`** if needed (#211).
+- **Products / bulk import:** **`POST /products/bulk-import/preview-json`** returned **500** under **`@admin_user_limit()`** because slowapi could not inject rate-limit headers on async handlers without a Starlette **`Response`** parameter (#243).
 
 ### Changed
 
@@ -37,11 +36,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - **Staff UI / sidebar:** tenant **Settings → name** shows on its **own line below** version and commit hash (muted, slightly smaller than version); top logo line is **POS** only; long names ellipsis with full text in `title`. Mobile header stacks **POS** then org name (#197).
 - **API / rate limiting:** centralized SlowAPI helpers in **`back/app/rate_limits.py`**; **`admin_user_limit`** on included routers (**`/inventory`**, **`/reports`** (incl. attendance Excel), **`/staff-contracts`**, **`/staff-contract-templates`**, **`/tenant/data-export`**, **`/tenant/purge`**); **`public_menu_ip_limit`** on public tenant discovery (**`/public/tenants*`**, **`/public/legal-urls`**) and **`GET /internal/validate-table/{table_token}`**. **`docs/0020-rate-limiting-production.md`** updated (#193).
 - Repository: ignored **`claude-session.log`** and **`agents2/001-gh-reviewer/time-of-last-review.txt`** (001 reviewer local stamp) so routine agent runs do not produce recurring diffs; stopped tracking the stamp file in Git.
-- Agents: **`AGENT_COMMITTER_LOCAL`** (default on) and **`AGENT_COMMITTER_USE_CURSOR`** (default off): **`agents2/pos-cursor-loop.sh`** committer runs **`git commit`** / **`git push`** locally when the only dirty paths are **`agents2/001-gh-reviewer/time-of-last-review.txt`**; set **`AGENT_COMMITTER_USE_CURSOR=1`** to run **`040-committer.md`** via **`cursor-agent`** for full **`CHANGELOG.md`** / version handling.
+- Agents: **`agents2/pos-cursor-loop.sh`** committer defaults **`AGENT_COMMITTER_USE_CURSOR=1`** — **`040-committer.md`** via **`cursor-agent`** commits finished work with a human-readable **`CHANGELOG.md`**, **`Refs #N`** in the message, and **`scripts/link-commit-to-github-issues.sh`** comments on linked issues after push; stamp-only **`agents2/001-gh-reviewer/time-of-last-review.txt`** still commits locally (**`AGENT_COMMITTER_LOCAL`**).
 - Agents: **`AGENT_001_LOCAL_LOG_REVIEWER`** (default on): **`agents2/pos-cursor-loop.sh`** skips **`cursor-agent`** for **001** when only Docker log heuristics fire and **`G001_GH_OK=1`** with zero untracked issues; appends a stamp to **`agents2/001-gh-reviewer/time-of-last-review.txt`**; digest and Ollama triage stay local. **`AGENT_001_LOCAL_LOG_REVIEWER=0`** restores **`cursor-agent`** for that case. **`have_cursor_agent`** is checked only when the gate would invoke **`cursor-agent`**.
 - Agents: 001 log triage (**`scripts/agent-ollama-log-triage.sh`**): **Ollama first** by default, then llama.cpp (**`AGENT_001_LLAMA_CPP_FIRST=1`** restores llama-first); one **alternate-backend** attempt if the primary reply is ambiguous; stricter **SKIP**/**ESCALATE** prompt and last-word parse; default **`OLLAMA_MODEL`** **`Gemma4:latest`** (loop passes it explicitly); optional **`AGENT_001_LOG_TRIAGE_DEBUG=1`**; **`docs/agent-loop.md`** updated for triage order and when **`cursor-agent`** still runs for **001**.
 - Agents: GitHub reviewer (001) recorded latest preflight run in `agents2/001-gh-reviewer/time-of-last-review.txt`.
 - Tables floor plan: payment chip on the SVG aligned with the bottom of the table shape; pill and label scale on very small shapes (#188).
+- **Products / pricing helper:** modal restyled with design tokens and labeled sections; **plain labels** with **`field-hint`** copy, dynamic strategy hints, and **More options** for advanced fields; container **quantity + unit** paired on one row (#213, #232, #233).
+- **Products:** price fields use a flex currency cell so the symbol no longer overlaps digits in narrow columns or at high zoom (#231).
+- **Products:** standard subcategory codes (e.g. Fish, Meat) show translated labels in filters, forms, and menu; custom tenant subcategory names stay unchanged (#234).
+- **Inventory / purchase orders:** status **help panel** (ⓘ) on list and detail describing all six statuses, with a **44×44** toggle and partial-receipt hint in the receive modal (#225, #226).
+- **Inventory:** corrected and added i18n for PO placeholders, expected delivery column, detail labels, unit/category dropdowns, friendlier reorder copy, and transaction-type badges in **Recent transactions** (#216–#220, #228).
+- **Inventory / purchase orders:** create modal **Order total** updates live with line edits; **Submit → Approve → Receive** and **cancel** wired on list and detail; status badges share one stylesheet (#223, #224, #229).
+- **Inventory:** amounts format with the tenant **`currency_code`** via **`Intl`** instead of a hardcoded **`$`** (#222).
+- **Inventory:** adjust-stock modal uses segmented controls instead of stretched native radios (#221).
+- **Tables / floor plan:** new tables get non-overlapping default positions with an **overlap** hint on the canvas; **zoom** controls moved clear of the shape palette; palette shape names translated; long seat labels ellipsis inside the sidebar (#238–#240).
+- **Tables / tiles:** equal-height cards with side-by-side session actions; **joined** groups use compact collapsible member rows with per-table QR (#236, #237).
+- **Tables / floor plan:** failed **table-join** API restores the pre-drag layout instead of leaving tables stacked (#235).
+- **Kitchen / bar display:** background poll and WebSocket refresh no longer show full-page loading or close open item-status dropdowns (#230).
+- **Reservations / public book:** choosing **today** defaults to the **next bookable** quarter-hour, not a past morning slot; same-day hint in all locales (#241).
+- **Staff UI:** data-entry modals no longer close on accidental backdrop click; lightweight confirmation dialogs still dismiss on backdrop (#227).
+- **Staff UI / sidebar:** sidebar navigation scroll position preserved across staff route changes (#215).
 
 ### Fixed
 
@@ -53,6 +67,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 - Tables / payments: `GET /tables/with-status` preserves **`payment_status: pending`** when kitchen orders are ready or completed and a bill was still relevant; improved detection of active order and `bill_requested_at` (#189).
 - Orders / tables: staff **mark paid** and **finish order** no longer cleared `bill_requested_at`, so after **unmark paid** the floor plan still showed **payment pending** when a bill had been requested (#190).
+
+## [2.0.84] - 2026-04-21
+
+### Added
+
+- **Reservations / opening hours:** database-backed **planned weekly patterns** (effective from a date) and **date-range overrides** (closed or alternate weekly-style hours); staff manage entries under **Settings → Opening hours**. Public `/reservations/book-*` endpoints and reservation validation resolve **effective hours per calendar date** (#194).
 
 ## [2.0.83] - 2026-04-21
 

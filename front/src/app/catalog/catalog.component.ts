@@ -216,7 +216,7 @@ import { currencySymbolFromIsoCode } from '../shared/currency-symbol';
 
         <!-- Add Product Dialog -->
         @if (selectedItem()) {
-          <div class="modal-overlay" (click)="closeAddDialog()">
+          <div class="modal-overlay">
             <div class="modal-content" (click)="$event.stopPropagation()" appFocusFirstInput>
                <div class="modal-header">
                  <h3>{{ 'CATALOG.ADD_TO_MENU_TITLE' | translate }}</h3>
@@ -342,47 +342,6 @@ import { currencySymbolFromIsoCode } from '../shared/currency-symbol';
       opacity: 0.6;
       cursor: not-allowed;
       background: var(--color-bg);
-    }
-
-    .price-input {
-      display: flex;
-      align-items: stretch;
-      gap: 0;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      background: var(--color-surface);
-    }
-
-    .price-input .currency {
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 2.75rem;
-      padding: 0 var(--space-4);
-      background: var(--color-bg);
-      color: var(--color-text-muted);
-      font-weight: 600;
-      font-size: 0.9375rem;
-      border-right: 1px solid var(--color-border);
-      box-sizing: border-box;
-    }
-
-    .price-input input {
-      flex: 1;
-      min-width: 0;
-      width: auto !important;
-      border: none !important;
-      border-radius: 0 !important;
-      box-shadow: none !important;
-      padding: var(--space-3) var(--space-4);
-      box-sizing: border-box;
-    }
-
-    .price-input input:focus {
-      outline: none;
-      box-shadow: inset 0 0 0 2px var(--color-primary) !important;
     }
 
     .catalog-grid {

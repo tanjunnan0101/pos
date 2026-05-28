@@ -11,7 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { SidebarComponent } from '../../shared/sidebar.component';
 import { InventoryService } from '../inventory.service';
-import { StockLevel, LowStockItem, InventoryCategory } from '../inventory.types';
+import { StockLevel, LowStockItem, InventoryCategory, inventoryUnitKey, inventoryCategoryKey } from '../inventory.types';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
@@ -91,7 +91,7 @@ import { TranslateModule } from '@ngx-translate/core';
             <select [(ngModel)]="categoryFilter" (change)="applyFilter()">
               <option value="">{{ 'INVENTORY.ITEMS.ALL_CATEGORIES' | translate }}</option>
               @for (cat of categories; track cat) {
-                <option [value]="cat">{{ formatCategory(cat) }}</option>
+                <option [value]="cat">{{ categoryKey(cat) | translate }}</option>
               }
             </select>
           </div>
@@ -128,9 +128,9 @@ import { TranslateModule } from '@ngx-translate/core';
                     <tr [class.low-stock-row]="item.is_low_stock">
                       <td class="sku-cell">{{ item.sku }}</td>
                       <td>{{ item.name }}</td>
-                      <td>{{ formatCategory(item.category) }}</td>
+                      <td>{{ categoryKey(item.category) | translate }}</td>
                       <td [class.negative]="item.current_quantity < 0">
-                        {{ item.current_quantity.toFixed(2) }} {{ item.unit }}
+                        {{ item.current_quantity.toFixed(2) }} {{ unitKey(item.unit) | translate }}
                       </td>
                       <td>{{ item.reorder_level.toFixed(2) }}</td>
                       <td>{{ formatCurrency(item.total_value_cents) }}</td>
@@ -162,6 +162,9 @@ export class StockDashboardComponent implements OnInit {
   categoryFilter = '';
 
   categories: InventoryCategory[] = ['ingredients', 'beverages', 'packaging', 'cleaning', 'equipment', 'other'];
+
+  readonly unitKey = inventoryUnitKey;
+  readonly categoryKey = inventoryCategoryKey;
 
   filteredStockLevels = computed(() => {
     let result = this.stockLevels();
@@ -197,9 +200,5 @@ export class StockDashboardComponent implements OnInit {
 
   formatCurrency(cents: number): string {
     return this.inventoryService.formatCurrency(cents);
-  }
-
-  formatCategory(cat: string): string {
-    return cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : '-';
   }
 }

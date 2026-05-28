@@ -439,7 +439,7 @@ function isValidView(v: string | null): v is ViewMode {
       }
 
       @if (showBulkModal()) {
-        <div class="modal-overlay" (click)="closeBulkModal()">
+        <div class="modal-overlay">
           <div class="modal-content modal-content-wide" (click)="$event.stopPropagation()" appFocusFirstInput>
             <div class="modal-header">
               <h3>{{ 'WORKING_PLAN.BULK_MONTH_TITLE' | translate }}</h3>
@@ -522,7 +522,7 @@ function isValidView(v: string | null): v is ViewMode {
       }
 
       @if (showModal()) {
-        <div class="modal-overlay" (click)="closeModal()">
+        <div class="modal-overlay">
           <div
             class="modal-content"
             [class.modal-content-wide]="formSplitShift && !editingShift()"

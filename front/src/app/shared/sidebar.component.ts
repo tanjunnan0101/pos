@@ -1,6 +1,8 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, inject, signal, OnInit, computed, AfterViewInit, OnDestroy, ViewChild, ElementRef, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter } from 'rxjs/operators';
 import { ApiService, TenantUiModuleKey, User } from '../services/api.service';
 import { PermissionService, Permission } from '../services/permission.service';
 import { environment } from '../../environments/environment';
@@ -49,7 +51,7 @@ import { StaffLayoutService } from '../services/staff-layout.service';
           </button>
         </div>
         
-        <nav class="nav">
+        <nav class="nav" #navScroll (scroll)="persistNavScroll()">
            <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link" (click)="closeSidebar()">
              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
@@ -263,13 +265,16 @@ import { StaffLayoutService } from '../services/staff-layout.service';
   `,
   styleUrl: './sidebar.component.scss'
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
   api = inject(ApiService);
   private router = inject(Router);
   private permissions = inject(PermissionService);
   private translate = inject(TranslateService);
+  private destroyRef = inject(DestroyRef);
   tablesArea = inject(TablesAreaPreferenceService);
   staffLayout = inject(StaffLayoutService);
+
+  @ViewChild('navScroll') navScroll?: ElementRef<HTMLElement>;
 
   user = signal<User | null>(null);
   sidebarOpen = signal(false);
@@ -320,6 +325,60 @@ export class SidebarComponent implements OnInit {
     if (this.router.url.startsWith('/inventory')) {
       this.inventoryOpen.set(true);
     }
+
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => this.syncNavScrollAfterRouteChange());
+  }
+
+  ngAfterViewInit() {
+    this.syncNavScrollAfterRouteChange();
+  }
+
+  ngOnDestroy() {
+    this.persistNavScroll();
+  }
+
+  private navScrollStorageKey(): string {
+    const u = this.user();
+    if (!u) return 'anon';
+    return `t${u.tenant_id ?? 'none'}-u${u.id}`;
+  }
+
+  persistNavScroll(): void {
+    const el = this.navScroll?.nativeElement;
+    if (!el) return;
+    this.staffLayout.setNavScrollTop(this.navScrollStorageKey(), el.scrollTop);
+  }
+
+  private syncNavScrollAfterRouteChange(): void {
+    if (this.router.url.startsWith('/inventory')) {
+      this.inventoryOpen.set(true);
+    }
+    requestAnimationFrame(() => {
+      this.restoreNavScroll();
+      this.ensureActiveNavLinkVisible();
+    });
+  }
+
+  private restoreNavScroll(): void {
+    const el = this.navScroll?.nativeElement;
+    if (!el) return;
+    const saved = this.staffLayout.getNavScrollTop(this.navScrollStorageKey());
+    if (saved != null && saved > 0) {
+      el.scrollTop = saved;
+    }
+  }
+
+  private ensureActiveNavLinkVisible(): void {
+    if (this.staffLayout.sidebarCollapsed()) return;
+    const nav = this.navScroll?.nativeElement;
+    if (!nav) return;
+    const active = nav.querySelector<HTMLElement>('.nav-link.active, .nav-sublink.active');
+    active?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
 
   moduleEnabled(key: TenantUiModuleKey): boolean {
@@ -361,6 +420,7 @@ export class SidebarComponent implements OnInit {
   }
 
   closeSidebar() {
+    this.persistNavScroll();
     this.sidebarOpen.set(false);
   }
 

@@ -17,6 +17,9 @@ import {
   styleUrl: './reservation-week-slot-grid.component.scss',
 })
 export class ReservationWeekSlotGridComponent {
+  /** Matches backend `RESERVATION_PUBLIC_MIN_LEAD_MINUTES` for /book and book-day-slots. */
+  private static readonly PUBLIC_BOOK_MIN_LEAD_MINUTES = 10;
+
   private api = inject(ApiService);
   private translate = inject(TranslateService);
 
@@ -142,6 +145,10 @@ export class ReservationWeekSlotGridComponent {
     const states = this.monthStates();
     const sel = this.selectedDate().trim();
     if (sel && states[sel] === 'available') {
+      const ds = this.bookDaySlots();
+      if (ds?.date === sel) {
+        untracked(() => this.ensureTimeFitsDay());
+      }
       return;
     }
     const first = this.firstAvailableDateInMonth(states);
@@ -171,7 +178,8 @@ export class ReservationWeekSlotGridComponent {
           this.calendarYear.set(y);
           this.calendarMonth.set(mo);
           this.selectedDate.set(res.date);
-          this.selectedTime.set(this.roundTimeToQuarter(res.time));
+          // Let day-slots load + ensureTimeFitsDay pick the first bookable slot (avoids rounding API time down).
+          this.selectedTime.set('');
         },
         error: () => {},
       });
@@ -221,20 +229,39 @@ export class ReservationWeekSlotGridComponent {
       });
   }
 
+  /** True when the current time is listed for the day and still bookable (not past / full). */
+  private selectedTimeValidForDay(
+    res: ReservationBookDaySlotsResponse,
+    dateStr: string,
+    timeStr: string,
+  ): boolean {
+    if (!timeStr || res.date !== dateStr) return false;
+    const times = this.dayTimesForSelectedDate(res, dateStr);
+    return times.includes(timeStr) && res.cells[timeStr] === 'available';
+  }
+
+  /** First selectable time for the day (same rules as `dayTimes()` + `available` cells). */
+  private firstBookableTimeForDay(res: ReservationBookDaySlotsResponse, dateStr: string): string {
+    if (res.date !== dateStr) return '';
+    for (const slot of this.dayTimesForSelectedDate(res, dateStr)) {
+      if (res.cells[slot] === 'available') return slot;
+    }
+    return '';
+  }
+
   private ensureTimeFitsDay(): void {
     const res = this.bookDaySlots();
     if (!res) return;
     const dateStr = this.selectedDate().trim();
-    const times = this.dayTimesForSelectedDate(res, dateStr);
+    if (!dateStr) return;
     const t = this.selectedTime().trim();
-    if (t && res.cells[t] === 'available') return;
-    for (const slot of times) {
-      if (res.cells[slot] === 'available') {
-        this.selectedTime.set(slot);
-        return;
-      }
-    }
-    this.selectedTime.set('');
+    if (t && this.selectedTimeValidForDay(res, dateStr, t)) return;
+    this.selectedTime.set(this.firstBookableTimeForDay(res, dateStr));
+  }
+
+  isTodaySelected(): boolean {
+    const d = this.selectedDate().trim();
+    return !!d && d === this.tenantTodayDateStr();
   }
 
   monthDayState(dateStr: string): ReservationBookWeekSlotState | undefined {
@@ -379,7 +406,25 @@ export class ReservationWeekSlotGridComponent {
     if (!dateStr || dateStr !== this.tenantTodayDateStr()) {
       return res.times;
     }
-    return res.times.filter((t) => this.slotState(dateStr, t) !== 'past');
+    const earliest = this.earliestBookableTimeToday();
+    return res.times.filter((t) => {
+      if (res.cells[t] === 'past') return false;
+      return this.compareTimeHHmm(t, earliest) >= 0;
+    });
+  }
+
+  private compareTimeHHmm(a: string, b: string): number {
+    const [ah, am] = a.split(':').map(Number);
+    const [bh, bm] = b.split(':').map(Number);
+    return (ah || 0) * 60 + (am || 0) - ((bh || 0) * 60 + (bm || 0));
+  }
+
+  private earliestBookableTimeToday(): string {
+    const tz = this.timezone()?.trim() || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return this.earliestQuarterHHmmAfterLeadMinutes(
+      ReservationWeekSlotGridComponent.PUBLIC_BOOK_MIN_LEAD_MINUTES,
+      tz,
+    );
   }
 
   daySlotSelectable(timeStr: string): boolean {
@@ -465,13 +510,14 @@ export class ReservationWeekSlotGridComponent {
     return `${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}`;
   }
 
+  /** Snap to the next 15-minute boundary (never round down — avoids past slots for “today”). */
   roundTimeToQuarter(t: string): string {
     if (!t) {
-      const tz = this.timezone()?.trim() || Intl.DateTimeFormat().resolvedOptions().timeZone;
-      return this.earliestQuarterHHmmAfterLeadMinutes(10, tz);
+      return this.earliestBookableTimeToday();
     }
     const [h, m] = t.split(':').map(Number);
-    const quarter = Math.round((h * 60 + (m || 0)) / 15) * 15;
+    const total = (h || 0) * 60 + (m || 0);
+    const quarter = Math.ceil(total / 15) * 15;
     const nh = Math.floor(quarter / 60) % 24;
     const nm = quarter % 60;
     return `${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}`;

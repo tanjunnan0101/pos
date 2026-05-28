@@ -9,6 +9,7 @@ import { environment } from '../../environments/environment';
 import { FocusFirstInputDirective } from '../shared/focus-first-input.directive';
 import { LanguagePickerComponent } from '../shared/language-picker.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { getSubcategoryLabel as resolveSubcategoryLabel } from '../shared/product-subcategory-label.util';
 
 interface CartItem {
   product: Product;
@@ -42,6 +43,7 @@ export class MenuComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private audio = inject(AudioService);
   private sanitizer = inject(DomSanitizer);
+  private translate = inject(TranslateService);
 
   // Core state
   loading = signal(true);
@@ -565,42 +567,7 @@ export class MenuComponent implements OnInit, OnDestroy {
   }
 
   getSubcategoryLabel(subcategoryCode: string): string {
-    const labels: Record<string, string> = {
-      'WINE_RED': 'Tinto',
-      'WINE_WHITE': 'Blanco',
-      'WINE_SPARKLING': 'Espumoso',
-      'WINE_ROSE': 'Rosado',
-      'WINE_SWEET': 'Dulce',
-      'WINE_FORTIFIED': 'Generoso',
-      'WINE_BY_GLASS': 'Por Copas',
-      'HOT_DRINKS': 'Bebidas Calientes',
-      'COLD_DRINKS': 'Bebidas Frías',
-      'ALCOHOLIC': 'Alcohólicas',
-      'NON_ALCOHOLIC': 'Sin Alcohol',
-      'BEER': 'Cerveza',
-      'COCKTAILS': 'Cócteles',
-      'SOFT_DRINKS': 'Refrescos',
-      'APPETIZERS': 'Aperitivos',
-      'SALADS': 'Ensaladas',
-      'SOUPS': 'Sopas',
-      'BREAD_DIPS': 'Pan y Salsas',
-      'MEAT': 'Carne',
-      'FISH': 'Pescado',
-      'POULTRY': 'Aves',
-      'VEGETARIAN': 'Vegetariano',
-      'VEGAN': 'Vegano',
-      'PASTA': 'Pasta',
-      'RICE': 'Arroz',
-      'PIZZA': 'Pizza',
-      'CAKES': 'Pasteles',
-      'ICE_CREAM': 'Helados',
-      'FRUIT': 'Fruta',
-      'CHEESE': 'Queso',
-      'VEGETABLES': 'Verduras',
-      'POTATOES': 'Patatas',
-      'BREAD': 'Pan',
-    };
-    return labels[subcategoryCode] || subcategoryCode;
+    return resolveSubcategoryLabel(subcategoryCode, this.translate);
   }
 
   // ============================================
