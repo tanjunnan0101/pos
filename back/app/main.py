@@ -976,6 +976,33 @@ def get_public_tenant(
     return JSONResponse(content=body)
 
 
+@app.get(
+    "/public/tenants/{tenant_id}/menu",
+    summary="Public tenant menu for marketing websites",
+    tags=["Public"],
+)
+@public_menu_ip_limit()
+def get_public_tenant_menu(
+    request: Request,
+    response: Response,
+    tenant_id: int,
+    session: Session = Depends(get_session),
+    lang: str = Depends(_get_requested_language),
+) -> dict:
+    """
+    Read-only grouped menu for a tenant (no auth).
+
+    Used by external marketing sites. Reuses product visibility rules from
+    ``GET /menu/{table_token}`` (active catalog items, availability window).
+    """
+    from .public_tenant_menu import build_public_tenant_menu
+
+    body = build_public_tenant_menu(session, tenant_id, lang)
+    if body is None:
+        raise HTTPException(status_code=404, detail=api_error_payload("tenant_not_found", lang))
+    return body
+
+
 @app.get("/public/tenants/{tenant_id}/reservation-book-zones")
 @public_menu_ip_limit()
 def get_public_reservation_book_zones(

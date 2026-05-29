@@ -339,6 +339,8 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    const el = this.navScroll?.nativeElement;
+    if (!el || el.scrollTop <= 0) return;
     this.persistNavScroll();
   }
 

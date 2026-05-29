@@ -8,6 +8,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
+## [2.0.86] - 2026-05-29
+
+### Added
+
+- **Public API / marketing:** read-only **`GET /public/tenants/{tenant_id}/menu`** for external marketing sites — grouped categories, optional **`lang`** query, tenant currency and price formatting, product images; no auth; same product visibility rules as the table menu (#250).
+
+### Fixed
+
+- **Staff UI / sidebar:** mobile nav scroll no longer jumps back to the top after changing staff routes — **`ngOnDestroy`** no longer overwrites the saved scroll position with zero when the drawer closes (#215).
+
 ## [2.0.85] - 2026-05-28
 
 ### Added
