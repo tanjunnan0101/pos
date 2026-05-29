@@ -8,6 +8,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
+### Changed
+
+- Agents: archived **WIP-252** after GitHub **#252** closed; **development → master** promotion and green **Deploy to amvara9** remain pending for a future issue (#252).
+
 ## [2.0.86] - 2026-05-29
 
 ### Added
