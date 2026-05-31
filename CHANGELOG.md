@@ -8,9 +8,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
+### Fixed
+
+- **CI / amvara9 deploy:** **Deploy to amvara9** uses forced checkout and **`git clean -fd`** on the server so a dirty working tree (e.g. local edits to **`front/nginx.conf`** or marketing bundles) no longer blocks branch reset during CI (#253).
+
 ### Changed
 
-- Agents: archived **WIP-252** after GitHub **#252** closed; **development → master** promotion and green **Deploy to amvara9** remain pending for a future issue (#252).
+- **Release / production:** Promoted **`development` → `master`** and confirmed green **Deploy to amvara9** on production (**satisfecho.de**, v2.0.86) (#253). Closes the pending promotion noted for #252.
 
 ## [2.0.86] - 2026-05-29
 
