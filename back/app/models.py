@@ -215,6 +215,12 @@ class Tenant(SQLModel, table=True):
     # When clock QR is active, optionally require GPS within tenant latitude/longitude + location_radius_meters
     clock_qr_location_verify: bool = Field(default=False)
 
+    # Spain VeriFactu-oriented fiscal invoicing (server-side issuance; AEAT wiring is separate)
+    fiscal_mode: str = Field(default="off", max_length=16)  # off | test | live
+    fiscal_invoice_series: str = Field(default="VF", max_length=32)
+    fiscal_invoice_next_number: int = Field(default=1)
+    fiscal_aeat_api_secret: str | None = Field(default=None, max_length=512)
+
     users: list["User"] = Relationship(back_populates="tenant")
 
 
@@ -678,6 +684,26 @@ class BillingCustomer(TenantMixin, table=True):
     orders: list["Order"] = Relationship(back_populates="billing_customer")
 
 
+class FiscalInvoice(SQLModel, table=True):
+    """Server-issued fiscal document row for an order (VeriFactu preparation; not a substitute for AEAT filing)."""
+
+    __tablename__ = "fiscal_invoice"
+
+    id: int | None = Field(default=None, primary_key=True)
+    tenant_id: int = Field(foreign_key="tenant.id", index=True)
+    order_id: int = Field(foreign_key="order.id", index=True)
+    series: str = Field(max_length=32)
+    doc_number: int = Field()
+    full_number: str = Field(max_length=64)
+    mode: str = Field(max_length=16)
+    status: str = Field(default="issued", max_length=32)
+    issued_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    request_payload: dict | None = Field(default=None, sa_column=Column(JSONB, nullable=True))
+    response_payload: dict | None = Field(default=None, sa_column=Column(JSONB, nullable=True))
+    verification_qr_content: str = Field(default="", sa_column=Column(Text, nullable=False))
+    verification_text: str = Field(default="", sa_column=Column(Text, nullable=False))
+
+
 class Order(TenantMixin, table=True):
     id: int | None = Field(default=None, primary_key=True)
     # Null when soft-deleted and unlinked, or legacy cleanup; active orders always have a table.
@@ -716,6 +742,12 @@ class Order(TenantMixin, table=True):
 
     # Waiter marked urgent — guest is waiting for food (kitchen/bar display)
     staff_urgent: bool = Field(default=False, index=True)
+
+    # Third-party delivery marketplaces (orders may omit table_id; kitchen uses same Order/OrderItem flow)
+    delivery_integration_id: int | None = Field(
+        default=None, foreign_key="delivery_marketplace_integration.id", index=True
+    )
+    external_order_ref: str | None = Field(default=None, max_length=256, index=True)
     
     items: list["OrderItem"] = Relationship(back_populates="order")
     billing_customer: BillingCustomer | None = Relationship(back_populates="orders")
@@ -1159,6 +1191,11 @@ class TenantUpdate(SQLModel):
     tip_preset_percents: list | None = None
     tip_tax_rate_percent: int | None = Field(default=None, ge=0, le=100)
     tip_entry_mode: str | None = None  # "preset" | "overpayment"
+
+    # VeriFactu / fiscal invoicing (Spain-oriented)
+    fiscal_mode: str | None = Field(default=None, max_length=16)
+    fiscal_invoice_series: str | None = Field(default=None, max_length=32)
+    fiscal_aeat_api_secret: str | None = Field(default=None, max_length=512)
 
 
 class TenantProductCreate(SQLModel):
@@ -1607,3 +1644,137 @@ class OpeningHoursOverrideCreate(SQLModel):
     closed: bool = Field(default=False)
     opening_hours: str | None = None
     note: str | None = Field(default=None, max_length=512)
+
+
+# ============ DELIVERY MARKETPLACE INTEGRATIONS ============
+
+
+class DeliveryMarketplaceIntegration(SQLModel, table=True):
+    """Per-tenant connection to a delivery brand (credentials encrypted at rest)."""
+
+    __tablename__ = "delivery_marketplace_integration"
+
+    id: int | None = Field(default=None, primary_key=True)
+    tenant_id: int = Field(foreign_key="tenant.id", index=True)
+    provider_key: str = Field(max_length=64, index=True)
+    connection_status: str = Field(default="disconnected", max_length=32)
+    credentials_encrypted: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    external_store_id: str | None = Field(default=None, max_length=256)
+    enabled: bool = Field(default=False)
+    webhook_ingest_token: str = Field(max_length=64, unique=True, index=True)
+    last_test_at: datetime | None = None
+    last_test_ok: bool | None = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class DeliveryCatalogMapping(SQLModel, table=True):
+    """Maps external menu SKU to POS product for a given integration."""
+
+    __tablename__ = "delivery_catalog_mapping"
+
+    id: int | None = Field(default=None, primary_key=True)
+    tenant_id: int = Field(foreign_key="tenant.id", index=True)
+    integration_id: int = Field(foreign_key="delivery_marketplace_integration.id", index=True)
+    external_item_id: str = Field(max_length=256)
+    product_id: int | None = Field(default=None, foreign_key="product.id")
+    notes: str | None = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class DeliveryIntegrationEventLog(SQLModel, table=True):
+    """Inbound webhook/API trail and mapping failures (no raw secrets)."""
+
+    __tablename__ = "delivery_integration_event_log"
+
+    id: int | None = Field(default=None, primary_key=True)
+    tenant_id: int = Field(foreign_key="tenant.id", index=True)
+    integration_id: int | None = Field(
+        default=None, foreign_key="delivery_marketplace_integration.id", index=True
+    )
+    provider_key: str = Field(max_length=64)
+    event_type: str = Field(max_length=64)
+    summary: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    detail: dict | None = Field(default=None, sa_column=Column(JSONB, nullable=True))
+    success: bool = Field(default=True)
+    error_message: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class DeliveryIntegrationUpsert(SQLModel):
+    provider_key: str = Field(max_length=64)
+    enabled: bool = False
+    external_store_id: str | None = Field(default=None, max_length=256)
+    credentials: dict | None = None  # replaced server-side; never echoed back
+
+
+class DeliveryCatalogMappingWrite(SQLModel):
+    external_item_id: str = Field(max_length=256)
+    product_id: int | None = None
+    notes: str | None = None
+
+
+# ============ SOCIAL MARKETING (OAuth + scheduled posts) ============
+
+
+class SocialOauthState(SQLModel, table=True):
+    """Short-lived CSRF/state row for OAuth redirect flows."""
+
+    __tablename__ = "social_oauth_state"
+
+    state: str = Field(primary_key=True, max_length=64)
+    tenant_id: int = Field(foreign_key="tenant.id", index=True)
+    user_id: int = Field(foreign_key="user.id", index=True)
+    provider_key: str = Field(max_length=32)
+    redirect_uri: str = Field(default="", sa_column=Column(Text, nullable=False))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class SocialConnection(SQLModel, table=True):
+    """Per-tenant provider connection (tokens encrypted at rest)."""
+
+    __tablename__ = "social_connection"
+
+    id: int | None = Field(default=None, primary_key=True)
+    tenant_id: int = Field(foreign_key="tenant.id", index=True)
+    provider_key: str = Field(max_length=32, index=True)
+    connection_status: str = Field(default="disconnected", max_length=32)
+    oauth_payload_encrypted: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    meta_page_id: str | None = Field(default=None, max_length=64)
+    meta_page_name: str | None = Field(default=None, max_length=512)
+    instagram_account_id: str | None = Field(default=None, max_length=64)
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class SocialPost(SQLModel, table=True):
+    """Composed marketing post (image + caption) with schedule time."""
+
+    __tablename__ = "social_post"
+
+    id: int | None = Field(default=None, primary_key=True)
+    tenant_id: int = Field(foreign_key="tenant.id", index=True)
+    caption: str = Field(default="", sa_column=Column(Text, nullable=False))
+    image_filename: str = Field(max_length=256)
+    schedule_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
+    status: str = Field(default="queued", max_length=32)
+    error_message: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    created_by_user_id: int | None = Field(default=None, foreign_key="user.id")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class SocialPostTarget(SQLModel, table=True):
+    """One row per outbound channel (Meta Page, Instagram Business, …)."""
+
+    __tablename__ = "social_post_target"
+
+    id: int | None = Field(default=None, primary_key=True)
+    social_post_id: int = Field(foreign_key="social_post.id", index=True)
+    channel_key: str = Field(max_length=64)
+    status: str = Field(default="pending", max_length=32)
+    external_id: str | None = Field(default=None, max_length=256)
+    error_message: str | None = Field(default=None, sa_column=Column(Text, nullable=True))

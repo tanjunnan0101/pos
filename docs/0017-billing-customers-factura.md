@@ -54,3 +54,9 @@ Restaurants often need to issue **tax invoices (Factura)** to B2B customers or a
 - **NAV.CUSTOMERS**: “Customers (Factura)” (or equivalent).
 
 Locales: English, Spanish (others can be added following the same keys).
+
+---
+
+## VeriFactu preparation (Spain)
+
+For **server-side fiscal issuance**, tenant **`fiscal_mode`**, persisted fiscal documents, and the **QR / legal text print path**, see **`docs/0018-verifactu-fiscal-invoicing.md`**.

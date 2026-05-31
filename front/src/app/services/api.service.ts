@@ -672,7 +672,124 @@ export interface KitchenStationDefaults {
   default_bar_station_id: number | null;
 }
 
+/** Delivery marketplace (Uber Eats / Glovo / Deliveroo-style) admin integration */
+export interface DeliveryProviderCatalogRow {
+  provider_key: string;
+  display_name: string;
+  configured?: boolean;
+}
+
+export interface DeliveryIntegrationPublic {
+  id: number;
+  tenant_id: number;
+  provider_key: string;
+  display_name: string;
+  connection_status: string;
+  enabled: boolean;
+  external_store_id: string | null;
+  credentials_configured: boolean;
+  webhook_url_hint: string;
+  webhook_ingest_token: string;
+  last_test_at: string | null;
+  last_test_ok: boolean | null;
+  updated_at: string;
+}
+
+export interface DeliveryIntegrationUpsert {
+  provider_key: string;
+  enabled: boolean;
+  external_store_id?: string | null;
+  credentials?: Record<string, unknown> | null;
+}
+
+export interface DeliveryCatalogMappingRow {
+  id?: number;
+  external_item_id: string;
+  product_id: number | null;
+  notes?: string | null;
+}
+
+export interface DeliveryIntegrationEventRow {
+  id: number;
+  event_type: string;
+  summary: string | null;
+  detail: Record<string, unknown> | null;
+  success: boolean;
+  error_message: string | null;
+  created_at: string | null;
+}
+
+/** Marketing — Meta / future networks (Settings → Social posts) */
+export interface SocialChannelInfo {
+  key: string;
+  label: string;
+}
+
+export interface SocialCatalogRow {
+  provider_key: string;
+  display_name: string;
+  channels: SocialChannelInfo[];
+}
+
+export interface SocialConnectionPublic {
+  provider_key: string;
+  connection_status: string;
+  meta_page_name: string | null;
+  instagram_configured: boolean;
+}
+
+export interface SocialPostTargetPublic {
+  channel_key: string;
+  status: string;
+  external_id: string | null;
+  error_message: string | null;
+}
+
+export interface SocialPostPublic {
+  id: number;
+  caption: string;
+  image_url: string;
+  schedule_at: string;
+  status: string;
+  error_message: string | null;
+  created_at: string;
+  targets: SocialPostTargetPublic[];
+}
+
 /** Product customization question (e.g. meat doneness, spice 1–10, multi toppings) */
+export interface ProductBulkImportPreviewRow {
+  row_index: number;
+  name: string;
+  price_cents: number | null;
+  cost_cents?: number | null;
+  category?: string | null;
+  subcategory?: string | null;
+  description?: string | null;
+  ingredients?: string | null;
+  valid: boolean;
+  errors: string[];
+  action: string;
+  existing_product_id?: number | null;
+}
+
+export interface ProductBulkImportPreviewResponse {
+  items: ProductBulkImportPreviewRow[];
+  summary: {
+    total: number;
+    valid: number;
+    invalid: number;
+    create: number;
+    update: number;
+  };
+}
+
+export interface ProductBulkImportConfirmResult {
+  created: number;
+  updated: number;
+  skipped: number;
+  product_ids: number[];
+}
+
 export interface ProductQuestion {
   id: number;
   type: 'choice' | 'scale' | 'text';
@@ -933,6 +1050,20 @@ export interface OrderItem {
   kitchen_station_route?: string | null;
 }
 
+/** Server-issued fiscal invoice metadata (VeriFactu preparation). */
+export interface FiscalInvoicePublic {
+  id: number;
+  order_id: number;
+  series: string;
+  doc_number: number;
+  full_number: string;
+  mode: string;
+  status: string;
+  issued_at: string | null;
+  verification_qr_content: string;
+  verification_text: string;
+}
+
 /** Billing customer for Factura (tax invoice) */
 export interface BillingCustomer {
   id: number;
@@ -1094,6 +1225,10 @@ export interface TenantSettings {
   tip_entry_mode?: 'preset' | 'overpayment' | string | null;
   /** Resolved flags for staff UI modules (GET always expands defaults). */
   ui_modules?: Partial<Record<TenantUiModuleKey, boolean>> | null;
+  /** Spain-oriented fiscal invoicing (VeriFactu preparation): off | test | live */
+  fiscal_mode?: 'off' | 'test' | 'live' | string | null;
+  fiscal_invoice_series?: string | null;
+  fiscal_aeat_api_secret?: string | null;
 }
 
 export interface OrderItemCreate {
@@ -1291,6 +1426,8 @@ export class ApiService {
   private tenantUiModulesResolved = signal(false);
   /** Effective flags after GET /tenant/settings (defaults all true). */
   tenantUiModules = signal<Record<TenantUiModuleKey, boolean>>({ ...DEFAULT_TENANT_UI_MODULES });
+  /** Tenant `name` from settings (staff sidebar branding); cleared on logout. */
+  tenantDisplayName = signal<string | null>(null);
 
   private orderUpdates = new Subject<any>();
   private reservationUpdates = new Subject<any>();
@@ -1433,6 +1570,7 @@ export class ApiService {
     this.userSubject.next(null);
     this.tenantUiModulesResolved.set(false);
     this.tenantUiModules.set({ ...DEFAULT_TENANT_UI_MODULES });
+    this.tenantDisplayName.set(null);
     this.disconnectWebSocket();
     return this.http.post(`${this.apiUrl}/logout`, {}).pipe(
       catchError(() => of(undefined))
@@ -1502,10 +1640,40 @@ export class ApiService {
     return this.http.delete<void>(`${this.apiUrl}/products/${id}`);
   }
 
+  deleteAllProducts(): Observable<{ status: string; count: number }> {
+    return this.http.delete<{ status: string; count: number }>(`${this.apiUrl}/products/all`);
+  }
+
   uploadProductImage(productId: number, file: File): Observable<Product> {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<Product>(`${this.apiUrl}/products/${productId}/image`, formData);
+  }
+
+  getProductBulkImportVisionStatus(): Observable<{ configured: boolean }> {
+    return this.http.get<{ configured: boolean }>(`${this.apiUrl}/products/bulk-import/vision-status`);
+  }
+
+  previewProductBulkImportJson(payload: unknown): Observable<ProductBulkImportPreviewResponse> {
+    return this.http.post<ProductBulkImportPreviewResponse>(
+      `${this.apiUrl}/products/bulk-import/preview-json`,
+      payload
+    );
+  }
+
+  previewProductBulkImportVision(file: File): Observable<ProductBulkImportPreviewResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<ProductBulkImportPreviewResponse>(
+      `${this.apiUrl}/products/bulk-import/vision/preview`,
+      formData
+    );
+  }
+
+  confirmProductBulkImport(items: ProductBulkImportPreviewRow[]): Observable<ProductBulkImportConfirmResult> {
+    return this.http.post<ProductBulkImportConfirmResult>(`${this.apiUrl}/products/bulk-import/confirm`, {
+      items,
+    });
   }
 
   getProductQuestions(productId: number): Observable<ProductQuestionStaff[]> {
@@ -1992,6 +2160,14 @@ export class ApiService {
     );
   }
 
+  issueOrderFiscalInvoice(orderId: number): Observable<FiscalInvoicePublic> {
+    return this.http.post<FiscalInvoicePublic>(`${this.apiUrl}/orders/${orderId}/fiscal-invoice/issue`, {});
+  }
+
+  getOrderFiscalInvoice(orderId: number): Observable<FiscalInvoicePublic> {
+    return this.http.get<FiscalInvoicePublic>(`${this.apiUrl}/orders/${orderId}/fiscal-invoice`);
+  }
+
   setOrderStaffUrgent(orderId: number, urgent: boolean): Observable<{ order_id: number; staff_urgent: boolean }> {
     return this.http.put<{ order_id: number; staff_urgent: boolean }>(
       `${this.apiUrl}/orders/${orderId}/staff-urgent`,
@@ -2253,13 +2429,24 @@ export class ApiService {
 
   // Tenant Settings
   getTenantSettings(): Observable<TenantSettings> {
-    return this.http
-      .get<TenantSettings>(`${this.apiUrl}/tenant/settings`)
-      .pipe(tap((s) => this.applyTenantUiModulesFromSettings(s)));
+    return this.http.get<TenantSettings>(`${this.apiUrl}/tenant/settings`).pipe(
+      tap((s) => {
+        this.applyTenantUiModulesFromSettings(s);
+        const n = typeof s?.name === 'string' ? s.name.trim() : '';
+        this.tenantDisplayName.set(n || null);
+      })
+    );
   }
 
   updateTenantSettings(settings: Partial<TenantSettings>): Observable<TenantSettings> {
-    return this.http.put<TenantSettings>(`${this.apiUrl}/tenant/settings`, settings);
+    return this.http.put<TenantSettings>(`${this.apiUrl}/tenant/settings`, settings).pipe(
+      tap((s) => {
+        if (typeof s?.name === 'string') {
+          const n = s.name.trim();
+          this.tenantDisplayName.set(n || null);
+        }
+      })
+    );
   }
 
   getOpeningHoursSchedule(): Observable<OpeningHoursScheduleResponse> {
@@ -2318,6 +2505,90 @@ export class ApiService {
 
   updateKitchenStationDefaults(body: Partial<KitchenStationDefaults>): Observable<KitchenStationDefaults> {
     return this.http.put<KitchenStationDefaults>(`${this.apiUrl}/tenant/kitchen-station-defaults`, body);
+  }
+
+  getDeliveryIntegrationCatalog(): Observable<DeliveryProviderCatalogRow[]> {
+    return this.http.get<DeliveryProviderCatalogRow[]>(`${this.apiUrl}/tenant/delivery-integrations/catalog`);
+  }
+
+  getDeliveryIntegrations(): Observable<DeliveryIntegrationPublic[]> {
+    return this.http.get<DeliveryIntegrationPublic[]>(`${this.apiUrl}/tenant/delivery-integrations`);
+  }
+
+  upsertDeliveryIntegration(body: DeliveryIntegrationUpsert): Observable<DeliveryIntegrationPublic> {
+    return this.http.put<DeliveryIntegrationPublic>(`${this.apiUrl}/tenant/delivery-integrations`, body);
+  }
+
+  testDeliveryIntegration(integrationId: number): Observable<{ ok: boolean; message: string }> {
+    return this.http.post<{ ok: boolean; message: string }>(
+      `${this.apiUrl}/tenant/delivery-integrations/${integrationId}/test`,
+      {}
+    );
+  }
+
+  getDeliveryMappings(integrationId: number): Observable<DeliveryCatalogMappingRow[]> {
+    return this.http.get<DeliveryCatalogMappingRow[]>(
+      `${this.apiUrl}/tenant/delivery-integrations/${integrationId}/mappings`
+    );
+  }
+
+  putDeliveryMappings(integrationId: number, mappings: DeliveryCatalogMappingRow[]): Observable<{ ok: boolean; count: number }> {
+    return this.http.put<{ ok: boolean; count: number }>(
+      `${this.apiUrl}/tenant/delivery-integrations/${integrationId}/mappings`,
+      { mappings }
+    );
+  }
+
+  getDeliveryIntegrationEvents(integrationId: number, limit = 50): Observable<DeliveryIntegrationEventRow[]> {
+    return this.http.get<DeliveryIntegrationEventRow[]>(
+      `${this.apiUrl}/tenant/delivery-integrations/${integrationId}/events`,
+      { params: { limit: String(limit) } }
+    );
+  }
+
+  getSocialCatalog(): Observable<SocialCatalogRow[]> {
+    return this.http.get<SocialCatalogRow[]>(`${this.apiUrl}/tenant/social/catalog`);
+  }
+
+  getSocialConnections(): Observable<SocialConnectionPublic[]> {
+    return this.http.get<SocialConnectionPublic[]>(`${this.apiUrl}/tenant/social/connections`);
+  }
+
+  postSocialMetaAuthorizeUrl(): Observable<{ authorize_url: string }> {
+    return this.http.post<{ authorize_url: string }>(
+      `${this.apiUrl}/tenant/social/oauth/meta/authorize-url`,
+      {}
+    );
+  }
+
+  disconnectSocialProvider(providerKey: string): Observable<{ ok: boolean }> {
+    return this.http.delete<{ ok: boolean }>(
+      `${this.apiUrl}/tenant/social/connections/${encodeURIComponent(providerKey)}`
+    );
+  }
+
+  getSocialPosts(limit = 50): Observable<SocialPostPublic[]> {
+    return this.http.get<SocialPostPublic[]>(`${this.apiUrl}/tenant/social/posts`, {
+      params: { limit: String(limit) },
+    });
+  }
+
+  createSocialPost(opts: {
+    caption: string;
+    channels: string[];
+    publishNow: boolean;
+    scheduleAtIso?: string;
+    image: File;
+  }): Observable<SocialPostPublic> {
+    const fd = new FormData();
+    fd.append('caption', opts.caption);
+    fd.append('channels_json', JSON.stringify(opts.channels));
+    fd.append('publish_now', opts.publishNow ? 'true' : 'false');
+    if (opts.scheduleAtIso) {
+      fd.append('schedule_at_iso', opts.scheduleAtIso);
+    }
+    fd.append('image', opts.image, opts.image.name);
+    return this.http.post<SocialPostPublic>(`${this.apiUrl}/tenant/social/posts`, fd);
   }
 
   getKitchenDisplaySettings(): Observable<{ yellow_minutes: number; orange_minutes: number; red_minutes: number }> {

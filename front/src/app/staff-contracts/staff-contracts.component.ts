@@ -94,7 +94,7 @@ import { FocusFirstInputDirective } from '../shared/focus-first-input.directive'
         }
 
         @if (showModal()) {
-          <div class="modal-overlay" (click)="closeModal()">
+          <div class="modal-overlay">
             <div class="modal" (click)="$event.stopPropagation()" appFocusFirstInput>
               <div class="modal-header">
                 <h2>{{ editing() ? ('CONTRACTS.EDIT' | translate) : ('CONTRACTS.ADD' | translate) }}</h2>

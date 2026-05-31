@@ -4,10 +4,14 @@
  * API service for inventory management operations.
  */
 
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { ApiService } from '../services/api.service';
+import { currencySymbolFromIsoCode } from '../shared/currency-symbol';
+import { intlLocaleFromTranslate } from '../shared/intl-locale';
 import {
     InventoryItem,
     InventoryItemCreate,
@@ -38,7 +42,34 @@ import {
 })
 export class InventoryService {
     private http = inject(HttpClient);
+    private api = inject(ApiService);
+    private translate = inject(TranslateService);
     private apiUrl = `${environment.apiUrl}/inventory`;
+    private currencyCode = signal<string | null>(null);
+    private currencyFallback = signal('€');
+    private intlRevision = signal(0);
+
+    constructor() {
+        this.translate.onLangChange.subscribe(() => this.intlRevision.update((n) => n + 1));
+        this.loadTenantCurrency();
+    }
+
+    private loadTenantCurrency(): void {
+        this.api.getTenantSettings().subscribe({
+            next: (settings) => {
+                const code = settings.currency_code || null;
+                this.currencyCode.set(code);
+                if (code) {
+                    this.currencyFallback.set(currencySymbolFromIsoCode(this.translate, code));
+                } else {
+                    this.currencyFallback.set(settings.currency || '€');
+                }
+            },
+            error: () => {
+                this.currencyFallback.set('€');
+            },
+        });
+    }
 
     // ============ INVENTORY ITEMS ============
 
@@ -214,8 +245,18 @@ export class InventoryService {
 
     // ============ UTILITY METHODS ============
 
-    formatCurrency(cents: number, currencySymbol = '$'): string {
-        return `${currencySymbol}${(cents / 100).toFixed(2)}`;
+    formatCurrency(cents: number): string {
+        void this.intlRevision();
+        const code = this.currencyCode();
+        const locale = intlLocaleFromTranslate(this.translate);
+        if (code) {
+            return new Intl.NumberFormat(locale, {
+                style: 'currency',
+                currency: code,
+                currencyDisplay: 'symbol',
+            }).format(cents / 100);
+        }
+        return `${this.currencyFallback()}${(cents / 100).toFixed(2)}`;
     }
 
     formatQuantity(quantity: number, unit: string): string {

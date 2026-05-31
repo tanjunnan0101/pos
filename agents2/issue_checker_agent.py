@@ -13,24 +13,37 @@ TASKS_DIR = os.path.join(TEMP_DIR, 'tasks')
 
 
 def has_task_file(issue_num):
-    """Check if any FEAT-{issue_num}-*.md exists."""
-    if not os.path.exists(TASKS_DIR):
-        return False
-    return any(
-        f.startswith(f"FEAT-{issue_num}-")
-        for f in os.listdir(TASKS_DIR)
-    )
+    """True if issue is already queued (FEAT/WIP) or archived (CLOSED in done/)."""
+    prefix = f"{issue_num}-"
+    if os.path.exists(TASKS_DIR):
+        for name in os.listdir(TASKS_DIR):
+            if name.startswith(f"FEAT-{prefix}") or name.startswith(f"WIP-{prefix}"):
+                return True
+    done_root = os.path.join(TASKS_DIR, "done")
+    if os.path.isdir(done_root):
+        for root, _dirs, files in os.walk(done_root):
+            for name in files:
+                if name.startswith(f"CLOSED-{prefix}") and name.endswith(".md"):
+                    return True
+    return False
+
+
+GH_REPO = 'satisfecho/pos'
 
 
 def get_open_issues():
-    """Get list of OPEN GitHub issues."""
+    """Get list of OPEN GitHub issues (with labels for 001 sweep rules)."""
     try:
         result = subprocess.run(
-            ['gh', 'issue', 'list', '--json', 'number,title,url'],
+            [
+                'gh', 'issue', 'list', '--repo', GH_REPO,
+                '--state', 'open', '--limit', '40',
+                '--json', 'number,title,url,labels',
+            ],
             capture_output=True, text=True, check=True
         )
         return json.loads(result.stdout)
-    except:
+    except Exception:
         return []
 
 
@@ -38,7 +51,7 @@ def fetch_issue_details(issue_num):
     """Get full issue details."""
     try:
         result = subprocess.run(
-            ['gh', 'issue', 'view', str(issue_num), '--json', 'body,state,title,url,labels,createdAt'],
+            ['gh', 'issue', 'view', str(issue_num), '--repo', GH_REPO, '--json', 'body,state,title,url,labels,createdAt'],
             capture_output=True, text=True, check=True, timeout=30
         )
         data = json.loads(result.stdout)
@@ -172,14 +185,32 @@ def run_workflow():
     # Check existing files
     print(f"\nChecking for existing task files...")
     
-    # Create tasks for missing ones
+    # Create tasks for issues that pass 001-gh-reviewer §2 (dedupe + skip agent:planned)
     created_count = 0
-    if open_count and created_count == 0:
-        # All open issues need tasks
-        print(f"\nCreating task files for {open_count} open issue(s)...")
-        for issue in issues:
-            # Create file
-            filepath = create_task(issue)
+    to_create = []
+    for issue in issues:
+        num = issue['number']
+        labels = issue.get('labels') or []
+        if any(l.get('name') == 'agent:planned' for l in labels):
+            print(f"\n  ⏭ SKIP #{num}: labeled agent:planned (001 sweep)")
+            continue
+        if has_task_file(num):
+            print(f"\n  ⏭ SKIP #{num}: FEAT-{num}-*.md already in tasks/")
+            continue
+        details = fetch_issue_details(num)
+        if not details:
+            print(f"\n  ⏭ SKIP #{num}: could not fetch issue details")
+            continue
+        body = (details.get('body') or '').lower()
+        if 'task planned' in body or 'agent 001' in body:
+            print(f"\n  ⏭ SKIP #{num}: body mentions Task planned / Agent 001")
+            continue
+        to_create.append({**issue, **details})
+
+    if to_create:
+        print(f"\nCreating task files for {len(to_create)} open issue(s)...")
+        for merged in to_create:
+            filepath = create_task(merged)
             print(f"  → Created: {os.path.basename(filepath)}")
             created_count += 1
     

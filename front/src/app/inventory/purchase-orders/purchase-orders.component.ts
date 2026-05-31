@@ -6,6 +6,8 @@
  */
 
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { startWith } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
@@ -20,7 +22,15 @@ import {
   Supplier,
   InventoryItem,
   UnitOfMeasure,
+  inventoryUnitKey,
 } from '../inventory.types';
+import {
+  canCancelPurchaseOrder,
+  cancelPurchaseOrderViaStatusEndpoint,
+  purchaseOrderActionLabelKey,
+  purchaseOrderTransitionTargets,
+  canReceivePurchaseOrder,
+} from './purchase-order-status.util';
 
 @Component({
   selector: 'app-purchase-orders',
@@ -65,6 +75,34 @@ import {
           </select>
         </div>
 
+        <div class="status-help-bar">
+          <button
+            type="button"
+            class="icon-btn status-help-toggle"
+            [attr.aria-expanded]="showStatusHelp()"
+            [attr.aria-controls]="'po-status-help-panel'"
+            [attr.aria-label]="'INVENTORY.PURCHASE_ORDERS.STATUS_HELP_TOGGLE' | translate"
+            (click)="toggleStatusHelp()"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4M12 8h.01"/>
+            </svg>
+          </button>
+          @if (showStatusHelp()) {
+            <div id="po-status-help-panel" class="status-help-panel" role="region" [attr.aria-label]="'INVENTORY.PURCHASE_ORDERS.STATUS_HELP_TITLE' | translate">
+              @for (status of statuses; track status) {
+                <div class="status-help-item">
+                  <span class="status-badge" [class]="status">
+                    {{ 'INVENTORY.PURCHASE_ORDERS.STATUS_' + status.toUpperCase() | translate }}
+                  </span>
+                  <p>{{ 'INVENTORY.PURCHASE_ORDERS.STATUS_HELP_' + status.toUpperCase() | translate }}</p>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
         @if (loading()) {
           <div class="empty-state"><p>{{ 'INVENTORY.PURCHASE_ORDERS.LOADING' | translate }}</p></div>
         } @else if (orders().length === 0) {
@@ -87,7 +125,7 @@ import {
                   <th>{{ 'INVENTORY.PURCHASE_ORDERS.ORDER_NUMBER' | translate }}</th>
                   <th>{{ 'INVENTORY.SUPPLIERS.SUPPLIER' | translate }}</th>
                   <th>{{ 'INVENTORY.REPORTS.DATE' | translate }}</th>
-                  <th>{{ 'INVENTORY.PURCHASE_ORDERS.EXPECTED_DATE' | translate }}</th>
+                  <th>{{ 'INVENTORY.PURCHASE_ORDERS.EXPECTED_DELIVERY' | translate }}</th>
                   <th>{{ 'INVENTORY.COMMON.TOTAL' | translate }}</th>
                   <th>{{ 'INVENTORY.ITEMS.STATUS' | translate }}</th>
                   <th></th>
@@ -107,6 +145,25 @@ import {
                       </span>
                     </td>
                     <td class="actions">
+                      @for (target of transitionTargets(po.status); track target) {
+                        <button
+                          type="button"
+                          class="btn btn-secondary btn-sm po-row-action"
+                          [disabled]="statusUpdatingId() === po.id"
+                          (click)="transitionOrder(po, target)"
+                        >
+                          {{ purchaseOrderActionLabelKey(target) | translate }}
+                        </button>
+                      }
+                      @if (canReceive(po.status)) {
+                        <a
+                          [routerLink]="['/inventory/purchase-orders', po.id]"
+                          [queryParams]="{ receive: '1' }"
+                          class="btn btn-primary btn-sm po-row-action"
+                        >
+                          {{ 'INVENTORY.PURCHASE_ORDERS.RECEIVE_GOODS' | translate }}
+                        </a>
+                      }
                       <button class="icon-btn" [title]="'INVENTORY.PURCHASE_ORDERS.PRINT_PDF' | translate" (click)="downloadPdf(po)">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <polyline points="6 9 6 2 18 2 18 9"/>
@@ -120,8 +177,13 @@ import {
                           <circle cx="12" cy="12" r="3"/>
                         </svg>
                       </a>
-                      @if (po.status === 'draft') {
-                        <button class="icon-btn icon-btn-danger" [title]="'INVENTORY.COMMON.CANCEL' | translate" (click)="cancelOrder(po)">
+                      @if (canCancel(po.status)) {
+                        <button
+                          class="icon-btn icon-btn-danger"
+                          [title]="'INVENTORY.COMMON.CANCEL' | translate"
+                          [disabled]="statusUpdatingId() === po.id"
+                          (click)="cancelOrder(po)"
+                        >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M18 6L6 18M6 6l12 12"/>
                           </svg>
@@ -138,7 +200,7 @@ import {
 
       <!-- Create PO Modal -->
       @if (showCreateModal()) {
-        <div class="modal-overlay" (click)="closeModal()">
+        <div class="modal-overlay">
           <div class="modal modal-lg" (click)="$event.stopPropagation()" appFocusFirstInput>
             <div class="form-header">
               <h3>{{ 'INVENTORY.PURCHASE_ORDERS.CREATE_TITLE' | translate }}</h3>
@@ -153,7 +215,7 @@ import {
                 <div class="form-group">
                   <label for="supplier_id">{{ 'INVENTORY.SUPPLIERS.SUPPLIER' | translate }} *</label>
                   <select id="supplier_id" formControlName="supplier_id" (change)="onSupplierChange()">
-                    <option value="">-- {{ 'INVENTORY.COMMON.SELECT' | translate }} --</option>
+                    <option value="">-- {{ 'COMMON.SELECT' | translate }} --</option>
                     @for (supplier of suppliers(); track supplier.id) {
                       <option [value]="supplier.id">{{ supplier.name }}</option>
                     }
@@ -192,7 +254,7 @@ import {
                         <div class="item-select">
                           <label>{{ 'INVENTORY.ITEMS.NAME' | translate }}</label>
                           <select formControlName="inventory_item_id" (change)="onItemSelected(i)">
-                            <option value="">-- {{ 'INVENTORY.COMMON.SELECT' | translate }} --</option>
+                            <option value="">-- {{ 'COMMON.SELECT' | translate }} --</option>
                             @for (invItem of filteredInventoryItems(); track invItem.id) {
                               <option [value]="invItem.id">{{ invItem.name }} ({{ invItem.sku }})</option>
                             }
@@ -206,7 +268,7 @@ import {
                           <label>{{ 'INVENTORY.ITEMS.UNIT' | translate }}</label>
                           <select formControlName="unit">
                             @for (unit of units; track unit) {
-                              <option [value]="unit">{{ formatUnit(unit) }}</option>
+                              <option [value]="unit">{{ unitKey(unit) | translate }}</option>
                             }
                           </select>
                         </div>
@@ -259,12 +321,21 @@ export class PurchaseOrdersComponent implements OnInit {
   loading = signal(true);
   saving = signal(false);
   showCreateModal = signal(false);
+  showStatusHelp = signal(false);
+  statusUpdatingId = signal<number | null>(null);
+
+  readonly transitionTargets = purchaseOrderTransitionTargets;
+  readonly purchaseOrderActionLabelKey = purchaseOrderActionLabelKey;
+  readonly canReceive = canReceivePurchaseOrder;
+  readonly canCancel = canCancelPurchaseOrder;
 
   statusFilter = '';
   supplierFilter = '';
 
   statuses: PurchaseOrderStatus[] = ['draft', 'submitted', 'approved', 'partially_received', 'received', 'cancelled'];
-  units: UnitOfMeasure[] = ['piece', 'gram', 'kilogram', 'ounce', 'pound', 'milliliter', 'liter', 'fluid_ounce', 'cup', 'gallon'];
+  units: UnitOfMeasure[] = ['piece', 'gram', 'kilogram', 'ounce', 'pound', 'milliliter', 'centiliter', 'liter', 'fluid_ounce', 'cup', 'gallon'];
+
+  readonly unitKey = inventoryUnitKey;
 
   createForm: FormGroup = this.fb.group({
     supplier_id: ['', Validators.required],
@@ -277,7 +348,14 @@ export class PurchaseOrdersComponent implements OnInit {
     return this.createForm.get('items') as FormArray;
   }
 
+  /** Re-run footer total when reactive form values change (computed alone does not track FormControl edits). */
+  private readonly createFormValues = toSignal(
+    this.createForm.valueChanges.pipe(startWith(this.createForm.getRawValue())),
+    { initialValue: this.createForm.getRawValue() },
+  );
+
   orderTotal = computed(() => {
+    this.createFormValues();
     let total = 0;
     for (let i = 0; i < this.itemsArray.length; i++) {
       total += this.getItemTotal(i);
@@ -329,6 +407,10 @@ export class PurchaseOrdersComponent implements OnInit {
       },
       error: (err) => console.error('Failed to load inventory items:', err)
     });
+  }
+
+  toggleStatusHelp() {
+    this.showStatusHelp.update((open) => !open);
   }
 
   openCreateModal() {
@@ -411,12 +493,36 @@ export class PurchaseOrdersComponent implements OnInit {
     });
   }
 
-  cancelOrder(po: PurchaseOrder) {
-    if (!confirm(this.translate.instant('INVENTORY.PURCHASE_ORDERS.CANCEL_CONFIRM', { number: po.order_number }))) return;
-    this.inventoryService.cancelPurchaseOrder(po.id).subscribe({
-      next: () => this.loadOrders(),
-      error: () => { }
+  transitionOrder(po: PurchaseOrder, newStatus: PurchaseOrderStatus) {
+    this.statusUpdatingId.set(po.id);
+    this.inventoryService.updatePurchaseOrderStatus(po.id, newStatus).subscribe({
+      next: () => {
+        this.statusUpdatingId.set(null);
+        this.loadOrders();
+      },
+      error: () => {
+        this.statusUpdatingId.set(null);
+        alert(this.translate.instant('INVENTORY.PURCHASE_ORDERS.STATUS_UPDATE_ERROR'));
+      },
     });
+  }
+
+  cancelOrder(po: PurchaseOrder) {
+    if (!confirm(this.translate.instant('INVENTORY.PURCHASE_ORDERS.CANCEL_CONFIRM', { orderNumber: po.order_number }))) return;
+    this.statusUpdatingId.set(po.id);
+    const done = () => {
+      this.statusUpdatingId.set(null);
+      this.loadOrders();
+    };
+    const failed = () => {
+      this.statusUpdatingId.set(null);
+      alert(this.translate.instant('INVENTORY.PURCHASE_ORDERS.STATUS_UPDATE_ERROR'));
+    };
+    if (cancelPurchaseOrderViaStatusEndpoint(po.status)) {
+      this.inventoryService.updatePurchaseOrderStatus(po.id, 'cancelled').subscribe({ next: done, error: failed });
+    } else {
+      this.inventoryService.cancelPurchaseOrder(po.id).subscribe({ next: done, error: failed });
+    }
   }
 
   downloadPdf(po: PurchaseOrder) {
@@ -441,9 +547,5 @@ export class PurchaseOrdersComponent implements OnInit {
 
   formatCurrency(cents: number): string {
     return this.inventoryService.formatCurrency(cents);
-  }
-
-  formatUnit(unit: string): string {
-    return unit.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 }

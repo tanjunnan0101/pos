@@ -21,6 +21,8 @@ import {
   Supplier,
   UnitOfMeasure,
   InventoryCategory,
+  inventoryUnitKey,
+  inventoryCategoryKey,
 } from '../inventory.types';
 
 @Component({
@@ -63,7 +65,7 @@ import {
           <select [(ngModel)]="categoryFilter" (change)="filterItems()">
             <option value="">{{ 'INVENTORY.ITEMS.ALL_CATEGORIES' | translate }}</option>
             @for (cat of categories; track cat) {
-              <option [value]="cat">{{ formatCategory(cat) }}</option>
+              <option [value]="cat">{{ categoryKey(cat) | translate }}</option>
             }
           </select>
           <label class="checkbox-filter">
@@ -140,9 +142,9 @@ import {
                         <small class="text-muted">{{ item.description }}</small>
                       }
                     </td>
-                    <td>{{ item.category ? formatCategory(item.category) : '-' }}</td>
+                    <td>{{ item.category ? (categoryKey(item.category) | translate) : '-' }}</td>
                     <td [class.negative]="(item.current_quantity || 0) < 0">
-                      {{ (item.current_quantity || 0).toFixed(2) }} {{ item.unit || '' }}
+                      {{ (item.current_quantity || 0).toFixed(2) }} {{ item.unit ? (unitKey(item.unit) | translate) : '' }}
                     </td>
                     <td>{{ (item.reorder_level || 0).toFixed(2) }}</td>
                     <td>{{ formatCurrency(item.average_cost_cents || 0) }}</td>
@@ -184,7 +186,7 @@ import {
 
       <!-- Create/Edit Modal -->
       @if (showItemModal()) {
-        <div class="modal-overlay" (click)="closeModals()">
+        <div class="modal-overlay">
           <div class="modal" (click)="$event.stopPropagation()" appFocusFirstInput>
             <div class="form-header">
               <h3>{{ editingItem() ? ('INVENTORY.ITEMS.EDIT_ITEM' | translate) : ('INVENTORY.ITEMS.NEW_ITEM' | translate) }}</h3>
@@ -214,7 +216,7 @@ import {
                   <label for="unit">{{ 'INVENTORY.ITEMS.UNIT' | translate }}</label>
                   <select id="unit" formControlName="unit">
                     @for (unit of units; track unit) {
-                      <option [value]="unit">{{ formatUnit(unit) }}</option>
+                      <option [value]="unit">{{ unitKey(unit) | translate }}</option>
                     }
                   </select>
                 </div>
@@ -222,7 +224,7 @@ import {
                   <label for="category">{{ 'INVENTORY.ITEMS.CATEGORY' | translate }}</label>
                   <select id="category" formControlName="category">
                     @for (cat of categories; track cat) {
-                      <option [value]="cat">{{ formatCategory(cat) }}</option>
+                      <option [value]="cat">{{ categoryKey(cat) | translate }}</option>
                     }
                   </select>
                 </div>
@@ -267,7 +269,7 @@ import {
 
       <!-- Stock Adjustment Modal -->
       @if (showAdjustModal()) {
-        <div class="modal-overlay" (click)="closeModals()">
+        <div class="modal-overlay">
           <div class="modal modal-sm" (click)="$event.stopPropagation()" appFocusFirstInput>
             <div class="form-header">
               <h3>{{ 'INVENTORY.ITEMS.ADJUST_STOCK' | translate }}</h3>
@@ -280,25 +282,41 @@ import {
             <form [formGroup]="adjustForm" (ngSubmit)="submitAdjustment()">
               <div class="adjust-item-info">
                 <strong>{{ adjustingItem()?.name }}</strong>
-                <span>{{ 'INVENTORY.ITEMS.CURRENT' | translate }}: {{ adjustingItem()?.current_quantity?.toFixed(2) }} {{ adjustingItem()?.unit }}</span>
+                <span>{{ 'INVENTORY.ITEMS.CURRENT' | translate }}: {{ adjustingItem()?.current_quantity?.toFixed(2) }} {{ unitKey(adjustingItem()!.unit) | translate }}</span>
               </div>
-              <div class="form-group">
-                <label>{{ 'INVENTORY.ITEMS.ADJUSTMENT_TYPE' | translate }}</label>
-                <div class="radio-group">
-                  <label class="radio-label">
-                    <input type="radio" formControlName="adjustment_type" value="adjustment_add" />
-                    <span>{{ 'INVENTORY.ITEMS.ADD_STOCK' | translate }}</span>
-                  </label>
-                  <label class="radio-label">
-                    <input type="radio" formControlName="adjustment_type" value="adjustment_subtract" />
-                    <span>{{ 'INVENTORY.ITEMS.REMOVE_STOCK' | translate }}</span>
-                  </label>
-                  <label class="radio-label">
-                    <input type="radio" formControlName="adjustment_type" value="waste" />
-                    <span>{{ 'INVENTORY.ITEMS.RECORD_WASTE' | translate }}</span>
-                  </label>
+              <fieldset class="adjust-type-fieldset">
+                <legend>{{ 'INVENTORY.ITEMS.ADJUSTMENT_TYPE' | translate }}</legend>
+                <div
+                  class="adjust-type-options segmented-control"
+                  role="group"
+                  [attr.aria-label]="'INVENTORY.ITEMS.ADJUSTMENT_TYPE' | translate"
+                >
+                  <button
+                    type="button"
+                    class="adjust-type-option"
+                    [class.active]="adjustForm.get('adjustment_type')?.value === 'adjustment_add'"
+                    (click)="setAdjustmentType('adjustment_add')"
+                  >
+                    {{ 'INVENTORY.ITEMS.ADD_STOCK' | translate }}
+                  </button>
+                  <button
+                    type="button"
+                    class="adjust-type-option"
+                    [class.active]="adjustForm.get('adjustment_type')?.value === 'adjustment_subtract'"
+                    (click)="setAdjustmentType('adjustment_subtract')"
+                  >
+                    {{ 'INVENTORY.ITEMS.REMOVE_STOCK' | translate }}
+                  </button>
+                  <button
+                    type="button"
+                    class="adjust-type-option"
+                    [class.active]="adjustForm.get('adjustment_type')?.value === 'waste'"
+                    (click)="setAdjustmentType('waste')"
+                  >
+                    {{ 'INVENTORY.ITEMS.RECORD_WASTE' | translate }}
+                  </button>
                 </div>
-              </div>
+              </fieldset>
               <div class="form-row">
                 <div class="form-group">
                   <label for="adjust_quantity">{{ 'INVENTORY.ITEMS.QUANTITY' | translate }}</label>
@@ -308,7 +326,7 @@ import {
                   <label for="adjust_unit">{{ 'INVENTORY.ITEMS.UNIT' | translate }}</label>
                   <select id="adjust_unit" formControlName="unit">
                     @for (unit of units; track unit) {
-                      <option [value]="unit">{{ formatUnit(unit) }}</option>
+                      <option [value]="unit">{{ unitKey(unit) | translate }}</option>
                     }
                   </select>
                 </div>
@@ -370,8 +388,11 @@ export class InventoryItemsComponent implements OnInit {
   showLowStock = false;
 
   // Static data
-  units: UnitOfMeasure[] = ['piece', 'gram', 'kilogram', 'ounce', 'pound', 'milliliter', 'liter', 'fluid_ounce', 'cup', 'gallon'];
+  units: UnitOfMeasure[] = ['piece', 'gram', 'kilogram', 'ounce', 'pound', 'milliliter', 'centiliter', 'liter', 'fluid_ounce', 'cup', 'gallon'];
   categories: InventoryCategory[] = ['ingredients', 'beverages', 'packaging', 'cleaning', 'equipment', 'other'];
+
+  readonly unitKey = inventoryUnitKey;
+  readonly categoryKey = inventoryCategoryKey;
 
   itemForm: FormGroup = this.fb.group({
     sku: ['', Validators.required],
@@ -451,6 +472,10 @@ export class InventoryItemsComponent implements OnInit {
     this.showAdjustModal.set(true);
   }
 
+  setAdjustmentType(type: string) {
+    this.adjustForm.patchValue({ adjustment_type: type });
+  }
+
   confirmDelete(item: InventoryItem) {
     this.deletingItem.set(item);
     this.showDeleteModal.set(true);
@@ -505,6 +530,4 @@ export class InventoryItemsComponent implements OnInit {
   }
 
   formatCurrency(cents: number): string { return this.inventoryService.formatCurrency(cents); }
-  formatCategory(cat: string): string { return cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : '-'; }
-  formatUnit(unit: string): string { return unit ? unit.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : ''; }
 }

@@ -6,6 +6,37 @@
 
 // Component-specific styles only - common patterns use global classes
 
+// Page header action group
+.page-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.btn-delete-all {
+  color: var(--color-error, #dc2626);
+  border-color: rgba(220, 38, 38, 0.35);
+
+  &:hover:not(:disabled) {
+    background: rgba(220, 38, 38, 0.08);
+    border-color: var(--color-error, #dc2626);
+    color: var(--color-error, #dc2626);
+  }
+}
+
+.success-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(25, 135, 84, 0.12);
+  color: var(--color-success, #198754);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+  gap: var(--space-3);
+}
+
 // Main tabs (button-style navigation)
 .main-tabs-container {
     margin-bottom: var(--space-4);
@@ -329,4 +360,21 @@
     gap: var(--space-2);
     font-size: 0.875rem;
     cursor: pointer;
+}
+
+.price-row-with-helper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-2);
+}
+
+.price-row-with-helper .price-input {
+    flex: 1;
+    min-width: 120px;
+}
+
+.pricing-ideal-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
 }

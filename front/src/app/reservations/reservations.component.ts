@@ -159,7 +159,7 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
 
       <!-- Create/Edit modal -->
       @if (showForm()) {
-        <div class="modal-overlay" (click)="closeForm()">
+        <div class="modal-overlay">
           <div class="modal-content" (click)="$event.stopPropagation()" appFocusFirstInput>
             <div class="modal-header">
               <h3>{{ editingReservation() ? ('RESERVATIONS.EDIT' | translate) : ('RESERVATIONS.NEW' | translate) }}</h3>
@@ -319,7 +319,7 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
 
       <!-- Seat modal -->
       @if (reservationToSeat()) {
-        <div class="modal-overlay" (click)="closeSeatModal()">
+        <div class="modal-overlay">
           <div class="modal-content" (click)="$event.stopPropagation()">
             <div class="modal-header">
               <h3>{{ 'RESERVATIONS.SEAT_AT_TABLE' | translate }}</h3>

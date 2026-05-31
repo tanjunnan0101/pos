@@ -559,7 +559,7 @@
   </div>
 
   @if (workSessionAdjustOpen()) {
-    <div class="reports-modal-overlay" (click)="closeWorkSessionAdjust()" role="presentation">
+    <div class="reports-modal-overlay" role="presentation">
     <div class="reports-modal-panel" role="dialog" aria-modal="true" [attr.aria-label]="'REPORTS.WORK_SESSION_ADJUST_TITLE' | translate" (click)="$event.stopPropagation()">
       <h3 class="reports-modal-title">{{ 'REPORTS.WORK_SESSION_ADJUST_TITLE' | translate }}</h3>
       @if (workSessionAdjustTarget(); as adjRow) {

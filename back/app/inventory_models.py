@@ -34,6 +34,7 @@ class UnitOfMeasure(str, Enum):
     
     # Volume (base: milliliter)
     milliliter = "milliliter"
+    centiliter = "centiliter"
     liter = "liter"
     fluid_ounce = "fluid_ounce"
     cup = "cup"
@@ -53,6 +54,7 @@ UNIT_CONVERSIONS: dict[UnitOfMeasure, tuple[str, Decimal]] = {
     
     # Volume -> milliliters
     UnitOfMeasure.milliliter: ("volume", Decimal("1")),
+    UnitOfMeasure.centiliter: ("volume", Decimal("10")),
     UnitOfMeasure.liter: ("volume", Decimal("1000")),
     UnitOfMeasure.fluid_ounce: ("volume", Decimal("29.5735")),
     UnitOfMeasure.cup: ("volume", Decimal("236.588")),

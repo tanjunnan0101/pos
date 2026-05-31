@@ -21,6 +21,8 @@ import { SidebarComponent } from '../shared/sidebar.component';
 import { FocusFirstInputDirective } from '../shared/focus-first-input.directive';
 import { TranslationsComponent } from '../translations/translations.component';
 import { KitchenStationsSettingsComponent } from './kitchen-stations-settings.component';
+import { DeliveryIntegrationsSettingsComponent } from './delivery-integrations-settings.component';
+import { SocialPostsSettingsComponent } from './social-posts-settings.component';
 import { ContractTemplatesSettingsComponent } from './contract-templates-settings.component';
 import { PermissionService } from '../services/permission.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -36,7 +38,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     TranslateModule,
     TranslationsComponent,
     KitchenStationsSettingsComponent,
+    DeliveryIntegrationsSettingsComponent,
     ContractTemplatesSettingsComponent,
+    SocialPostsSettingsComponent,
   ],
   template: `
     <app-sidebar>
@@ -170,6 +174,31 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             <span>{{ 'SETTINGS.KITCHEN_STATIONS_TAB' | translate }}</span>
           </button>
           }
+          <button
+            type="button"
+            class="tab"
+            data-testid="settings-delivery-integrations-tab"
+            [class.active]="activeSection() === 'delivery-integrations'"
+            (click)="activeSection.set('delivery-integrations')">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+            <span>{{ 'SETTINGS.DELIVERY_INTEGRATIONS_TAB' | translate }}</span>
+          </button>
+          <button
+            type="button"
+            class="tab"
+            data-testid="settings-social-posts-tab"
+            [class.active]="activeSection() === 'social-posts'"
+            (click)="activeSection.set('social-posts')"
+          >
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16v12H4z M8 20h8M12 16v4"/>
+              <circle cx="9" cy="9" r="1.5"/><circle cx="15" cy="9" r="1.5"/><path d="M9 13h6"/>
+            </svg>
+            <span>{{ 'SETTINGS.SOCIAL_POSTS_TAB' | translate }}</span>
+          </button>
           @if (settingsModuleTabVisible('providers')) {
           <button 
             type="button" 
@@ -384,7 +413,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           </div>
           <!-- Add Provider Modal -->
           @if (showAddProviderModal()) {
-            <div class="modal-overlay" (click)="closeAddProviderModal()">
+            <div class="modal-overlay">
               <div class="modal-content" (click)="$event.stopPropagation()" appFocusFirstInput>
                 <div class="modal-header">
                   <h3>{{ 'SETTINGS.ADD_PROVIDER' | translate }}</h3>
@@ -418,7 +447,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           }
           <!-- Edit Personal Provider Modal -->
           @if (showEditProviderModal()) {
-            <div class="modal-overlay" (click)="closeEditProviderModal()">
+            <div class="modal-overlay">
               <div class="modal-content" (click)="$event.stopPropagation()" appFocusFirstInput>
                 <div class="modal-header">
                   <h3>{{ 'SETTINGS.EDIT_PROVIDER' | translate }}</h3>
@@ -460,7 +489,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           }
           <!-- Add Product to Provider Modal -->
           @if (showAddProductModal()) {
-            <div class="modal-overlay" (click)="closeAddProductModal()">
+            <div class="modal-overlay">
               <div class="modal-content" (click)="$event.stopPropagation()" appFocusFirstInput>
                 <div class="modal-header">
                   <h3>{{ 'SETTINGS.ADD_PRODUCT_TO_PROVIDER' | translate }} – {{ selectedProviderForProduct()?.name }}</h3>
@@ -498,6 +527,10 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
           }
         } @else if (activeSection() === 'kitchen-stations') {
           <app-kitchen-stations-settings />
+        } @else if (activeSection() === 'delivery-integrations') {
+          <app-delivery-integrations-settings />
+        } @else if (activeSection() === 'social-posts') {
+          <app-social-posts-settings />
         } @else if (activeSection() === 'contract-templates') {
           <app-contract-templates-settings />
         } @else if (activeSection() === 'translations') {
@@ -1249,6 +1282,42 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                     <label>{{ 'SETTINGS.REVOLUT_MERCHANT_SECRET' | translate }}</label>
                     <input type="password" [(ngModel)]="formData.revolut_merchant_secret" name="revolut_merchant_secret" placeholder="••••••••••••••••" />
                     <p class="hint">{{ 'SETTINGS.REVOLUT_MERCHANT_SECRET_HINT' | translate }}</p>
+                  </div>
+
+                  <div class="divider"></div>
+                  <h3>{{ 'SETTINGS.FISCAL_INVOICING_TITLE' | translate }}</h3>
+                  <p class="hint">{{ 'SETTINGS.FISCAL_INVOICING_DESC' | translate }}</p>
+                  <div class="form-group">
+                    <label for="fiscal_mode">{{ 'SETTINGS.FISCAL_MODE' | translate }}</label>
+                    <select id="fiscal_mode" class="form-select" [(ngModel)]="formData.fiscal_mode" name="fiscal_mode">
+                      <option value="off">{{ 'SETTINGS.FISCAL_MODE_OFF' | translate }}</option>
+                      <option value="test">{{ 'SETTINGS.FISCAL_MODE_TEST' | translate }}</option>
+                      <option value="live">{{ 'SETTINGS.FISCAL_MODE_LIVE' | translate }}</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="fiscal_invoice_series">{{ 'SETTINGS.FISCAL_SERIES' | translate }}</label>
+                    <input
+                      type="text"
+                      id="fiscal_invoice_series"
+                      [(ngModel)]="formData.fiscal_invoice_series"
+                      name="fiscal_invoice_series"
+                      maxlength="32"
+                      class="input-medium"
+                    />
+                    <p class="hint">{{ 'SETTINGS.FISCAL_SERIES_HINT' | translate }}</p>
+                  </div>
+                  <div class="form-group">
+                    <label for="fiscal_aeat_api_secret">{{ 'SETTINGS.FISCAL_AEAT_SECRET' | translate }}</label>
+                    <input
+                      type="password"
+                      id="fiscal_aeat_api_secret"
+                      [(ngModel)]="formData.fiscal_aeat_api_secret"
+                      name="fiscal_aeat_api_secret"
+                      placeholder="••••••••••••••••"
+                      autocomplete="off"
+                    />
+                    <p class="hint">{{ 'SETTINGS.FISCAL_AEAT_SECRET_HINT' | translate }}</p>
                   </div>
                   
                   <div class="form-group checkbox-row">
@@ -2815,6 +2884,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     | 'reservations'
     | 'taxes'
     | 'kitchen-stations'
+    | 'delivery-integrations'
+    | 'social-posts'
     | 'contract-templates'
     | 'providers'
     | 'translations'
@@ -3019,6 +3090,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
     tip_entry_mode: 'preset' as 'preset' | 'overpayment',
     ui_modules: { ...DEFAULT_TENANT_UI_MODULES },
     clock_qr_location_verify: false,
+    fiscal_mode: 'off' as 'off' | 'test' | 'live',
+    fiscal_invoice_series: 'VF',
+    fiscal_aeat_api_secret: null as string | null,
   };
 
   allTimezones: string[] = [];
@@ -3040,6 +3114,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
     if (section === 'contract-templates') {
       this.activeSection.set('contract-templates');
     }
+    if (section === 'delivery-integrations') {
+      this.activeSection.set('delivery-integrations');
+    }
+    if (section === 'social-posts') {
+      this.activeSection.set('social-posts');
+    }
     this.route.queryParams.subscribe((params) => {
       const s = params['section'];
       if (s === 'reservations') {
@@ -3047,6 +3127,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
       }
       if (s === 'contract-templates') {
         this.activeSection.set('contract-templates');
+      }
+      if (s === 'delivery-integrations') {
+        this.activeSection.set('delivery-integrations');
+      }
+      if (s === 'social-posts') {
+        this.activeSection.set('social-posts');
       }
     });
     this.loadSettings();
@@ -3125,6 +3211,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
           },
           clock_qr_active: settings.clock_qr_active ?? false,
           clock_qr_location_verify: settings.clock_qr_location_verify ?? false,
+          fiscal_mode:
+            settings.fiscal_mode === 'test' || settings.fiscal_mode === 'live'
+              ? settings.fiscal_mode
+              : 'off',
+          fiscal_invoice_series: settings.fiscal_invoice_series?.trim() || 'VF',
+          fiscal_aeat_api_secret: null,
         };
         this.clockQrLastToken.set(null);
         this.clockQrTokenLoading.set(false);
@@ -4067,6 +4159,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
     }
     if (updateData.smtp_password === '') {
       delete updateData.smtp_password;
+    }
+    if (updateData.fiscal_aeat_api_secret === '' || updateData.fiscal_aeat_api_secret == null) {
+      delete updateData.fiscal_aeat_api_secret;
     }
 
     this.api.updateTenantSettings(updateData).subscribe({

@@ -37,11 +37,18 @@ from . import models, security
 from .db import check_db_connection, create_db_and_tables, get_session, engine
 from .settings import settings
 from .inventory_routes import router as inventory_router
+from .pricing_routes import router as pricing_router
+from .product_bulk_import_routes import router as product_bulk_import_router
 from .reports_routes import router as reports_router
 from .attendance_routes import router as attendance_router
 from .tenant_lifecycle_routes import router as tenant_lifecycle_router
 from .staff_contract_routes import router as staff_contract_router
 from .staff_contract_template_routes import router as staff_contract_template_router
+from .delivery_integration_routes import (
+    router as delivery_integration_router,
+    public_router as delivery_public_router,
+)
+from .social_routes import router as social_router
 from .work_session_serialization import serialize_work_session, work_session_net_duration_minutes
 from .clock_qr_util import (
     clock_qr_tokens_equal,
@@ -50,6 +57,7 @@ from .clock_qr_util import (
     generate_clock_qr_token,
     hash_clock_qr_token,
 )
+from .fiscal_invoice_service import fiscal_invoice_public_dict, issue_or_get_fiscal_invoice
 from .inventory_service import deduct_inventory_for_order
 from . import inventory_models
 from .translation_service import TranslationService
@@ -270,7 +278,27 @@ async def _app_lifespan(app: FastAPI):
     app.state.reservation_reminder_task = heartbeat_task
     logger.info("Reservation reminder heartbeat started (runs every 5 minutes)")
 
+    from .social_publish_worker import social_publish_worker_loop
+
+    stop_social = asyncio.Event()
+    social_task = asyncio.create_task(social_publish_worker_loop(stop=stop_social))
+    app.state.social_publish_stop = stop_social
+    app.state.social_publish_task = social_task
+    logger.info("Social publish worker started")
+
     yield
+
+    stop_soc = getattr(app.state, "social_publish_stop", None)
+    task_soc = getattr(app.state, "social_publish_task", None)
+    if stop_soc:
+        stop_soc.set()
+    if task_soc and not task_soc.done():
+        task_soc.cancel()
+        try:
+            await task_soc
+        except asyncio.CancelledError:
+            pass
+    logger.info("Social publish worker stopped")
 
     stop = getattr(app.state, "reservation_reminder_stop", None)
     task = getattr(app.state, "reservation_reminder_task", None)
@@ -441,12 +469,21 @@ app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 # Register Inventory API router
 app.include_router(inventory_router, prefix="/inventory", tags=["Inventory"])
+app.include_router(pricing_router, prefix="/pricing", tags=["Pricing"])
+app.include_router(
+    product_bulk_import_router,
+    prefix="/products/bulk-import",
+    tags=["Products"],
+)
 # Reports (sales / revenue analysis)
 app.include_router(reports_router, prefix="/reports", tags=["Reports"])
 app.include_router(attendance_router, prefix="/reports", tags=["Reports"])
 # Owner-only data export & tenant purge (GitHub #96)
 app.include_router(tenant_lifecycle_router, prefix="/tenant", tags=["Tenant lifecycle"])
 app.include_router(staff_contract_router, prefix="/staff-contracts", tags=["Staff contracts"])
+app.include_router(delivery_integration_router, prefix="/tenant", tags=["Delivery integrations"])
+app.include_router(delivery_public_router, tags=["Delivery integrations"])
+app.include_router(social_router, prefix="/tenant", tags=["Marketing — social"])
 app.include_router(
     staff_contract_template_router,
     prefix="/staff-contract-templates",
@@ -937,6 +974,33 @@ def get_public_tenant(
         "reservation_max_guests_per_slot": summary.reservation_max_guests_per_slot,
     }
     return JSONResponse(content=body)
+
+
+@app.get(
+    "/public/tenants/{tenant_id}/menu",
+    summary="Public tenant menu for marketing websites",
+    tags=["Public"],
+)
+@public_menu_ip_limit()
+def get_public_tenant_menu(
+    request: Request,
+    response: Response,
+    tenant_id: int,
+    session: Session = Depends(get_session),
+    lang: str = Depends(_get_requested_language),
+) -> dict:
+    """
+    Read-only grouped menu for a tenant (no auth).
+
+    Used by external marketing sites. Reuses product visibility rules from
+    ``GET /menu/{table_token}`` (active catalog items, availability window).
+    """
+    from .public_tenant_menu import build_public_tenant_menu
+
+    body = build_public_tenant_menu(session, tenant_id, lang)
+    if body is None:
+        raise HTTPException(status_code=404, detail=api_error_payload("tenant_not_found", lang))
+    return body
 
 
 @app.get("/public/tenants/{tenant_id}/reservation-book-zones")
@@ -2429,6 +2493,11 @@ def get_tenant_settings(
         tenant_dict["revolut_merchant_secret"] = (
             f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
         )
+    if tenant_dict.get("fiscal_aeat_api_secret"):
+        sk = tenant_dict["fiscal_aeat_api_secret"]
+        tenant_dict["fiscal_aeat_api_secret"] = (
+            f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
+        )
 
     # Don't expose SMTP password; indicate if configured
     if tenant_dict.get("smtp_password"):
@@ -2620,6 +2689,27 @@ def update_tenant_settings(
         ):
             tenant.revolut_merchant_secret = tenant_update.revolut_merchant_secret.strip()
         # Empty = don't change (same as Stripe secret)
+
+    if tenant_update.fiscal_mode is not None:
+        fm = tenant_update.fiscal_mode.strip().lower() if isinstance(tenant_update.fiscal_mode, str) else ""
+        if fm in ("off", "test", "live"):
+            tenant.fiscal_mode = fm
+        elif fm == "":
+            tenant.fiscal_mode = "off"
+        else:
+            raise HTTPException(status_code=400, detail="fiscal_mode must be off, test, or live")
+    if tenant_update.fiscal_invoice_series is not None:
+        s = tenant_update.fiscal_invoice_series.strip() if isinstance(tenant_update.fiscal_invoice_series, str) else ""
+        if s:
+            if len(s) > 32:
+                raise HTTPException(status_code=400, detail="fiscal_invoice_series too long")
+            tenant.fiscal_invoice_series = s
+        else:
+            tenant.fiscal_invoice_series = "VF"
+    if tenant_update.fiscal_aeat_api_secret is not None:
+        if isinstance(tenant_update.fiscal_aeat_api_secret, str) and tenant_update.fiscal_aeat_api_secret.strip():
+            tenant.fiscal_aeat_api_secret = tenant_update.fiscal_aeat_api_secret.strip()[:512]
+        # Empty = keep existing
 
     # Per-tenant SMTP / email (optional; fallback to global config)
     if tenant_update.smtp_host is not None:
@@ -2868,6 +2958,11 @@ def update_tenant_settings(
     if tenant_dict.get("revolut_merchant_secret"):
         sk = tenant_dict["revolut_merchant_secret"]
         tenant_dict["revolut_merchant_secret"] = (
+            f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
+        )
+    if tenant_dict.get("fiscal_aeat_api_secret"):
+        sk = tenant_dict["fiscal_aeat_api_secret"]
+        tenant_dict["fiscal_aeat_api_secret"] = (
             f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
         )
 
@@ -4083,6 +4178,55 @@ def update_product(
     return product
 
 
+def _clear_product_references_before_delete(
+    session: Session,
+    tenant_id: int,
+    product_ids: list[int],
+) -> None:
+    """Unlink or remove rows that reference product before delete (DB FKs may lack ON DELETE)."""
+    if not product_ids:
+        return
+    for tp in session.exec(
+        select(models.TenantProduct).where(
+            models.TenantProduct.tenant_id == tenant_id,
+            models.TenantProduct.product_id.in_(product_ids),
+        )
+    ).all():
+        session.delete(tp)
+    for recipe in session.exec(
+        select(inventory_models.ProductRecipe).where(
+            inventory_models.ProductRecipe.tenant_id == tenant_id,
+            inventory_models.ProductRecipe.product_id.in_(product_ids),
+        )
+    ).all():
+        session.delete(recipe)
+    for question in session.exec(
+        select(models.ProductQuestion).where(
+            models.ProductQuestion.tenant_id == tenant_id,
+            models.ProductQuestion.product_id.in_(product_ids),
+        )
+    ).all():
+        session.delete(question)
+
+
+@app.delete("/products/all")
+def delete_all_products(
+    current_user: Annotated[models.User, Depends(require_permission(Permission.PRODUCT_WRITE))],
+    session: Session = Depends(get_session),
+) -> dict:
+    """Delete every product for the current tenant."""
+    products = session.exec(
+        select(models.Product).where(models.Product.tenant_id == current_user.tenant_id)
+    ).all()
+    product_ids = [p.id for p in products if p.id is not None]
+    count = len(products)
+    _clear_product_references_before_delete(session, current_user.tenant_id, product_ids)
+    for product in products:
+        session.delete(product)
+    session.commit()
+    return {"status": "deleted", "count": count}
+
+
 @app.delete("/products/{product_id}")
 def delete_product(
     product_id: int,
@@ -4099,6 +4243,7 @@ def delete_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
+    _clear_product_references_before_delete(session, current_user.tenant_id, [product_id])
     session.delete(product)
     session.commit()
     return {"status": "deleted", "id": product_id}
@@ -11316,9 +11461,15 @@ def list_orders(
         if table:
             tg_label = _table_group_display_label(session, current_user.tenant_id, table)
 
+        table_display = "Unknown"
+        if getattr(order, "delivery_integration_id", None):
+            table_display = "Delivery"
+        elif table:
+            table_display = table.name
+
         row_out = {
             "id": order.id,
-            "table_name": table.name if table else "Unknown",
+            "table_name": table_display,
             "table_id": table.id if table else None,
             "table_token": table.token if table else None,
             "status": computed_status.value,
@@ -11663,6 +11814,58 @@ def set_order_billing_customer(
     session.add(order)
     session.commit()
     return {"order_id": order.id, "billing_customer_id": order.billing_customer_id}
+
+
+@app.get("/orders/{order_id}/fiscal-invoice")
+def get_order_fiscal_invoice(
+    order_id: int,
+    current_user: Annotated[models.User, Depends(require_permission(Permission.ORDER_READ))],
+    session: Session = Depends(get_session),
+) -> dict:
+    """Return persisted fiscal invoice metadata for an order (tenant-scoped)."""
+    order = session.exec(
+        select(models.Order).where(
+            models.Order.id == order_id,
+            models.Order.tenant_id == current_user.tenant_id,
+        )
+    ).first()
+    if not order or order.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    fi = session.exec(
+        select(models.FiscalInvoice).where(
+            models.FiscalInvoice.tenant_id == current_user.tenant_id,
+            models.FiscalInvoice.order_id == order.id,
+        )
+    ).first()
+    if not fi:
+        raise HTTPException(status_code=404, detail="Fiscal invoice not found")
+    return fiscal_invoice_public_dict(fi)
+
+
+@app.post("/orders/{order_id}/fiscal-invoice/issue")
+def issue_order_fiscal_invoice(
+    order_id: int,
+    current_user: Annotated[models.User, Depends(require_permission(Permission.ORDER_READ))],
+    session: Session = Depends(get_session),
+) -> dict:
+    """Issue or return existing fiscal invoice for an order (idempotent per order)."""
+    tenant = session.exec(
+        select(models.Tenant).where(models.Tenant.id == current_user.tenant_id)
+    ).first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    order = session.exec(
+        select(models.Order).where(
+            models.Order.id == order_id,
+            models.Order.tenant_id == current_user.tenant_id,
+        )
+    ).first()
+    if not order or order.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    fi = issue_or_get_fiscal_invoice(session, tenant, order)
+    session.commit()
+    session.refresh(fi)
+    return fiscal_invoice_public_dict(fi)
 
 
 @app.put("/orders/{order_id}/staff-urgent")

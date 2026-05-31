@@ -13,6 +13,7 @@ export type UnitOfMeasure =
     | 'ounce'
     | 'pound'
     | 'milliliter'
+    | 'centiliter'
     | 'liter'
     | 'fluid_ounce'
     | 'cup'
@@ -325,4 +326,14 @@ export interface UnitInfo {
 
 export interface UnitsResponse {
     units: UnitInfo[];
+}
+
+/** ngx-translate key for an inventory unit enum value (e.g. fluid_ounce → INVENTORY.UNITS.FLUID_OUNCE). */
+export function inventoryUnitKey(unit: string): string {
+    return 'INVENTORY.UNITS.' + unit.toUpperCase();
+}
+
+/** ngx-translate key for an inventory category enum value (e.g. ingredients → INVENTORY.CATEGORIES.INGREDIENTS). */
+export function inventoryCategoryKey(category: string): string {
+    return 'INVENTORY.CATEGORIES.' + category.toUpperCase();
 }

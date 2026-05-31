@@ -73,7 +73,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
         <!-- Create/Edit Modal -->
         @if (showModal()) {
-          <div class="modal-overlay" (click)="closeModal()">
+          <div class="modal-overlay">
             <div class="modal" (click)="$event.stopPropagation()" appFocusFirstInput>
               <div class="modal-header">
                 <h2>{{ editingUser() ? ('USERS.EDIT_USER' | translate) : ('USERS.ADD_USER' | translate) }}</h2>

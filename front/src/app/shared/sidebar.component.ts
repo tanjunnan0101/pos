@@ -1,6 +1,8 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, inject, signal, OnInit, computed, AfterViewInit, OnDestroy, ViewChild, ElementRef, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter } from 'rxjs/operators';
 import { ApiService, TenantUiModuleKey, User } from '../services/api.service';
 import { PermissionService, Permission } from '../services/permission.service';
 import { environment } from '../../environments/environment';
@@ -21,14 +23,26 @@ import { StaffLayoutService } from '../services/staff-layout.service';
           <span></span>
           <span></span>
         </button>
-        <span class="header-title">POS</span>
+        <div class="mobile-brand" [attr.title]="brandTitle()" [attr.aria-label]="brandTitle()">
+          <span class="header-title">POS</span>
+          @if (tenantOrgName()) {
+            <span class="header-org-name" [attr.title]="tenantOrgName()!" [attr.aria-label]="tenantOrgName()!">{{
+              tenantOrgName()
+            }}</span>
+          }
+        </div>
       </header>
 
       <aside class="sidebar">
         <div class="sidebar-header">
-          <div class="logo-container">
+          <div class="logo-container" [attr.title]="brandTitle()" [attr.aria-label]="brandTitle()">
             <span class="logo">POS</span>
             <span class="version">{{ version }} <span class="commit-hash">{{ commitHash }}</span></span>
+            @if (tenantOrgName()) {
+              <span class="sidebar-org-name" [attr.title]="tenantOrgName()!" [attr.aria-label]="tenantOrgName()!">{{
+                tenantOrgName()
+              }}</span>
+            }
           </div>
           <button class="close-btn" (click)="closeSidebar()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -37,7 +51,7 @@ import { StaffLayoutService } from '../services/staff-layout.service';
           </button>
         </div>
         
-        <nav class="nav">
+        <nav class="nav" #navScroll (scroll)="persistNavScroll()">
            <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link" (click)="closeSidebar()">
              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
@@ -216,7 +230,7 @@ import { StaffLayoutService } from '../services/staff-layout.service';
              <a routerLink="/settings" routerLinkActive="active" class="nav-link" (click)="closeSidebar()">
                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                  <circle cx="12" cy="12" r="3"/>
-                 <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"/>
+                 <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
                </svg>
                <span>{{ 'NAV.SETTINGS' | translate }}</span>
              </a>
@@ -251,13 +265,16 @@ import { StaffLayoutService } from '../services/staff-layout.service';
   `,
   styleUrl: './sidebar.component.scss'
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
   api = inject(ApiService);
   private router = inject(Router);
   private permissions = inject(PermissionService);
   private translate = inject(TranslateService);
+  private destroyRef = inject(DestroyRef);
   tablesArea = inject(TablesAreaPreferenceService);
   staffLayout = inject(StaffLayoutService);
+
+  @ViewChild('navScroll') navScroll?: ElementRef<HTMLElement>;
 
   user = signal<User | null>(null);
   sidebarOpen = signal(false);
@@ -282,6 +299,15 @@ export class SidebarComponent implements OnInit {
     return !!u && u.tenant_id != null && String(u.role).toLowerCase() !== 'provider';
   });
 
+  /** Organization display name from tenant settings (Sidebar loads settings via ensureTenantUiModulesLoaded). */
+  tenantOrgName = computed(() => this.api.tenantDisplayName()?.trim() ?? '');
+
+  /** Full branding string for tooltip / a11y when the visible label may be truncated. */
+  brandTitle = computed(() => {
+    const org = this.tenantOrgName();
+    return org ? `POS (${org})` : 'POS';
+  });
+
   ngOnInit() {
     this.api.ensureTenantUiModulesLoaded().subscribe();
     this.api.user$.subscribe(user => {
@@ -299,6 +325,62 @@ export class SidebarComponent implements OnInit {
     if (this.router.url.startsWith('/inventory')) {
       this.inventoryOpen.set(true);
     }
+
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => this.syncNavScrollAfterRouteChange());
+  }
+
+  ngAfterViewInit() {
+    this.syncNavScrollAfterRouteChange();
+  }
+
+  ngOnDestroy() {
+    const el = this.navScroll?.nativeElement;
+    if (!el || el.scrollTop <= 0) return;
+    this.persistNavScroll();
+  }
+
+  private navScrollStorageKey(): string {
+    const u = this.user();
+    if (!u) return 'anon';
+    return `t${u.tenant_id ?? 'none'}-u${u.id}`;
+  }
+
+  persistNavScroll(): void {
+    const el = this.navScroll?.nativeElement;
+    if (!el) return;
+    this.staffLayout.setNavScrollTop(this.navScrollStorageKey(), el.scrollTop);
+  }
+
+  private syncNavScrollAfterRouteChange(): void {
+    if (this.router.url.startsWith('/inventory')) {
+      this.inventoryOpen.set(true);
+    }
+    requestAnimationFrame(() => {
+      this.restoreNavScroll();
+      this.ensureActiveNavLinkVisible();
+    });
+  }
+
+  private restoreNavScroll(): void {
+    const el = this.navScroll?.nativeElement;
+    if (!el) return;
+    const saved = this.staffLayout.getNavScrollTop(this.navScrollStorageKey());
+    if (saved != null && saved > 0) {
+      el.scrollTop = saved;
+    }
+  }
+
+  private ensureActiveNavLinkVisible(): void {
+    if (this.staffLayout.sidebarCollapsed()) return;
+    const nav = this.navScroll?.nativeElement;
+    if (!nav) return;
+    const active = nav.querySelector<HTMLElement>('.nav-link.active, .nav-sublink.active');
+    active?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
 
   moduleEnabled(key: TenantUiModuleKey): boolean {
@@ -340,6 +422,7 @@ export class SidebarComponent implements OnInit {
   }
 
   closeSidebar() {
+    this.persistNavScroll();
     this.sidebarOpen.set(false);
   }
 

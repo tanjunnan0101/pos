@@ -7,13 +7,25 @@
 
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from '../../shared/sidebar.component';
 import { FocusFirstInputDirective } from '../../shared/focus-first-input.directive';
 import { InventoryService } from '../inventory.service';
-import { PurchaseOrder, ReceiveGoodsInput, ReceivedItemInput } from '../inventory.types';
+import {
+  PurchaseOrder,
+  PurchaseOrderStatus,
+  ReceiveGoodsInput,
+  ReceivedItemInput,
+} from '../inventory.types';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import {
+  canCancelPurchaseOrder,
+  canReceivePurchaseOrder,
+  cancelPurchaseOrderViaStatusEndpoint,
+  purchaseOrderActionLabelKey,
+  purchaseOrderTransitionTargets,
+} from './purchase-order-status.util';
 
 @Component({
   selector: 'app-purchase-order-detail',
@@ -34,14 +46,59 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
             </a>
             <h1>{{ order()!.order_number }}</h1>
           </div>
-          @if (canReceive()) {
-            <button class="btn btn-primary" (click)="showReceiveModal.set(true)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="22 2 13.5 11 9 8"/>
-                <path d="M22 2L15 22l-4-9-9-4z"/>
-              </svg>
-              {{ 'INVENTORY.PURCHASE_ORDERS.RECEIVE_GOODS' | translate }}
-            </button>
+          <div class="header-actions">
+            @for (target of transitionTargets(order()!.status); track target) {
+              <button
+                type="button"
+                class="btn btn-secondary"
+                [disabled]="statusUpdating()"
+                (click)="transitionOrder(target)"
+              >
+                {{ purchaseOrderActionLabelKey(target) | translate }}
+              </button>
+            }
+            @if (canReceive(order()!.status)) {
+              <button class="btn btn-primary" [disabled]="statusUpdating()" (click)="showReceiveModal.set(true)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="22 2 13.5 11 9 8"/>
+                  <path d="M22 2L15 22l-4-9-9-4z"/>
+                </svg>
+                {{ 'INVENTORY.PURCHASE_ORDERS.RECEIVE_GOODS' | translate }}
+              </button>
+            }
+            @if (canCancel(order()!.status)) {
+              <button type="button" class="btn btn-secondary btn-danger-outline" [disabled]="statusUpdating()" (click)="cancelOrder()">
+                {{ 'INVENTORY.COMMON.CANCEL' | translate }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="status-help-bar">
+          <button
+            type="button"
+            class="icon-btn status-help-toggle"
+            [attr.aria-expanded]="showStatusHelp()"
+            [attr.aria-controls]="'po-detail-status-help-panel'"
+            [attr.aria-label]="'INVENTORY.PURCHASE_ORDERS.STATUS_HELP_TOGGLE' | translate"
+            (click)="toggleStatusHelp()"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4M12 8h.01"/>
+            </svg>
+          </button>
+          @if (showStatusHelp()) {
+            <div id="po-detail-status-help-panel" class="status-help-panel" role="region" [attr.aria-label]="'INVENTORY.PURCHASE_ORDERS.STATUS_HELP_TITLE' | translate">
+              @for (status of statuses; track status) {
+                <div class="status-help-item">
+                  <span class="status-badge" [class]="status">
+                    {{ 'INVENTORY.PURCHASE_ORDERS.STATUS_' + status.toUpperCase() | translate }}
+                  </span>
+                  <p>{{ 'INVENTORY.PURCHASE_ORDERS.STATUS_HELP_' + status.toUpperCase() | translate }}</p>
+                </div>
+              }
+            </div>
           }
         </div>
 
@@ -57,7 +114,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
               <span class="info-value">{{ formatDate(order()!.order_date) }}</span>
             </div>
             <div class="info-card">
-              <span class="info-label">{{ 'INVENTORY.PURCHASE_ORDERS.EXPECTED_DATE' | translate }}</span>
+              <span class="info-label">{{ 'INVENTORY.PURCHASE_ORDERS.EXPECTED_DELIVERY' | translate }}</span>
               <span class="info-value">{{ order()!.expected_date ? formatDate(order()!.expected_date!) : '-' }}</span>
             </div>
             <div class="info-card">
@@ -116,7 +173,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
         <!-- Receive Goods Modal -->
         @if (showReceiveModal()) {
-          <div class="modal-overlay" (click)="showReceiveModal.set(false)">
+          <div class="modal-overlay">
             <div class="modal modal-lg" (click)="$event.stopPropagation()" appFocusFirstInput>
               <div class="form-header">
                 <h3>{{ 'INVENTORY.PURCHASE_ORDERS.RECEIVE_GOODS' | translate }}</h3>
@@ -126,6 +183,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
                   </svg>
                 </button>
               </div>
+              <p class="field-hint receive-partial-hint">{{ 'INVENTORY.PURCHASE_ORDERS.RECEIVE_PARTIAL_HINT' | translate }}</p>
               <div class="receive-table-wrapper">
                 <table class="receive-table">
                   <thead>
@@ -176,37 +234,98 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 })
 export class PurchaseOrderDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private inventoryService = inject(InventoryService);
   private translate = inject(TranslateService);
 
   order = signal<PurchaseOrder | null>(null);
   loading = signal(true);
   showReceiveModal = signal(false);
+  showStatusHelp = signal(false);
   receiving = signal(false);
+  statusUpdating = signal(false);
+
+  readonly statuses: PurchaseOrderStatus[] = [
+    'draft',
+    'submitted',
+    'approved',
+    'partially_received',
+    'received',
+    'cancelled',
+  ];
+
+  readonly transitionTargets = purchaseOrderTransitionTargets;
+  readonly purchaseOrderActionLabelKey = purchaseOrderActionLabelKey;
+  readonly canReceive = canReceivePurchaseOrder;
+  readonly canCancel = canCancelPurchaseOrder;
 
   receiveQuantities: number[] = [];
   receiveNotes = '';
 
   ngOnInit() {
     const id = +this.route.snapshot.paramMap.get('id')!;
-    this.loadOrder(id);
+    this.loadOrder(id, this.route.snapshot.queryParamMap.get('receive') === '1');
   }
 
-  loadOrder(id: number) {
+  toggleStatusHelp() {
+    this.showStatusHelp.update((open) => !open);
+  }
+
+  loadOrder(id: number, openReceive = false) {
     this.loading.set(true);
     this.inventoryService.getPurchaseOrder(id).subscribe({
       next: order => {
         this.order.set(order);
         this.receiveQuantities = order.items?.map(i => i.quantity_ordered - i.quantity_received) || [];
         this.loading.set(false);
+        if (openReceive && canReceivePurchaseOrder(order.status)) {
+          this.showReceiveModal.set(true);
+          void this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { receive: null },
+            queryParamsHandling: 'merge',
+            replaceUrl: true,
+          });
+        }
       },
       error: () => this.loading.set(false)
     });
   }
 
-  canReceive(): boolean {
-    const status = this.order()?.status;
-    return status === 'approved' || status === 'partially_received';
+  transitionOrder(newStatus: PurchaseOrderStatus) {
+    const order = this.order();
+    if (!order) return;
+    this.statusUpdating.set(true);
+    this.inventoryService.updatePurchaseOrderStatus(order.id, newStatus).subscribe({
+      next: () => {
+        this.statusUpdating.set(false);
+        this.loadOrder(order.id);
+      },
+      error: () => {
+        this.statusUpdating.set(false);
+        alert(this.translate.instant('INVENTORY.PURCHASE_ORDERS.STATUS_UPDATE_ERROR'));
+      },
+    });
+  }
+
+  cancelOrder() {
+    const order = this.order();
+    if (!order) return;
+    if (!confirm(this.translate.instant('INVENTORY.PURCHASE_ORDERS.CANCEL_CONFIRM', { orderNumber: order.order_number }))) return;
+    this.statusUpdating.set(true);
+    const done = () => {
+      this.statusUpdating.set(false);
+      this.loadOrder(order.id);
+    };
+    const failed = () => {
+      this.statusUpdating.set(false);
+      alert(this.translate.instant('INVENTORY.PURCHASE_ORDERS.STATUS_UPDATE_ERROR'));
+    };
+    if (cancelPurchaseOrderViaStatusEndpoint(order.status)) {
+      this.inventoryService.updatePurchaseOrderStatus(order.id, 'cancelled').subscribe({ next: done, error: failed });
+    } else {
+      this.inventoryService.cancelPurchaseOrder(order.id).subscribe({ next: done, error: failed });
+    }
   }
 
   submitReceive() {

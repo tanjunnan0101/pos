@@ -5,7 +5,7 @@
 #   cd agents && ./pos-agent-loop.sh [COMMAND]
 #
 # Starts Docker stack: use ./run.sh -dev at repo root (separate from this file).
-# Requires: cursor-agent on PATH for steps that invoke it (001/committer can skip cursor when local modes are on; see AGENT_001_LOCAL_LOG_REVIEWER, AGENT_COMMITTER_LOCAL, AGENT_COMMITTER_USE_CURSOR).
+# Requires: cursor-agent on PATH for steps that invoke it (001 can skip cursor when local; committer uses cursor by default — AGENT_COMMITTER_USE_CURSOR default 1; see AGENT_001_LOCAL_LOG_REVIEWER, AGENT_COMMITTER_LOCAL).
 #
 # Task dir: agents/tasks/ (sibling of this script).
 
@@ -366,6 +366,18 @@ committer_try_local_stamp_only() {
   )
 }
 
+# After committer created a new commit, comment on linked GitHub issues (non-fatal).
+committer_notify_github_issues_if_new_commit() {
+  local before="${1:-}"
+  local after
+  [[ -n "$before" ]] || return 0
+  after=$(cd "$REPO_ROOT" && git rev-parse HEAD 2>/dev/null) || return 0
+  [[ "$before" != "$after" ]] || return 0
+  if [[ -x "$REPO_ROOT/scripts/link-commit-to-github-issues.sh" ]]; then
+    "$REPO_ROOT/scripts/link-commit-to-github-issues.sh" "$after" || true
+  fi
+}
+
 # Only invoke agent if condition is true and prompt file exists.
 # Usage: run_agent "description" "condition_cmd" "prompt_relative_path" "message"
 run_agent() {
@@ -562,25 +574,30 @@ step_committer() {
   fi
   echo "-----> committer (changelog + commit, POS repo) <----"
 
+  local head_before=""
+  head_before=$(cd "$REPO_ROOT" && git rev-parse HEAD 2>/dev/null) || head_before=""
+
   if [[ "${AGENT_COMMITTER_LOCAL:-1}" != "0" ]] && committer_try_local_stamp_only; then
     echo "----- committer (local: committed and pushed stamp-only changes; no cursor-agent)"
+    committer_notify_github_issues_if_new_commit "$head_before"
     return 0
   fi
 
-  if [[ "${AGENT_COMMITTER_USE_CURSOR:-0}" != "1" ]] && [[ "${AGENT_COMMITTER_LOCAL:-1}" != "0" ]]; then
-    echo "----- committer (skip cursor-agent: local mode — non-stamp changes or stamp path not eligible; set AGENT_COMMITTER_USE_CURSOR=1 for full 040-committer cursor-agent)"
+  if [[ "${AGENT_COMMITTER_USE_CURSOR:-1}" != "1" ]] && [[ "${AGENT_COMMITTER_LOCAL:-1}" != "0" ]]; then
+    echo "----- committer (skip cursor-agent: AGENT_COMMITTER_USE_CURSOR=0 — non-stamp changes need manual commit or set AGENT_COMMITTER_USE_CURSOR=1)"
     ( cd "$REPO_ROOT" && git status -sb ) || true
     return 0
   fi
 
   if ! have_cursor_agent; then
-    echo "----- committer (skip: cursor-agent not on PATH — set AGENT_COMMITTER_USE_CURSOR=1 after installing, or commit manually)"
+    echo "----- committer (skip: cursor-agent not on PATH — install cursor-agent or commit manually; then run scripts/link-commit-to-github-issues.sh)"
     return 0
   fi
   run_agent "committer (changelog + commit)" \
     "has_pos_repo_uncommitted_changes" \
     "040-committer.md" \
-    "Check this POS repo for uncommitted changes on branch development. Update CHANGELOG.md and front/package.json per project rules; commit. Push origin development. Merge development to master only per .cursor/rules/git-development-branch-workflow.mdc (2h batch, big prod change, or production-urgent issue / explicit user ask)."
+    "Run the 040-committer role on branch development. Review the diff: commit only when implementation looks complete and tests in task files are not failing. Write a clear, human-readable CHANGELOG.md [Unreleased] entry; bump front/package.json when warranted. Stage and commit all intended project files (not only changelog). Commit message: concise subject plus Refs #N for each related GitHub issue from agents2/tasks/*.md. Push origin development. After push, run ./scripts/link-commit-to-github-issues.sh if you did not already. Do not merge to master unless git-development-branch-workflow allows it."
+  committer_notify_github_issues_if_new_commit "$head_before"
 }
 
 run_full_cycle() {
@@ -633,7 +650,7 @@ Environment:
   AGENT_001_SKIP_PREFLIGHT   If 1, always invoke 001 (legacy); digest still written when built.
   AGENT_001_RUN_WHEN_GH_UNKNOWN  If 1, run 001 when gh failed/missing and digest otherwise empty.
   AGENT_COMMITTER_LOCAL        If not 0 (default 1), committer tries a local git commit+push for allowlisted machine paths only (currently agents2/001-gh-reviewer/time-of-last-review.txt). No cursor-agent for that case.
-  AGENT_COMMITTER_USE_CURSOR   If 1, run 040-committer via cursor-agent when local stamp-only path does not apply or after local attempt is skipped (default 0).
+  AGENT_COMMITTER_USE_CURSOR   If 1 (default), run 040-committer via cursor-agent when there are non-stamp changes. Set to 0 to disable cursor committer (manual commits only).
   AGENT_001_LOCAL_LOG_REVIEWER  If not 0 (default 1), never invoke cursor-agent for 001 when only Docker log heuristics fired and GitHub preflight succeeded with zero untracked issues (fully local digest + optional Ollama triage). Set to 0 to allow cursor-agent for that case (e.g. auto NEW-* from logs).
   AGENT_001_OLLAMA_LOG_TRIAGE  If 0, never run local LLM triage. Otherwise (default) triage runs when llama.cpp OpenAI API responds (GET \$LLAMA_CPP_BASE_URL/models, default http://127.0.0.1:8080/v1) and python3 exists, or when ollama list shows ≥1 model at OLLAMA_HOST (default http://127.0.0.1:11434) — only for log-only 001 signals. LLAMA_CPP_MODEL (default Bonsai-8B.gguf); OLLAMA_MODEL (default Gemma4:latest). Default triage order is Ollama first, then llama.cpp; AGENT_001_LLAMA_CPP_FIRST=1 restores llama-first. AGENT_001_SKIP_LLAMA_CPP=1 forces Ollama only. AGENT_001_LOG_TRIAGE_DEBUG=1 prints triage script stderr (llama.cpp / ollama errors).
 

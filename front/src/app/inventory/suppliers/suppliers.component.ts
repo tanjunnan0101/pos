@@ -114,7 +114,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
       <!-- Create/Edit Modal -->
       @if (showModal()) {
-        <div class="modal-overlay" (click)="closeModal()">
+        <div class="modal-overlay">
           <div class="modal" (click)="$event.stopPropagation()" appFocusFirstInput>
             <div class="form-header">
               <h3>{{ editingSupplier() ? ('INVENTORY.SUPPLIERS.EDIT_SUPPLIER' | translate) : ('INVENTORY.SUPPLIERS.NEW_SUPPLIER' | translate) }}</h3>
