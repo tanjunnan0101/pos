@@ -74,7 +74,7 @@ jobs:
           BRANCH="${{ github.ref_name }}"
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
             "${DEPLOY_USER}@${DEPLOY_HOST}" \
-            "cd '${DEPLOY_PATH}' && git fetch origin && git checkout '${BRANCH}' && git reset --hard 'origin/${BRANCH}'"
+            "cd '${DEPLOY_PATH}' && git fetch origin && git checkout -f '${BRANCH}' && git reset --hard 'origin/${BRANCH}' && git clean -fd"
 
       - name: Sync marketing sites to server (after git reset; bundles from Fetch step above)
         env:
