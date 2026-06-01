@@ -197,7 +197,10 @@
     "LOAD_FAILED": "Impossible de charger la carte. Réessayez plus tard.",
     "INVALID_TENANT": "Lien restaurant invalide.",
     "TENANT_NOT_FOUND": "Restaurant introuvable.",
-    "BACK_HOME": "Retour à l'accueil"
+    "BACK_HOME": "Retour à l'accueil",
+    "CATEGORY_OTHER": "Autres",
+    "EXPAND_CATEGORY": "Développer {{category}}",
+    "COLLAPSE_CATEGORY": "Réduire {{category}}"
   },
   "ORDERS_PUBLIC": {
     "TITLE": "À emporter et livraison",

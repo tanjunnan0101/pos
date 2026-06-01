@@ -197,7 +197,10 @@
     "LOAD_FAILED": "मेनू लोड नहीं हो सका। बाद में पुनः प्रयास करें।",
     "INVALID_TENANT": "अमान्य रेस्तरां लिंक।",
     "TENANT_NOT_FOUND": "रेस्तरां नहीं मिला।",
-    "BACK_HOME": "होम पर वापस"
+    "BACK_HOME": "होम पर वापस",
+    "CATEGORY_OTHER": "अन्य",
+    "EXPAND_CATEGORY": "{{category}} विस्तृत करें",
+    "COLLAPSE_CATEGORY": "{{category}} संक्षिप्त करें"
   },
   "DASHBOARD": {
     "TITLE": "डैशबोर्ड",

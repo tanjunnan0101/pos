@@ -197,7 +197,10 @@
     "LOAD_FAILED": "无法加载菜单，请稍后再试。",
     "INVALID_TENANT": "餐厅链接无效。",
     "TENANT_NOT_FOUND": "未找到该餐厅。",
-    "BACK_HOME": "返回首页"
+    "BACK_HOME": "返回首页",
+    "CATEGORY_OTHER": "其他",
+    "EXPAND_CATEGORY": "展开{{category}}",
+    "COLLAPSE_CATEGORY": "收起{{category}}"
   },
   "DASHBOARD": {
     "TITLE": "仪表板",

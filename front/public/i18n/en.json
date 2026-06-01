@@ -197,7 +197,10 @@
     "LOAD_FAILED": "Could not load the menu. Please try again later.",
     "INVALID_TENANT": "Invalid restaurant link.",
     "TENANT_NOT_FOUND": "Restaurant not found.",
-    "BACK_HOME": "Back to home"
+    "BACK_HOME": "Back to home",
+    "CATEGORY_OTHER": "Other",
+    "EXPAND_CATEGORY": "Expand {{category}}",
+    "COLLAPSE_CATEGORY": "Collapse {{category}}"
   },
   "ORDERS_PUBLIC": {
     "TITLE": "Take away & Home ordering",

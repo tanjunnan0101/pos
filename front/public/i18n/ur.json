@@ -197,7 +197,10 @@
     "LOAD_FAILED": "مینو لوڈ نہیں ہو سکا۔ بعد میں دوبارہ کوشش کریں۔",
     "INVALID_TENANT": "غلط ریسٹورانٹ لنک۔",
     "TENANT_NOT_FOUND": "ریسٹورانٹ نہیں ملا۔",
-    "BACK_HOME": "ہوم پر واپس"
+    "BACK_HOME": "ہوم پر واپس",
+    "CATEGORY_OTHER": "دیگر",
+    "EXPAND_CATEGORY": "{{category}} کھولیں",
+    "COLLAPSE_CATEGORY": "{{category}} بند کریں"
   },
   "ORDERS_PUBLIC": {
     "TITLE": "ٹیک آوے اور گھر پر آرڈر",

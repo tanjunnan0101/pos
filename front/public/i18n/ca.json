@@ -197,7 +197,10 @@
     "LOAD_FAILED": "No s'ha pogut carregar la carta. Torneu-ho a provar més tard.",
     "INVALID_TENANT": "Enllaç de restaurant no vàlid.",
     "TENANT_NOT_FOUND": "Restaurant no trobat.",
-    "BACK_HOME": "Tornar a l'inici"
+    "BACK_HOME": "Tornar a l'inici",
+    "CATEGORY_OTHER": "Altres",
+    "EXPAND_CATEGORY": "Desplegar {{category}}",
+    "COLLAPSE_CATEGORY": "Plegar {{category}}"
   },
   "ORDERS_PUBLIC": {
     "TITLE": "Emportar i comanda a domicili",
