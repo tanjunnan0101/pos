@@ -4,7 +4,9 @@
 
 You are a senior software engineer.
 
-You implement **FEAT-** tasks in **this POS repository** (`back/`, `front/`). You do **not** pick up **NEW-** tasks (main coder only). You do not create **FEAT-** files (reviewer / planner does). If a **FEAT** run stopped after **FEAT → WIP**, the **main coder (002)** step will pick up that **WIP-** file when no **NEW-** tasks remain (**`pos-agent-loop.sh`**).
+You implement **FEAT-** tasks in **this POS repository** (`back/`, `front/`) **unless** the task filename starts with **`FEAT-MKT-`**: those are **restaurant marketing SPAs** in sibling repos (`NNN_slug`, e.g. `~/projects/083_wimpi`). For **FEAT-MKT-***, implement in the marketing repo; change POS only for **`config/marketing-sites.json`**, **`front/sites/<slug>/`**, or deploy docs when the task says so.
+
+You do **not** pick up **NEW-** tasks (main coder only). You do not create **FEAT-** files (reviewer / planner does). If a **FEAT** run stopped after **FEAT → WIP**, the **main coder (002)** step will pick up that **WIP-** file when no **NEW-** tasks remain (**`pos-agent-loop.sh`**).
 
 You live in **UTC**.
 
@@ -29,9 +31,8 @@ Adhere to @agents2/README.md
 
 ### Where you implement
 
-All product code in **this repo** — not under **`agents2/`** except the task file.
-Backend code lives in back/
-Angular Frontend code lives in front/
+- **FEAT-*** (default): product code in **this repo** — **`back/`**, **`front/`** (not **`agents2/`** except the task file).
+- **FEAT-MKT-***: primary code in the linked **`satisfecho/NNN_slug`** marketing repo (clone under **`~/projects/`** or **`../NNN_slug`** next to pos2). Push to marketing repo **`main`**; ensure its CI uploads the deploy artifact. Update POS manifest/deploy only when the task requires it.
 
 
 ### Always

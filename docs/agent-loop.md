@@ -53,13 +53,13 @@ This is **remote integration** (fetch/pull/rebase), not “open a GitHub PR befo
 
 | mac-stats-reviewer agent | POS role | Typical inputs | Writes / edits |
 |--------------------------|----------|----------------|----------------|
-| **001 Log reviewer** (`LOG-REVIEWER-PROMPT.md`) | **GitHub → FEAT; logs → NEW** | **Issues:** up to **3 × `FEAT-…`** / run for **feature coders** (×5 in loop). **Logs:** **`NEW-…`** only for concrete Docker log incidents | **`agents/tasks/`** only. **`gh`** on issues. See **001** prompt — never use **`NEW-`** for GitHub-sourced work. |
+| **001 Log reviewer** (`001-gh-reviewer.md`) | **GitHub → FEAT; logs → NEW** | **Issues:** up to **3 × `FEAT-…`** / run for **feature coders** (×5 in loop). **Logs:** **`NEW-…`** only for concrete Docker log incidents | **`agents/tasks/`** only. **`gh`** on **`satisfecho/pos`** issues. See **001** prompt — never use **`NEW-`** for GitHub-sourced work. |
+| **005 Marketing repos reviewer** (`005-marketing-repos-reviewer.md`) | **NNN_slug org repos → register / deploy / FEAT-MKT** | Preflight scans **`satisfecho/*`** repos named **`NNN_slug`** (e.g. **`083_wimpi`**) for pushes and open issues | **`config/marketing-sites.json`**, **`front/sites/<slug>/`**, **`FEAT-MKT-…`** tasks; triggers **`Deploy to amvara9`** when bundles change. Live at **`https://www.satisfecho.de/<slug>/`**. |
 | **002 Coder** (`002-coder-backend/CODER.md`) | **Implementer (main)** | **NEW** → **wip**; also continues **wip** when no **NEW** (orchestrator runs this step if **`NEW-*.md`** or **`WIP-*.md`** exists) | **`back/`**, **`front/`**, tests; task file status + **Testing instructions**; then **untested**. |
-| **006 Feature coder** (`FEATURE-CODER.md`) | **Implementer (FEAT queue)** | Tasks **feat** → **wip** | Same as coder, but only **FEAT-** tasks (if you use that track). |
+| **006 Feature coder** (`010-feature-coder.md`) | **Implementer (FEAT queue)** | **`FEAT-*.md`** (including **`FEAT-MKT-*`** for marketing repos) → **wip** | POS **`back/`/`front/`** or sibling marketing repo per task. |
 | **003 Tester** (`TESTER.md`) | **Verifier** | **untested** → **testing** | Appends **Test report**; **closed** or back to **wip** on failure. Uses **`pytest`** (Docker), **`node front/scripts/…`**, **`npm run test:*`** per task. |
 | **004 Closing reviewer** (`CLOSING-REVIEWER-PROMPT.md`) | **Archivist** | **closed** tasks | Prepends **Closing summary**; moves file to **`agents/tasks/done/YYYY/MM/DD/`** (date from `CLOSED-YYYYMMDD-…`; use **`scripts/move-agent-task-to-done.sh`**). |
 | **007 Committer** (`040-committer.md`) | **Changelog / version / commit** | `git status` in POS root | **`CHANGELOG.md`**, version bump; **stages and commits** finished work on **`development`**; **`Refs #N`** in message; **`scripts/link-commit-to-github-issues.sh`** comments on issues after push. Does **not** rewrite app logic. |
-| **005 OpenClaw reviewer** | **Optional** | Browser/automation findings | Only if you introduce a parallel “FEAT” track for UI/automation work; otherwise skip or fold into log analyst + human. |
 
 **Orchestrator / security / release-watcher** (mentioned in mac-stats-reviewer `README.md`): optional Cursor threads or human; not required for POS unless you add matching `PROMPT-*.md` files under `agents/`.
 
@@ -114,6 +114,7 @@ Same idea as **mac-stats-reviewer** `agents/run.sh`, but named for clarity: one 
 |------------|-----------|
 | **`./agents/pos-agent-loop.sh`** | Full cycle every **`AGENT_LOOP_SLEEP_MINUTES`** (default **5**); requires **`cursor-agent`** on `PATH`. |
 | **`./agents/pos-agent-loop.sh log`** (or **`log-reviewer`**, **`001`**) | Run **001** log / incident reviewer **only if** the shell preflight finds work: open GitHub issues not yet linked from a root **`agents/tasks/*.md`** (`#NN` / `issues/NN`), or Docker log lines matching incident heuristics. Otherwise **001** skips **`cursor-agent`** (saves tokens). Digest: **`$AGENT_LOOP_TMP/001-latest-context.txt`** (default **`$TMPDIR/pos-agent-loop/`**). Override: **`AGENT_LOG_REVIEWER_ALWAYS=1`** or **`AGENT_001_SKIP_PREFLIGHT=1`**. |
+| **`./agents/pos-agent-loop.sh marketing`** (or **`mkt`**, **`005`**) | Run **005** marketing repos reviewer **only if** preflight finds new/changed **`NNN_slug`** org repos, deploy candidates, or untracked issues in those repos. Digest: **`$AGENT_LOOP_TMP/005-latest-context.txt`**. Override: **`AGENT_MARKETING_REVIEWER_ALWAYS=1`** or **`AGENT_005_SKIP_PREFLIGHT=1`**. |
 | **`./agents/pos-agent-loop.sh coder`** | Run coder step if **`NEW-*.md`** or **`WIP-*.md`** exists (and prompt file present). Prefer finishing **NEW** first; **WIP** continues in-progress work. |
 | **`./agents/pos-agent-loop.sh tester`** | Run tester if **`UNTESTED-*.md`** or in-progress **`TESTING-*.md`** exists (so interrupted runs are not stuck). |
 | **`./agents/pos-agent-loop.sh feat`** | Run feature coder if **`FEAT-*.md`** exists. |

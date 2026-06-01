@@ -23,6 +23,8 @@ AGENT_LOOP_TMP="${AGENT_LOOP_TMP:-${_tdir}/pos-agent-loop}"
 unset _tdir
 GH_REPO="${AGENT_GH_REPO:-satisfecho/pos}"
 LAST_REVIEW_FILE="${SCRIPTDIR}/001-gh-reviewer/time-of-last-review.txt"
+MKT_REVIEW_FILE="${SCRIPTDIR}/005-marketing-repos-reviewer/time-of-last-review.txt"
+MKT_PREFLIGHT="${REPO_ROOT}/scripts/marketing-repos-preflight.sh"
 
 cd "$SCRIPTDIR" || exit 1
 
@@ -319,6 +321,8 @@ committer_paths_all_local_stamp_allowlist() {
     had=1
     case "$f" in
       agents2/001-gh-reviewer/time-of-last-review.txt) ;;
+      agents2/005-marketing-repos-reviewer/time-of-last-review.txt) ;;
+      agents2/005-marketing-repos-reviewer/last-scan.json) ;;
       *) return 1 ;;
     esac
   done < <(committer_changed_paths)
@@ -342,6 +346,7 @@ committer_try_local_stamp_only() {
   (
     cd "$REPO_ROOT" || exit 1
     git add -- agents2/001-gh-reviewer/time-of-last-review.txt
+    git add -- agents2/005-marketing-repos-reviewer/time-of-last-review.txt agents2/005-marketing-repos-reviewer/last-scan.json 2>/dev/null || true
     if git diff --staged --quiet; then
       exit 1
     fi
@@ -479,6 +484,75 @@ Then follow 001-gh-reviewer.md — (A) GitHub → up to 3 × FEAT-*.md (dedupe a
   fi
 }
 
+# G005_* set by scripts/marketing-repos-preflight.sh (sourced via eval of Summary lines).
+prepare_005_preflight_context() {
+  local ctx="$1"
+  G005_GH_OK=0
+  G005_GH_AUTH_FAILED=0
+  G005_NEW_REPOS=0
+  G005_CHANGED_REPOS=0
+  G005_UNTRACKED_ISSUES=0
+  G005_DEPLOY_CANDIDATES=0
+  mkdir -p "$(dirname "$ctx")"
+  if [[ ! -x "$MKT_PREFLIGHT" ]]; then
+    echo "G005 preflight script missing: $MKT_PREFLIGHT" >"$ctx"
+    return 0
+  fi
+  MARKETING_PREFLIGHT_READONLY="${2:-0}" POS_REPO_ROOT="$REPO_ROOT" bash "$MKT_PREFLIGHT" "$ctx" || true
+  local line
+  while IFS= read -r line; do
+    case "$line" in
+      G005_GH_OK=*) eval "$line" 2>/dev/null || true ;;
+      G005_GH_AUTH_FAILED=*) eval "$line" 2>/dev/null || true ;;
+      G005_NEW_REPOS=*) eval "$line" 2>/dev/null || true ;;
+      G005_CHANGED_REPOS=*) eval "$line" 2>/dev/null || true ;;
+      G005_UNTRACKED_ISSUES=*) eval "$line" 2>/dev/null || true ;;
+      G005_DEPLOY_CANDIDATES=*) eval "$line" 2>/dev/null || true ;;
+    esac
+  done < <(grep -E '^G005_' "$ctx" 2>/dev/null || true)
+}
+
+should_run_005_cursor_agent() {
+  [[ "${AGENT_MARKETING_REVIEWER_ALWAYS:-0}" == "1" ]] && return 0
+  [[ "${AGENT_005_SKIP_PREFLIGHT:-0}" == "1" ]] && return 0
+  [[ "${G005_GH_OK:-0}" != "1" ]] && return 1
+  (( G005_NEW_REPOS + G005_CHANGED_REPOS + G005_UNTRACKED_ISSUES + G005_DEPLOY_CANDIDATES > 0 ))
+}
+
+step_marketing_repos() {
+  echo "-----> marketing repos reviewer (005) <----"
+  mkdir -p "$AGENT_LOOP_TMP"
+  local ctx="${AGENT_LOOP_TMP}/005-latest-context.txt"
+  prepare_005_preflight_context "$ctx" 1
+  echo "----- 005 preflight digest: $ctx"
+  if [[ "${G005_GH_AUTH_FAILED:-0}" == "1" ]]; then
+    echo "!!! 005 / GitHub: auth failed — marketing repo scan incomplete. Fix gh auth login !!!" >&2
+  fi
+  if should_run_005_cursor_agent; then
+    if ! have_cursor_agent; then
+      echo "----- marketing repos (005) (skip: cursor-agent not on PATH)" >&2
+      MARKETING_PREFLIGHT_READONLY=0 POS_REPO_ROOT="$REPO_ROOT" bash "$MKT_PREFLIGHT" "$ctx" >/dev/null 2>&1 || true
+      return 0
+    fi
+    if ! sync_repo; then
+      echo "----- marketing repos (005) (skip: git sync failed)" >&2
+      return 0
+    fi
+    local msg
+    msg="Run 005: Read the preflight digest first (absolute path): $ctx
+Then follow 005-marketing-repos-reviewer.md — register new NNN_slug repos in config/marketing-sites.json, trigger deploy when bundles changed, create FEAT-MKT-* tasks for untracked issues in marketing repos (max 3). Task conventions: TASKS-README.md. Do your job."
+    run_agent "marketing repos reviewer (005)" \
+      "true" \
+      "005-marketing-repos-reviewer.md" \
+      "$msg"
+    MARKETING_PREFLIGHT_READONLY=0 POS_REPO_ROOT="$REPO_ROOT" bash "$MKT_PREFLIGHT" "$ctx" >/dev/null 2>&1 || true
+  else
+    echo "----- marketing repos (005) (skip: no new/changed repos, deploy candidates, or untracked marketing issues)"
+    echo "----- Override: AGENT_MARKETING_REVIEWER_ALWAYS=1 or AGENT_005_SKIP_PREFLIGHT=1"
+    MARKETING_PREFLIGHT_READONLY=0 POS_REPO_ROOT="$REPO_ROOT" bash "$MKT_PREFLIGHT" "$ctx" >/dev/null 2>&1 || true
+  fi
+}
+
 step_feat() {
   if ! any_root_task_glob 'FEAT-*.md'; then
     echo "----- feature coding (FEAT) (skip: no FEAT-*.md — no sync, no agent)"
@@ -603,6 +677,7 @@ step_committer() {
 run_full_cycle() {
   echo "$(date)"
   step_log_reviewer
+  step_marketing_repos
   local i=0
   local has_feat
   while (( i < 5 )); do
@@ -632,6 +707,7 @@ Usage: $(basename "$0") [COMMAND]
 
   Single run:
     log, log-reviewer, 001   Log / incident reviewer (001; runs first in full cycle)
+    marketing, mkt, 005      Marketing repos reviewer (NNN_slug org repos → deploy / FEAT-MKT)
     feat, feature   Feature coder (FEAT-*.md in agents/tasks/)
     coder           Coder (NEW-*.md or WIP-*.md)
     handoff, 012    Feature-coder handoff (WIP-*.md → verify complete → UNTESTED-*.md)
@@ -652,13 +728,15 @@ Environment:
   AGENT_COMMITTER_LOCAL        If not 0 (default 1), committer tries a local git commit+push for allowlisted machine paths only (currently agents2/001-gh-reviewer/time-of-last-review.txt). No cursor-agent for that case.
   AGENT_COMMITTER_USE_CURSOR   If 1 (default), run 040-committer via cursor-agent when there are non-stamp changes. Set to 0 to disable cursor committer (manual commits only).
   AGENT_001_LOCAL_LOG_REVIEWER  If not 0 (default 1), never invoke cursor-agent for 001 when only Docker log heuristics fired and GitHub preflight succeeded with zero untracked issues (fully local digest + optional Ollama triage). Set to 0 to allow cursor-agent for that case (e.g. auto NEW-* from logs).
-  AGENT_001_OLLAMA_LOG_TRIAGE  If 0, never run local LLM triage. Otherwise (default) triage runs when llama.cpp OpenAI API responds (GET \$LLAMA_CPP_BASE_URL/models, default http://127.0.0.1:8080/v1) and python3 exists, or when ollama list shows ≥1 model at OLLAMA_HOST (default http://127.0.0.1:11434) — only for log-only 001 signals. LLAMA_CPP_MODEL (default Bonsai-8B.gguf); OLLAMA_MODEL (default Gemma4:latest). Default triage order is Ollama first, then llama.cpp; AGENT_001_LLAMA_CPP_FIRST=1 restores llama-first. AGENT_001_SKIP_LLAMA_CPP=1 forces Ollama only. AGENT_001_LOG_TRIAGE_DEBUG=1 prints triage script stderr (llama.cpp / ollama errors).
+  AGENT_001_OLLAMA_LOG_TRIAGE  If 0, never run local LLM triage. Otherwise (default) triage runs when llama.cpp OpenAI API responds (GET \$LLAMA_CPP_BASE_URL/models, default http://127.0.0.1:8080/v1) and python3 exists, or when ollama list shows ≥1 model at OLLAMA_HOST (default http://127.0.0.1:11434) — only for log-only 001 signals. LLAMA_CPP_MODEL (default Bonsai-8B.gguf); OLLAMA_MODEL (default Gemma4:latest). Default triage order is Ollama first, then llama.cpp; AGENT_001_LLAMA_CPP_FIRST=1 restores llama-first. AGENT_001_SKIP_LLAMA_CPP=1 forces Ollama only.   AGENT_001_LOG_TRIAGE_DEBUG=1 prints triage script stderr (llama.cpp / ollama errors).
+  AGENT_MARKETING_REVIEWER_ALWAYS  If 1, always invoke 005 cursor-agent.
+  AGENT_005_SKIP_PREFLIGHT         If 1, always invoke 005 (legacy always-run).
 
 Docker / app stack: start separately from repo root with ./run.sh -dev
 
 Git: FEAT/NEW-WIP/tester/closing/committer run scripts/git-sync-development.sh only when that step has work (queue or uncommitted changes). 001 syncs when its gate opens.
 
-Prompt files in this directory (agents2/): 001-gh-reviewer.md, 010-feature-coder.md, 012-feature-coder-handoff.md (runs after coder when WIP-*.md exists), 020-test.md, 030-closing-reviewer.md, 040-committer.md; task naming: TASKS-README.md. Main coder (NEW/WIP): 002-coder/CODER.md if present. See docs/agent-loop.md.
+Prompt files in this directory (agents2/): 001-gh-reviewer.md, 005-marketing-repos-reviewer.md, 010-feature-coder.md, 012-feature-coder-handoff.md (runs after coder when WIP-*.md exists), 020-test.md, 030-closing-reviewer.md, 040-committer.md; task naming: TASKS-README.md. Main coder (NEW/WIP): 002-coder/CODER.md if present. See docs/agent-loop.md.
 EOF
 }
 
@@ -669,6 +747,7 @@ if [[ -n "${1:-}" ]]; then
       exit 0
       ;;
     log | log-reviewer | 001) step_log_reviewer ;;
+    marketing | mkt | 005) step_marketing_repos ;;
     feat | feature) step_feat ;;
     coder) step_coder ;;
     handoff | 012 | feature-handoff) step_feature_coder_handoff ;;
