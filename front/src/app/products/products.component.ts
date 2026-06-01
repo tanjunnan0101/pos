@@ -82,7 +82,7 @@ import { ProductBulkImportComponent } from './product-bulk-import.component';
 
         <div class="content">
           @if (activeTab() === 'categories') {
-            <app-categories></app-categories>
+            <app-categories (categoriesChanged)="onCategoriesChanged()"></app-categories>
           } @else {
             @if (showAddForm() || editingProduct()) {
               <div class="form-card">
@@ -711,11 +711,19 @@ export class ProductsComponent implements OnInit {
     this.api.getCatalogCategories().subscribe({
       next: (cats) => {
         this.categories.set(cats);
+        this.onCategoryChange();
+        if (this.selectedCategory()) {
+          this.updateAvailableSubcategories(this.selectedCategory());
+        }
       },
       error: (err) => {
         console.error('Failed to load categories:', err);
       }
     });
+  }
+
+  onCategoriesChanged() {
+    this.loadCategories();
   }
 
   getCategoryKeys(): string[] {

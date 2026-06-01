@@ -12,6 +12,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 - **Agent loop:** Added **005 marketing repos reviewer** — preflight scans **`satisfecho/NNN_slug`** org repos for new sites, bundle updates, and untracked issues; registers **`config/marketing-sites.json`** and **`front/sites/<slug>/`**, can trigger **Deploy to amvara9**, and queues **`FEAT-MKT-*`** tasks for the feature coder. Wired into **`agents2/pos-cursor-loop.sh`** with gating env vars; **`010-feature-coder.md`** documents marketing-repo work.
 
+## [2.1.4] - 2026-06-01
+
+### Fixed
+
+- **Products / subcategories:** Custom subcategories added on **Products → Categories** now persist after reload and appear in the product add/edit and bulk-import subcategory dropdowns for that category (#260).
+
 ## [2.1.3] - 2026-06-01
 
 ### Fixed

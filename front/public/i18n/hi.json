@@ -465,6 +465,8 @@
     "SUBCATEGORY_UPDATED": "उपश्रेणी सफलतापूर्वक अपडेट की गई",
     "SUBCATEGORY_DELETED": "उपश्रेणी सफलतापूर्वक हटा दी गई",
     "SUBCATEGORY_ADDED": "उपश्रेणी सफलतापूर्वक जोड़ी गई",
+    "SUBCATEGORY_ALREADY_EXISTS": "यह उपश्रेणी पहले से मौजूद है",
+    "FAILED_TO_UPDATE_SUBCATEGORY": "उपश्रेणी अपडेट नहीं हो सकी",
     "CUSTOMIZATIONS_TITLE": "ग्राहक मेनू अनुकूलन",
     "CUSTOMIZATIONS_HINT": "कार्ट में जोड़ने से पहले वैकल्पिक प्रश्न (जैसे पकाना, मसाला)। टेबल मेनू पर दिखते हैं।",
     "CUSTOMIZATIONS_AFTER_SAVE": "पहले उत्पाद सहेजें, फिर संपादित करके प्रश्न जोड़ें।",

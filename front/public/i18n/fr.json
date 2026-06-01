@@ -469,6 +469,8 @@
     "SUBCATEGORY_UPDATED": "Sous-catégorie mise à jour",
     "SUBCATEGORY_DELETED": "Sous-catégorie supprimée",
     "SUBCATEGORY_ADDED": "Sous-catégorie ajoutée",
+    "SUBCATEGORY_ALREADY_EXISTS": "Cette sous-catégorie existe déjà",
+    "FAILED_TO_UPDATE_SUBCATEGORY": "Impossible de mettre à jour la sous-catégorie",
     "CUSTOMIZATIONS_TITLE": "Personnalisation (menu client)",
     "CUSTOMIZATIONS_HINT": "Questions optionnelles avant d’ajouter l’article au panier (cuisson, piquant, etc.). Affichées sur le menu table.",
     "CUSTOMIZATIONS_AFTER_SAVE": "Enregistrez d’abord le produit, puis modifiez-le pour ajouter des questions.",

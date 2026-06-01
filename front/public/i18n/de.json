@@ -473,6 +473,8 @@
     "SUBCATEGORY_UPDATED": "Unterkategorie erfolgreich aktualisiert",
     "SUBCATEGORY_DELETED": "Unterkategorie erfolgreich gelöscht",
     "SUBCATEGORY_ADDED": "Unterkategorie erfolgreich hinzugefügt",
+    "SUBCATEGORY_ALREADY_EXISTS": "Diese Unterkategorie existiert bereits",
+    "FAILED_TO_UPDATE_SUBCATEGORY": "Unterkategorie konnte nicht aktualisiert werden",
     "CUSTOMIZATIONS_TITLE": "Anpassungen im Gästemenu",
     "CUSTOMIZATIONS_HINT": "Optionale Fragen vor dem Warenkorb (z. B. Garstufe). Erscheinen im Tisch-Menü.",
     "CUSTOMIZATIONS_AFTER_SAVE": "Produkt zuerst speichern, dann erneut bearbeiten, um Fragen hinzuzufügen.",

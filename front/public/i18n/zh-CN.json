@@ -465,6 +465,8 @@
     "SUBCATEGORY_UPDATED": "子类别已成功更新",
     "SUBCATEGORY_DELETED": "子类别已成功删除",
     "SUBCATEGORY_ADDED": "子类别已成功添加",
+    "SUBCATEGORY_ALREADY_EXISTS": "该子类别已存在",
+    "FAILED_TO_UPDATE_SUBCATEGORY": "无法更新子类别",
     "CUSTOMIZATIONS_TITLE": "顾客菜单定制问题",
     "CUSTOMIZATIONS_HINT": "顾客将商品加入购物车前可回答的可选问题（如熟度、辣度）。在桌台菜单中显示。",
     "CUSTOMIZATIONS_AFTER_SAVE": "请先保存商品，再编辑以添加定制问题。",

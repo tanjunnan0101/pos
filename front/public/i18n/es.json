@@ -486,6 +486,8 @@
     "SUBCATEGORY_UPDATED": "Subcategoría actualizada correctamente",
     "SUBCATEGORY_DELETED": "Subcategoría eliminada correctamente",
     "SUBCATEGORY_ADDED": "Subcategoría añadida correctamente",
+    "SUBCATEGORY_ALREADY_EXISTS": "Esta subcategoría ya existe",
+    "FAILED_TO_UPDATE_SUBCATEGORY": "No se pudo actualizar la subcategoría",
     "CUSTOMIZATIONS_TITLE": "Personalización en el menú del cliente",
     "CUSTOMIZATIONS_HINT": "Preguntas opcionales que el comensal responde antes de añadir el plato (ej. punto de la carne, picante). Se muestran en el menú de la mesa.",
     "CUSTOMIZATIONS_AFTER_SAVE": "Guarda el producto primero; luego edítalo de nuevo para añadir preguntas.",

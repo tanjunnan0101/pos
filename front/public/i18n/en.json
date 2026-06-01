@@ -488,6 +488,8 @@
     "SUBCATEGORY_UPDATED": "Subcategory updated successfully",
     "SUBCATEGORY_DELETED": "Subcategory deleted successfully",
     "SUBCATEGORY_ADDED": "Subcategory added successfully",
+    "SUBCATEGORY_ALREADY_EXISTS": "This subcategory already exists",
+    "FAILED_TO_UPDATE_SUBCATEGORY": "Failed to update subcategory",
     "CUSTOMIZATIONS_TITLE": "Customer menu customizations",
     "CUSTOMIZATIONS_HINT": "Optional questions guests answer before adding this item to the cart (e.g. doneness, spice level). Shown on the table menu.",
     "CUSTOMIZATIONS_AFTER_SAVE": "Save the product first, then edit it again to add customization questions.",

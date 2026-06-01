@@ -473,6 +473,8 @@
     "SUBCATEGORY_UPDATED": "Subcategoria actualitzada correctament",
     "SUBCATEGORY_DELETED": "Subcategoria eliminada correctament",
     "SUBCATEGORY_ADDED": "Subcategoria afegida correctament",
+    "SUBCATEGORY_ALREADY_EXISTS": "Aquesta subcategoria ja existeix",
+    "FAILED_TO_UPDATE_SUBCATEGORY": "No s'ha pogut actualitzar la subcategoria",
     "CUSTOMIZATIONS_TITLE": "Personalització al menú del client",
     "CUSTOMIZATIONS_HINT": "Preguntes opcionals abans d’afegir el plat (punt de la carn, picant, etc.). Es mostren al menú de la taula.",
     "CUSTOMIZATIONS_AFTER_SAVE": "Desa el producte primer i torna a editar-lo per afegir preguntes.",

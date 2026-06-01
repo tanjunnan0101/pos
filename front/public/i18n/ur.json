@@ -488,6 +488,8 @@
     "SUBCATEGORY_UPDATED": "ذیلی زمرہ اپ ڈیٹ کر دیا گیا کامیابی سے",
     "SUBCATEGORY_DELETED": "ذیلی زمرہ حذف شدہ کامیابی سے",
     "SUBCATEGORY_ADDED": "ذیلی زمرہ شامل کر دیا گیا کامیابی سے",
+    "SUBCATEGORY_ALREADY_EXISTS": "یہ ذیلی زمرہ پہلے سے موجود ہے",
+    "FAILED_TO_UPDATE_SUBCATEGORY": "ذیلی زمرہ اپ ڈیٹ نہیں ہو سکا",
     "CUSTOMIZATIONS_TITLE": "گاہک مینو ترامیم",
     "CUSTOMIZATIONS_HINT": "اختیاری سوالات گیسٹس جواب پہلے adding یہ آئٹم کو کارٹ (مثلاً doneness, spice سطح). دکھایا گیا پر میز مینو.",
     "CUSTOMIZATIONS_AFTER_SAVE": "محفوظ کریں پروڈکٹ پہلا, پھر ترمیم کریں it دوبارہ کو شامل کریں ترمیم سوالات.",

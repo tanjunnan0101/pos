@@ -208,6 +208,11 @@ class Tenant(SQLModel, table=True):
     # Staff app: JSONB stores only disabled module keys; see tenant_ui_modules.resolve_tenant_ui_modules
     ui_modules: dict | None = Field(default=None, sa_column=Column(JSONB, nullable=True))
 
+    # Tenant-defined subcategory names per category (merged into GET /catalog/categories)
+    custom_subcategories: dict | None = Field(
+        default=None, sa_column=Column(JSONB, nullable=True)
+    )
+
     # Staff clock-in: venue QR secret (hex digest of HMAC-SHA256); null = QR not required for clock actions
     clock_qr_token_hash: str | None = Field(default=None, max_length=128)
     # Fernet ciphertext of the plain token (same secret as hash pepper); enables admin re-download in Settings

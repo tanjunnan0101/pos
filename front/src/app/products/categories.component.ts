@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -335,6 +335,9 @@ export class CategoriesComponent implements OnInit {
   private api = inject(ApiService);
   private translate = inject(TranslateService);
 
+  /** Notify parent (Products tab) to refresh shared category map. */
+  categoriesChanged = output<void>();
+
   products = signal<Product[]>([]);
   categoriesMap = signal<Record<string, string[]>>({});
   selectedCategory = signal<string | null>(null);
@@ -361,33 +364,33 @@ export class CategoriesComponent implements OnInit {
 
   loadData() {
     this.loading.set(true);
-    // Load products to know which ones to update when a subcategory changes
-    this.api.getProducts().subscribe({
-      next: (prods) => {
-        this.products.set(prods);
-        this.buildCategoriesMap(prods);
+    forkJoin({
+      products: this.api.getProducts(),
+      categories: this.api.getCatalogCategories(),
+    }).subscribe({
+      next: ({ products, categories }) => {
+        this.products.set(products);
+        this.categoriesMap.set(categories);
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Failed to load products');
+        this.error.set(this.translate.instant('PRODUCTS.FAILED_TO_LOAD'));
         this.loading.set(false);
-      }
+      },
     });
   }
 
-  buildCategoriesMap(prods: Product[]) {
-    const map: Record<string, Set<string>> = {};
-    prods.forEach(p => {
-      const cat = p.category || 'Uncategorized';
-      if (!map[cat]) map[cat] = new Set();
-      if (p.subcategory) map[cat].add(p.subcategory);
-    });
+  private applyCategoriesMap(map: Record<string, string[]>) {
+    this.categoriesMap.set(map);
+    this.categoriesChanged.emit();
+  }
 
-    const finalMap: Record<string, string[]> = {};
-    Object.keys(map).forEach(cat => {
-      finalMap[cat] = Array.from(map[cat]);
-    });
-    this.categoriesMap.set(finalMap);
+  private apiErrorMessage(err: { error?: { detail?: string } }, fallbackKey: string): string {
+    const detail = err?.error?.detail;
+    if (detail === 'Subcategory already exists') {
+      return this.translate.instant('PRODUCTS.SUBCATEGORY_ALREADY_EXISTS');
+    }
+    return this.translate.instant(fallbackKey);
   }
 
   getSubcategoryCount(category: string): number {
@@ -418,25 +421,27 @@ export class CategoriesComponent implements OnInit {
     const cat = this.selectedCategory();
     if (!name || !cat) return;
 
-    // Check if exists
     if (this.currentSubcategories().includes(name)) {
-      this.error.set('Subcategory already exists');
+      this.error.set(this.translate.instant('PRODUCTS.SUBCATEGORY_ALREADY_EXISTS'));
       setTimeout(() => this.error.set(''), 3000);
       return;
     }
 
-    // Since we don't have a "Subcategories" table, "adding" one is just an UI concept
-    // until a product uses it. But we'll add it to our local map.
-    this.categoriesMap.update(map => {
-      const newMap = { ...map };
-      if (!newMap[cat]) newMap[cat] = [];
-      newMap[cat] = [...newMap[cat], name];
-      return newMap;
+    this.loading.set(true);
+    this.api.createTenantSubcategory(cat, name).subscribe({
+      next: (map) => {
+        this.applyCategoriesMap(map);
+        this.newSubcategoryName = '';
+        this.showAddForm.set(false);
+        this.loading.set(false);
+        this.showSuccess('PRODUCTS.SUBCATEGORY_ADDED');
+      },
+      error: (err) => {
+        this.error.set(this.apiErrorMessage(err, 'PRODUCTS.FAILED_TO_UPDATE_SUBCATEGORY'));
+        this.loading.set(false);
+        setTimeout(() => this.error.set(''), 4000);
+      },
     });
-
-    this.newSubcategoryName = '';
-    this.showAddForm.set(false);
-    this.showSuccess('PRODUCTS.SUBCATEGORY_ADDED');
   }
 
   startEdit(subcat: string) {
@@ -458,36 +463,46 @@ export class CategoriesComponent implements OnInit {
     const productsToUpdate = this.products().filter(p => p.category === cat && p.subcategory === oldName);
     
     if (productsToUpdate.length === 0) {
-      // Just update local map if no products use it
-      this.updateLocalMap(cat, oldName, newName);
-      this.loading.set(false);
-      this.editingSubcategory.set(null);
+      this.api.renameTenantSubcategory(cat, oldName, newName).subscribe({
+        next: (map) => {
+          this.applyCategoriesMap(map);
+          this.loading.set(false);
+          this.editingSubcategory.set(null);
+          this.showSuccess('PRODUCTS.SUBCATEGORY_UPDATED');
+        },
+        error: (err) => {
+          this.error.set(this.apiErrorMessage(err, 'PRODUCTS.FAILED_TO_UPDATE_SUBCATEGORY'));
+          this.loading.set(false);
+        },
+      });
       return;
     }
 
-    // Update all products via API
-    const requests = productsToUpdate.map(p => 
-      this.api.updateProduct(p.id!, { subcategory: newName })
-    );
+    const requests = [
+      ...productsToUpdate.map((p) => this.api.updateProduct(p.id!, { subcategory: newName })),
+      this.api.renameTenantSubcategory(cat, oldName, newName),
+    ];
 
     forkJoin(requests).subscribe({
-      next: () => {
-        this.updateLocalMap(cat, oldName, newName);
-        // Update local products list too
-        this.products.update(list => list.map(p => {
-          if (p.category === cat && p.subcategory === oldName) {
-            return { ...p, subcategory: newName };
-          }
-          return p;
-        }));
+      next: (results) => {
+        const map = results[results.length - 1] as Record<string, string[]>;
+        this.applyCategoriesMap(map);
+        this.products.update((list) =>
+          list.map((p) => {
+            if (p.category === cat && p.subcategory === oldName) {
+              return { ...p, subcategory: newName };
+            }
+            return p;
+          }),
+        );
         this.loading.set(false);
         this.editingSubcategory.set(null);
         this.showSuccess('PRODUCTS.SUBCATEGORY_UPDATED');
       },
-      error: () => {
-        this.error.set('Failed to update products');
+      error: (err) => {
+        this.error.set(this.apiErrorMessage(err, 'PRODUCTS.FAILED_TO_UPDATE_SUBCATEGORY'));
         this.loading.set(false);
-      }
+      },
     });
   }
 
@@ -503,48 +518,44 @@ export class CategoriesComponent implements OnInit {
     const productsToUpdate = this.products().filter(p => p.category === cat && p.subcategory === name);
 
     if (productsToUpdate.length === 0) {
-      this.removeFromLocalMap(cat, name);
-      this.loading.set(false);
+      this.api.deleteTenantSubcategory(cat, name).subscribe({
+        next: (map) => {
+          this.applyCategoriesMap(map);
+          this.loading.set(false);
+          this.showSuccess('PRODUCTS.SUBCATEGORY_DELETED');
+        },
+        error: (err) => {
+          this.error.set(this.apiErrorMessage(err, 'PRODUCTS.FAILED_TO_UPDATE_SUBCATEGORY'));
+          this.loading.set(false);
+        },
+      });
       return;
     }
 
-    // Set subcategory to null for all products using it
-    const requests = productsToUpdate.map(p => 
-      this.api.updateProduct(p.id!, { subcategory: null as any })
-    );
+    const requests = [
+      ...productsToUpdate.map((p) => this.api.updateProduct(p.id!, { subcategory: null as any })),
+      this.api.deleteTenantSubcategory(cat, name),
+    ];
 
     forkJoin(requests).subscribe({
-      next: () => {
-        this.removeFromLocalMap(cat, name);
-        this.products.update(list => list.map(p => {
-          if (p.category === cat && p.subcategory === name) {
-            return { ...p, subcategory: undefined };
-          }
-          return p;
-        }));
+      next: (results) => {
+        const map = results[results.length - 1] as Record<string, string[]>;
+        this.applyCategoriesMap(map);
+        this.products.update((list) =>
+          list.map((p) => {
+            if (p.category === cat && p.subcategory === name) {
+              return { ...p, subcategory: undefined };
+            }
+            return p;
+          }),
+        );
         this.loading.set(false);
         this.showSuccess('PRODUCTS.SUBCATEGORY_DELETED');
       },
-      error: () => {
-        this.error.set('Failed to update products');
+      error: (err) => {
+        this.error.set(this.apiErrorMessage(err, 'PRODUCTS.FAILED_TO_UPDATE_SUBCATEGORY'));
         this.loading.set(false);
-      }
-    });
-  }
-
-  private updateLocalMap(cat: string, oldName: string, newName: string) {
-    this.categoriesMap.update(map => {
-      const newMap = { ...map };
-      newMap[cat] = newMap[cat].map(s => s === oldName ? newName : s);
-      return newMap;
-    });
-  }
-
-  private removeFromLocalMap(cat: string, name: string) {
-    this.categoriesMap.update(map => {
-      const newMap = { ...map };
-      newMap[cat] = newMap[cat].filter(s => s !== name);
-      return newMap;
+      },
     });
   }
 
