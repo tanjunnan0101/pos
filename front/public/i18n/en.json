@@ -37,7 +37,8 @@
     "OK": "OK",
     "API_REQUEST_FAILED": "We could not complete the request. Please try again.",
     "ENTER_FULLSCREEN": "Full screen",
-    "EXIT_FULLSCREEN": "Exit full screen"
+    "EXIT_FULLSCREEN": "Exit full screen",
+    "IMAGE_FILE_TOO_LARGE": "File must be smaller than {{maxMb}} MB."
   },
   "API_ERRORS": {
     "TENANT_NOT_FOUND": "Restaurant not found.",
@@ -402,6 +403,7 @@
     "ADD_PRODUCT_BUTTON": "Add Product",
     "SAVING": "Saving...",
     "UPLOADING": "Uploading...",
+    "IMAGE_UPLOAD_HINT": "JPG, PNG, WebP, or AVIF. Max {{maxMb}} MB; images are compressed after upload.",
     "LOADING_PRODUCTS": "Loading products...",
     "NO_PRODUCTS": "No products yet",
     "NO_PRODUCTS_DESC": "Add your first product to get started",
@@ -486,6 +488,8 @@
     "SUBCATEGORY_UPDATED": "Subcategory updated successfully",
     "SUBCATEGORY_DELETED": "Subcategory deleted successfully",
     "SUBCATEGORY_ADDED": "Subcategory added successfully",
+    "SUBCATEGORY_ALREADY_EXISTS": "This subcategory already exists",
+    "FAILED_TO_UPDATE_SUBCATEGORY": "Failed to update subcategory",
     "CUSTOMIZATIONS_TITLE": "Customer menu customizations",
     "CUSTOMIZATIONS_HINT": "Optional questions guests answer before adding this item to the cart (e.g. doneness, spice level). Shown on the table menu.",
     "CUSTOMIZATIONS_AFTER_SAVE": "Save the product first, then edit it again to add customization questions.",
@@ -1328,7 +1332,7 @@
     "BUSINESS_PROFILE": "Business Profile",
     "LOGO": "Logo",
     "UPLOAD_LOGO": "Upload Logo",
-    "UPLOAD_LOGO_HINT": "Recommended: Square image, max 2MB (JPG, PNG, WebP, AVIF, SVG)",
+    "UPLOAD_LOGO_HINT": "Recommended: Square image, max 5MB (JPG, PNG, WebP, AVIF, SVG)",
     "REMOVE_LOGO": "Remove",
     "HEADER_BACKGROUND": "Header background image",
     "UPLOAD_HEADER_BACKGROUND": "Upload image",

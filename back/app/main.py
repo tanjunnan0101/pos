@@ -39,6 +39,7 @@ from .settings import settings
 from .inventory_routes import router as inventory_router
 from .pricing_routes import router as pricing_router
 from .product_bulk_import_routes import router as product_bulk_import_router
+from .tenant_subcategory_routes import router as tenant_subcategory_router
 from .reports_routes import router as reports_router
 from .attendance_routes import router as attendance_router
 from .tenant_lifecycle_routes import router as tenant_lifecycle_router
@@ -387,7 +388,7 @@ async def database_statement_error_handler(request: Request, exc: StatementError
 UPLOADS_DIR = Path(__file__).parent.parent / "uploads"
 UPLOADS_DIR.mkdir(exist_ok=True)
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/avif"}
-MAX_IMAGE_SIZE = 2 * 1024 * 1024  # 2MB
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB (optimized after upload via optimize_image)
 
 # Image optimization settings
 MAX_IMAGE_WIDTH = 1920  # Maximum width in pixels
@@ -473,6 +474,11 @@ app.include_router(pricing_router, prefix="/pricing", tags=["Pricing"])
 app.include_router(
     product_bulk_import_router,
     prefix="/products/bulk-import",
+    tags=["Products"],
+)
+app.include_router(
+    tenant_subcategory_router,
+    prefix="/tenant/subcategories",
     tags=["Products"],
 )
 # Reports (sales / revenue analysis)
@@ -4959,18 +4965,12 @@ async def get_catalog_categories(
     current_user: Annotated[models.User, Depends(require_permission(Permission.CATALOG_READ))],
     session: Session = Depends(get_session),
 ) -> dict:
-    """Get all categories and subcategories from catalog."""
-    catalog_items = session.exec(select(models.ProductCatalog)).all()
+    """Get categories and subcategories: catalog + tenant custom + product-derived."""
+    from .tenant_subcategories import tenant_categories_for_ui
 
-    categories = {}
-    for item in catalog_items:
-        if item.category:
-            if item.category not in categories:
-                categories[item.category] = set()
-            if item.subcategory:
-                categories[item.category].add(item.subcategory)
-
-    return JSONResponse(content={cat: sorted(list(subcats)) for cat, subcats in categories.items()})
+    return JSONResponse(
+        content=tenant_categories_for_ui(session, current_user.tenant_id)
+    )
 
 
 @app.get("/catalog/{catalog_id}")

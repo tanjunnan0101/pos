@@ -37,7 +37,8 @@
     "OK": "OK",
     "API_REQUEST_FAILED": "Impossible de terminer la requête. Veuillez réessayer.",
     "ENTER_FULLSCREEN": "Plein écran",
-    "EXIT_FULLSCREEN": "Quitter le plein écran"
+    "EXIT_FULLSCREEN": "Quitter le plein écran",
+    "IMAGE_FILE_TOO_LARGE": "Le fichier doit être inférieur à {{maxMb}} Mo."
   },
   "API_ERRORS": {
     "TENANT_NOT_FOUND": "Établissement introuvable.",
@@ -383,6 +384,7 @@
     "ADD_PRODUCT_BUTTON": "Ajouter le produit",
     "SAVING": "Enregistrement…",
     "UPLOADING": "Téléchargement…",
+    "IMAGE_UPLOAD_HINT": "JPG, PNG, WebP ou AVIF. Max. {{maxMb}} Mo ; les images sont compressées après envoi.",
     "LOADING_PRODUCTS": "Chargement des produits…",
     "NO_PRODUCTS": "Aucun produit pour l'instant",
     "NO_PRODUCTS_DESC": "Ajoutez votre premier produit pour commencer",
@@ -467,6 +469,8 @@
     "SUBCATEGORY_UPDATED": "Sous-catégorie mise à jour",
     "SUBCATEGORY_DELETED": "Sous-catégorie supprimée",
     "SUBCATEGORY_ADDED": "Sous-catégorie ajoutée",
+    "SUBCATEGORY_ALREADY_EXISTS": "Cette sous-catégorie existe déjà",
+    "FAILED_TO_UPDATE_SUBCATEGORY": "Impossible de mettre à jour la sous-catégorie",
     "CUSTOMIZATIONS_TITLE": "Personnalisation (menu client)",
     "CUSTOMIZATIONS_HINT": "Questions optionnelles avant d’ajouter l’article au panier (cuisson, piquant, etc.). Affichées sur le menu table.",
     "CUSTOMIZATIONS_AFTER_SAVE": "Enregistrez d’abord le produit, puis modifiez-le pour ajouter des questions.",
@@ -1226,7 +1230,7 @@
     "BUSINESS_PROFILE": "Profil de l'établissement",
     "LOGO": "Logo",
     "UPLOAD_LOGO": "Télécharger un logo",
-    "UPLOAD_LOGO_HINT": "Recommandé : image carrée, max 2 Mo (JPG, PNG, WebP, AVIF, SVG)",
+    "UPLOAD_LOGO_HINT": "Recommandé : image carrée, max 5 Mo (JPG, PNG, WebP, AVIF, SVG)",
     "REMOVE_LOGO": "Supprimer",
     "HEADER_BACKGROUND": "Image de fond de l'en-tête",
     "UPLOAD_HEADER_BACKGROUND": "Télécharger une image",

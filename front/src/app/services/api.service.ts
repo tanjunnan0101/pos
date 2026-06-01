@@ -2911,6 +2911,32 @@ export class ApiService {
     return this.http.get<Record<string, string[]>>(`${this.apiUrl}/catalog/categories`);
   }
 
+  createTenantSubcategory(category: string, name: string): Observable<Record<string, string[]>> {
+    return this.http.post<Record<string, string[]>>(
+      `${this.apiUrl}/tenant/subcategories`,
+      { category, name },
+    );
+  }
+
+  renameTenantSubcategory(
+    category: string,
+    oldName: string,
+    newName: string,
+  ): Observable<Record<string, string[]>> {
+    return this.http.put<Record<string, string[]>>(
+      `${this.apiUrl}/tenant/subcategories`,
+      { category, old_name: oldName, new_name: newName },
+    );
+  }
+
+  deleteTenantSubcategory(category: string, name: string): Observable<Record<string, string[]>> {
+    return this.http.request<Record<string, string[]>>(
+      'DELETE',
+      `${this.apiUrl}/tenant/subcategories`,
+      { body: { category, name } },
+    );
+  }
+
   // Provider Products
   /** List products for a given provider (admin/catalog). For provider-portal "my products" use getProviderProducts(). */
   listProviderProducts(providerId: number): Observable<ProviderProduct[]> {

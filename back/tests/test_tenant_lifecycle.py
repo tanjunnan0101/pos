@@ -10,9 +10,10 @@ from datetime import timedelta
 import unittest
 
 from pg_client_mixin import PgClientTestCase
-from sqlmodel import select
+from sqlmodel import Session, select
 
 from app import models, security
+from app.db import engine
 
 
 def _bearer_headers(user: models.User) -> dict[str, str]:
@@ -86,10 +87,14 @@ class TestTenantLifecycle(PgClientTestCase):
             json={"confirm_tenant_name": "Lifecycle Café"},
         )
         self.assertEqual(r.status_code, 200, r.text)
-        self.assertIsNone(self.session.get(models.Tenant, self.tenant_id))
-        self.assertIsNone(
-            self.session.exec(select(models.User).where(models.User.id == self.owner.id)).first()
-        )
+        # Use a fresh session so we assert the route committed, not just flushed in-request.
+        with Session(engine) as verify_session:
+            self.assertIsNone(verify_session.get(models.Tenant, self.tenant_id))
+            self.assertIsNone(
+                verify_session.exec(
+                    select(models.User).where(models.User.id == self.owner.id)
+                ).first()
+            )
 
 
 if __name__ == "__main__":

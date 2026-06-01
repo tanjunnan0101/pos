@@ -112,6 +112,8 @@ def purge_tenant(
     except ValueError:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
+    session.commit()
+
     background_tasks.add_task(_purge_cleanup_job, tid, tokens)
     logger.warning(
         "Tenant purge scheduled: tenant_id=%s operator_user_id=%s operator_email=%s",

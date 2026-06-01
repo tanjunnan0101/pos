@@ -9,6 +9,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { intlLocaleFromTranslate } from '../shared/intl-locale';
 import { currencySymbolFromIsoCode } from '../shared/currency-symbol';
 import { getSubcategoryLabel as resolveSubcategoryLabel } from '../shared/product-subcategory-label.util';
+import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upload-limits';
 import { CategoriesComponent } from './categories.component';
 import { PricingHelperComponent } from './pricing-helper.component';
 import { ProductBulkImportComponent } from './product-bulk-import.component';
@@ -81,7 +82,7 @@ import { ProductBulkImportComponent } from './product-bulk-import.component';
 
         <div class="content">
           @if (activeTab() === 'categories') {
-            <app-categories></app-categories>
+            <app-categories (categoriesChanged)="onCategoriesChanged()"></app-categories>
           } @else {
             @if (showAddForm() || editingProduct()) {
               <div class="form-card">
@@ -93,6 +94,16 @@ import { ProductBulkImportComponent } from './product-bulk-import.component';
                      </svg>
                    </button>
                  </div>
+                 @if (error()) {
+                   <div class="error-banner form-inline-error" role="alert">
+                     <span>{{ error() }}</span>
+                     <button type="button" class="icon-btn" (click)="error.set('')" [attr.aria-label]="'COMMON.CLOSE' | translate">
+                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                         <path d="M18 6L6 18M6 6l12 12"/>
+                       </svg>
+                     </button>
+                   </div>
+                 }
                  @if (!canEditProducts()) {
                    <p class="form-readonly-hint">{{ 'PRODUCTS.ONLY_OWNERS_CAN_EDIT' | translate }}</p>
                  }
@@ -227,6 +238,7 @@ import { ProductBulkImportComponent } from './product-bulk-import.component';
                          }
                        }
                      </div>
+                     <small class="field-hint">{{ 'PRODUCTS.IMAGE_UPLOAD_HINT' | translate:{ maxMb: maxImageUploadMb } }}</small>
                    </div>
 
                    @if (canEditProducts() && editingProduct()?.id) {
@@ -635,6 +647,7 @@ export class ProductsComponent implements OnInit {
   };
   productTaxes = signal<Tax[]>([]);
   kitchenStations = signal<KitchenStation[]>([]);
+  readonly maxImageUploadMb = MAX_IMAGE_UPLOAD_MB;
   uploading = signal(false);
   pendingImageFile = signal<File | null>(null);
   pendingImagePreview = signal<string | null>(null);
@@ -698,11 +711,19 @@ export class ProductsComponent implements OnInit {
     this.api.getCatalogCategories().subscribe({
       next: (cats) => {
         this.categories.set(cats);
+        this.onCategoryChange();
+        if (this.selectedCategory()) {
+          this.updateAvailableSubcategories(this.selectedCategory());
+        }
       },
       error: (err) => {
         console.error('Failed to load categories:', err);
       }
     });
+  }
+
+  onCategoriesChanged() {
+    this.loadCategories();
   }
 
   getCategoryKeys(): string[] {
@@ -1322,7 +1343,9 @@ export class ProductsComponent implements OnInit {
                 this.uploading.set(false);
               },
               error: (err) => {
-                this.error.set(err.error?.detail || 'Product created but image upload failed');
+                this.error.set(
+                  err.error?.detail || this.translate.instant('PRODUCTS.PRODUCT_CREATED_BUT_IMAGE_FAILED'),
+                );
                 this.clearPendingImage();
                 this.uploading.set(false);
               }
@@ -1420,10 +1443,19 @@ export class ProductsComponent implements OnInit {
     const file = input.files?.[0];
     if (!file) return;
 
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      this.error.set(
+        this.translate.instant('COMMON.IMAGE_FILE_TOO_LARGE', { maxMb: MAX_IMAGE_UPLOAD_MB }),
+      );
+      input.value = '';
+      return;
+    }
+
     const editing = this.editingProduct();
     if (editing?.id) {
       // Direct upload for existing products
       this.uploading.set(true);
+      this.error.set('');
       this.api.uploadProductImage(editing.id, file).subscribe({
         next: (updated) => {
           this.products.update(list => list.map(p => p.id === updated.id ? updated : p));
@@ -1431,12 +1463,15 @@ export class ProductsComponent implements OnInit {
           this.uploading.set(false);
         },
         error: (err) => {
-          this.error.set(err.error?.detail || 'Failed to upload image');
+          this.error.set(
+            err.error?.detail || this.translate.instant('PRODUCTS.FAILED_TO_UPLOAD_IMAGE'),
+          );
           this.uploading.set(false);
         }
       });
     } else {
       // Store file for upload after product creation
+      this.error.set('');
       this.clearPendingImage();
       this.pendingImageFile.set(file);
       this.pendingImagePreview.set(URL.createObjectURL(file));

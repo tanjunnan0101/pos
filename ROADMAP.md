@@ -59,7 +59,7 @@
 ### ✅ Existing Infrastructure
 - Redis available (used for rate limiting storage)
 - JWT authentication in place
-- File size limits (2MB) for uploads
+- File size limits (5MB) for uploads
 - CORS middleware configured
 
 ---
@@ -109,7 +109,7 @@
 **Endpoints:** `/products/{product_id}/image`, `/tenant/logo`
 
 - **Rate Limit:** 10 uploads per hour per authenticated user
-- **File Size:** Keep existing 2MB limit
+- **File Size:** 5MB upload limit (optimized after upload)
 - **Additional:** Validate file type, scan for malicious content
 
 **Why:** Prevents storage abuse and DoS via large uploads.

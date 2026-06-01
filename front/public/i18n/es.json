@@ -37,7 +37,8 @@
     "OK": "OK",
     "API_REQUEST_FAILED": "No pudimos completar la solicitud. Inténtelo de nuevo.",
     "ENTER_FULLSCREEN": "Pantalla completa",
-    "EXIT_FULLSCREEN": "Salir de pantalla completa"
+    "EXIT_FULLSCREEN": "Salir de pantalla completa",
+    "IMAGE_FILE_TOO_LARGE": "El archivo debe ser menor de {{maxMb}} MB."
   },
   "API_ERRORS": {
     "TENANT_NOT_FOUND": "Restaurante no encontrado.",
@@ -401,6 +402,7 @@
     "ADD_PRODUCT_BUTTON": "Añadir Producto",
     "SAVING": "Guardando...",
     "UPLOADING": "Subiendo...",
+    "IMAGE_UPLOAD_HINT": "JPG, PNG, WebP o AVIF. Máx. {{maxMb}} MB; las imágenes se comprimen después de subirlas.",
     "LOADING_PRODUCTS": "Cargando productos...",
     "NO_PRODUCTS_DESC": "Añade tu primer producto para empezar",
     "NAME_HEADER": "Nombre",
@@ -484,6 +486,8 @@
     "SUBCATEGORY_UPDATED": "Subcategoría actualizada correctamente",
     "SUBCATEGORY_DELETED": "Subcategoría eliminada correctamente",
     "SUBCATEGORY_ADDED": "Subcategoría añadida correctamente",
+    "SUBCATEGORY_ALREADY_EXISTS": "Esta subcategoría ya existe",
+    "FAILED_TO_UPDATE_SUBCATEGORY": "No se pudo actualizar la subcategoría",
     "CUSTOMIZATIONS_TITLE": "Personalización en el menú del cliente",
     "CUSTOMIZATIONS_HINT": "Preguntas opcionales que el comensal responde antes de añadir el plato (ej. punto de la carne, picante). Se muestran en el menú de la mesa.",
     "CUSTOMIZATIONS_AFTER_SAVE": "Guarda el producto primero; luego edítalo de nuevo para añadir preguntas.",
@@ -1347,7 +1351,7 @@
     "PUBLIC_PRIVACY_POLICY_HINT": "Opcional. Mismo criterio que los términos; respaldo: PUBLIC_PRIVACY_POLICY_URL en la configuración del servidor.",
     "LOGO": "Logo",
     "UPLOAD_LOGO": "Subir Logo",
-    "UPLOAD_LOGO_HINT": "Imagen cuadrada, máx 2MB (JPG, PNG, WebP, AVIF, SVG)",
+    "UPLOAD_LOGO_HINT": "Imagen cuadrada, máx 5MB (JPG, PNG, WebP, AVIF, SVG)",
     "REMOVE_LOGO": "Eliminar",
     "HEADER_BACKGROUND": "Imagen de fondo del encabezado",
     "UPLOAD_HEADER_BACKGROUND": "Subir imagen",
