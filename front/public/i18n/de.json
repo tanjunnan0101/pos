@@ -1964,6 +1964,11 @@
     "NO_USERS": "Keine Benutzer gefunden",
     "DELETE_CONFIRM_TITLE": "Benutzer löschen",
     "DELETE_CONFIRM_MESSAGE": "Sind Sie sicher, dass Sie {{name}} löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "ADD_SUPPORT_ACCESS": "Satisfecho-Support hinzufügen",
+    "ADD_SUPPORT_ACCESS_HINT": "Legen Sie ein temporäres Passwort fest und teilen Sie es Satisfecho-Support sicher mit. Entfernen oder ändern Sie diesen Benutzer, wenn der Support-Zugang nicht mehr benötigt wird.",
+    "SUPPORT_EDIT_EXISTING_HINT": "Satisfecho-Support-Zugang ist bereits aktiv. Aktualisieren Sie das Passwort oder entfernen Sie diesen Benutzer, wenn der Zugang nicht mehr benötigt wird.",
+    "SUPPORT_BADGE": "Support",
+    "SUPPORT_DEFAULT_NAME": "Satisfecho Support",
     "ROLES": {
       "OWNER": "Eigentümer",
       "ADMIN": "Administrator",

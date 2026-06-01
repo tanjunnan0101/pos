@@ -1825,6 +1825,11 @@
     "NO_USERS": "未找到用户",
     "DELETE_CONFIRM_TITLE": "删除用户",
     "DELETE_CONFIRM_MESSAGE": "您确定要删除 {{name}} 吗？此操作无法撤销。",
+    "ADD_SUPPORT_ACCESS": "添加 Satisfecho 支持",
+    "ADD_SUPPORT_ACCESS_HINT": "设置临时密码并安全地分享给 Satisfecho 支持人员。不再需要支持访问时请删除或更改此用户。",
+    "SUPPORT_EDIT_EXISTING_HINT": "Satisfecho 支持访问已启用。不再需要时请更新密码或删除此用户。",
+    "SUPPORT_BADGE": "支持",
+    "SUPPORT_DEFAULT_NAME": "Satisfecho 支持",
     "ROLES": {
       "OWNER": "所有者",
       "ADMIN": "管理员",
