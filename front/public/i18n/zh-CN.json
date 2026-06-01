@@ -37,7 +37,8 @@
     "OK": "确定",
     "API_REQUEST_FAILED": "无法完成请求，请重试。",
     "ENTER_FULLSCREEN": "全屏",
-    "EXIT_FULLSCREEN": "退出全屏"
+    "EXIT_FULLSCREEN": "退出全屏",
+    "IMAGE_FILE_TOO_LARGE": "文件必须小于 {{maxMb}} MB。"
   },
   "API_ERRORS": {
     "TENANT_NOT_FOUND": "未找到餐厅。",
@@ -378,6 +379,7 @@
     "ADD_PRODUCT_BUTTON": "添加产品",
     "SAVING": "保存中...",
     "UPLOADING": "上传中...",
+    "IMAGE_UPLOAD_HINT": "JPG、PNG、WebP 或 AVIF。最大 {{maxMb}} MB；上传后会压缩图片。",
     "LOADING_PRODUCTS": "产品加载中...",
     "NO_PRODUCTS_DESC": "添加您的第一个产品以开始",
     "NAME_HEADER": "名称",
@@ -1225,7 +1227,7 @@
     "SAVE_CHANGES": "保存更改",
     "SUBTITLE": "管理您的业务信息和品牌",
     "UPLOAD_LOGO": "上传徽标",
-    "UPLOAD_LOGO_HINT": "建议：方形图片，最大 2MB (JPG, PNG, WebP, AVIF, SVG)",
+    "UPLOAD_LOGO_HINT": "建议：方形图片，最大 5MB (JPG, PNG, WebP, AVIF, SVG)",
     "REMOVE_LOGO": "移除",
     "BASIC_INFO": "基本信息",
     "BUSINESS_NAME_PLACEHOLDER": "您的业务名称",

@@ -26,6 +26,7 @@ import { SocialPostsSettingsComponent } from './social-posts-settings.component'
 import { ContractTemplatesSettingsComponent } from './contract-templates-settings.component';
 import { PermissionService } from '../services/permission.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upload-limits';
 
 @Component({
   selector: 'app-settings',
@@ -3924,8 +3925,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      if (file.size > 2 * 1024 * 1024) {
-        this.error.set('File size must be less than 2MB');
+      if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+        this.error.set(
+          this.translate.instant('COMMON.IMAGE_FILE_TOO_LARGE', { maxMb: MAX_IMAGE_UPLOAD_MB }),
+        );
         return;
       }
       this.logoFile = file;

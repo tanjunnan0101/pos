@@ -37,7 +37,8 @@
     "OK": "OK",
     "API_REQUEST_FAILED": "Заявката не можа да бъде завършена. Моля, опитайте отново.",
     "ENTER_FULLSCREEN": "Цял екран",
-    "EXIT_FULLSCREEN": "Изход от цял екран"
+    "EXIT_FULLSCREEN": "Изход от цял екран",
+    "IMAGE_FILE_TOO_LARGE": "Файлът трябва да е по-малък от {{maxMb}} MB."
   },
   "API_ERRORS": {
     "TENANT_NOT_FOUND": "Обектът не е намерен.",
@@ -401,6 +402,7 @@
     "ADD_PRODUCT_BUTTON": "Добавете продукт",
     "SAVING": "Запазване...",
     "UPLOADING": "Качване...",
+    "IMAGE_UPLOAD_HINT": "JPG, PNG, WebP или AVIF. Макс. {{maxMb}} MB; изображенията се компресират след качване.",
     "LOADING_PRODUCTS": "Зареждане на продукти...",
     "NO_PRODUCTS": "Все още няма продукти",
     "NO_PRODUCTS_DESC": "Добавете първия си продукт, за да започнете",
@@ -1327,7 +1329,7 @@
     "BUSINESS_PROFILE": "Профил на дейностите",
     "LOGO": "Лого",
     "UPLOAD_LOGO": "Качване на лого",
-    "UPLOAD_LOGO_HINT": "Препоръчително: квадратно изображение, до 2 MB (JPG, PNG, WebP, AVIF, SVG)",
+    "UPLOAD_LOGO_HINT": "Препоръчително: квадратно изображение, до 5 MB (JPG, PNG, WebP, AVIF, SVG)",
     "REMOVE_LOGO": "Премахване",
     "HEADER_BACKGROUND": "Фоново изображение",
     "UPLOAD_HEADER_BACKGROUND": "Качване на изображение",

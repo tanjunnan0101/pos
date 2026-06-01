@@ -210,6 +210,10 @@
 }
 
 // Read-only form hint (waiter / non-owner viewing product)
+.form-inline-error {
+    margin: 0 var(--space-4) var(--space-4);
+}
+
 .form-readonly-hint {
     margin: 0 0 var(--space-4);
     padding: var(--space-3);

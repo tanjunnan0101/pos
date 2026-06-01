@@ -37,7 +37,8 @@
     "OK": "ٹھیک ہے",
     "API_REQUEST_FAILED": "ہم درخواست مکمل نہ کر سکے۔ براہ کرم دوبارہ کوشش کریں۔",
     "ENTER_FULLSCREEN": "پوری اسکرین",
-    "EXIT_FULLSCREEN": "پوری اسکرین سے باہر"
+    "EXIT_FULLSCREEN": "پوری اسکرین سے باہر",
+    "IMAGE_FILE_TOO_LARGE": "فائل {{maxMb}} MB سے چھوٹی ہونی چاہیے۔"
   },
   "API_ERRORS": {
     "TENANT_NOT_FOUND": "ریستوران نہیں ملا۔",
@@ -402,6 +403,7 @@
     "ADD_PRODUCT_BUTTON": "پروڈکٹ شامل کریں",
     "SAVING": "محفوظ ہو رہا ہے...",
     "UPLOADING": "اپلوڈ ہو رہا ہے...",
+    "IMAGE_UPLOAD_HINT": "JPG, PNG, WebP یا AVIF۔ زیادہ سے زیادہ {{maxMb}} MB؛ اپلوڈ کے بعد تصاویر کمپریس ہوتی ہیں۔",
     "LOADING_PRODUCTS": "لوڈ ہو رہا ہے پروڈکٹس...",
     "NO_PRODUCTS": "ابھی کوئی پروڈکٹ نہیں",
     "NO_PRODUCTS_DESC": "شامل کریں آپ کا پہلا پروڈکٹ کو حاصل کریں شروع ہوا",
@@ -1328,7 +1330,7 @@
     "BUSINESS_PROFILE": "کاروبار پروفائل",
     "LOGO": "لوگو",
     "UPLOAD_LOGO": "اپلوڈ لوگو",
-    "UPLOAD_LOGO_HINT": "Recommended: Square تصویر, زیادہ سے زیادہ 2MB (JPG, PNG, WebP, AVIF, SVG)",
+    "UPLOAD_LOGO_HINT": "Recommended: Square تصویر, زیادہ سے زیادہ 5MB (JPG, PNG, WebP, AVIF, SVG)",
     "REMOVE_LOGO": "ہٹائیں",
     "HEADER_BACKGROUND": "ہیڈر پس منظر تصویر",
     "UPLOAD_HEADER_BACKGROUND": "اپلوڈ تصویر",

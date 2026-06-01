@@ -37,7 +37,8 @@
     "OK": "ठीक है",
     "API_REQUEST_FAILED": "अनुरोध पूरा नहीं हो सका। कृपया पुनः प्रयास करें।",
     "ENTER_FULLSCREEN": "पूर्ण स्क्रीन",
-    "EXIT_FULLSCREEN": "पूर्ण स्क्रीन से बाहर निकलें"
+    "EXIT_FULLSCREEN": "पूर्ण स्क्रीन से बाहर निकलें",
+    "IMAGE_FILE_TOO_LARGE": "फ़ाइल {{maxMb}} MB से छोटी होनी चाहिए।"
   },
   "API_ERRORS": {
     "TENANT_NOT_FOUND": "रेस्तरां नहीं मिला।",
@@ -380,6 +381,7 @@
     "ADD_PRODUCT_BUTTON": "उत्पाद जोड़ें",
     "SAVING": "सहेज रहा है...",
     "UPLOADING": "अपलोड हो रहा है...",
+    "IMAGE_UPLOAD_HINT": "JPG, PNG, WebP या AVIF। अधिकतम {{maxMb}} MB; अपलोड के बाद छवियाँ संपीड़ित होती हैं।",
     "LOADING_PRODUCTS": "उत्पाद लोड हो रहे हैं...",
     "NO_PRODUCTS_DESC": "शुरू करने के लिए अपना पहला उत्पाद जोड़ें",
     "NAME_HEADER": "नाम",
@@ -1225,7 +1227,7 @@
     "SAVE_CHANGES": "परिवर्तन सहेजें",
     "SUBTITLE": "अपनी व्यावसायिक जानकारी और ब्रांडिंग प्रबंधित करें",
     "UPLOAD_LOGO": "लोगो अपलोड करें",
-    "UPLOAD_LOGO_HINT": "अनुशंसित: वर्गाकार छवि, अधिकतम 2MB (JPG, PNG, WebP, AVIF, SVG)",
+    "UPLOAD_LOGO_HINT": "अनुशंसित: वर्गाकार छवि, अधिकतम 5MB (JPG, PNG, WebP, AVIF, SVG)",
     "REMOVE_LOGO": "हटाएं",
     "BASIC_INFO": "बुनियादी जानकारी",
     "BUSINESS_NAME_PLACEHOLDER": "आपका व्यवसाय नाम",

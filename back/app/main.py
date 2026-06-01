@@ -387,7 +387,7 @@ async def database_statement_error_handler(request: Request, exc: StatementError
 UPLOADS_DIR = Path(__file__).parent.parent / "uploads"
 UPLOADS_DIR.mkdir(exist_ok=True)
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/avif"}
-MAX_IMAGE_SIZE = 2 * 1024 * 1024  # 2MB
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB (optimized after upload via optimize_image)
 
 # Image optimization settings
 MAX_IMAGE_WIDTH = 1920  # Maximum width in pixels
