@@ -448,6 +448,35 @@ export interface ProviderProduct {
   [key: string]: unknown;
 }
 
+/** Product row in GET /public/tenants/{id}/menu (marketing / public menu page). */
+export interface PublicTenantMenuProduct {
+  id: number;
+  name: string;
+  price_cents: number;
+  price_formatted: string;
+  description: string | null;
+  category: string | null;
+  subcategory: string | null;
+  image_url: string | null;
+  available: boolean;
+}
+
+/** Category group in GET /public/tenants/{id}/menu. */
+export interface PublicTenantMenuCategory {
+  id: string;
+  name: string;
+  products: PublicTenantMenuProduct[];
+}
+
+/** GET /public/tenants/{id}/menu — read-only grouped menu (no auth). */
+export interface PublicTenantMenuResponse {
+  tenant_id: number;
+  tenant_name: string;
+  currency: string;
+  lang: string;
+  categories: PublicTenantMenuCategory[];
+}
+
 /** Public tenant info for landing page / tenant picker / book page. */
 export interface TenantSummary {
   id: number;
@@ -2683,6 +2712,19 @@ export class ApiService {
 
   getPublicTenant(tenantId: number): Observable<TenantSummary> {
     return this.http.get<TenantSummary>(`${this.apiUrl}/public/tenants/${tenantId}`);
+  }
+
+  /** Read-only grouped menu for a tenant (public marketing / QR menu page). */
+  getPublicTenantMenu(tenantId: number, lang?: string | null): Observable<PublicTenantMenuResponse> {
+    let params = new HttpParams();
+    const resolvedLang = (lang ?? this.language.getLanguage()).trim();
+    if (resolvedLang) {
+      params = params.set('lang', resolvedLang);
+    }
+    return this.http.get<PublicTenantMenuResponse>(
+      `${this.apiUrl}/public/tenants/${tenantId}/menu`,
+      { params },
+    );
   }
 
   submitPublicGuestFeedback(

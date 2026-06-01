@@ -184,7 +184,20 @@
     "REGISTER_AS_PROVIDER": "Registrar-se com a proveïdor",
     "CONTACT_US": "Contacteu-nos",
     "GITHUB_REPO": "Codi a GitHub",
-    "OPEN_SOURCE_TAGLINE": "Codi obert amb ♥ des d'El Masnou (Barcelona) i Los Mochis (Mèxic)."
+    "OPEN_SOURCE_TAGLINE": "Codi obert amb ♥ des d'El Masnou (Barcelona) i Los Mochis (Mèxic).",
+    "PUBLIC_MENU_QR_LABEL": "Codi QR de la carta pública",
+    "PUBLIC_MENU_QR_HINT": "Escanegeu o feu clic per veure la carta (sense iniciar sessió)",
+    "PUBLIC_MENU_QR_LINK_ARIA": "Obrir la carta pública de {{name}}"
+  },
+  "PUBLIC_MENU": {
+    "PAGE_TITLE": "Carta",
+    "LOADING": "S'està carregant la carta…",
+    "READ_ONLY_HINT": "Consulteu la carta — la comanda es fa a taula o en reservar.",
+    "EMPTY_MENU": "Ara mateix no hi ha plats disponibles.",
+    "LOAD_FAILED": "No s'ha pogut carregar la carta. Torneu-ho a provar més tard.",
+    "INVALID_TENANT": "Enllaç de restaurant no vàlid.",
+    "TENANT_NOT_FOUND": "Restaurant no trobat.",
+    "BACK_HOME": "Tornar a l'inici"
   },
   "ORDERS_PUBLIC": {
     "TITLE": "Emportar i comanda a domicili",

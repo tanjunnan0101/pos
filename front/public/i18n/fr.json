@@ -184,7 +184,20 @@
     "REGISTER_AS_PROVIDER": "S'inscrire comme fournisseur",
     "CONTACT_US": "Nous contacter",
     "GITHUB_REPO": "Code source sur GitHub",
-    "OPEN_SOURCE_TAGLINE": "Logiciel libre avec ♥ — El Masnou (Barcelone) et Los Mochis (Mexique)."
+    "OPEN_SOURCE_TAGLINE": "Logiciel libre avec ♥ — El Masnou (Barcelone) et Los Mochis (Mexique).",
+    "PUBLIC_MENU_QR_LABEL": "Code QR du menu public",
+    "PUBLIC_MENU_QR_HINT": "Scannez ou cliquez pour la carte (sans connexion)",
+    "PUBLIC_MENU_QR_LINK_ARIA": "Ouvrir le menu public de {{name}}"
+  },
+  "PUBLIC_MENU": {
+    "PAGE_TITLE": "Carte",
+    "LOADING": "Chargement de la carte…",
+    "READ_ONLY_HINT": "Parcourez notre carte — la commande se fait à table ou lors de la réservation.",
+    "EMPTY_MENU": "Aucun plat disponible pour le moment.",
+    "LOAD_FAILED": "Impossible de charger la carte. Réessayez plus tard.",
+    "INVALID_TENANT": "Lien restaurant invalide.",
+    "TENANT_NOT_FOUND": "Restaurant introuvable.",
+    "BACK_HOME": "Retour à l'accueil"
   },
   "ORDERS_PUBLIC": {
     "TITLE": "À emporter et livraison",

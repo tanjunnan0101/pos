@@ -184,7 +184,20 @@
     "REGISTER_AS_PROVIDER": "注册为供应商",
     "CONTACT_US": "联系我们",
     "GITHUB_REPO": "GitHub 源码",
-    "OPEN_SOURCE_TAGLINE": "开源 ♥ 来自西班牙巴塞罗那埃尔马斯诺与墨西哥洛斯莫奇斯。"
+    "OPEN_SOURCE_TAGLINE": "开源 ♥ 来自西班牙巴塞罗那埃尔马斯诺与墨西哥洛斯莫奇斯。",
+    "PUBLIC_MENU_QR_LABEL": "公开菜单二维码",
+    "PUBLIC_MENU_QR_HINT": "扫码或点击查看菜单（无需登录）",
+    "PUBLIC_MENU_QR_LINK_ARIA": "打开{{name}}的公开菜单"
+  },
+  "PUBLIC_MENU": {
+    "PAGE_TITLE": "菜单",
+    "LOADING": "正在加载菜单…",
+    "READ_ONLY_HINT": "浏览菜单 — 可在餐桌或预订时点餐。",
+    "EMPTY_MENU": "目前没有可用的菜品。",
+    "LOAD_FAILED": "无法加载菜单，请稍后再试。",
+    "INVALID_TENANT": "餐厅链接无效。",
+    "TENANT_NOT_FOUND": "未找到该餐厅。",
+    "BACK_HOME": "返回首页"
   },
   "DASHBOARD": {
     "TITLE": "仪表板",

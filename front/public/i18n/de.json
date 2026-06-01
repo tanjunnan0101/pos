@@ -184,7 +184,20 @@
     "REGISTER_AS_PROVIDER": "Als Anbieter registrieren",
     "CONTACT_US": "Kontakt",
     "GITHUB_REPO": "Quellcode auf GitHub",
-    "OPEN_SOURCE_TAGLINE": "Open Source mit ♥ aus El Masnou (Barcelona) und Los Mochis (Mexiko)."
+    "OPEN_SOURCE_TAGLINE": "Open Source mit ♥ aus El Masnou (Barcelona) und Los Mochis (Mexiko).",
+    "PUBLIC_MENU_QR_LABEL": "QR-Code für die öffentliche Speisekarte",
+    "PUBLIC_MENU_QR_HINT": "Scannen oder klicken für die Karte (ohne Anmeldung)",
+    "PUBLIC_MENU_QR_LINK_ARIA": "Öffentliche Speisekarte von {{name}} öffnen"
+  },
+  "PUBLIC_MENU": {
+    "PAGE_TITLE": "Speisekarte",
+    "LOADING": "Speisekarte wird geladen…",
+    "READ_ONLY_HINT": "Speisekarte ansehen — Bestellen am Tisch oder bei der Reservierung.",
+    "EMPTY_MENU": "Derzeit sind keine Gerichte verfügbar.",
+    "LOAD_FAILED": "Speisekarte konnte nicht geladen werden. Bitte später erneut versuchen.",
+    "INVALID_TENANT": "Ungültiger Restaurant-Link.",
+    "TENANT_NOT_FOUND": "Restaurant nicht gefunden.",
+    "BACK_HOME": "Zur Startseite"
   },
   "ORDERS_PUBLIC": {
     "TITLE": "Mitnahme & Lieferservice",

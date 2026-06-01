@@ -184,7 +184,20 @@
     "REGISTER_AS_PROVIDER": "رجسٹر بطور فراہم کنندہ",
     "CONTACT_US": "رابطہ ہم",
     "GITHUB_REPO": "ذریعہ پر GitHub",
-    "OPEN_SOURCE_TAGLINE": "کھولیں ذریعہ کے ساتھ ♥ سے El Masnou (Barcelona) & Los Mochis (Mexico)."
+    "OPEN_SOURCE_TAGLINE": "کھولیں ذریعہ کے ساتھ ♥ سے El Masnou (Barcelona) & Los Mochis (Mexico).",
+    "PUBLIC_MENU_QR_LABEL": "عوامی مینو کا QR کوڈ",
+    "PUBLIC_MENU_QR_HINT": "مینو کے لیے اسکین یا کلک کریں (لاگ اِن نہیں)",
+    "PUBLIC_MENU_QR_LINK_ARIA": "{{name}} کی عوامی مینو کھولیں"
+  },
+  "PUBLIC_MENU": {
+    "PAGE_TITLE": "مینو",
+    "LOADING": "مینو لوڈ ہو رہا ہے…",
+    "READ_ONLY_HINT": "مینو دیکھیں — آرڈر میز پر یا بکنگ پر دستیاب ہے۔",
+    "EMPTY_MENU": "فی الحال کوئی آئٹم دستیاب نہیں۔",
+    "LOAD_FAILED": "مینو لوڈ نہیں ہو سکا۔ بعد میں دوبارہ کوشش کریں۔",
+    "INVALID_TENANT": "غلط ریسٹورانٹ لنک۔",
+    "TENANT_NOT_FOUND": "ریسٹورانٹ نہیں ملا۔",
+    "BACK_HOME": "ہوم پر واپس"
   },
   "ORDERS_PUBLIC": {
     "TITLE": "ٹیک آوے اور گھر پر آرڈر",
