@@ -184,7 +184,19 @@
     "REGISTER_AS_PROVIDER": "Registrarse como proveedor",
     "CONTACT_US": "Contáctenos",
     "GITHUB_REPO": "Código en GitHub",
-    "OPEN_SOURCE_TAGLINE": "Código abierto con ♥ desde El Masnou (Barcelona) y Los Mochis (México)."
+    "OPEN_SOURCE_TAGLINE": "Código abierto con ♥ desde El Masnou (Barcelona) y Los Mochis (México).",
+    "PUBLIC_MENU_QR_LABEL": "Código QR del menú público",
+    "PUBLIC_MENU_QR_HINT": "Escanee para ver la carta (sin iniciar sesión)"
+  },
+  "PUBLIC_MENU": {
+    "PAGE_TITLE": "Carta",
+    "LOADING": "Cargando la carta…",
+    "READ_ONLY_HINT": "Consulte nuestra carta — el pedido está disponible en la mesa o al reservar.",
+    "EMPTY_MENU": "No hay platos disponibles en este momento.",
+    "LOAD_FAILED": "No se pudo cargar la carta. Inténtelo más tarde.",
+    "INVALID_TENANT": "Enlace de restaurante no válido.",
+    "TENANT_NOT_FOUND": "Restaurante no encontrado.",
+    "BACK_HOME": "Volver al inicio"
   },
   "ORDERS_PUBLIC": {
     "TITLE": "Para llevar y pedido a domicilio",

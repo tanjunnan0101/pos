@@ -16,6 +16,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 - **Release / production:** Promoted **`development` → `master`** and confirmed green **Deploy to amvara9** on production (**satisfecho.de**, v2.0.86) (#253). Closes the pending promotion noted for #252.
 
+## [2.0.87] - 2026-06-01
+
+### Added
+
+- **Landing / public menu:** Added a scannable QR code on each restaurant card on **`/`** that opens a read-only **`/public-menu/:tenantId`** page (grouped menu, language picker, tenant branding) using the existing public menu API (#254).
+
 ## [2.0.86] - 2026-05-29
 
 ### Added

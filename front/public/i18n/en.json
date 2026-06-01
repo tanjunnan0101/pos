@@ -184,7 +184,19 @@
     "REGISTER_AS_PROVIDER": "Register as provider",
     "CONTACT_US": "Contact us",
     "GITHUB_REPO": "Source on GitHub",
-    "OPEN_SOURCE_TAGLINE": "Open source with ♥ from El Masnou (Barcelona) & Los Mochis (Mexico)."
+    "OPEN_SOURCE_TAGLINE": "Open source with ♥ from El Masnou (Barcelona) & Los Mochis (Mexico).",
+    "PUBLIC_MENU_QR_LABEL": "QR code for public menu",
+    "PUBLIC_MENU_QR_HINT": "Scan for the menu (no login)"
+  },
+  "PUBLIC_MENU": {
+    "PAGE_TITLE": "Menu",
+    "LOADING": "Loading menu…",
+    "READ_ONLY_HINT": "Browse our menu — ordering is available at your table or when booking.",
+    "EMPTY_MENU": "No menu items are available right now.",
+    "LOAD_FAILED": "Could not load the menu. Please try again later.",
+    "INVALID_TENANT": "Invalid restaurant link.",
+    "TENANT_NOT_FOUND": "Restaurant not found.",
+    "BACK_HOME": "Back to home"
   },
   "ORDERS_PUBLIC": {
     "TITLE": "Take away & Home ordering",
