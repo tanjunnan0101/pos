@@ -186,7 +186,8 @@
     "GITHUB_REPO": "Quellcode auf GitHub",
     "OPEN_SOURCE_TAGLINE": "Open Source mit ♥ aus El Masnou (Barcelona) und Los Mochis (Mexiko).",
     "PUBLIC_MENU_QR_LABEL": "QR-Code für die öffentliche Speisekarte",
-    "PUBLIC_MENU_QR_HINT": "Scannen für die Karte (ohne Anmeldung)"
+    "PUBLIC_MENU_QR_HINT": "Scannen oder klicken für die Karte (ohne Anmeldung)",
+    "PUBLIC_MENU_QR_LINK_ARIA": "Öffentliche Speisekarte von {{name}} öffnen"
   },
   "PUBLIC_MENU": {
     "PAGE_TITLE": "Speisekarte",

@@ -186,7 +186,8 @@
     "GITHUB_REPO": "GitHub पर स्रोत",
     "OPEN_SOURCE_TAGLINE": "ओपन सोर्स ♥ के साथ — एल मास्नोउ (बार्सिलोना) और लॉस मोचिस (मेक्सिको)।",
     "PUBLIC_MENU_QR_LABEL": "सार्वजनिक मेनू का QR कोड",
-    "PUBLIC_MENU_QR_HINT": "मेनू के लिए स्कैन करें (लॉगिन नहीं)"
+    "PUBLIC_MENU_QR_HINT": "मेनू के लिए स्कैन या क्लिक करें (लॉगिन नहीं)",
+    "PUBLIC_MENU_QR_LINK_ARIA": "{{name}} का सार्वजनिक मेनू खोलें"
   },
   "PUBLIC_MENU": {
     "PAGE_TITLE": "मेनू",

@@ -186,7 +186,8 @@
     "GITHUB_REPO": "Codi a GitHub",
     "OPEN_SOURCE_TAGLINE": "Codi obert amb ♥ des d'El Masnou (Barcelona) i Los Mochis (Mèxic).",
     "PUBLIC_MENU_QR_LABEL": "Codi QR de la carta pública",
-    "PUBLIC_MENU_QR_HINT": "Escanegeu per veure la carta (sense iniciar sessió)"
+    "PUBLIC_MENU_QR_HINT": "Escanegeu o feu clic per veure la carta (sense iniciar sessió)",
+    "PUBLIC_MENU_QR_LINK_ARIA": "Obrir la carta pública de {{name}}"
   },
   "PUBLIC_MENU": {
     "PAGE_TITLE": "Carta",

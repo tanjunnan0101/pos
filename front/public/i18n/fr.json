@@ -186,7 +186,8 @@
     "GITHUB_REPO": "Code source sur GitHub",
     "OPEN_SOURCE_TAGLINE": "Logiciel libre avec ♥ — El Masnou (Barcelone) et Los Mochis (Mexique).",
     "PUBLIC_MENU_QR_LABEL": "Code QR du menu public",
-    "PUBLIC_MENU_QR_HINT": "Scannez pour la carte (sans connexion)"
+    "PUBLIC_MENU_QR_HINT": "Scannez ou cliquez pour la carte (sans connexion)",
+    "PUBLIC_MENU_QR_LINK_ARIA": "Ouvrir le menu public de {{name}}"
   },
   "PUBLIC_MENU": {
     "PAGE_TITLE": "Carte",

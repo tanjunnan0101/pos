@@ -128,16 +128,22 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
                     <img [src]="getLogoUrl(tenant)!" [alt]="tenant.name" class="tenant-logo" />
                   }
                   <h3 class="tenant-name">{{ tenant.name }}</h3>
-                  <div class="tenant-qr-section" [attr.aria-label]="'LANDING.PUBLIC_MENU_QR_LABEL' | translate">
+                  <div class="tenant-qr-section">
                     <p class="tenant-qr-hint">{{ 'LANDING.PUBLIC_MENU_QR_HINT' | translate }}</p>
-                    <div class="tenant-qr-wrapper">
-                      <qrcode
-                        [qrdata]="getPublicMenuUrl(tenant.id)"
-                        [width]="140"
-                        [errorCorrectionLevel]="'M'"
-                        cssClass="tenant-qr-code"
-                      ></qrcode>
-                    </div>
+                    <a
+                      class="tenant-qr-link"
+                      [routerLink]="['/public-menu', tenant.id]"
+                      [attr.aria-label]="'LANDING.PUBLIC_MENU_QR_LINK_ARIA' | translate: { name: tenant.name }"
+                    >
+                      <div class="tenant-qr-wrapper">
+                        <qrcode
+                          [qrdata]="getPublicMenuUrl(tenant.id)"
+                          [width]="140"
+                          [errorCorrectionLevel]="'M'"
+                          cssClass="tenant-qr-code"
+                        ></qrcode>
+                      </div>
+                    </a>
                   </div>
                   <div class="tenant-actions">
                     <a [routerLink]="['/book', tenant.id]" class="btn-book">
@@ -644,15 +650,36 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
       line-height: 1.35;
     }
 
+    .tenant-qr-link {
+      display: inline-block;
+      text-decoration: none;
+      color: inherit;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+    }
+
+    .tenant-qr-link:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .tenant-qr-link:hover .tenant-qr-wrapper,
+    .tenant-qr-link:focus-visible .tenant-qr-wrapper {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 35%, transparent);
+    }
+
     .tenant-qr-wrapper {
       padding: var(--space-2);
       background: white;
       border-radius: var(--radius-md);
       border: 1px solid var(--color-border);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
     :host ::ng-deep .tenant-qr-code img {
       display: block;
+      pointer-events: none;
     }
 
     .tenant-actions {

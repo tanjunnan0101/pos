@@ -186,7 +186,8 @@
     "GITHUB_REPO": "ذریعہ پر GitHub",
     "OPEN_SOURCE_TAGLINE": "کھولیں ذریعہ کے ساتھ ♥ سے El Masnou (Barcelona) & Los Mochis (Mexico).",
     "PUBLIC_MENU_QR_LABEL": "عوامی مینو کا QR کوڈ",
-    "PUBLIC_MENU_QR_HINT": "مینو کے لیے اسکین کریں (لاگ اِن نہیں)"
+    "PUBLIC_MENU_QR_HINT": "مینو کے لیے اسکین یا کلک کریں (لاگ اِن نہیں)",
+    "PUBLIC_MENU_QR_LINK_ARIA": "{{name}} کی عوامی مینو کھولیں"
   },
   "PUBLIC_MENU": {
     "PAGE_TITLE": "مینو",

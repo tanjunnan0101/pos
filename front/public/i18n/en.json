@@ -186,7 +186,8 @@
     "GITHUB_REPO": "Source on GitHub",
     "OPEN_SOURCE_TAGLINE": "Open source with ♥ from El Masnou (Barcelona) & Los Mochis (Mexico).",
     "PUBLIC_MENU_QR_LABEL": "QR code for public menu",
-    "PUBLIC_MENU_QR_HINT": "Scan for the menu (no login)"
+    "PUBLIC_MENU_QR_HINT": "Scan or click for the menu (no login)",
+    "PUBLIC_MENU_QR_LINK_ARIA": "Open {{name}} public menu"
   },
   "PUBLIC_MENU": {
     "PAGE_TITLE": "Menu",
