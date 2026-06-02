@@ -8,6 +8,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
+### Fixed
+
+- **Marketing / Boss Kebab:** Restored **satisfecho.de/bosskebabypizzeria/** — `baseHref` and deploy paths now match the live slug so Angular scripts and styles load instead of 404 (blank page) after marketing build and amvara9 sync (`085_Bosskebabypizzeria` #1).
+
 ### Changed
 
 - **Agent loop:** Per-step wall-clock limits on **`cursor-agent`** in **`agents2/pos-cursor-loop.sh`** (default **25** minutes; tester **32** minutes for deploy polling) so a hung step does not block the whole cycle — on timeout the orchestrator logs and continues; **`TESTING-`** / **`WIP-`** tasks are retried on the next pass. Disable with **`AGENT_CURSOR_TIMEOUT=0`**.
