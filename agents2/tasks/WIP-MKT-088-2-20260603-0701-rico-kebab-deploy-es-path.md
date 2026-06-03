@@ -21,7 +21,8 @@ Opening-hours sync is implemented in **`088_ricokebab`** (`PublicOpeningHoursSer
 
 ## Implementation (feature coder)
 
-*(Pending — see archived **CLOSED-MKT-088-1-…** for marketing-repo work already done.)*
+- **`config/marketing-sites.json`:** added **`deploySubpath`: `"es"`** for **`rico-kebab`** — CI artifact is flat **`browser/es/`** content; must land under **`front/sites/rico-kebab/es/`**, not slug root (Boss/Wimpi bundle **`index.html` + `es/`** at artifact root; Rico Kebab uploads **`es/`** files only).
+- **`scripts/sync-all-marketing-sites.sh`:** **`deploySubpath`** support in **`fetch_one`**, **`build_one_local`**, and **`site_needs_update`** (freshness check uses **`es/index.html`** when subpath set; root redirect **`index.html`** preserved).
 
 ## Acceptance criteria
 
