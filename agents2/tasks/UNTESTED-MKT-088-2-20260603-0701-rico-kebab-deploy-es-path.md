@@ -34,6 +34,7 @@ Opening-hours sync is implemented in **`088_ricokebab`** (`PublicOpeningHoursSer
 ## Handoff log
 
 - **2026-06-03:** Created from archived **WIP-MKT-088-1** after **012** handoff — **#1** closed, **#2** open; criterion **(2)** deploy-path blocker.
+- **2026-06-03 (Cursor):** **`deploySubpath: "es"`** + sync script support; **Deploy to amvara9** run **26880900505** **success** @ `baacbcda`. Log: `[fetch-marketing] OK → front/sites/rico-kebab/es (26 files)`. Live **`/rico-kebab/es/`** → **`main-VMRFNHWD.js`**, **09:00** + **OpeningHours**. **`WIP-…` → `UNTESTED-…`**; **`agent:untested`** on **#2**.
 
 ## Testing instructions
 
