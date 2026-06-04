@@ -32,13 +32,13 @@
       "last_artifact": "boss-kebab-satisfecho-deploy",
       "pushed_at": "2026-06-02T07:02:46Z"
     },
-    "satisfecho/088_ricokebab": {
-      "last_artifact": "rico-kebab-satisfecho-deploy",
-      "pushed_at": "2026-06-02T16:47:52Z"
-    },
     "satisfecho/087_pizzalluna": {
       "last_artifact": "pizzaluna-satisfecho-deploy",
       "pushed_at": "2026-06-04T08:53:07Z"
+    },
+    "satisfecho/088_ricokebab": {
+      "last_artifact": "rico-kebab-satisfecho-deploy",
+      "pushed_at": "2026-06-02T16:47:52Z"
     }
   }
 }
