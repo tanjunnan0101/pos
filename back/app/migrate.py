@@ -441,6 +441,12 @@ def main():
             return
         version = runner.run_migrations(dry_run=args.check)
         if not args.check:
+            from .category_codes import repair_stored_category_aliases
+
+            with Session(engine) as session:
+                stats = repair_stored_category_aliases(session)
+                if stats["products_updated"] or stats["tenants_updated"]:
+                    logger.info("Category alias repair: %s", stats)
             print(f"✅ Database schema version: {version}")
     except Exception as e:
         logger.error(f"Migration runner failed: {e}")

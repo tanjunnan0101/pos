@@ -7,7 +7,11 @@ from copy import deepcopy
 from sqlmodel import Session, select
 
 from . import models
-from .category_codes import CATEGORY_CODES
+from .category_codes import (
+    CATEGORY_CODES,
+    collapse_category_map_keys,
+    normalize_product_category,
+)
 
 MAX_NAME_LEN = 128
 
@@ -28,18 +32,19 @@ def normalize_custom_subcategories(stored: dict | None) -> dict[str, list[str]]:
         return {}
     out: dict[str, list[str]] = {}
     for category, names in stored.items():
-        cat = (str(category) if category is not None else "").strip()
+        raw_cat = (str(category) if category is not None else "").strip()
+        cat = normalize_product_category(raw_cat) or raw_cat
         if not cat:
             continue
         if not isinstance(names, list):
             continue
-        seen: set[str] = set()
-        items: list[str] = []
+        existing = set(out.get(cat, []))
+        items: list[str] = list(out.get(cat, []))
         for raw in names:
             name = (str(raw) if raw is not None else "").strip()
-            if not name or name in seen:
+            if not name or name in existing:
                 continue
-            seen.add(name)
+            existing.add(name)
             items.append(name)
         if items:
             out[cat] = sorted(items)
@@ -84,7 +89,8 @@ def merge_category_subcategory_maps(
     merged: dict[str, set[str]] = {}
     for raw in maps:
         for category, subs in raw.items():
-            cat = (category or "").strip()
+            raw_cat = (category or "").strip()
+            cat = normalize_product_category(raw_cat) or raw_cat
             if not cat:
                 continue
             if cat not in merged:
@@ -94,7 +100,7 @@ def merge_category_subcategory_maps(
                     name = (str(sub) if sub is not None else "").strip()
                     if name:
                         merged[cat].add(name)
-    return {cat: sorted(subs) for cat, subs in sorted(merged.items())}
+    return collapse_category_map_keys(merged)
 
 
 def tenant_categories_for_ui(session: Session, tenant_id: int) -> dict[str, list[str]]:
@@ -119,7 +125,8 @@ def tenant_categories_for_ui(session: Session, tenant_id: int) -> dict[str, list
 
 
 def _validate_category_name(category: str) -> str:
-    cat = (category or "").strip()
+    raw = (category or "").strip()
+    cat = normalize_product_category(raw) or raw
     if not cat:
         raise ValueError("Category is required")
     if len(cat) > MAX_NAME_LEN:
