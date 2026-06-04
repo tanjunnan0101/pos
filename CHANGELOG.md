@@ -15,6 +15,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### Fixed
 
+- **Products / categories:** Translated category strings (e.g. **Entrantes**, **Plat principal**, **Vorspeisen**) are normalized to canonical English keys on product create/update, bulk import, and catalog merge — staff no longer see duplicate category options for the same logical category; existing data is repaired idempotently on migrate (#265).
 - **Products / categories:** Staff **Products** category dropdowns and **Product categories** now always list all five standard categories (Starters, Main Course, Desserts, Beverages, Sides) even when the tenant has no products yet — `GET /catalog/categories` seeds empty subcategory lists for missing standard keys in fixed order (#263).
 - **Marketing / Rico Kebab:** Corrected manifest and **`front/sites/`** slug from **`ricokebab`** to **`rico-kebab`** so paths match production **`/rico-kebab/`** and the SPA **`baseHref`** (`088_ricokebab`).
 - **Marketing / Rico Kebab:** Sync **`rico-kebab-satisfecho-deploy`** into **`front/sites/rico-kebab/es/`** (manifest **`deploySubpath`**) so **`/rico-kebab/es/`** serves the current bundle instead of a stale root-only sync (`088_ricokebab` #2).
@@ -26,6 +27,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - **Agent loop:** Per-step wall-clock limits on **`cursor-agent`** in **`agents2/pos-cursor-loop.sh`** (default **25** minutes; tester **32** minutes for deploy polling) so a hung step does not block the whole cycle — on timeout the orchestrator logs and continues; **`TESTING-`** / **`WIP-`** tasks are retried on the next pass. Disable with **`AGENT_CURSOR_TIMEOUT=0`**.
 - **Marketing / Gustazo:** Removed gallery image **`local-04`** from live **satisfecho.de/gustazo/** after **`gustazo-dist`** bundle sync (`040_gustazo` #1).
 - **Agent tasks:** **`move-agent-task-to-done.sh`** now parses **`CLOSED-MKT-<repo>-<issue>-…`** filenames when archiving marketing tasks to **`agents2/tasks/done/`**.
+- **Release / production:** Promoted **`development` → `master`** and confirmed green **Deploy to amvara9** on production (**satisfecho.de**) — live **2.1.4** at merge **`8739e33f`** (#264).
 - **Release / production:** Promoted **`development` → `master`** and confirmed green **Deploy to amvara9** on production (**satisfecho.de**) — live **2.1.4** at merge **`41bc798a`** (#261).
 - **Marketing / Wimpi:** Mobile opening-hours layout on **satisfecho.de/wimpi/es/** — short weekday labels (LUN–DOM), wrapped rows on narrow viewports, full names from 720px up (`083_wimpi` #1).
 - **Agent loop:** Added **005 marketing repos reviewer** — preflight scans **`satisfecho/NNN_slug`** org repos for new sites, bundle updates, and untracked issues; registers **`config/marketing-sites.json`** and **`front/sites/<slug>/`**, can trigger **Deploy to amvara9**, and queues **`FEAT-MKT-*`** tasks for the feature coder. Wired into **`agents2/pos-cursor-loop.sh`** with gating env vars; **`010-feature-coder.md`** documents marketing-repo work.

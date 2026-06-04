@@ -4099,6 +4099,10 @@ def create_product(
     session: Session = Depends(get_session),
 ) -> models.Product:
     product.tenant_id = current_user.tenant_id
+    if product.category is not None:
+        from .category_codes import normalize_product_category
+
+        product.category = normalize_product_category(product.category)
     if getattr(product, "kitchen_station_id", None):
         try:
             validate_kitchen_station_belongs(
@@ -4138,7 +4142,9 @@ def update_product(
     if product_update.ingredients is not None:
         product.ingredients = product_update.ingredients
     if product_update.category is not None:
-        product.category = product_update.category
+        from .category_codes import normalize_product_category
+
+        product.category = normalize_product_category(product_update.category)
     if product_update.subcategory is not None:
         product.subcategory = product_update.subcategory
     if product_update.tax_id is not None:

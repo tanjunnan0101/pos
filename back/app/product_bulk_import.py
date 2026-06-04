@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from sqlmodel import Session, select
 
 from . import models
+from .category_codes import normalize_product_category
 from .settings import settings
 
 MAX_BULK_IMPORT_ROWS = 500
@@ -157,7 +158,7 @@ def build_preview(
         cost_cents, cost_errors = _resolve_cost_cents(item)
         errors.extend(cost_errors)
 
-        category = (item.category or "").strip() or None
+        category = normalize_product_category(item.category)
         subcategory = (item.subcategory or "").strip() or None
         description = (item.description or "").strip() or None
         ingredients = (item.ingredients or "").strip() or None
@@ -236,7 +237,7 @@ def confirm_import(
             if row.cost_cents is not None:
                 product.cost_cents = row.cost_cents
             if row.category is not None:
-                product.category = row.category or None
+                product.category = normalize_product_category(row.category)
             if row.subcategory is not None:
                 product.subcategory = row.subcategory or None
             if row.description is not None:
@@ -254,7 +255,7 @@ def confirm_import(
                 name=name,
                 price_cents=row.price_cents,
                 cost_cents=row.cost_cents,
-                category=row.category,
+                category=normalize_product_category(row.category),
                 subcategory=row.subcategory,
                 description=row.description,
                 ingredients=row.ingredients,

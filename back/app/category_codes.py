@@ -5,6 +5,16 @@ Categories and subcategories use codes instead of strings to support
 multiple languages. The frontend can map these codes to localized labels.
 """
 
+from __future__ import annotations
+
+import json
+import logging
+from pathlib import Path
+
+from sqlmodel import Session, select
+
+logger = logging.getLogger(__name__)
+
 # Main category codes
 CATEGORY_CODES = {
     "STARTERS": "Starters",
@@ -66,6 +76,198 @@ SUBCATEGORY_CODES = {
 
 # Reverse mapping: string -> code
 CATEGORY_STRING_TO_CODE = {v: k for k, v in CATEGORY_CODES.items()}
+
+# i18n key -> CATEGORY_CODES key (PRODUCTS.CATEGORY_* in front/public/i18n/*.json)
+_I18N_CATEGORY_KEYS: tuple[tuple[str, str], ...] = (
+    ("CATEGORY_STARTERS", "STARTERS"),
+    ("CATEGORY_MAIN_COURSE", "MAIN_COURSE"),
+    ("CATEGORY_DESSERTS", "DESSERTS"),
+    ("CATEGORY_BEVERAGES", "BEVERAGES"),
+    ("CATEGORY_SIDES", "SIDES"),
+)
+
+# Baked-in locale labels when front/i18n is not mounted (e.g. back-only Docker).
+_FALLBACK_CATEGORY_ALIASES: dict[str, str] = {
+    # en (canonical)
+    "Starters": "Starters",
+    "Main Course": "Main Course",
+    "Desserts": "Desserts",
+    "Beverages": "Beverages",
+    "Sides": "Sides",
+    # es
+    "Entrantes": "Starters",
+    "Plato principal": "Main Course",
+    "Postres": "Desserts",
+    "Bebidas": "Beverages",
+    "Guarniciones": "Sides",
+    # ca
+    "Entrants": "Starters",
+    "Plat principal": "Main Course",
+    "Begudes": "Beverages",
+    "Amanida / Acompanyaments": "Sides",
+    # de
+    "Vorspeisen": "Starters",
+    "Hauptgericht": "Main Course",
+    "Getränke": "Beverages",
+    "Beilagen": "Sides",
+    # fr
+    "Entrées": "Starters",
+    "Boissons": "Beverages",
+    "Accompagnements": "Sides",
+    # bg
+    "ПРЕДЯСТИЯ": "Starters",
+    "Основно ястие": "Main Course",
+    "Десерти": "Desserts",
+    "Напитки": "Beverages",
+    "страни": "Sides",
+    # hi
+    "स्टार्टर": "Starters",
+    "मुख्य व्यंजन": "Main Course",
+    "डेज़र्ट": "Desserts",
+    "पेय": "Beverages",
+    "साइड डिश": "Sides",
+    # ur
+    "اسٹارٹرز": "Starters",
+    "اہم کورس": "Main Course",
+    "میٹھے": "Desserts",
+    "مشروبات": "Beverages",
+    "سائیڈز": "Sides",
+    # zh-CN
+    "开胃菜": "Starters",
+    "主菜": "Main Course",
+    "甜点": "Desserts",
+    "饮料": "Beverages",
+    "配菜": "Sides",
+}
+
+_CATEGORY_ALIAS_TO_CANONICAL: dict[str, str] | None = None
+
+
+def _repo_i18n_dir() -> Path | None:
+    root = Path(__file__).resolve().parents[2]
+    directory = root / "front" / "public" / "i18n"
+    return directory if directory.is_dir() else None
+
+
+def _load_aliases_from_i18n_files() -> dict[str, str]:
+    out: dict[str, str] = {}
+    directory = _repo_i18n_dir()
+    if not directory:
+        return out
+    for path in sorted(directory.glob("*.json")):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            logger.warning("Skipping i18n file %s: %s", path.name, exc)
+            continue
+        products = data.get("PRODUCTS")
+        if not isinstance(products, dict):
+            continue
+        for i18n_key, code_key in _I18N_CATEGORY_KEYS:
+            label = products.get(i18n_key)
+            if not isinstance(label, str):
+                continue
+            stripped = label.strip()
+            if not stripped:
+                continue
+            out[stripped] = CATEGORY_CODES[code_key]
+    return out
+
+
+def get_category_alias_to_canonical() -> dict[str, str]:
+    """Map translated or legacy category labels to canonical English."""
+    global _CATEGORY_ALIAS_TO_CANONICAL
+    if _CATEGORY_ALIAS_TO_CANONICAL is not None:
+        return _CATEGORY_ALIAS_TO_CANONICAL
+    merged = dict(_FALLBACK_CATEGORY_ALIASES)
+    merged.update(_load_aliases_from_i18n_files())
+    for canonical in CATEGORY_CODES.values():
+        merged[canonical] = canonical
+    _CATEGORY_ALIAS_TO_CANONICAL = merged
+    return merged
+
+
+def normalize_product_category(category: str | None) -> str | None:
+    """
+    Return canonical English for known standard categories; otherwise strip and return as-is.
+    None/blank input becomes None.
+    """
+    if category is None:
+        return None
+    stripped = category.strip()
+    if not stripped:
+        return None
+    return get_category_alias_to_canonical().get(stripped, stripped)
+
+
+def collapse_category_map_keys(
+    merged: dict[str, list[str]] | dict[str, set[str]],
+) -> dict[str, list[str]]:
+    """Merge subcategory lists when multiple keys normalize to the same canonical category."""
+    collapsed: dict[str, set[str]] = {}
+    for category, subs in merged.items():
+        cat = (category or "").strip()
+        if not cat:
+            continue
+        norm = normalize_product_category(cat) or cat
+        if norm not in collapsed:
+            collapsed[norm] = set()
+        if isinstance(subs, (list, set, tuple)):
+            for sub in subs:
+                name = (str(sub) if sub is not None else "").strip()
+                if name:
+                    collapsed[norm].add(name)
+    return {cat: sorted(subs) for cat, subs in sorted(collapsed.items())}
+
+
+def repair_stored_category_aliases(session: Session) -> dict[str, int]:
+    """
+    Idempotent repair: Product.category and tenant.custom_subcategories keys.
+    """
+    from . import models
+
+    products_updated = 0
+    tenants_updated = 0
+
+    for product in session.exec(select(models.Product)).all():
+        if not product.category:
+            continue
+        normalized = normalize_product_category(product.category)
+        if normalized and normalized != product.category:
+            product.category = normalized
+            session.add(product)
+            products_updated += 1
+
+    for tenant in session.exec(select(models.Tenant)).all():
+        stored = tenant.custom_subcategories
+        if not stored or not isinstance(stored, dict):
+            continue
+        rebuilt: dict[str, list[str]] = {}
+        changed = False
+        for category, names in stored.items():
+            norm = normalize_product_category(str(category)) or str(category).strip()
+            if norm != str(category).strip():
+                changed = True
+            if not isinstance(names, list):
+                continue
+            existing = set(rebuilt.get(norm, []))
+            items: list[str] = list(rebuilt.get(norm, []))
+            for raw in names:
+                name = (str(raw) if raw is not None else "").strip()
+                if not name or name in existing:
+                    continue
+                existing.add(name)
+                items.append(name)
+            if items:
+                rebuilt[norm] = sorted(items)
+        if changed:
+            tenant.custom_subcategories = rebuilt or None
+            session.add(tenant)
+            tenants_updated += 1
+
+    if products_updated or tenants_updated:
+        session.commit()
+    return {"products_updated": products_updated, "tenants_updated": tenants_updated}
 
 SUBCATEGORY_STRING_TO_CODE = {}
 for main_cat_code, subcats in SUBCATEGORY_CODES.items():
