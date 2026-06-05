@@ -70,13 +70,6 @@
       "branch": "main",
       "artifact": "pita-house-satisfecho-deploy",
       "deploySubpath": "es"
-    },
-    {
-      "slug": "labellatoscana",
-      "repo": "satisfecho/060_labellatoscana",
-      "branch": "main",
-      "artifact": "labellatoscana-satisfecho-deploy",
-      "deploySubpath": "es"
     }
   ]
 }
