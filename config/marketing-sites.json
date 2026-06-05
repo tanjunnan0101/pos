@@ -33,6 +33,13 @@
       "artifact": "dist"
     },
     {
+      "slug": "labellatoscana",
+      "repo": "satisfecho/060_labellatoscana",
+      "branch": "main",
+      "artifact": "labellatoscana-satisfecho-deploy",
+      "deploySubpath": "es"
+    },
+    {
       "slug": "la-moca",
       "repo": "satisfecho/082_la_moca",
       "branch": "main",
@@ -69,13 +76,6 @@
       "repo": "satisfecho/086_pitahouse",
       "branch": "main",
       "artifact": "pita-house-satisfecho-deploy",
-      "deploySubpath": "es"
-    },
-    {
-      "slug": "labellatoscana",
-      "repo": "satisfecho/060_labellatoscana",
-      "branch": "main",
-      "artifact": "labellatoscana-satisfecho-deploy",
       "deploySubpath": "es"
     }
   ]

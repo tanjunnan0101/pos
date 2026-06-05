@@ -187,6 +187,111 @@ def get_category_alias_to_canonical() -> dict[str, str]:
     return merged
 
 
+_CATEGORY_DISPLAY_BY_LOCALE: dict[str, dict[str, str]] | None = None
+
+
+def _normalize_public_menu_lang(lang: str) -> str:
+    """Map API lang to a front/public/i18n filename stem."""
+    raw = (lang or "en").strip().replace("_", "-")
+    lower = raw.lower()
+    if lower.startswith("zh"):
+        return "zh-CN"
+    if lower.startswith("ca"):
+        return "ca"
+    return lower.split("-")[0] or "en"
+
+
+_BUILTIN_CATEGORY_DISPLAY: dict[str, dict[str, str]] = {
+    "en": {v: v for v in CATEGORY_CODES.values()},
+    "es": {
+        "Starters": "Entrantes",
+        "Main Course": "Plato principal",
+        "Desserts": "Postres",
+        "Beverages": "Bebidas",
+        "Sides": "Guarniciones",
+    },
+    "ca": {
+        "Starters": "Entrants",
+        "Main Course": "Plat principal",
+        "Desserts": "Postres",
+        "Beverages": "Begudes",
+        "Sides": "Amanida / Acompanyaments",
+    },
+    "de": {
+        "Starters": "Vorspeisen",
+        "Main Course": "Hauptgericht",
+        "Desserts": "Desserts",
+        "Beverages": "Getränke",
+        "Sides": "Beilagen",
+    },
+    "fr": {
+        "Starters": "Entrées",
+        "Main Course": "Plat principal",
+        "Desserts": "Desserts",
+        "Beverages": "Boissons",
+        "Sides": "Accompagnements",
+    },
+}
+
+
+def _load_category_display_by_locale() -> dict[str, dict[str, str]]:
+    """Canonical English category -> localized label per locale."""
+    out: dict[str, dict[str, str]] = {
+        locale: dict(labels) for locale, labels in _BUILTIN_CATEGORY_DISPLAY.items()
+    }
+    directory = _repo_i18n_dir()
+    if directory:
+        for path in sorted(directory.glob("*.json")):
+            locale = path.stem
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                logger.warning("Skipping i18n file %s: %s", path.name, exc)
+                continue
+            products = data.get("PRODUCTS")
+            if not isinstance(products, dict):
+                continue
+            labels: dict[str, str] = dict(out.get(locale, {}))
+            for i18n_key, code_key in _I18N_CATEGORY_KEYS:
+                label = products.get(i18n_key)
+                if not isinstance(label, str):
+                    continue
+                stripped = label.strip()
+                if not stripped:
+                    continue
+                labels[CATEGORY_CODES[code_key]] = stripped
+            if labels:
+                out[locale] = labels
+    return out
+
+
+def get_category_display_by_locale() -> dict[str, dict[str, str]]:
+    global _CATEGORY_DISPLAY_BY_LOCALE
+    if _CATEGORY_DISPLAY_BY_LOCALE is None:
+        _CATEGORY_DISPLAY_BY_LOCALE = _load_category_display_by_locale()
+    return _CATEGORY_DISPLAY_BY_LOCALE
+
+
+def get_public_category_display_label(category: str | None, lang: str = "en") -> str:
+    """
+    Localized menu section title for public APIs when grouping by category (no subcategory).
+    Unknown categories are returned stripped as-is.
+    """
+    if category is None:
+        return "Other"
+    stripped = category.strip()
+    if not stripped:
+        return "Other"
+    canonical = normalize_product_category(stripped) or stripped
+    locale = _normalize_public_menu_lang(lang)
+    labels = get_category_display_by_locale()
+    if locale in labels and canonical in labels[locale]:
+        return labels[locale][canonical]
+    if canonical in CATEGORY_CODES.values():
+        return labels.get("en", {}).get(canonical, canonical)
+    return stripped
+
+
 def normalize_product_category(category: str | None) -> str | None:
     """
     Return canonical English for known standard categories; otherwise strip and return as-is.

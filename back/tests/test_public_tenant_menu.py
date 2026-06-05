@@ -7,7 +7,11 @@ from datetime import date, timedelta
 from pg_client_mixin import PgClientTestCase
 
 from app import models
-from app.public_tenant_menu import assert_no_sensitive_product_fields, format_public_price
+from app.public_tenant_menu import (
+    assert_no_sensitive_product_fields,
+    format_public_price,
+    group_products_into_categories,
+)
 
 
 class TestPublicTenantMenu(PgClientTestCase):
@@ -65,8 +69,10 @@ class TestPublicTenantMenu(PgClientTestCase):
 
         self.assertEqual(len(data["categories"]), 2)
         cat_ids = {c["id"] for c in data["categories"]}
-        self.assertIn("entrantes", cat_ids)
+        self.assertIn("starters", cat_ids)
         self.assertIn("principales", cat_ids)
+        by_id = {c["id"]: c for c in data["categories"]}
+        self.assertEqual(by_id["starters"]["name"], "Starters")
 
         all_products = [p for c in data["categories"] for p in c["products"]]
         self.assertEqual(len(all_products), 2)
@@ -78,6 +84,7 @@ class TestPublicTenantMenu(PgClientTestCase):
         self.assertEqual(olivas["price_formatted"], "2.50")
         self.assertEqual(olivas["description"], "Aceitunas")
         self.assertEqual(olivas["category"], "Entrantes")
+        self.assertEqual(data["categories"][0]["name"], "Starters")
         self.assertIsNone(olivas["subcategory"])
         self.assertTrue(olivas["available"])
 
@@ -106,6 +113,51 @@ class TestPublicTenantMenu(PgClientTestCase):
         self.assertEqual(data["lang"], "es")
         product = data["categories"][0]["products"][0]
         self.assertEqual(product["price_formatted"], "3,50")
+        self.assertEqual(data["categories"][0]["name"], "Entrantes")
+
+    def test_group_by_subcategory_when_present(self):
+        self.session.add(
+            models.Product(
+                tenant_id=self.tenant.id,
+                name="Margarita",
+                price_cents=900,
+                category="Main Course",
+                subcategory="Carta principal",
+            )
+        )
+        self.session.add(
+            models.Product(
+                tenant_id=self.tenant.id,
+                name="Calzone",
+                price_cents=1390,
+                category="Main Course",
+                subcategory="Especialidades",
+            )
+        )
+        self.session.add(
+            models.Product(
+                tenant_id=self.tenant.id,
+                name="Panna Cotta",
+                price_cents=595,
+                category="Desserts",
+            )
+        )
+        self.session.commit()
+
+        response = self.client.get(
+            f"/public/tenants/{self.tenant.id}/menu",
+            params={"lang": "es"},
+        )
+        self.assertEqual(response.status_code, 200, response.text)
+        data = response.json()
+        names = [c["name"] for c in data["categories"]]
+        self.assertEqual(
+            names,
+            ["Carta principal", "Especialidades", "Postres"],
+        )
+        panna = data["categories"][2]["products"][0]
+        self.assertEqual(panna["name"], "Panna Cotta")
+        self.assertIsNone(panna["subcategory"])
 
     def test_lang_from_accept_language_header(self):
         self.session.add(
@@ -226,6 +278,24 @@ class TestPublicTenantMenu(PgClientTestCase):
             product["image_url"],
             f"/uploads/{self.tenant.id}/products/dish.jpg",
         )
+
+
+class TestGroupProductsIntoCategories(unittest.TestCase):
+    def test_unit_grouping_prefers_subcategory(self):
+        products = [
+            {
+                "name": "Sangría",
+                "category": "Beverages",
+                "subcategory": None,
+            },
+            {
+                "name": "Margarita",
+                "category": "Main Course",
+                "subcategory": "Carta principal",
+            },
+        ]
+        sections = group_products_into_categories(products, "es")
+        self.assertEqual([s["name"] for s in sections], ["Carta principal", "Bebidas"])
 
 
 class TestFormatPublicPrice(unittest.TestCase):
