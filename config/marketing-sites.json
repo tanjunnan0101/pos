@@ -63,6 +63,13 @@
       "branch": "main",
       "artifact": "pizzaluna-satisfecho-deploy",
       "deploySubpath": "es"
+    },
+    {
+      "slug": "pita-house",
+      "repo": "satisfecho/086_pitahouse",
+      "branch": "main",
+      "artifact": "pita-house-satisfecho-deploy",
+      "deploySubpath": "es"
     }
   ]
 }
