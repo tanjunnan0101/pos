@@ -20,17 +20,25 @@
       "last_artifact": "dist",
       "pushed_at": "2026-04-21T06:05:35Z"
     },
+    "satisfecho/060_labellatoscana": {
+      "last_artifact": "labellatoscana-satisfecho-deploy",
+      "pushed_at": "2026-06-05T11:47:20Z"
+    },
     "satisfecho/082_la_moca": {
       "last_artifact": "la-moca-dist",
       "pushed_at": "2026-05-29T09:38:56Z"
     },
     "satisfecho/083_wimpi": {
       "last_artifact": "wimpi-satisfecho-deploy",
-      "pushed_at": "2026-06-02T07:20:19Z"
+      "pushed_at": "2026-06-05T12:46:54Z"
     },
     "satisfecho/085_Bosskebabypizzeria": {
       "last_artifact": "boss-kebab-satisfecho-deploy",
       "pushed_at": "2026-06-02T07:02:46Z"
+    },
+    "satisfecho/086_pitahouse": {
+      "last_artifact": "pita-house-satisfecho-deploy",
+      "pushed_at": "2026-06-05T06:54:41Z"
     },
     "satisfecho/087_pizzalluna": {
       "last_artifact": "pizzaluna-satisfecho-deploy",
