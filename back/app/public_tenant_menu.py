@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 from sqlmodel import Session, select
 
 from . import models
+from .category_codes import get_public_category_display_label
 from .tenant_currency import normalize_tenant_currency_fields
 from .translation_service import TranslationService
 
@@ -259,20 +260,83 @@ def _load_flat_products(
     return products
 
 
-def group_products_into_categories(products: list[dict]) -> list[dict]:
-    """Group flat product dicts into categories sorted by name."""
-    by_category: dict[str, list[dict]] = {}
+def _uncategorized_section_label(lang: str) -> str:
+    """Localized title for products without category/subcategory."""
+    labels = {
+        "en": "Other",
+        "es": "Otros",
+        "ca": "Altres",
+        "de": "Sonstiges",
+        "fr": "Autres",
+    }
+    locale = (lang or "en").strip().lower().split("-")[0]
+    return labels.get(locale, labels["en"])
+
+
+def _public_menu_section_title(product: dict, lang: str) -> str:
+    """Display section: subcategory when set, else localized standard category label."""
+    sub = (product.get("subcategory") or "").strip()
+    if sub:
+        return sub
+    raw_category = (product.get("category") or "").strip()
+    if not raw_category:
+        return _uncategorized_section_label(lang)
+    return get_public_category_display_label(raw_category, lang)
+
+
+def _section_sort_key(display_name: str) -> tuple[int, str]:
+    """Prefer common restaurant section order; unknown sections sort alphabetically."""
+    hints: dict[str, int] = {
+        "carta principal": 10,
+        "especialidades": 20,
+        "entrantes": 30,
+        "ensaladas": 40,
+        "starters": 50,
+        "entrants": 50,
+        "main course": 60,
+        "plato principal": 60,
+        "plat principal": 60,
+        "beverages": 70,
+        "bebidas": 70,
+        "begudes": 70,
+        "desserts": 80,
+        "postres": 80,
+        "sides": 90,
+        "guarniciones": 90,
+        "other": 999,
+        "otros": 999,
+    }
+    rank = hints.get(display_name.strip().lower(), 500)
+    return (rank, display_name.lower())
+
+
+def group_products_into_categories(products: list[dict], lang: str = "en") -> list[dict]:
+    """
+    Group flat product dicts into menu sections for public/marketing UIs.
+
+    Uses subcategory as the section when present; otherwise the localized
+    standard category label (e.g. Desserts -> Postres for lang=es).
+    """
+    by_section: dict[str, list[dict]] = {}
+    section_titles: dict[str, str] = {}
+
     for product in products:
-        category_name = (product.get("category") or "").strip() or _UNCategorized_CATEGORY
-        by_category.setdefault(category_name, []).append(product)
+        title = _public_menu_section_title(product, lang)
+        section_id = _category_slug(title)
+        section_titles.setdefault(section_id, title)
+        by_section.setdefault(section_id, []).append(product)
 
     categories = []
-    for name in sorted(by_category.keys(), key=lambda n: n.lower()):
-        items = sorted(by_category[name], key=lambda p: (p.get("name") or "").lower())
+    for section_id in sorted(
+        by_section.keys(),
+        key=lambda sid: _section_sort_key(section_titles[sid]),
+    ):
+        title = section_titles[section_id]
+        items = sorted(by_section[section_id], key=lambda p: (p.get("name") or "").lower())
         categories.append(
             {
-                "id": _category_slug(name),
-                "name": name,
+                "id": section_id,
+                "name": title,
                 "products": items,
             }
         )
@@ -301,7 +365,7 @@ def build_public_tenant_menu(
             tenant_name = translated
 
     products = _load_flat_products(session, tenant_id, lang, currency_code)
-    categories = group_products_into_categories(products)
+    categories = group_products_into_categories(products, lang)
 
     return {
         "tenant_id": tenant_id,
