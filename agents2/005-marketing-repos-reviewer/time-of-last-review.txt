@@ -1608,3 +1608,5 @@
 
 2026-06-05T21:55:59Z UTC | 005 agent | registered=1 (labellatoscana, 060_labellatoscana) deploy=https://github.com/satisfecho/pos/actions/runs/27042170617 feat_mkt=0 | note: 086_pitahouse already in manifest as pita-house; wimpi bundle 12:46Z (remove carta/booking CTAs, CI 27015693708); labellatoscana CI 27013031946 green; es/ placeholder added
 
+2026-06-06T21:54:27Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
