@@ -827,3 +827,50 @@ INFO:     172.18.0.7:59300 - "POST /token?scope=courier HTTP/1.1" 500 Internal S
 ----------
  userrole
 ```
+
+---
+
+## Test report (2026-06-21 seventeenth run)
+
+1. **Date/time (UTC):** 2026-06-21 23:27 – 23:29 UTC. Log window: local `pos-back` `--since 5m`; amvara9 `pos-back` `--since 5m`.
+
+2. **Environment:** Local `docker-compose.yml` + `docker-compose.dev.yml`, `BASE_URL=http://127.0.0.1:4202`, branch **`development`** @ **`45cb8617`**. Production `https://www.satisfecho.de`. Latest **Deploy to amvara9** run: https://github.com/satisfecho/pos/actions/runs/27912680055 (**success**, commit **`7405465c`**, 2026-06-21T17:54:20Z — predates fix **`0f6ba00b`**; no newer deploy). **`master`** / amvara9 tip: **`7405465c`**. Fix commit **`0f6ba00b`** is on **`development`** but **not** on **`master`**.
+
+3. **What was tested:** Migration **20260621120000** idempotency; local `user.role` enum type; `test_user_role_pg_enum.py`; local and production `POST /api/token?scope=courier`; production `udt_name` via amvara9 psql.
+
+4. **Results:**
+   - **Migration 20260621120000 idempotent (local):** **PASS** — `python -m app.migrate` twice → schema version **20260621120000**, no errors.
+   - **Local `user.role` udt_name = `user_role`:** **PASS** — psql → `user_role`.
+   - **`test_user_role_pg_enum.py`:** **PASS** — 2 passed in 2.54s.
+   - **Local courier token (no 500):** **PASS** — `POST http://127.0.0.1:4202/api/token?scope=courier` → **401**; `pos-back`: `401 Unauthorized`.
+   - **Production courier token:** **FAIL** — `POST https://www.satisfecho.de/api/token?scope=courier` → **500**; amvara9 `pos-back`: `invalid input value for enum userrole: "courier"`.
+   - **Production `user.role` udt_name = `user_role`:** **FAIL** — amvara9 psql → `userrole`.
+   - **Fix deployed to production:** **FAIL (blocker)** — fix on **`development`** @ **`45cb8617`** (includes **`0f6ba00b`**); **`master`** / amvara9 still **`7405465c`**; no post-fix deploy run.
+
+5. **Overall:** **FAIL** — local criteria pass; production still broken (500, legacy **`userrole`** enum). Blocked on **development → master** promotion and **Deploy to amvara9**. **Loop protection:** seventeenth consecutive production failure for the same root cause (undeployed fix); do not re-queue tester until deploy completes.
+
+6. **Product owner feedback:** Local verification remains fully green: the align migration is idempotent, enum regression tests pass, and courier-scoped token requests return **401** instead of **500**. Production is unchanged — satisfecho.de still binds `user.role` to legacy **`userrole`**, so courier login cannot work until **`0f6ba00b`** is promoted to **`master`** and **Deploy to amvara9** runs successfully. Coordinate with **#272** for promotion and redeploy; re-run this task only after a successful post-fix deploy.
+
+7. **URLs tested:**
+   1. `http://127.0.0.1:4202/api/token?scope=courier` (local)
+   2. `https://www.satisfecho.de/api/token?scope=courier` (production)
+
+8. **Relevant log excerpts:**
+
+**Local `pos-back`:**
+```
+INFO:     172.30.0.5:58882 - "POST /token?scope=courier HTTP/1.1" 401 Unauthorized
+```
+
+**amvara9 `pos-back`:**
+```
+psycopg.errors.InvalidTextRepresentation: invalid input value for enum userrole: "courier"
+INFO:     172.18.0.7:41562 - "POST /token?scope=courier HTTP/1.1" 500 Internal Server Error
+```
+
+**amvara9 DB:**
+```
+ udt_name
+----------
+ userrole
+```
