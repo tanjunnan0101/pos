@@ -21,3 +21,20 @@ Follow **`.cursor/rules/git-development-branch-workflow.mdc`** — this is an ex
 - Verify production: `curl -sf https://www.satisfecho.de/api/health`; optional `LANDING_VERSION_ONLY=1 BASE_URL=https://www.satisfecho.de npm run test:landing-version` from `front/`.
 - If deploy fails, check Actions logs and **`docs/0001-ci-cd-amvara9.md`** (migrations, dirty tree, marketing artifacts) before retrying.
 - Append **Testing instructions** when ready for tester; follow **wip → untested** flow per **`TASKS-README.md`**.
+
+## Coder notes (2026-06-21)
+
+- **Pre-deploy local:** `curl` → **200** on `http://127.0.0.1:4202/`. Landing Puppeteer with `.env` credentials failed login (401) — local DB credentials may differ; version footer showed **2.1.5** before deploy.
+- **Changelog:** Cut **`## [2.1.5] - 2026-06-21`** with #269, #270, #271 and release note (#272).
+- **Merge:** Fast-forward **`development` → `master`** at **`7405465c`**; pushed **`origin/master`** and **`origin/development`**.
+- **Deploy:** **Deploy to amvara9** run **success** — https://github.com/satisfecho/pos/actions/runs/27912680055 (3m21s, push on `master`).
+- **Production verify:** `curl -sf https://www.satisfecho.de/api/health` → `{"status":"ok"}`. Landing test `LANDING_VERSION_ONLY=1 BASE_URL=https://www.satisfecho.de` → **2.1.5 7405465c**.
+
+## Testing instructions
+
+1. **Production health:** `curl -sf https://www.satisfecho.de/api/health` → `{"status":"ok"}`.
+2. **Landing version:** From `front/`, `LANDING_VERSION_ONLY=1 BASE_URL=https://www.satisfecho.de npm run test:landing-version` → footer shows **2.1.5** and commit **`7405465c`**.
+3. **Pricing helper (#269):** Log in as owner/admin → **Products → Pricing helper** → confirm **Garnishes** section with ice/lemon/other costs; verify pour-cost math includes garnish amounts.
+4. **Courier portal (#270):** In **Users**, assign **Courier** role to a test user → sign in at **`/courier/login`** → lands on **`/courier`** placeholder; staff routes blocked for courier; courier routes blocked for staff.
+5. **Schedule auth (#271):** Log in as staff with `schedule:write` (not owner/admin) → **Working plan** → can edit own shifts only; API returns 403 for other users' shifts; edit/delete hidden for others' rows in UI.
+6. **Regression:** `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:4202/` → **200** on local dev if stack is up.
