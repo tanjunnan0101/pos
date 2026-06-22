@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Production `POST /api/token?scope=courier` returns **500** because amvara9 `user.role` uses legacy enum **`userrole`** (no `courier`). Code fix on **`development`**: migration **`20260621120000_align_user_role_column_enum.sql`** (**`0f6ba00b`**) + enum regression test — verified locally (401 not 500).
+- **Why not UNTESTED:** Deploy-blocker — fix not on **`master`** / amvara9; **`origin/master`** still **`7405465c`**; latest **Deploy to amvara9** run **27912680055** predates fix. Production checks stay **FAIL** until promotion + redeploy.
+- **Why archived:** GitHub **#273** **CLOSED**; successor **#274** **OPEN**. Archived per **`docs/agent-loop.md`** deploy-blocker rule to stop **testing → wip → untested** loop (17+ prod re-runs, same root cause).
+- **Resume:** No further coding — deploy existing fix via **#274** / **`WIP-274-…`**. After green deploy, verify production courier token and `udt_name = user_role`.
+- **Closed at (UTC):** 2026-06-22 12:00
+---
+
 # Multiple HTTP 500 errors on production courier token login
 
 ## GitHub Issues
@@ -34,6 +44,7 @@ Related context: **`agents2/tasks/WIP-272-20260621-1752-deploy-to-production.md`
 - **2026-06-22 (012 handoff, pass 3):** **Remain WIP** — do not rename to **UNTESTED**. Implementation complete on **`development`** @ **`89bdeda1`** (includes fix **`0f6ba00b`**); **`master`** / amvara9 still **`7405465c`** (25 commits behind); **Deploy to amvara9** run **27912680055** unchanged; production `POST /api/token?scope=courier` → **500**. Deploy-blocker — **#272** must re-promote and redeploy first.
 - **2026-06-22 (012 handoff, pass 4):** **Remain WIP** — do not rename to **UNTESTED**. Implementation complete on **`development`** @ **`4d71a470`** (includes fix **`0f6ba00b`**); **`master`** / amvara9 still **`7405465c`** (28 commits behind); **Deploy to amvara9** run **27912680055** unchanged; production courier token → **500**. Deploy-blocker — wait for **#272** promotion + green deploy.
 - **2026-06-22 (012 handoff, pass 5):** **Remain WIP** — do not rename to **UNTESTED**. Implementation complete on **`development`** @ **`260ae7cd`** (includes fix **`0f6ba00b`**); **`master`** / amvara9 still **`7405465c`** (29 commits behind); **Deploy to amvara9** run **27912680055** unchanged; production `POST /api/token?scope=courier` → **500**. Deploy-blocker — **#272** must re-promote and redeploy first.
+- **2026-06-22 (012 handoff, pass 6):** **Archive WIP → CLOSED** — GitHub **#273** **CLOSED**; successor **#274** **OPEN**. Code fix complete on **`development`** (migration **`20260621120000`**, **`0f6ba00b`**); prod still **500** until **`development` → `master`** + green deploy. Deploy-blocker archive per **`docs/agent-loop.md`**; resume on **`WIP-274-…`**.
 
 ---
 

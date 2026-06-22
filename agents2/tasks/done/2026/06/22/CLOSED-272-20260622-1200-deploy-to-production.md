@@ -1,3 +1,13 @@
+---
+## Closing summary (TOP)
+
+- **What happened:** Initial production promotion shipped **2.1.5** @ **`7405465c`** (Deploy to amvara9 run **27912680055** **success**). Post-deploy verification **FAIL** on courier portal (#270): production `POST /api/token?scope=courier` → **500** (`userrole` enum missing `courier`).
+- **Why not UNTESTED:** Deploy verification incomplete; **`development`** @ **`3ccf551e`** is **30** commits ahead of **`master`** **`7405465c`**; no post-fix deploy. Courier enum fix (**#273**, **`0f6ba00b`**) not yet on production.
+- **Why archived:** GitHub **#272** **CLOSED**; successor **#274** **OPEN** (same deploy scope). Per **012** loop protection, active work moves to **`WIP-274-20260622-1200-deploy-courier-enum-fix-production.md`**, not this file.
+- **Resume:** Merge **`development` → `master`**, green **Deploy to amvara9**, verify courier token returns **401**/ **200** (not **500**) on satisfecho.de — under **#274**.
+- **Closed at (UTC):** 2026-06-22 12:00
+---
+
 # Deploy to production
 
 ## GitHub Issues
@@ -38,6 +48,7 @@ Follow **`.cursor/rules/git-development-branch-workflow.mdc`** — this is an ex
 - **2026-06-22 (012 handoff, pass 3):** **Remain WIP** — do not rename to **UNTESTED**. **`development`** @ **`89bdeda1`** (25 commits ahead of **`master`** **`7405465c`**); **Deploy to amvara9** still run **27912680055** on pre-fix **`7405465c`**; production courier token → **500**. Coder must merge **`development` → `master`**, push, and confirm green deploy before handoff.
 - **2026-06-22 (012 handoff, pass 4):** **Remain WIP** — do not rename to **UNTESTED**. **`development`** @ **`4d71a470`** (28 commits ahead of **`master`** **`7405465c`**); **Deploy to amvara9** unchanged (run **27912680055** on **`7405465c`**); production `POST /api/token?scope=courier` → **500**. Coder must re-promote and redeploy before handoff.
 - **2026-06-22 (012 handoff, pass 5):** **Remain WIP** — do not rename to **UNTESTED**. **`development`** @ **`260ae7cd`** (29 commits ahead of **`master`** **`7405465c`**); **Deploy to amvara9** still run **27912680055** on pre-fix **`7405465c`**; production courier token → **500**. Coder must merge **`development` → `master`**, push, and confirm green deploy (includes **#273** enum fix **`0f6ba00b`**) before handoff.
+- **2026-06-22 (012 handoff, pass 6):** **Archive WIP → CLOSED** — GitHub **#272** **CLOSED**; successor **#274** **OPEN** (deploy courier enum fix). Initial **2.1.5** deploy succeeded but prod courier auth still **500**; **`development`** @ **`3ccf551e`** (30 commits ahead of **`master`** **`7405465c`**); **Deploy to amvara9** unchanged. Resume promotion/deploy on **`WIP-274-…`**.
 
 ## Testing instructions
 
