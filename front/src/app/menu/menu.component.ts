@@ -69,11 +69,11 @@ export class MenuComponent implements OnInit, OnDestroy {
   tenantWhatsapp = signal<string | null>(null);
   tenantAddress = signal<string | null>(null);
   tenantWebsite = signal<string | null>(null);
-  tenantCurrency = signal<string>('€');
-  tenantCurrencyCode = signal<string>('EUR');
+  tenantCurrency = signal<string>('$');
+  tenantCurrencyCode = signal<string>('SGD');
   immediatePaymentRequired = signal(false);
   tenantPublicBackgroundColor = signal<string | null>(null);
-  tenantRevolutConfigured = signal(false);
+  tenantHitPayConfigured = signal(false);
   tenantHeaderBackgroundFilename = signal<string | null>(null);
 
   // Cart & Orders
@@ -129,24 +129,15 @@ export class MenuComponent implements OnInit, OnDestroy {
 
   // Payment options
   showPaymentOptions = signal(false);
-  paymentOptionsStep = signal<'choose' | 'stripe' | 'message' | 'success'>('choose');
+  paymentOptionsStep = signal<'choose' | 'message' | 'success'>('choose');
   paymentMessageTarget = signal<'waiter' | 'cash' | 'card_terminal' | null>(null);
   paymentMessage = signal('');
   paymentRequestSending = signal(false);
   paymentRequestSuccess = signal(false);
   waiterCallCooldown = signal(false);
 
-  // Stripe payment
-  showPaymentModal = signal(false);
   paymentAmount = signal(0);
-  cardError = signal('');
-  processingPayment = signal(false);
-  paymentSuccess = signal(false);
-  private stripe: any = null;
-  private cardElement: any = null;
-  private clientSecret = '';
   private currentOrderId = 0;
-  private paymentIntentId = '';
 
   // Internal
   private tableToken = '';
@@ -286,17 +277,14 @@ export class MenuComponent implements OnInit, OnDestroy {
         this.tenantWhatsapp.set(data.tenant_whatsapp || null);
         this.tenantAddress.set(data.tenant_address || null);
         this.tenantWebsite.set(data.tenant_website || null);
-        const code = (data.tenant_currency_code || 'EUR').toUpperCase();
+        const code = (data.tenant_currency_code || 'SGD').toUpperCase();
         this.tenantCurrencyCode.set(code);
-        this.tenantCurrency.set(data.tenant_currency || '€');
+        this.tenantCurrency.set(data.tenant_currency || '$');
         this.immediatePaymentRequired.set(data.tenant_immediate_payment_required || false);
         this.tenantPublicBackgroundColor.set(data.tenant_public_background_color ?? null);
         this.tenantHeaderBackgroundFilename.set(data.tenant_header_background_filename ?? null);
 
-        if (data.tenant_stripe_publishable_key) {
-          this.api.setTenantStripeKey(data.tenant_stripe_publishable_key);
-        }
-        this.tenantRevolutConfigured.set(!!data.tenant_revolut_configured);
+        this.tenantHitPayConfigured.set(!!data.tenant_hitpay_configured);
 
         // Table session status
         this.tableIsActive.set(data.table_is_active !== false);  // Default true for backward compatibility
@@ -892,7 +880,7 @@ export class MenuComponent implements OnInit, OnDestroy {
   }
 
   formatPrice(priceCents: number): string {
-    const currencyCode = this.tenantCurrencyCode() || 'EUR';
+    const currencyCode = this.tenantCurrencyCode() || 'SGD';
     const locale = navigator.language || 'en-US';
     return new Intl.NumberFormat(locale, {
       style: 'currency',
@@ -1285,15 +1273,13 @@ export class MenuComponent implements OnInit, OnDestroy {
   // --- Payment options handlers ---
 
   selectPayOnline() {
-    // Show loading state in the payment options sheet while we create the intent
-    this.paymentRequestSending.set(true);
-    this.doStripeCheckout();
+    this.selectPayHitPay();
   }
 
-  selectPayRevolut() {
+  selectPayHitPay() {
     if (!this.currentOrderId || !this.tableToken) return;
     this.paymentRequestSending.set(true);
-    this.api.createRevolutOrder(this.currentOrderId, this.tableToken).subscribe({
+    this.api.createHitPayPaymentRequest(this.currentOrderId, this.tableToken).subscribe({
       next: (res) => {
         if (res.checkout_url) {
           window.location.href = res.checkout_url;
@@ -1304,7 +1290,7 @@ export class MenuComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.paymentRequestSending.set(false);
-        alert(err.error?.detail || 'Failed to start Revolut payment.');
+        alert(err.error?.detail || 'Failed to start HitPay payment.');
       },
     });
   }
@@ -1371,128 +1357,4 @@ export class MenuComponent implements OnInit, OnDestroy {
     this.paymentMessageTarget.set(null);
   }
 
-  // --- Stripe flow (existing, now triggered from payment options) ---
-
-  private async doStripeCheckout() {
-    // Verify Stripe publishable key is configured before proceeding
-    const stripeKey = this.api.getStripePublishableKey();
-    if (!stripeKey) {
-      this.paymentRequestSending.set(false);
-      alert('Online payments are not configured. Please ask staff for assistance.');
-      return;
-    }
-    this.processingPayment.set(true);
-    // Reset stale state from previous attempts
-    this.paymentSuccess.set(false);
-    this.cardError.set('');
-    this.api.createPaymentIntent(this.currentOrderId, this.tableToken).subscribe({
-      next: async (response: any) => {
-        this.clientSecret = response.client_secret;
-        this.paymentIntentId = response.payment_intent_id;
-        this.paymentAmount.set(response.amount);
-        this.processingPayment.set(false);
-        this.paymentRequestSending.set(false);
-        // Close payment options and show stripe modal
-        this.showPaymentOptions.set(false);
-        this.showPaymentModal.set(true);
-        await this.loadStripe();
-      },
-      error: (err) => {
-        this.processingPayment.set(false);
-        this.paymentRequestSending.set(false);
-        alert(err.error?.detail || 'Failed to create payment');
-      }
-    });
-  }
-
-  async loadStripe() {
-    if (this.stripe) {
-      this.mountCard();
-      return;
-    }
-    // Check if Stripe.js is already available globally
-    if ((window as any).Stripe) {
-      this.stripe = (window as any).Stripe(this.api.getStripePublishableKey());
-      this.mountCard();
-      return;
-    }
-    const script = document.createElement('script');
-    script.src = 'https://js.stripe.com/v3/';
-    script.onload = () => {
-      this.stripe = (window as any).Stripe(this.api.getStripePublishableKey());
-      this.mountCard();
-    };
-    script.onerror = () => {
-      this.cardError.set('Failed to load payment system. Please check your connection and try again.');
-    };
-    document.head.appendChild(script);
-  }
-
-  mountCard() {
-    if (!this.stripe) return;
-    const elements = this.stripe.elements();
-    this.cardElement = elements.create('card', {
-      style: {
-        base: {
-          fontSize: '16px',
-          color: '#1C1917',
-          '::placeholder': { color: '#78716C' }
-        }
-      }
-    });
-    // Retry mounting until the DOM element is available (Angular may need a tick to render)
-    const tryMount = (attempts: number) => {
-      const container = document.getElementById('card-element');
-      if (container) {
-        container.innerHTML = '';
-        this.cardElement.mount('#card-element');
-        this.cardElement.on('change', (e: any) => this.cardError.set(e.error ? e.error.message : ''));
-      } else if (attempts > 0) {
-        setTimeout(() => tryMount(attempts - 1), 150);
-      } else {
-        this.cardError.set('Could not load card input. Please close and try again.');
-      }
-    };
-    setTimeout(() => tryMount(5), 100);
-  }
-
-  async processPayment() {
-    if (!this.stripe || !this.cardElement) return;
-    this.processingPayment.set(true);
-    this.cardError.set('');
-    const { error, paymentIntent } = await this.stripe.confirmCardPayment(this.clientSecret, {
-      payment_method: { card: this.cardElement }
-    });
-        if (error) {
-      this.cardError.set(error.message);
-      this.processingPayment.set(false);
-    } else if (paymentIntent.status === 'succeeded') {
-      this.api.confirmPayment(this.currentOrderId, this.tableToken, this.paymentIntentId).subscribe({
-        next: () => {
-          this.processingPayment.set(false);
-          this.paymentSuccess.set(true);
-          this.loadStoredOrders();
-          this.loadOrderHistory();
-        },
-        error: () => {
-          this.processingPayment.set(false);
-          this.cardError.set('Payment confirmed but failed to update order.');
-        }
-      });
-    }
-  }
-
-  cancelPayment() {
-    this.showPaymentModal.set(false);
-    this.cardError.set('');
-    this.paymentSuccess.set(false);
-    document.body.style.overflow = '';
-  }
-
-  finishPayment() {
-    this.showPaymentModal.set(false);
-    this.paymentSuccess.set(false);
-    document.body.style.overflow = '';
-    this.loadStoredOrders();
-  }
 }

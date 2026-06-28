@@ -49,7 +49,7 @@ PIZZA_DATA = [
             "Fresh basil",
             "Olive oil"
         ],
-        "price": "€16–€18",
+        "price": "$16–$18",
         "image": "https://fotografias-2.larazon.es/clipping/cmsimages01/2024/12/04/DAB58020-5216-4B42-AA9D-5ECD3DE736E7/ganadora_58.jpg?crop=1728,980,x0,y85&width=1000&height=567&optimize=high&format=webply"
     },
     {
@@ -71,7 +71,7 @@ PIZZA_DATA = [
             "Speck",
             "Crystallized basil"
         ],
-        "price": "€17",
+        "price": "$17",
         "image": "https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -86,7 +86,7 @@ PIZZA_DATA = [
             "Grana Padano",
             "Red pesto sauce"
         ],
-        "price": "€15",
+        "price": "$15",
         "image": "https://images.pexels.com/photos/2619967/pexels-photo-2619967.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -100,7 +100,7 @@ PIZZA_DATA = [
             "Chimichurri",
             "Roasted red peppers"
         ],
-        "price": "€14",
+        "price": "$14",
         "image": "https://images.pexels.com/photos/1146760/pexels-photo-1146760.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -114,7 +114,7 @@ PIZZA_DATA = [
             "Fresh basil",
             "Olive oil"
         ],
-        "price": "€15–€18",
+        "price": "$15–$18",
         "image": "https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -129,7 +129,7 @@ PIZZA_DATA = [
             "Tomato",
             "Honey drizzle"
         ],
-        "price": "€16",
+        "price": "$16",
         "image": "https://images.pexels.com/photos/2619967/pexels-photo-2619967.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -146,7 +146,7 @@ PIZZA_DATA = [
             "Fresh basil",
             "Basil oil"
         ],
-        "price": "€14.50",
+        "price": "$14.50",
         "image": "https://images.pexels.com/photos/1146760/pexels-photo-1146760.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -161,7 +161,7 @@ PIZZA_DATA = [
             "Pistachos",
             "Stracciatella"
         ],
-        "price": "€16",
+        "price": "$16",
         "image": "https://images.pexels.com/photos/2619967/pexels-photo-2619967.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -176,7 +176,7 @@ PIZZA_DATA = [
             "Chili",
             "Honey"
         ],
-        "price": "€15",
+        "price": "$15",
         "image": "https://images.pexels.com/photos/1146760/pexels-photo-1146760.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -192,7 +192,7 @@ PIZZA_DATA = [
             "Capers",
             "Olives"
         ],
-        "price": "€13",
+        "price": "$13",
         "image": "https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -207,7 +207,7 @@ PIZZA_DATA = [
             "Tomato",
             "Basil"
         ],
-        "price": "€14",
+        "price": "$14",
         "image": "https://images.pexels.com/photos/2619967/pexels-photo-2619967.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -223,7 +223,7 @@ PIZZA_DATA = [
             "Chili",
             "Olive oil"
         ],
-        "price": "€15",
+        "price": "$15",
         "image": "https://images.pexels.com/photos/1146760/pexels-photo-1146760.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -238,7 +238,7 @@ PIZZA_DATA = [
             "Garlic",
             "Oregano"
         ],
-        "price": "€13",
+        "price": "$13",
         "image": "https://images.pexels.com/photos/2619967/pexels-photo-2619967.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -253,7 +253,7 @@ PIZZA_DATA = [
             "Honey",
             "Sesame seeds"
         ],
-        "price": "€16",
+        "price": "$16",
         "image": "https://images.pexels.com/photos/1146760/pexels-photo-1146760.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -268,7 +268,7 @@ PIZZA_DATA = [
             "Mushrooms",
             "Artichokes"
         ],
-        "price": "€14",
+        "price": "$14",
         "image": "https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=800"
     }
 ]
@@ -288,15 +288,15 @@ def parse_price(price_str: str) -> int | None:
     Parse price string to cents.
     
     Handles formats like:
-    - "€16–€18" -> average: 1700 cents (€17.00)
-    - "€17" -> 1700 cents
-    - "€14.50" -> 1450 cents
+    - "$16–$18" -> average: 1700 cents ($17.00)
+    - "$17" -> 1700 cents
+    - "$14.50" -> 1450 cents
     """
     if not price_str:
         return None
     
     # Remove currency symbols and whitespace
-    price_str = price_str.replace("€", "").replace("$", "").replace("£", "").strip()
+    price_str = price_str.replace("$", "").replace("$", "").replace("£", "").strip()
     
     # Handle range (e.g., "16–18" or "16-18")
     if "–" in price_str or "-" in price_str:

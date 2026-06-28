@@ -51,16 +51,9 @@ class Settings(BaseSettings):
         default=7, validation_alias="REFRESH_TOKEN_EXPIRE_DAYS"
     )
 
-    stripe_secret_key: str = Field(default="", validation_alias="STRIPE_SECRET_KEY")
-    stripe_publishable_key: str = Field(
-        default="", validation_alias="STRIPE_PUBLISHABLE_KEY"
-    )
-    stripe_currency: str = Field(default="eur", validation_alias="STRIPE_CURRENCY")
-
-    # Revolut Merchant API (optional global fallback; tenants can set per-tenant key)
-    revolut_merchant_secret: str = Field(
-        default="", validation_alias="REVOLUT_MERCHANT_SECRET"
-    )
+    hitpay_api_key: str = Field(default="", validation_alias="HITPAY_API_KEY")
+    hitpay_webhook_salt: str = Field(default="", validation_alias="HITPAY_WEBHOOK_SALT")
+    hitpay_mode: str = Field(default="sandbox", validation_alias="HITPAY_MODE")
 
     # CORS configuration
     cors_origins: str = Field(

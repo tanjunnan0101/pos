@@ -23,7 +23,7 @@ class Permission(str, Enum):
     # Settings
     SETTINGS_READ = "settings:read"
     SETTINGS_UPDATE = "settings:update"
-    SETTINGS_BILLING = "settings:billing"  # Stripe keys - owner only
+    SETTINGS_BILLING = "settings:billing"  # Payment provider secrets - owner only
     
     # Products
     PRODUCT_READ = "product:read"
@@ -88,7 +88,7 @@ ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.USER_CREATE,
         Permission.USER_READ,
         Permission.USER_UPDATE,
-        # Settings (except billing/Stripe)
+        # Settings (except billing)
         Permission.SETTINGS_READ,
         Permission.SETTINGS_UPDATE,
         # Products

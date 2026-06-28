@@ -65,7 +65,7 @@ export class PaymentSuccessComponent implements OnInit {
       this.loading.set(false);
       return;
     }
-    this.api.confirmRevolutPayment(orderIdNum, token).subscribe({
+    this.api.confirmHitPayPayment(orderIdNum, token).subscribe({
       next: () => {
         this.loading.set(false);
       },

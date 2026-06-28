@@ -292,13 +292,13 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
               @if (error()) {
                 <div class="toast error">
                   <span>{{ error() }}</span>
-                  <button type="button" class="toast-close" (click)="error.set(null)" aria-label="Dismiss">×</button>
+                  <button type="button" class="toast-close" (click)="error.set(null)" aria-label="Dismiss">x</button>
                 </div>
               }
               @if (success()) {
                 <div class="toast success">
                   <span>{{ success() }}</span>
-                  <button type="button" class="toast-close" (click)="dismissSuccessToast()" aria-label="Dismiss">×</button>
+                  <button type="button" class="toast-close" (click)="dismissSuccessToast()" aria-label="Dismiss">x</button>
                 </div>
               }
             </form>
@@ -327,7 +327,7 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
                       <td>{{ t.name }}</td>
                       <td>{{ t.rate_percent }}%</td>
                       <td>{{ t.valid_from }}</td>
-                      <td>{{ t.valid_to || '—' }}</td>
+                      <td>{{ t.valid_to || '-' }}</td>
                       <td>
                         <button type="button" class="btn btn-sm btn-secondary" (click)="deleteTax(t.id)" [disabled]="settings()?.default_tax_id === t.id">
                           {{ 'COMMON.DELETE' | translate }}
@@ -397,7 +397,7 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
                           } @else {
                             <ul class="provider-products-list">
                               @for (prod of providerProductsMap()[p.id] || []; track prod.id) {
-                                <li>{{ prod.name }} – {{ formatProviderPrice(prod.price_cents) }}</li>
+                                <li>{{ prod.name }} - {{ formatProviderPrice(prod.price_cents) }}</li>
                               }
                             </ul>
                           }
@@ -418,7 +418,7 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
               <div class="modal-content" (click)="$event.stopPropagation()" appFocusFirstInput>
                 <div class="modal-header">
                   <h3>{{ 'SETTINGS.ADD_PROVIDER' | translate }}</h3>
-                  <button type="button" class="btn-icon" (click)="closeAddProviderModal()">×</button>
+                  <button type="button" class="btn-icon" (click)="closeAddProviderModal()">x</button>
                 </div>
                 <form (ngSubmit)="saveProvider()">
                   <div class="modal-body">
@@ -452,7 +452,7 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
               <div class="modal-content" (click)="$event.stopPropagation()" appFocusFirstInput>
                 <div class="modal-header">
                   <h3>{{ 'SETTINGS.EDIT_PROVIDER' | translate }}</h3>
-                  <button type="button" class="btn-icon" (click)="closeEditProviderModal()">×</button>
+                  <button type="button" class="btn-icon" (click)="closeEditProviderModal()">x</button>
                 </div>
                 <form (ngSubmit)="saveEditedProvider()">
                   <div class="modal-body">
@@ -493,8 +493,8 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
             <div class="modal-overlay">
               <div class="modal-content" (click)="$event.stopPropagation()" appFocusFirstInput>
                 <div class="modal-header">
-                  <h3>{{ 'SETTINGS.ADD_PRODUCT_TO_PROVIDER' | translate }} – {{ selectedProviderForProduct()?.name }}</h3>
-                  <button type="button" class="btn-icon" (click)="closeAddProductModal()">×</button>
+                  <h3>{{ 'SETTINGS.ADD_PRODUCT_TO_PROVIDER' | translate }} - {{ selectedProviderForProduct()?.name }}</h3>
+                  <button type="button" class="btn-icon" (click)="closeAddProductModal()">x</button>
                 </div>
                 <form (ngSubmit)="saveProviderProduct()">
                   <div class="modal-body">
@@ -719,7 +719,7 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
                       @if (logoPreview() || settings()?.logo_filename) {
                         <div class="current-logo">
                           <img [src]="getDisplayLogoSrc()" alt="Logo" />
-                          <button type="button" class="btn-icon-danger" (click)="removeLogo()" title="{{ 'SETTINGS.REMOVE_LOGO' | translate }}">✕</button>
+                          <button type="button" class="btn-icon-danger" (click)="removeLogo()" title="{{ 'SETTINGS.REMOVE_LOGO' | translate }}">x</button>
                         </div>
                       }
                       <div class="upload-controls">
@@ -745,7 +745,7 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
                       @if (headerBackgroundPreview() || settings()?.header_background_filename) {
                         <div class="current-logo header-bg-preview">
                           <img [src]="getHeaderBackgroundDisplaySrc()" alt="Header background" />
-                          <button type="button" class="btn-icon-danger" (click)="removeHeaderBackground()" title="{{ 'SETTINGS.REMOVE_HEADER_BACKGROUND' | translate }}">✕</button>
+                          <button type="button" class="btn-icon-danger" (click)="removeHeaderBackground()" title="{{ 'SETTINGS.REMOVE_HEADER_BACKGROUND' | translate }}">x</button>
                         </div>
                       }
                       <div class="upload-controls">
@@ -1059,7 +1059,7 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
                                     <option [value]="t">{{ t }}</option>
                                   }
                                 </select>
-                                <span>–</span>
+                                <span>-</span>
                                 <select [ngModel]="openingHours[day.key]?.close || '22:00'" (ngModelChange)="setOpeningHourValue(day.key, 'close', $event)" [name]="'close-' + day.key">
                                   @for (t of timeOptions; track t) {
                                     <option [value]="t">{{ t }}</option>
@@ -1075,7 +1075,7 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
                                       <option [value]="t">{{ t }}</option>
                                     }
                                   </select>
-                                  <span>–</span>
+                                  <span>-</span>
                                   <select [ngModel]="openingHours[day.key]?.morningClose" (ngModelChange)="setOpeningHourValue(day.key, 'morningClose', $event)" [name]="'mc-' + day.key">
                                     @for (t of timeOptions; track t) {
                                       <option [value]="t">{{ t }}</option>
@@ -1089,7 +1089,7 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
                                       <option [value]="t">{{ t }}</option>
                                     }
                                   </select>
-                                  <span>–</span>
+                                  <span>-</span>
                                   <select [ngModel]="openingHours[day.key]?.eveningClose" (ngModelChange)="setOpeningHourValue(day.key, 'eveningClose', $event)" [name]="'ec-' + day.key">
                                     @for (t of timeOptions; track t) {
                                       <option [value]="t">{{ t }}</option>
@@ -1166,7 +1166,7 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
                           @for (b of openingHoursScheduleBaselines(); track b.id) {
                             <tr>
                               <td>{{ b.effective_from }}</td>
-                              <td>{{ b.note || '—' }}</td>
+                              <td>{{ b.note || '-' }}</td>
                               <td>
                                 <button type="button" class="btn btn-link danger" (click)="deleteBaselineSchedule(b.id)">
                                   {{ 'COMMON.DELETE' | translate }}
@@ -1228,7 +1228,7 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
                               <td>{{ o.date_from }}</td>
                               <td>{{ o.date_to }}</td>
                               <td>{{ o.closed ? ('SETTINGS.OPENING_HOURS_TYPE_CLOSED' | translate) : ('SETTINGS.OPENING_HOURS_TYPE_HOURS' | translate) }}</td>
-                              <td>{{ o.note || '—' }}</td>
+                              <td>{{ o.note || '-' }}</td>
                               <td>
                                 <button type="button" class="btn btn-link danger" (click)="deleteOverrideSchedule(o.id)">
                                   {{ 'COMMON.DELETE' | translate }}
@@ -1267,22 +1267,28 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
                   </div>
                   
                   <div class="divider"></div>
-                  
-                  <h3>Stripe Integration</h3>
-                  <div class="form-group">
-                    <label>{{ 'SETTINGS.STRIPE_PUBLISHABLE_KEY' | translate }}</label>
-                    <input type="text" [(ngModel)]="formData.stripe_publishable_key" name="stripe_publishable_key" class="code-input" />
-                  </div>
-                  <div class="form-group">
-                    <label>{{ 'SETTINGS.STRIPE_SECRET_KEY' | translate }}</label>
-                    <input type="password" [(ngModel)]="formData.stripe_secret_key" name="stripe_secret_key" placeholder="••••••••••••••••" />
-                  </div>
 
-                  <h3>{{ 'SETTINGS.REVOLUT_INTEGRATION' | translate }}</h3>
+                  <h3>{{ 'SETTINGS.HITPAY_INTEGRATION' | translate }}</h3>
                   <div class="form-group">
-                    <label>{{ 'SETTINGS.REVOLUT_MERCHANT_SECRET' | translate }}</label>
-                    <input type="password" [(ngModel)]="formData.revolut_merchant_secret" name="revolut_merchant_secret" placeholder="••••••••••••••••" />
-                    <p class="hint">{{ 'SETTINGS.REVOLUT_MERCHANT_SECRET_HINT' | translate }}</p>
+                    <label for="hitpay_mode">{{ 'SETTINGS.HITPAY_MODE' | translate }}</label>
+                    <select
+                      id="hitpay_mode"
+                      [(ngModel)]="formData.hitpay_mode"
+                      name="hitpay_mode"
+                      class="input-medium">
+                      <option value="sandbox">{{ 'SETTINGS.HITPAY_MODE_SANDBOX' | translate }}</option>
+                      <option value="live">{{ 'SETTINGS.HITPAY_MODE_LIVE' | translate }}</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>{{ 'SETTINGS.HITPAY_API_KEY' | translate }}</label>
+                    <input type="password" [(ngModel)]="formData.hitpay_api_key" name="hitpay_api_key" placeholder="****************" autocomplete="off" />
+                    <p class="hint">{{ 'SETTINGS.HITPAY_API_KEY_HINT' | translate }}</p>
+                  </div>
+                  <div class="form-group">
+                    <label>{{ 'SETTINGS.HITPAY_WEBHOOK_SALT' | translate }}</label>
+                    <input type="password" [(ngModel)]="formData.hitpay_webhook_salt" name="hitpay_webhook_salt" placeholder="****************" autocomplete="off" />
+                    <p class="hint">{{ 'SETTINGS.HITPAY_WEBHOOK_SALT_HINT' | translate }}</p>
                   </div>
 
                   <div class="divider"></div>
@@ -1315,7 +1321,7 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
                       id="fiscal_aeat_api_secret"
                       [(ngModel)]="formData.fiscal_aeat_api_secret"
                       name="fiscal_aeat_api_secret"
-                      placeholder="••••••••••••••••"
+                      placeholder="****************"
                       autocomplete="off"
                     />
                     <p class="hint">{{ 'SETTINGS.FISCAL_AEAT_SECRET_HINT' | translate }}</p>
@@ -1613,13 +1619,13 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
               @if (error()) {
                 <div class="toast error">
                   <span>{{ error() }}</span>
-                  <button type="button" class="toast-close" (click)="error.set(null)" aria-label="Dismiss">×</button>
+                  <button type="button" class="toast-close" (click)="error.set(null)" aria-label="Dismiss">x</button>
                 </div>
               }
               @if (success()) {
                 <div class="toast success">
                   <span>{{ success() }}</span>
-                  <button type="button" class="toast-close" (click)="dismissSuccessToast()" aria-label="Dismiss">×</button>
+                  <button type="button" class="toast-close" (click)="dismissSuccessToast()" aria-label="Dismiss">x</button>
                 </div>
               }
               
@@ -2756,36 +2762,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private sanitizer = inject(DomSanitizer);
   private permissions = inject(PermissionService);
 
-  /** ISO 4217 codes for per-tenant prices (GitHub #41). */
-  readonly tenantCurrencyCodes: string[] = [
-    'EUR',
-    'USD',
-    'GBP',
-    'JPY',
-    'MXN',
-    'CHF',
-    'CAD',
-    'AUD',
-    'NZD',
-    'CNY',
-    'INR',
-    'BRL',
-    'PLN',
-    'SEK',
-    'NOK',
-    'DKK',
-    'KRW',
-    'TWD',
-  ];
+  /** This deployment accepts payments in Singapore dollars only. */
+  readonly tenantCurrencyCodes: string[] = ['SGD'];
 
   /** Includes current tenant code if it is not in the standard list (e.g. after API changes). */
   currencySelectOptions(): string[] {
-    const code = this.settings()?.currency_code;
-    const base = [...this.tenantCurrencyCodes];
-    if (code && !base.includes(code)) {
-      return [code, ...base];
-    }
-    return base;
+    return [...this.tenantCurrencyCodes];
   }
 
   /** Split UI for `reservation_prepayment_cents` (major + minor units per ISO 4217 / Intl). */
@@ -2793,7 +2775,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   prepaymentMinorUnits = 0;
 
   getPrepaymentMinorDigits(): number {
-    const raw = (this.formData.currency_code || 'EUR').trim().toUpperCase();
+    const raw = (this.formData.currency_code || 'SGD').trim().toUpperCase();
     if (!raw || raw.length !== 3) {
       return 2;
     }
@@ -2818,8 +2800,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   getPrepaymentCurrencySymbol(): string {
-    const raw = (this.formData.currency_code || 'EUR').trim().toUpperCase();
-    const code = raw.length === 3 ? raw : 'EUR';
+    const raw = (this.formData.currency_code || 'SGD').trim().toUpperCase();
+    const code = raw.length === 3 ? raw : 'SGD';
     try {
       const parts = new Intl.NumberFormat(undefined, {
         style: 'currency',
@@ -2832,8 +2814,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   getPrepaymentCurrencyLabel(): string {
-    const raw = (this.formData.currency_code || 'EUR').trim().toUpperCase();
-    const code = raw.length === 3 ? raw : 'EUR';
+    const raw = (this.formData.currency_code || 'SGD').trim().toUpperCase();
+    const code = raw.length === 3 ? raw : 'SGD';
     const sym = this.getPrepaymentCurrencySymbol();
     return sym && sym !== code ? `${code} (${sym})` : code;
   }
@@ -3022,7 +3004,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     { key: 'receptionist', labelKey: 'SETTINGS.STAFF_RECEPTIONIST' },
   ];
 
-  /** Four inputs → saved as unique non-zero percentages (max 4); all zero = tips disabled in POS */
+  /** Four inputs -> saved as unique non-zero percentages (max 4); all zero = tips disabled in POS */
   tipPresetEdit: number[] = [5, 10, 15, 20];
 
   openingHours: Record<string, {
@@ -3054,10 +3036,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
     ccc: null,
     default_tax_id: null,
     opening_hours: null,
-    currency_code: 'EUR',
-    stripe_secret_key: null,
-    stripe_publishable_key: null,
-    revolut_merchant_secret: null,
+    currency_code: 'SGD',
+    hitpay_api_key: null,
+    hitpay_webhook_salt: null,
+    hitpay_mode: 'sandbox',
     immediate_payment_required: false,
     timezone: null,
     country_code: null,
@@ -3170,10 +3152,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
           ccc: settings.ccc || null,
           default_tax_id: settings.default_tax_id ?? null,
           opening_hours: settings.opening_hours || null,
-          currency_code: settings.currency_code || 'EUR',
-          stripe_secret_key: null,
-          stripe_publishable_key: settings.stripe_publishable_key || null,
-          revolut_merchant_secret: null,
+          currency_code: 'SGD',
+          hitpay_api_key: null,
+          hitpay_webhook_salt: null,
+          hitpay_mode: settings.hitpay_mode === 'live' ? 'live' : 'sandbox',
           immediate_payment_required: settings.immediate_payment_required || false,
           timezone: settings.timezone || null,
           country_code: settings.country_code ?? null,
@@ -3444,8 +3426,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   formatProviderPrice(cents: number | null | undefined): string {
-    if (cents == null) return '—';
-    return (cents / 100).toFixed(2) + ' €';
+    if (cents == null) return '-';
+    return (cents / 100).toFixed(2) + ' $';
   }
 
   openAddProviderModal() {
@@ -3826,7 +3808,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.serializeOpeningHours();
   }
 
-  /** Formatted opening hours summary in current locale, e.g. "Mon–Fri 09:00–22:00, Sat 10:00–20:00, Sun closed". */
+  /** Formatted opening hours summary in current locale, e.g. "Mon-Fri 09:00-22:00, Sat 10:00-20:00, Sun closed". */
   getOpeningHoursSummary(): string {
     const locale = this.translate.currentLang || this.translate.defaultLang || 'en';
     const formatter = new Intl.DateTimeFormat(locale, { weekday: 'short' });
@@ -3851,8 +3833,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
         continue;
       }
       const range = d.hasBreak
-        ? `${d.morningOpen}–${d.morningClose}, ${d.eveningOpen}–${d.eveningClose}`
-        : `${d.open}–${d.close}`;
+        ? `${d.morningOpen}-${d.morningClose}, ${d.eveningOpen}-${d.eveningClose}`
+        : `${d.open}-${d.close}`;
       let j = i + 1;
       while (j < this.daysOfWeek.length) {
         const next = this.openingHours[this.daysOfWeek[j].key];
@@ -3866,7 +3848,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         j++;
       }
       if (j > i + 1) {
-        parts.push(`${dayShort(day.key)}–${dayShort(this.daysOfWeek[j - 1].key)} ${range}`);
+        parts.push(`${dayShort(day.key)}-${dayShort(this.daysOfWeek[j - 1].key)} ${range}`);
       } else {
         parts.push(`${dayShort(day.key)} ${range}`);
       }
@@ -4121,13 +4103,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
     // Ensure opening hours are serialized before saving
     this.serializeOpeningHours();
 
-    // Prepare update data - only include stripe_secret_key if it was actually changed
+    // Prepare update data; blank secrets keep their current values.
     const updateData = { ...this.formData };
     delete (updateData as Record<string, unknown>)['clock_qr_active'];
 
     // Always send reminder options so they are persisted (default false if unset)
-    updateData.reservation_reminder_24h_enabled = this.formData.reservation_reminder_24h_enabled ?? false;
-    updateData.reservation_reminder_2h_enabled = this.formData.reservation_reminder_2h_enabled ?? false;
+    updateData.reservation_reminder_24h_enabled =
+      this.formData.reservation_reminder_24h_enabled ?? false;
+    updateData.reservation_reminder_2h_enabled =
+      this.formData.reservation_reminder_2h_enabled ?? false;
 
     const seen = new Set<number>();
     const tipPresets: number[] = [];
@@ -4154,12 +4138,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
       ...(this.formData.ui_modules || {}),
     };
 
-    if (updateData.stripe_secret_key === '') {
-      delete updateData.stripe_secret_key;
+    updateData.currency_code = 'SGD';
+    if (updateData.hitpay_api_key === '') {
+      delete updateData.hitpay_api_key;
     }
-    if (updateData.revolut_merchant_secret === '') {
-      delete updateData.revolut_merchant_secret;
+    if (updateData.hitpay_webhook_salt === '') {
+      delete updateData.hitpay_webhook_salt;
     }
+    updateData.hitpay_mode = updateData.hitpay_mode === 'live' ? 'live' : 'sandbox';
     if (updateData.smtp_password === '') {
       delete updateData.smtp_password;
     }

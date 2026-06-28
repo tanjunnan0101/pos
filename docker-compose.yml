@@ -19,7 +19,6 @@ services:
       - DB_NAME=${POSTGRES_DB:-pos}
       - REDIS_URL=redis://redis:6379
       - SECRET_KEY=${SECRET_KEY:-CHANGE_THIS_IN_PRODUCTION}
-      - STRIPE_CURRENCY=${STRIPE_CURRENCY:-usd}
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:4200}
       - ROOT_PATH=/api
       - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
@@ -53,7 +52,6 @@ services:
       # Leave API_URL and WS_URL empty to use relative URLs (proxied through HAProxy)
       - API_URL=${API_URL:-}
       - WS_URL=${WS_URL:-}
-      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-}
       # Optional: host git short hash — bind mount is ./front only (no .git); entrypoint runs get-commit-hash.js
       - COMMIT_HASH=${COMMIT_HASH:-}
       # Marketing sites under /<slug>/ (see config/marketing-sites.json, scripts/sync-all-marketing-sites.sh)

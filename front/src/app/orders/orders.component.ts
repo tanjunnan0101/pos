@@ -927,7 +927,6 @@ ModuleRegistry.registerModules([
                   <select id="payment-method" [(ngModel)]="paymentMethod" class="form-select">
                     <option value="cash">{{ 'ORDERS.CASH' | translate }}</option>
                     <option value="terminal">{{ 'ORDERS.CARD_TERMINAL' | translate }}</option>
-                    <option value="stripe">{{ 'ORDERS.STRIPE_ONLINE' | translate }}</option>
                     <option value="other">{{ 'ORDERS.OTHER' | translate }}</option>
                   </select>
                 </div>
@@ -1994,7 +1993,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   /** When set (via `?table=` query), order lists show only this table's orders. */
   tableScopeId = signal<number | null>(null);
   loading = signal(true);
-  currency = signal<string>('€');
+  currency = signal<string>('$');
   currencyCode = signal<string | null>(null);
   showRemovedItems = false;
   viewMode = signal<'active' | 'not_paid' | 'history'>('active');
@@ -2804,7 +2803,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
         if (code) {
           this.currency.set(currencySymbolFromIsoCode(this.translate, code));
         } else {
-          this.currency.set(settings.currency || '€');
+          this.currency.set(settings.currency || '$');
         }
       },
       error: (err) => {

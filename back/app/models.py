@@ -103,8 +103,8 @@ class Tenant(SQLModel, table=True):
     # Keep `currency` (symbol) for backward compatibility.
     currency_code: str | None = Field(
         default=None
-    )  # ISO 4217, e.g. EUR, USD, MXN, INR, CNY, TWD
-    currency: str | None = Field(default=None)  # Legacy symbol (€, $, etc.)
+    )  # ISO 4217, e.g. SGD, USD, MXN, INR, CNY, TWD
+    currency: str | None = Field(default=None)  # Legacy symbol ($, $, etc.)
 
     # Default UI language for this tenant (e.g. en, es, ca, de, zh-CN, hi)
     default_language: str | None = Field(default=None)
@@ -115,16 +115,15 @@ class Tenant(SQLModel, table=True):
     # ISO 3166-1 alpha-2 (e.g. ES, IN); used for contract-template presets and similar locale rules
     country_code: str | None = Field(default=None, max_length=2)
 
-    stripe_secret_key: str | None = Field(
+    hitpay_api_key: str | None = Field(
         default=None
-    )  # Stripe secret key for this tenant
-    stripe_publishable_key: str | None = Field(
+    )  # HitPay Business API key for hosted checkout
+    hitpay_webhook_salt: str | None = Field(
         default=None
-    )  # Stripe publishable key for this tenant
-
-    revolut_merchant_secret: str | None = Field(
-        default=None
-    )  # Revolut Merchant API secret for this tenant (online payments via Revolut)
+    )  # HitPay webhook salt for HMAC-SHA256 validation
+    hitpay_mode: str | None = Field(
+        default="sandbox", max_length=16
+    )  # "sandbox" or "live"
 
     # Inventory Management (commented out - migration not applied)
     # inventory_tracking_enabled: bool = Field(
@@ -731,8 +730,8 @@ class Order(TenantMixin, table=True):
     # Payment tracking
     paid_at: datetime | None = None
     paid_by_user_id: int | None = None  # Who marked it as paid (staff)
-    payment_method: str | None = None  # 'stripe', 'cash', 'terminal', 'revolut', etc.
-    revolut_order_id: str | None = None  # Revolut Merchant order id when paying via Revolut
+    payment_method: str | None = None  # 'hitpay', 'cash', 'terminal', etc.
+    hitpay_payment_request_id: str | None = Field(default=None, index=True)
     tip_percent_applied: int | None = None  # Preset % charged as tip when staff marked paid (null = no tip)
     tip_amount_cents: int | None = None  # Tip amount in cents (gross; VAT split uses tenant tip_tax_rate_percent)
     tip_attributed_user_id: int | None = Field(default=None, foreign_key="user.id")
@@ -1065,7 +1064,7 @@ class OrderItemCancel(SQLModel):
 
 
 class OrderMarkPaid(SQLModel):
-    payment_method: str = "cash"  # 'cash', 'terminal', 'stripe', etc.
+    payment_method: str = "cash"  # 'cash', 'terminal', 'hitpay', etc.
     tip_percent: int | None = None  # 0 or omitted = no tip; otherwise must be in tenant tip_preset_percents
     # When tenant tip_entry_mode is "overpayment": required explicit tip in cents (0 = no tip)
     tip_amount_cents: int | None = None
@@ -1127,7 +1126,7 @@ class TenantUpdate(SQLModel):
     # Preferred configuration: ISO 4217 currency code.
     currency_code: str | None = None
 
-    # Legacy symbol (still accepted, but currency_code is used for Stripe/formatting).
+    # Legacy symbol (still accepted, but currency_code is used for formatting).
     currency: str | None = None
 
     default_language: str | None = None
@@ -1136,9 +1135,9 @@ class TenantUpdate(SQLModel):
 
     default_tax_id: int | None = None  # FK to tax.id; system-wide default IVA
 
-    stripe_secret_key: str | None = None
-    stripe_publishable_key: str | None = None
-    revolut_merchant_secret: str | None = None
+    hitpay_api_key: str | None = None
+    hitpay_webhook_salt: str | None = None
+    hitpay_mode: str | None = None
     # inventory_tracking_enabled: bool | None = None  # Commented out - migration not applied
 
     # Location verification settings

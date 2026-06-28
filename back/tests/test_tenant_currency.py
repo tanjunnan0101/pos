@@ -5,29 +5,29 @@ from app.tenant_currency import (
 )
 
 
-def test_normalize_defaults_to_eur():
-    assert normalize_tenant_currency_fields(None, None) == ("EUR", "€")
-    assert normalize_tenant_currency_fields("", "$") == ("EUR", "€")
+def test_normalize_defaults_to_sgd():
+    assert normalize_tenant_currency_fields(None, None) == ("SGD", "$")
+    assert normalize_tenant_currency_fields("", "$") == ("SGD", "$")
 
 
-def test_normalize_usd():
-    assert normalize_tenant_currency_fields("usd", None) == ("USD", "$")
+def test_normalize_forces_sgd():
+    assert normalize_tenant_currency_fields("usd", None) == ("SGD", "$")
 
 
 def test_apply_dict_mutates():
     d = {"currency_code": None, "currency": "$"}
     apply_tenant_currency_api_dict(d)
-    assert d["currency_code"] == "EUR"
-    assert d["currency"] == "€"
+    assert d["currency_code"] == "SGD"
+    assert d["currency"] == "$"
 
 
-def test_apply_dict_keeps_usd():
-    d = {"currency_code": "USD", "currency": "€"}
+def test_apply_dict_forces_sgd():
+    d = {"currency_code": "USD", "currency": "legacy"}
     apply_tenant_currency_api_dict(d)
-    assert d["currency_code"] == "USD"
+    assert d["currency_code"] == "SGD"
     assert d["currency"] == "$"
 
 
 def test_sync_symbol():
-    assert sync_tenant_currency_symbol_from_code("EUR") == "€"
-    assert sync_tenant_currency_symbol_from_code(None) is None
+    assert sync_tenant_currency_symbol_from_code("SGD") == "$"
+    assert sync_tenant_currency_symbol_from_code(None) == "$"

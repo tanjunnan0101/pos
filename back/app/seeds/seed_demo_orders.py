@@ -78,7 +78,7 @@ def _seed_demo_orders(session: Session, tenant_id: int) -> int:
             created_at=order_date,
             paid_at=order_date + timedelta(minutes=random.randint(15, 90)),
             paid_by_user_id=None,
-            payment_method=random.choice(["cash", "terminal", "stripe"]),
+            payment_method=random.choice(["cash", "terminal", "hitpay"]),
         )
         session.add(order)
         session.flush()

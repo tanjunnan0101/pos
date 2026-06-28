@@ -1158,8 +1158,7 @@ export interface MenuResponse {
   tenant_website?: string | null;
   tenant_currency?: string | null;
   tenant_currency_code?: string | null;
-  tenant_stripe_publishable_key?: string | null;
-  tenant_revolut_configured?: boolean;
+  tenant_hitpay_configured?: boolean;
   tenant_immediate_payment_required?: boolean;
   tenant_public_background_color?: string | null;
   tenant_header_background_filename?: string | null;
@@ -1206,9 +1205,9 @@ export interface TenantSettings {
   timezone?: string | null;
   /** ISO 3166-1 alpha-2 (e.g. ES, IN); optional, improves contract template suggestions */
   country_code?: string | null;
-  stripe_secret_key?: string | null;
-  stripe_publishable_key?: string | null;
-  revolut_merchant_secret?: string | null;
+  hitpay_api_key?: string | null;
+  hitpay_webhook_salt?: string | null;
+  hitpay_mode?: 'sandbox' | 'live' | string | null;
   logo_size_bytes?: number | null;
   logo_size_formatted?: string | null;
   /** Staff clock QR is configured (no secret exposed). */
@@ -2375,27 +2374,26 @@ export class ApiService {
   }
 
   // Payments
-  createPaymentIntent(orderId: number, tableToken: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/orders/${orderId}/create-payment-intent?table_token=${tableToken}`, {});
-  }
-
-  confirmPayment(orderId: number, tableToken: string, paymentIntentId: string): Observable<any> {
-    return this.http.post(
-      `${this.apiUrl}/orders/${orderId}/confirm-payment?table_token=${tableToken}&payment_intent_id=${paymentIntentId}`,
+  createHitPayPaymentRequest(
+    orderId: number,
+    tableToken: string
+  ): Observable<{ checkout_url: string; hitpay_payment_request_id: string; order_id: number }> {
+    return this.http.post<{
+      checkout_url: string;
+      hitpay_payment_request_id: string;
+      order_id: number;
+    }>(
+      `${this.apiUrl}/orders/${orderId}/create-hitpay-payment-request?table_token=${tableToken}`,
       {}
     );
   }
 
-  createRevolutOrder(orderId: number, tableToken: string): Observable<{ checkout_url: string; revolut_order_id: string; order_id: number }> {
-    return this.http.post<{ checkout_url: string; revolut_order_id: string; order_id: number }>(
-      `${this.apiUrl}/orders/${orderId}/create-revolut-order?table_token=${tableToken}`,
-      {}
-    );
-  }
-
-  confirmRevolutPayment(orderId: number, tableToken: string): Observable<{ status: string; order_id: number }> {
+  confirmHitPayPayment(
+    orderId: number,
+    tableToken: string
+  ): Observable<{ status: string; order_id: number }> {
     return this.http.post<{ status: string; order_id: number }>(
-      `${this.apiUrl}/orders/${orderId}/confirm-revolut-payment?table_token=${tableToken}`,
+      `${this.apiUrl}/orders/${orderId}/confirm-hitpay-payment?table_token=${tableToken}`,
       {}
     );
   }
@@ -2410,31 +2408,6 @@ export class ApiService {
   callWaiter(tableToken: string, message?: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/menu/${tableToken}/call-waiter`, {
       message: message || null,
-    });
-  }
-
-  private tenantStripeKey = signal<string | null>(null);
-
-  getStripePublishableKey(): string {
-    // Use tenant-specific key if available, otherwise fallback to environment
-    return this.tenantStripeKey() || environment.stripePublishableKey || '';
-  }
-
-  setTenantStripeKey(key: string | null): void {
-    this.tenantStripeKey.set(key);
-  }
-
-  loadTenantStripeKey(): void {
-    // Load tenant settings to get Stripe publishable key
-    this.getTenantSettings().subscribe({
-      next: (settings) => {
-        this.tenantStripeKey.set(settings.stripe_publishable_key || null);
-      },
-      error: (err) => {
-        console.error('Failed to load tenant Stripe key:', err);
-        // Fallback to environment key
-        this.tenantStripeKey.set(null);
-      }
     });
   }
 

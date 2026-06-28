@@ -23,7 +23,6 @@ redis>=5.2.0
 slowapi>=0.1.9
 
 # Payment processing
-stripe>=14.1.0
 
 # Image processing
 Pillow>=12.1.0
