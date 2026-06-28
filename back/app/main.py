@@ -11,6 +11,7 @@ import secrets
 import time as _time
 from calendar import monthrange
 from datetime import date, timedelta, datetime, time, timezone
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 import requests
 from zoneinfo import ZoneInfo
@@ -22,7 +23,6 @@ from uuid import uuid4
 
 from PIL import Image
 import redis
-import stripe
 from fastapi import BackgroundTasks, Body, Depends, FastAPI, HTTPException, UploadFile, File, status, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response, StreamingResponse
@@ -144,63 +144,24 @@ def _enforce_reservation_delay_notice_rate_limit(request: Request, reservation_i
     except redis.RedisError as e:
         logger.warning("Reservation delay-notice rate limit Redis error (allowing request): %s", e)
 
-# Configure Stripe (global fallback - will be overridden by tenant-specific keys)
-# Note: stripe.api_key is set globally but individual API calls use api_key parameter
-stripe.api_key = settings.stripe_secret_key or ""
+
+def _mask_secret_value(value: str | None) -> str | None:
+    if not value:
+        return value
+    return f"{value[:7]}...{value[-4:]}" if len(value) > 11 else "***"
 
 
-def _get_stripe_currency_code(currency_symbol: str | None) -> str | None:
-    """
-    Map currency symbol to Stripe currency code.
-    Returns None if symbol is not recognized.
-    """
-    if not currency_symbol:
-        return None
-
-    # Common currency symbol to Stripe currency code mapping
-    currency_map = {
-        "€": "eur",
-        "$": "usd",
-        "£": "gbp",
-        "¥": "jpy",
-        "₹": "inr",
-        "₽": "rub",
-        "₩": "krw",
-        "₨": "pkr",
-        "₦": "ngn",
-        "₴": "uah",
-        "₫": "vnd",
-        "₪": "ils",
-        "₡": "crc",
-        "₱": "php",
-        "₨": "lkr",
-        "₦": "ngn",
-        "₨": "npr",
-        "₨": "mru",
-        "MXN": "mxn",
-        "mxn": "mxn",
-        "EUR": "eur",
-        "eur": "eur",
-        "USD": "usd",
-        "usd": "usd",
-        "GBP": "gbp",
-        "gbp": "gbp",
-    }
-
-    # Try direct lookup
-    if currency_symbol in currency_map:
-        return currency_map[currency_symbol]
-
-    # Try case-insensitive lookup for 3-letter codes
-    currency_upper = currency_symbol.upper()
-    if currency_upper in currency_map:
-        return currency_map[currency_upper]
-
-    # If it's already a 3-letter code, return as-is (Stripe will validate)
-    if len(currency_symbol) == 3:
-        return currency_symbol.lower()
-
-    return None
+def _mask_tenant_secret_fields(tenant_dict: dict) -> None:
+    """Mask tenant secrets before returning settings-like responses."""
+    for field in (
+        "hitpay_api_key",
+        "hitpay_webhook_salt",
+        "fiscal_aeat_api_secret",
+    ):
+        if tenant_dict.get(field):
+            tenant_dict[field] = _mask_secret_value(tenant_dict[field])
+    if tenant_dict.get("smtp_password"):
+        tenant_dict["smtp_password"] = "********"
 
 
 def _get_requested_language(
@@ -751,7 +712,7 @@ class TenantSummary(_BaseModel):
     # Effective legal links: tenant URL if set, else PUBLIC_* from server config
     terms_of_service_url: str | None = None
     privacy_policy_url: str | None = None
-    # IANA timezone (e.g. Europe/Madrid) for public book page date/time UX
+    # IANA timezone (e.g. Asia/Singapore) for public book page date/time UX
     timezone: str | None = None
     # Optional cap on guests per slot (for UI max party hint)
     reservation_max_guests_per_slot: int | None = None
@@ -1872,6 +1833,40 @@ def _require_tenant_staff_for_work_session(user: models.User) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Work sessions are only for restaurant staff accounts",
         )
+    if user.role == models.UserRole.provider:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Work sessions are only for restaurant staff accounts",
+        )
+
+
+def _work_session_user_name(user: models.User) -> str:
+    return user.full_name or user.email or ""
+
+
+def _resolve_work_session_target_user(
+    current_user: models.User,
+    target_user_id: int,
+    session: Session,
+) -> models.User:
+    """Return a same-tenant staff user. Non-managers can only target themselves."""
+    if current_user.id != target_user_id and not has_permission(current_user, Permission.USER_READ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied. Required: user:read",
+        )
+    if current_user.tenant_id is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Tenant required")
+    target = session.exec(
+        select(models.User).where(
+            models.User.id == target_user_id,
+            models.User.tenant_id == current_user.tenant_id,
+        )
+    ).first()
+    if not target:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    _require_tenant_staff_for_work_session(target)
+    return target
 
 
 @app.get("/users/me/clock-qr-status")
@@ -2114,6 +2109,142 @@ def list_my_work_sessions(
         .order_by(models.WorkSession.started_at.desc())
     ).all()
     name = current_user.full_name or current_user.email or ""
+    return [serialize_work_session(r, name, session=session) for r in rows]
+
+
+@app.get("/users/{user_id}/work-session")
+def get_user_open_work_session(
+    user_id: int,
+    current_user: Annotated[models.User, Depends(security.get_current_user)],
+    session: Session = Depends(get_session),
+) -> dict | None:
+    """Current open clock-in for a selected same-tenant staff user."""
+    target_user = _resolve_work_session_target_user(current_user, user_id, session)
+    open_row = session.exec(
+        select(models.WorkSession).where(
+            models.WorkSession.user_id == target_user.id,
+            models.WorkSession.ended_at.is_(None),
+        )
+    ).first()
+    if not open_row:
+        return None
+    return serialize_work_session(open_row, _work_session_user_name(target_user), session=session)
+
+
+@app.post("/users/{user_id}/work-session/start")
+def start_user_work_session(
+    request: Request,
+    user_id: int,
+    current_user: Annotated[models.User, Depends(security.get_current_user)],
+    session: Session = Depends(get_session),
+    body: WorkSessionClockBody | None = Body(default=None),
+) -> dict:
+    """Clock in a selected same-tenant staff user from a shared dashboard session."""
+    target_user = _resolve_work_session_target_user(current_user, user_id, session)
+    assert target_user.tenant_id is not None
+    payload = body or WorkSessionClockBody()
+    tenant = session.get(models.Tenant, target_user.tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    _verify_clock_qr_token(tenant, payload)
+    _verify_clock_location_if_required(tenant, payload)
+
+    existing = session.exec(
+        select(models.WorkSession).where(
+            models.WorkSession.user_id == target_user.id,
+            models.WorkSession.ended_at.is_(None),
+        )
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Already clocked in; clock out first",
+        )
+    ws = models.WorkSession(
+        tenant_id=target_user.tenant_id,
+        user_id=target_user.id,
+        started_at=datetime.now(timezone.utc),
+        start_ip=_client_ip_from_request(request),
+    )
+    session.add(ws)
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Could not start session (already clocked in?)",
+        )
+    session.refresh(ws)
+    return serialize_work_session(ws, _work_session_user_name(target_user), session=session)
+
+
+@app.post("/users/{user_id}/work-session/end")
+def end_user_work_session(
+    request: Request,
+    user_id: int,
+    current_user: Annotated[models.User, Depends(security.get_current_user)],
+    session: Session = Depends(get_session),
+    body: WorkSessionClockBody | None = Body(default=None),
+) -> dict:
+    """Clock out a selected same-tenant staff user from a shared dashboard session."""
+    target_user = _resolve_work_session_target_user(current_user, user_id, session)
+    assert target_user.tenant_id is not None
+    payload = body or WorkSessionClockBody()
+    tenant = session.get(models.Tenant, target_user.tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    _verify_clock_qr_token(tenant, payload)
+    _verify_clock_location_if_required(tenant, payload)
+
+    open_row = session.exec(
+        select(models.WorkSession).where(
+            models.WorkSession.user_id == target_user.id,
+            models.WorkSession.ended_at.is_(None),
+        )
+    ).first()
+    if not open_row:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No open work session to end",
+        )
+    now = datetime.now(timezone.utc)
+    _close_open_break_for_session(session, open_row, end_at=now)
+    open_row.ended_at = now
+    open_row.end_ip = _client_ip_from_request(request)
+    session.add(open_row)
+    session.commit()
+    session.refresh(open_row)
+    return serialize_work_session(open_row, _work_session_user_name(target_user), session=session)
+
+
+@app.get("/users/{user_id}/work-sessions")
+def list_user_work_sessions(
+    user_id: int,
+    current_user: Annotated[models.User, Depends(security.get_current_user)],
+    session: Session = Depends(get_session),
+    from_date: str = Query(..., description="Start date YYYY-MM-DD (UTC day)"),
+    to_date: str = Query(..., description="End date YYYY-MM-DD (UTC day, inclusive)"),
+) -> list[dict]:
+    """List a selected same-tenant staff user's sessions in a date range."""
+    target_user = _resolve_work_session_target_user(current_user, user_id, session)
+    try:
+        fd = datetime.strptime(from_date, "%Y-%m-%d").date()
+        td = datetime.strptime(to_date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format; use YYYY-MM-DD")
+    if fd > td:
+        raise HTTPException(status_code=400, detail="from_date must be <= to_date")
+    start_utc = datetime.combine(fd, time.min, tzinfo=timezone.utc)
+    end_exclusive = datetime.combine(td + timedelta(days=1), time.min, tzinfo=timezone.utc)
+    rows = session.exec(
+        select(models.WorkSession)
+        .where(models.WorkSession.user_id == target_user.id)
+        .where(models.WorkSession.started_at >= start_utc)
+        .where(models.WorkSession.started_at < end_exclusive)
+        .order_by(models.WorkSession.started_at.desc())
+    ).all()
+    name = _work_session_user_name(target_user)
     return [serialize_work_session(r, name, session=session) for r in rows]
 
 
@@ -2494,16 +2625,6 @@ def get_tenant_settings(
     tenant_dict["logo_size_formatted"] = format_file_size(logo_size)
 
     # Don't expose full secret key - only show last 4 characters for verification
-    if tenant_dict.get("stripe_secret_key"):
-        secret_key = tenant_dict["stripe_secret_key"]
-        tenant_dict["stripe_secret_key"] = (
-            f"{secret_key[:7]}...{secret_key[-4:]}" if len(secret_key) > 11 else "***"
-        )
-    if tenant_dict.get("revolut_merchant_secret"):
-        sk = tenant_dict["revolut_merchant_secret"]
-        tenant_dict["revolut_merchant_secret"] = (
-            f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
-        )
     if tenant_dict.get("fiscal_aeat_api_secret"):
         sk = tenant_dict["fiscal_aeat_api_secret"]
         tenant_dict["fiscal_aeat_api_secret"] = (
@@ -2513,6 +2634,7 @@ def get_tenant_settings(
     # Don't expose SMTP password; indicate if configured
     if tenant_dict.get("smtp_password"):
         tenant_dict["smtp_password"] = "********"
+    _mask_tenant_secret_fields(tenant_dict)
 
     apply_tenant_currency_api_dict(tenant_dict)
     tenant_dict["ui_modules"] = resolve_tenant_ui_modules(tenant.ui_modules)
@@ -2604,35 +2726,8 @@ def update_tenant_settings(
                 raise HTTPException(status_code=400, detail="Invalid default tax")
         tenant.default_tax_id = tenant_update.default_tax_id or None
 
-    if tenant_update.currency_code is not None:
-        currency_code = (
-            tenant_update.currency_code.strip().upper()
-            if isinstance(tenant_update.currency_code, str)
-            else None
-        )
-        if currency_code:
-            if len(currency_code) != 3 or not currency_code.isalpha():
-                raise HTTPException(
-                    status_code=400,
-                    detail="currency_code must be a 3-letter ISO code (e.g. EUR)",
-                )
-            tenant.currency_code = currency_code
-        else:
-            tenant.currency_code = None
-
-    # Legacy currency symbol (still accepted; not used for Stripe anymore if currency_code is set)
-    if tenant_update.currency is not None:
-        tenant.currency = (
-            tenant_update.currency.strip()
-            if isinstance(tenant_update.currency, str)
-            and tenant_update.currency.strip()
-            else None
-        )
-
-    if tenant.currency_code:
-        sym = sync_tenant_currency_symbol_from_code(tenant.currency_code)
-        if sym is not None:
-            tenant.currency = sym
+    tenant.currency_code = "SGD"
+    tenant.currency = sync_tenant_currency_symbol_from_code("SGD") or "$"
 
     if tenant_update.default_language is not None:
         lang = (
@@ -2676,30 +2771,32 @@ def update_tenant_settings(
         else:
             tenant.country_code = None
 
-    if tenant_update.stripe_secret_key is not None:
-        # Only update if a non-empty value is provided
-        # Empty string or None means don't change the existing value
+    if tenant_update.hitpay_api_key is not None:
         if (
-            tenant_update.stripe_secret_key
-            and isinstance(tenant_update.stripe_secret_key, str)
-            and tenant_update.stripe_secret_key.strip()
+            isinstance(tenant_update.hitpay_api_key, str)
+            and tenant_update.hitpay_api_key.strip()
         ):
-            tenant.stripe_secret_key = tenant_update.stripe_secret_key.strip()
-        # If empty/None, we don't update (keep existing value)
-    if tenant_update.stripe_publishable_key is not None:
-        tenant.stripe_publishable_key = (
-            tenant_update.stripe_publishable_key.strip()
-            if isinstance(tenant_update.stripe_publishable_key, str)
-            and tenant_update.stripe_publishable_key.strip()
-            else None
+            tenant.hitpay_api_key = tenant_update.hitpay_api_key.strip()
+        # Empty = don't change.
+    if tenant_update.hitpay_webhook_salt is not None:
+        if (
+            isinstance(tenant_update.hitpay_webhook_salt, str)
+            and tenant_update.hitpay_webhook_salt.strip()
+        ):
+            tenant.hitpay_webhook_salt = tenant_update.hitpay_webhook_salt.strip()
+        # Empty = don't change.
+    if tenant_update.hitpay_mode is not None:
+        mode = (
+            tenant_update.hitpay_mode.strip().lower()
+            if isinstance(tenant_update.hitpay_mode, str)
+            else ""
         )
-    if tenant_update.revolut_merchant_secret is not None:
-        if (
-            isinstance(tenant_update.revolut_merchant_secret, str)
-            and tenant_update.revolut_merchant_secret.strip()
-        ):
-            tenant.revolut_merchant_secret = tenant_update.revolut_merchant_secret.strip()
-        # Empty = don't change (same as Stripe secret)
+        if mode in ("sandbox", "live"):
+            tenant.hitpay_mode = mode
+        elif mode == "":
+            tenant.hitpay_mode = "sandbox"
+        else:
+            raise HTTPException(status_code=400, detail="hitpay_mode must be sandbox or live")
 
     if tenant_update.fiscal_mode is not None:
         fm = tenant_update.fiscal_mode.strip().lower() if isinstance(tenant_update.fiscal_mode, str) else ""
@@ -2961,16 +3058,6 @@ def update_tenant_settings(
     tenant_dict["logo_size_formatted"] = format_file_size(logo_size)
 
     # Don't expose full secret key - only show last 4 characters for verification
-    if tenant_dict.get("stripe_secret_key"):
-        secret_key = tenant_dict["stripe_secret_key"]
-        tenant_dict["stripe_secret_key"] = (
-            f"{secret_key[:7]}...{secret_key[-4:]}" if len(secret_key) > 11 else "***"
-        )
-    if tenant_dict.get("revolut_merchant_secret"):
-        sk = tenant_dict["revolut_merchant_secret"]
-        tenant_dict["revolut_merchant_secret"] = (
-            f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
-        )
     if tenant_dict.get("fiscal_aeat_api_secret"):
         sk = tenant_dict["fiscal_aeat_api_secret"]
         tenant_dict["fiscal_aeat_api_secret"] = (
@@ -2980,6 +3067,7 @@ def update_tenant_settings(
     # Don't expose SMTP password; indicate if configured
     if tenant_dict.get("smtp_password"):
         tenant_dict["smtp_password"] = "********"
+    _mask_tenant_secret_fields(tenant_dict)
 
     apply_tenant_currency_api_dict(tenant_dict)
     tenant_dict["ui_modules"] = resolve_tenant_ui_modules(tenant.ui_modules)
@@ -3492,7 +3580,7 @@ def delete_kitchen_station(
     return {"status": "deleted", "id": station_id}
 
 
-# ============ TAXES (IVA) ============
+# ============ TAXES / GST ============
 
 
 @app.get("/taxes")
@@ -3508,15 +3596,15 @@ def list_taxes(
     current_only: bool = Query(True, description="If true, only return taxes valid today"),
 ) -> list[dict]:
     """List taxes for the current tenant. Optionally filter to those valid today."""
-    # Auto-seed default Spanish IVA taxes when a tenant has none yet.
+    # Auto-seed default tax rates when a tenant has none yet.
     # This prevents Settings dropdowns from rendering as an empty list.
     has_any = session.exec(
         select(models.Tax.id).where(models.Tax.tenant_id == current_user.tenant_id).limit(1)
     ).first()
     if not has_any:
-        from app.seeds.seed_spanish_taxes import seed_spanish_taxes
+        from app.seeds.seed_default_taxes import seed_default_taxes
 
-        seed_spanish_taxes(tenant_id=current_user.tenant_id, set_default=True)
+        seed_default_taxes(tenant_id=current_user.tenant_id, set_default=True)
 
     query = select(models.Tax).where(models.Tax.tenant_id == current_user.tenant_id)
     if current_only:
@@ -3790,19 +3878,10 @@ async def upload_tenant_logo(
     tenant_dict["logo_size_formatted"] = format_file_size(logo_size)
 
     # Don't expose full secret key - only show last 4 characters for verification
-    if tenant_dict.get("stripe_secret_key"):
-        secret_key = tenant_dict["stripe_secret_key"]
-        tenant_dict["stripe_secret_key"] = (
-            f"{secret_key[:7]}...{secret_key[-4:]}" if len(secret_key) > 11 else "***"
-        )
-    if tenant_dict.get("revolut_merchant_secret"):
-        sk = tenant_dict["revolut_merchant_secret"]
-        tenant_dict["revolut_merchant_secret"] = (
-            f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
-        )
     # Don't expose SMTP password; indicate if configured
     if tenant_dict.get("smtp_password"):
         tenant_dict["smtp_password"] = "********"
+    _mask_tenant_secret_fields(tenant_dict)
 
     return tenant_dict
 
@@ -3840,18 +3919,9 @@ def delete_tenant_logo(
     tenant_dict["logo_size_bytes"] = None
     tenant_dict["logo_size_formatted"] = format_file_size(None)
 
-    if tenant_dict.get("stripe_secret_key"):
-        secret_key = tenant_dict["stripe_secret_key"]
-        tenant_dict["stripe_secret_key"] = (
-            f"{secret_key[:7]}...{secret_key[-4:]}" if len(secret_key) > 11 else "***"
-        )
-    if tenant_dict.get("revolut_merchant_secret"):
-        sk = tenant_dict["revolut_merchant_secret"]
-        tenant_dict["revolut_merchant_secret"] = (
-            f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
-        )
     if tenant_dict.get("smtp_password"):
         tenant_dict["smtp_password"] = "********"
+    _mask_tenant_secret_fields(tenant_dict)
     return JSONResponse(content=tenant_dict)
 
 
@@ -3913,18 +3983,9 @@ async def upload_tenant_header_background(
 
     tenant_dict = tenant.model_dump(mode="json", exclude={"users"})
     tenant_dict["id"] = tenant.id
-    if tenant_dict.get("stripe_secret_key"):
-        secret_key = tenant_dict["stripe_secret_key"]
-        tenant_dict["stripe_secret_key"] = (
-            f"{secret_key[:7]}...{secret_key[-4:]}" if len(secret_key) > 11 else "***"
-        )
-    if tenant_dict.get("revolut_merchant_secret"):
-        sk = tenant_dict["revolut_merchant_secret"]
-        tenant_dict["revolut_merchant_secret"] = (
-            f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
-        )
     if tenant_dict.get("smtp_password"):
         tenant_dict["smtp_password"] = "********"
+    _mask_tenant_secret_fields(tenant_dict)
     return JSONResponse(content=tenant_dict)
 
 
@@ -3958,18 +4019,9 @@ def delete_tenant_header_background(
 
     tenant_dict = tenant.model_dump(mode="json", exclude={"users"})
     tenant_dict["id"] = tenant.id
-    if tenant_dict.get("stripe_secret_key"):
-        secret_key = tenant_dict["stripe_secret_key"]
-        tenant_dict["stripe_secret_key"] = (
-            f"{secret_key[:7]}...{secret_key[-4:]}" if len(secret_key) > 11 else "***"
-        )
-    if tenant_dict.get("revolut_merchant_secret"):
-        sk = tenant_dict["revolut_merchant_secret"]
-        tenant_dict["revolut_merchant_secret"] = (
-            f"{sk[:7]}...{sk[-4:]}" if len(sk) > 11 else "***"
-        )
     if tenant_dict.get("smtp_password"):
         tenant_dict["smtp_password"] = "********"
+    _mask_tenant_secret_fields(tenant_dict)
     return JSONResponse(content=tenant_dict)
 
 
@@ -9446,9 +9498,9 @@ async def send_reservation_reminder(
     tenant_name = tenant.name if tenant else "Restaurant"
     date_str = reservation.reservation_date.isoformat() if reservation.reservation_date else ""
     time_str = reservation.reservation_time.strftime("%H:%M") if reservation.reservation_time else ""
-    default_country = settings.default_phone_country or "ES"
+    default_country = settings.default_phone_country or "SG"
     if tenant and tenant.timezone:
-        # Optional: derive country from timezone (e.g. Europe/Madrid -> ES); for now use global default
+        # Optional: derive country from timezone later; for now use global default.
         pass
 
     email_sent = False
@@ -10112,7 +10164,7 @@ def get_menu(
             ]
             if first_part in wine_types:
                 wine_type = first_part
-            # Also check for Spanish terms
+            # Also check for translated wine terms
             elif "Red" in first_part or "Tinto" in first_part or "Tintos" in first_part:
                 wine_type = "Red Wine"
             elif (
@@ -10275,14 +10327,11 @@ def get_menu(
             )
         )[0],
         "tenant_currency": _menu_cc[1],
-        "tenant_stripe_publishable_key": tenant.stripe_publishable_key
-        if tenant
-        else None,
-        "tenant_revolut_configured": bool(
+        "tenant_hitpay_configured": bool(
             tenant
             and (
-                (tenant.revolut_merchant_secret and tenant.revolut_merchant_secret.strip())
-                or (settings.revolut_merchant_secret and settings.revolut_merchant_secret.strip())
+                (tenant.hitpay_api_key and tenant.hitpay_api_key.strip())
+                or (settings.hitpay_api_key and settings.hitpay_api_key.strip())
             )
         ),
         "tenant_immediate_payment_required": tenant.immediate_payment_required
@@ -11456,7 +11505,7 @@ def list_orders(
             ).all()
             product_map = {p.id: p for p in products}
 
-        # Billing customer for Factura (if set)
+        # Billing customer for tax invoice (if set)
         billing_customer = None
         if order.billing_customer_id:
             bc = session.get(models.BillingCustomer, order.billing_customer_id)
@@ -11841,7 +11890,7 @@ def set_order_billing_customer(
     current_user: Annotated[models.User, Depends(require_permission(Permission.ORDER_READ))],
     session: Session = Depends(get_session)
 ) -> dict:
-    """Set or clear the billing customer (Factura) for an order."""
+    """Set or clear the billing customer for an order."""
     order = session.exec(
         select(models.Order).where(
             models.Order.id == order_id,
@@ -11956,7 +12005,7 @@ def set_order_staff_urgent(
     return {"order_id": order.id, "staff_urgent": order.staff_urgent}
 
 
-# ---------- Billing customers (Factura) ----------
+# ---------- Billing customers ----------
 
 
 @app.get("/billing-customers")
@@ -12791,417 +12840,168 @@ def cancel_order(
     })
 
 
-# ============ REVOLUT MERCHANT API ============
-
-REVOLUT_API_BASE = "https://merchant.revolut.com/api/1.0"
-REVOLUT_API_VERSION = "2024-05-01"
+HITPAY_SANDBOX_API_BASE = "https://api.sandbox.hit-pay.com/v1"
+HITPAY_LIVE_API_BASE = "https://api.hit-pay.com/v1"
 
 
-def _revolut_create_order(
+def _resolve_tenant_payment_currency(tenant: models.Tenant) -> str:
+    return "SGD"
+
+
+def _hitpay_mode(tenant: models.Tenant | None) -> str:
+    tenant_has_key = bool(tenant and tenant.hitpay_api_key and tenant.hitpay_api_key.strip())
+    raw = (
+        (tenant.hitpay_mode if tenant_has_key and tenant else None)
+        or settings.hitpay_mode
+        or "sandbox"
+    ).strip().lower()
+    return "live" if raw == "live" else "sandbox"
+
+
+def _hitpay_api_base(mode: str) -> str:
+    return HITPAY_LIVE_API_BASE if mode == "live" else HITPAY_SANDBOX_API_BASE
+
+
+def _amount_cents_to_hitpay_amount(amount_cents: int) -> str:
+    amount = (Decimal(int(amount_cents)) / Decimal(100)).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    return format(amount, "f")
+
+
+def _hitpay_amount_to_cents(value: Any) -> int | None:
+    if value is None:
+        return None
+    try:
+        amount = Decimal(str(value).strip())
+    except (InvalidOperation, ValueError):
+        return None
+    return int((amount * Decimal(100)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def _frontend_base_url(request: Request) -> str | None:
+    if settings.public_app_base_url:
+        return settings.public_app_base_url.rstrip("/")
+    origin = request.headers.get("origin")
+    if origin and origin.startswith(("http://", "https://")):
+        return origin.rstrip("/")
+    host = request.headers.get("x-forwarded-host") or request.headers.get("host")
+    if not host:
+        return None
+    proto = request.headers.get("x-forwarded-proto") or request.url.scheme or "http"
+    return f"{proto}://{host}".rstrip("/")
+
+
+def _hitpay_headers(api_key: str) -> dict[str, str]:
+    return {
+        "X-BUSINESS-API-KEY": api_key,
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+    }
+
+
+def _hitpay_create_payment_request(
     *,
-    secret: str,
+    api_key: str,
+    mode: str,
     amount_cents: int,
     currency: str,
-    merchant_order_ext_ref: str,
-    redirect_url: str | None = None,
-    cancel_url: str | None = None,
+    order: models.Order,
+    table: models.Table,
+    tenant: models.Tenant,
+    redirect_url: str | None,
 ) -> dict:
-    """Create a Revolut Merchant order. Returns dict with id, checkout_url, and optionally token/public_id."""
-    url = f"{REVOLUT_API_BASE}/order"
-    headers = {
-        "Authorization": f"Bearer {secret}",
-        "Revolut-Api-Version": REVOLUT_API_VERSION,
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "amount": amount_cents,
+    url = f"{_hitpay_api_base(mode)}/payment-requests"
+    payload: dict[str, Any] = {
+        "amount": _amount_cents_to_hitpay_amount(amount_cents),
         "currency": currency.upper(),
-        "merchant_order_ext_ref": merchant_order_ext_ref,
+        "purpose": f"Order #{order.id} at {tenant.name} - {table.name}",
+        "reference_number": f"pos-order-{order.id}",
+        "allow_repeated_payments": False,
+        "send_email": False,
+        "send_sms": False,
+        "metadata": {
+            "order_id": str(order.id),
+            "table_id": str(table.id),
+            "tenant_id": str(order.tenant_id),
+        },
     }
     if redirect_url:
         payload["redirect_url"] = redirect_url
-    if cancel_url:
-        payload["cancel_url"] = cancel_url
-    resp = requests.post(url, json=payload, headers=headers, timeout=15)
+    if order.customer_name:
+        payload["name"] = order.customer_name
+
+    resp = requests.post(url, json=payload, headers=_hitpay_headers(api_key), timeout=15)
     resp.raise_for_status()
     return resp.json()
 
 
-def _revolut_retrieve_order(secret: str, revolut_order_id: str) -> dict:
-    """Retrieve a Revolut order by id. Returns order dict with state."""
-    url = f"{REVOLUT_API_BASE}/order/{revolut_order_id}"
-    headers = {
-        "Authorization": f"Bearer {secret}",
-        "Revolut-Api-Version": REVOLUT_API_VERSION,
-    }
-    resp = requests.get(url, headers=headers, timeout=10)
+def _hitpay_retrieve_payment_request(*, api_key: str, mode: str, request_id: str) -> dict:
+    url = f"{_hitpay_api_base(mode)}/payment-requests/{request_id}"
+    resp = requests.get(url, headers=_hitpay_headers(api_key), timeout=10)
     resp.raise_for_status()
     return resp.json()
 
 
-# ============ PAYMENTS (Public - for customer checkout) ============
+def _hitpay_status_is_paid(data: dict[str, Any]) -> bool:
+    status_value = str(data.get("status") or "").strip().lower()
+    return status_value in {"completed", "succeeded", "paid"}
 
 
-@app.post("/orders/{order_id}/create-payment-intent")
-@limiter.limit(f"{getattr(settings, 'rate_limit_payment_per_minute', 10)}/minute")
-@limiter.limit(
-    f"{getattr(settings, 'rate_limit_payment_per_order_per_hour', 3)}/hour",
-    key_func=_rate_limit_key_payment_order,
-)
-def create_payment_intent(
-    request: Request,
-    order_id: int, table_token: str, session: Session = Depends(get_session)
-) -> dict:
-    """Create a Stripe PaymentIntent for an order."""
-    # Verify table token matches the order
-    table = session.exec(
-        select(models.Table).where(models.Table.token == table_token)
-    ).first()
-
-    if not table:
-        raise HTTPException(status_code=404, detail="Invalid table")
-
-    order = session.exec(
-        select(models.Order).where(
-            models.Order.id == order_id, models.Order.table_id == table.id
-        )
-    ).first()
-
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-
-    # Calculate total from order items
-    items = session.exec(
-        select(models.OrderItem).where(models.OrderItem.order_id == order_id)
-    ).all()
-
-    total_cents = sum(item.price_cents * item.quantity for item in items)
-
-    if total_cents <= 0:
-        raise HTTPException(status_code=400, detail="Order has no items")
-
-    # Get tenant for description, currency, and Stripe keys
-    tenant = session.exec(
-        select(models.Tenant).where(models.Tenant.id == order.tenant_id)
-    ).first()
-
-    if not tenant:
-        raise HTTPException(status_code=404, detail="Tenant not found")
-
-    # Use tenant-specific Stripe keys, fallback to global config
-    stripe_secret_key = tenant.stripe_secret_key or settings.stripe_secret_key
-    if not stripe_secret_key:
-        raise HTTPException(
-            status_code=400, detail="Stripe not configured for this tenant"
-        )
-
-    # Resolve Stripe currency:
-    # 1) tenant.currency_code (ISO 4217) if set
-    # 2) legacy tenant.currency symbol mapping
-    # 3) global default settings.stripe_currency
-    tenant_currency_code = tenant.currency_code
-    if tenant_currency_code and isinstance(tenant_currency_code, str):
-        stripe_currency = tenant_currency_code.strip().lower()
-    else:
-        currency_symbol = tenant.currency if tenant.currency else None
-        stripe_currency = (
-            _get_stripe_currency_code(currency_symbol) or settings.stripe_currency
-        ).lower()
-
-    try:
-        # Use tenant-specific Stripe key
-        intent = stripe.PaymentIntent.create(
-            amount=total_cents,
-            currency=stripe_currency,
-            api_key=stripe_secret_key,
-            metadata={
-                "order_id": str(order.id),
-                "table_id": str(table.id),
-                "tenant_id": str(order.tenant_id),
-            },
-            description=f"Order #{order.id} at {tenant.name} - {table.name}",
-        )
-
-        return {
-            "client_secret": intent.client_secret,
-            "payment_intent_id": intent.id,
-            "amount": total_cents,
-        }
-    except stripe.error.StripeError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@app.post("/orders/{order_id}/confirm-payment")
-@limiter.limit(f"{getattr(settings, 'rate_limit_payment_per_minute', 10)}/minute")
-@limiter.limit(
-    f"{getattr(settings, 'rate_limit_payment_per_order_per_hour', 3)}/hour",
-    key_func=_rate_limit_key_payment_order,
-)
-def confirm_payment(
-    request: Request,
-    order_id: int,
-    table_token: str,
-    payment_intent_id: str,
-    session: Session = Depends(get_session),
-) -> dict:
-    """Mark order as paid after successful Stripe payment."""
-    table = session.exec(
-        select(models.Table).where(models.Table.token == table_token)
-    ).first()
-
-    if not table:
-        raise HTTPException(status_code=404, detail="Invalid table")
-
-    order = session.exec(
-        select(models.Order).where(
-            models.Order.id == order_id, models.Order.table_id == table.id
-        )
-    ).first()
-
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-
-    # Get tenant for Stripe keys
-    tenant = session.exec(
-        select(models.Tenant).where(models.Tenant.id == order.tenant_id)
-    ).first()
-    if not tenant:
-        raise HTTPException(status_code=404, detail="Tenant not found")
-
-    # Use tenant-specific Stripe keys, fallback to global config
-    stripe_secret_key = tenant.stripe_secret_key or settings.stripe_secret_key
-    if not stripe_secret_key:
-        raise HTTPException(
-            status_code=400, detail="Stripe not configured for this tenant"
-        )
-
-    # Verify payment with Stripe
-    try:
-        intent = stripe.PaymentIntent.retrieve(
-            payment_intent_id, api_key=stripe_secret_key
-        )
-        if intent.status != "succeeded":
-            raise HTTPException(status_code=400, detail="Payment not completed")
-
-        # Validation: Verify intent matches order
-        # 1. Check order ID in metadata
-        intent_order_id = intent.metadata.get("order_id")
-        if not intent_order_id or str(intent_order_id) != str(order.id):
-            raise HTTPException(
-                status_code=400,
-                detail="Payment mismatch: Payment does not belong to this order",
-            )
-
-        # 2. Check amount
-        items = session.exec(
-            select(models.OrderItem).where(models.OrderItem.order_id == order_id)
-        ).all()
-        total_cents = sum(item.price_cents * item.quantity for item in items)
-
-        if intent.amount != total_cents:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Payment mismatch: Amount {intent.amount} does not match order total {total_cents}",
-            )
-
-        # Mark order as paid
-        order.status = models.OrderStatus.paid
-        order.bill_requested_at = None
-        order.notes = f"{order.notes or ''}\n[PAID: {payment_intent_id}]".strip()
-        session.add(order)
-        session.commit()
-
-        # Notify tenant
-        publish_order_update(order.tenant_id, {
-            "type": "order_paid",
-            "order_id": order.id,
-            "table_name": table.name,
-            "status": order.status.value
-        }, table_id=order.table_id)
-        
-        return {"status": "paid", "order_id": order.id}
-    except stripe.error.StripeError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@app.post("/orders/{order_id}/create-revolut-order")
-@limiter.limit(f"{getattr(settings, 'rate_limit_payment_per_minute', 10)}/minute")
-@limiter.limit(
-    f"{getattr(settings, 'rate_limit_payment_per_order_per_hour', 3)}/hour",
-    key_func=_rate_limit_key_payment_order,
-)
-def create_revolut_order(
-    request: Request,
-    order_id: int,
-    table_token: str,
-    session: Session = Depends(get_session),
-) -> dict:
-    """Create a Revolut Merchant order and return checkout_url for redirect."""
-    table = session.exec(
-        select(models.Table).where(models.Table.token == table_token)
-    ).first()
-    if not table:
-        raise HTTPException(status_code=404, detail="Invalid table")
-
-    order = session.exec(
-        select(models.Order).where(
-            models.Order.id == order_id, models.Order.table_id == table.id
-        )
-    ).first()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-
-    items = session.exec(
-        select(models.OrderItem).where(models.OrderItem.order_id == order_id)
-    ).all()
-    total_cents = sum(item.price_cents * item.quantity for item in items)
-    if total_cents <= 0:
-        raise HTTPException(status_code=400, detail="Order has no items")
-
-    tenant = session.exec(
-        select(models.Tenant).where(models.Tenant.id == order.tenant_id)
-    ).first()
-    if not tenant:
-        raise HTTPException(status_code=404, detail="Tenant not found")
-
-    revolut_secret = tenant.revolut_merchant_secret or settings.revolut_merchant_secret
-    if not revolut_secret or not revolut_secret.strip():
-        raise HTTPException(
-            status_code=400, detail="Revolut is not configured for this tenant"
-        )
-
-    currency = "EUR"
-    if tenant.currency_code and isinstance(tenant.currency_code, str):
-        currency = tenant.currency_code.strip().upper()
-    else:
-        c = _get_stripe_currency_code(tenant.currency) or settings.stripe_currency
-        if c:
-            currency = c.upper()
-
-    redirect_url = None
-    cancel_url = None
-    if settings.public_app_base_url:
-        base = settings.public_app_base_url.rstrip("/")
-        redirect_url = f"{base}/menu/{table_token}/payment-success?order_id={order_id}"
-        cancel_url = f"{base}/menu/{table_token}"
-
-    try:
-        rev_order = _revolut_create_order(
-            secret=revolut_secret.strip(),
-            amount_cents=total_cents,
-            currency=currency,
-            merchant_order_ext_ref=str(order.id),
-            redirect_url=redirect_url,
-            cancel_url=cancel_url,
-        )
-    except requests.RequestException as e:
-        logger.exception("Revolut create order failed")
-        detail = str(e)
-        if getattr(e, "response", None) is not None and hasattr(e.response, "text"):
-            try:
-                detail = e.response.text or detail
-            except Exception:
-                pass
-        raise HTTPException(status_code=502, detail=f"Revolut request failed: {detail}") from e
-
-    revolut_id = rev_order.get("id") or rev_order.get("order_id")
-    checkout_url = rev_order.get("checkout_url")
-    if not revolut_id or not checkout_url:
-        raise HTTPException(
-            status_code=502,
-            detail="Invalid response from Revolut (missing id or checkout_url)",
-        )
-
-    order.revolut_order_id = str(revolut_id)
-    session.add(order)
-    session.commit()
-
-    return {
-        "checkout_url": checkout_url,
-        "revolut_order_id": str(revolut_id),
-        "order_id": order.id,
-    }
-
-
-@app.post("/orders/{order_id}/confirm-revolut-payment")
-@limiter.limit(f"{getattr(settings, 'rate_limit_payment_per_minute', 10)}/minute")
-@limiter.limit(
-    f"{getattr(settings, 'rate_limit_payment_per_order_per_hour', 3)}/hour",
-    key_func=_rate_limit_key_payment_order,
-)
-def confirm_revolut_payment(
-    request: Request,
-    order_id: int,
-    table_token: str,
-    session: Session = Depends(get_session),
-) -> dict:
-    """Verify Revolut order is completed and mark our order as paid."""
-    table = session.exec(
-        select(models.Table).where(models.Table.token == table_token)
-    ).first()
-    if not table:
-        raise HTTPException(status_code=404, detail="Invalid table")
-
-    order = session.exec(
-        select(models.Order).where(
-            models.Order.id == order_id, models.Order.table_id == table.id
-        )
-    ).first()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-
-    if not order.revolut_order_id:
+def _validate_hitpay_payment_matches_order(
+    data: dict[str, Any],
+    *,
+    order: models.Order,
+    total_cents: int,
+    currency: str,
+) -> None:
+    reference_number = data.get("reference_number")
+    if reference_number and str(reference_number) != f"pos-order-{order.id}":
         raise HTTPException(
             status_code=400,
-            detail="No Revolut order linked; create a Revolut checkout first",
+            detail="HitPay payment mismatch: reference does not belong to this order",
         )
 
-    tenant = session.exec(
-        select(models.Tenant).where(models.Tenant.id == order.tenant_id)
-    ).first()
-    if not tenant:
-        raise HTTPException(status_code=404, detail="Tenant not found")
-
-    revolut_secret = tenant.revolut_merchant_secret or settings.revolut_merchant_secret
-    if not revolut_secret or not revolut_secret.strip():
-        raise HTTPException(
-            status_code=400, detail="Revolut is not configured for this tenant"
-        )
-
-    try:
-        rev_order = _revolut_retrieve_order(
-            revolut_secret.strip(), order.revolut_order_id
-        )
-    except requests.RequestException as e:
-        logger.exception("Revolut retrieve order failed")
-        raise HTTPException(
-            status_code=502,
-            detail="Revolut request failed",
-        ) from e
-
-    state = (rev_order.get("state") or rev_order.get("status") or "").upper()
-    if state not in ("COMPLETED", "AUTHORISED", "CAPTURED"):
+    paid_amount = _hitpay_amount_to_cents(data.get("amount"))
+    if paid_amount is not None and paid_amount != total_cents:
         raise HTTPException(
             status_code=400,
-            detail=f"Revolut order not completed (state: {state})",
+            detail="HitPay payment amount does not match order total",
         )
 
-    items = session.exec(
-        select(models.OrderItem).where(models.OrderItem.order_id == order_id)
-    ).all()
-    total_cents = sum(item.price_cents * item.quantity for item in items)
-    rev_amount = rev_order.get("order_amount") or rev_order.get("amount")
-    if rev_amount is not None and int(rev_amount) != total_cents:
+    paid_currency = data.get("currency")
+    if paid_currency and str(paid_currency).upper() != currency.upper():
         raise HTTPException(
             status_code=400,
-            detail="Payment amount does not match order total",
+            detail="HitPay payment currency does not match order currency",
         )
+
+
+def _hitpay_signature_valid(raw_body: bytes, signature: str | None, salt: str) -> bool:
+    if not signature:
+        return False
+    computed = hmac.new(salt.encode("utf-8"), raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(computed.lower(), signature.strip().lower())
+
+
+def _mark_order_paid_from_provider(
+    *,
+    session: Session,
+    order: models.Order,
+    table: models.Table | None,
+    payment_method: str,
+    provider_reference: str,
+) -> None:
+    if order.status == models.OrderStatus.paid and order.paid_at is not None:
+        return
 
     order.status = models.OrderStatus.paid
-    order.payment_method = "revolut"
+    order.payment_method = payment_method
     order.paid_at = datetime.now(timezone.utc)
     order.bill_requested_at = None
-    order.notes = f"{order.notes or ''}\n[PAID: Revolut {order.revolut_order_id}]".strip()
+    paid_note = f"[PAID: {provider_reference}]"
+    if paid_note not in (order.notes or ""):
+        order.notes = f"{order.notes or ''}\n{paid_note}".strip()
     session.add(order)
     session.commit()
 
@@ -13210,10 +13010,272 @@ def confirm_revolut_payment(
         {
             "type": "order_paid",
             "order_id": order.id,
-            "table_name": table.name,
+            "table_name": table.name if table else None,
             "status": order.status.value,
+            "payment_method": payment_method,
         },
         table_id=order.table_id,
     )
 
+
+# ============ PAYMENTS (Public - for customer checkout) ============
+
+
+@app.post("/orders/{order_id}/create-hitpay-payment-request")
+@limiter.limit(f"{getattr(settings, 'rate_limit_payment_per_minute', 10)}/minute")
+@limiter.limit(
+    f"{getattr(settings, 'rate_limit_payment_per_order_per_hour', 3)}/hour",
+    key_func=_rate_limit_key_payment_order,
+)
+def create_hitpay_payment_request(
+    request: Request,
+    order_id: int,
+    table_token: str,
+    session: Session = Depends(get_session),
+) -> dict:
+    """Create a HitPay payment request and return the hosted checkout URL."""
+    table = session.exec(
+        select(models.Table).where(models.Table.token == table_token)
+    ).first()
+    if not table:
+        raise HTTPException(status_code=404, detail="Invalid table")
+
+    order = session.exec(
+        select(models.Order).where(
+            models.Order.id == order_id, models.Order.table_id == table.id
+        )
+    ).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.status == models.OrderStatus.paid or order.paid_at is not None:
+        raise HTTPException(status_code=400, detail="Order is already paid")
+
+    items = session.exec(
+        select(models.OrderItem).where(models.OrderItem.order_id == order_id)
+    ).all()
+    total_cents = sum(item.price_cents * item.quantity for item in items)
+    if total_cents <= 0:
+        raise HTTPException(status_code=400, detail="Order has no items")
+
+    tenant = session.exec(
+        select(models.Tenant).where(models.Tenant.id == order.tenant_id)
+    ).first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    hitpay_api_key = tenant.hitpay_api_key or settings.hitpay_api_key
+    if not hitpay_api_key or not hitpay_api_key.strip():
+        raise HTTPException(
+            status_code=400, detail="HitPay is not configured for this tenant"
+        )
+
+    frontend_base = _frontend_base_url(request)
+    redirect_url = (
+        f"{frontend_base}/menu/{table_token}/payment-success?order_id={order_id}&provider=hitpay"
+        if frontend_base
+        else None
+    )
+    currency = _resolve_tenant_payment_currency(tenant)
+
+    try:
+        hitpay_request = _hitpay_create_payment_request(
+            api_key=hitpay_api_key.strip(),
+            mode=_hitpay_mode(tenant),
+            amount_cents=total_cents,
+            currency=currency,
+            order=order,
+            table=table,
+            tenant=tenant,
+            redirect_url=redirect_url,
+        )
+    except requests.RequestException as e:
+        logger.exception("HitPay create payment request failed")
+        detail = str(e)
+        if getattr(e, "response", None) is not None and hasattr(e.response, "text"):
+            try:
+                detail = e.response.text or detail
+            except Exception:
+                pass
+        raise HTTPException(status_code=502, detail=f"HitPay request failed: {detail}") from e
+
+    hitpay_id = hitpay_request.get("id")
+    checkout_url = hitpay_request.get("url")
+    if not hitpay_id or not checkout_url:
+        raise HTTPException(
+            status_code=502,
+            detail="Invalid response from HitPay (missing id or url)",
+        )
+
+    order.hitpay_payment_request_id = str(hitpay_id)
+    session.add(order)
+    session.commit()
+
+    return {
+        "checkout_url": checkout_url,
+        "hitpay_payment_request_id": str(hitpay_id),
+        "order_id": order.id,
+    }
+
+
+@app.post("/orders/{order_id}/confirm-hitpay-payment")
+@limiter.limit(f"{getattr(settings, 'rate_limit_payment_per_minute', 10)}/minute")
+@limiter.limit(
+    f"{getattr(settings, 'rate_limit_payment_per_order_per_hour', 3)}/hour",
+    key_func=_rate_limit_key_payment_order,
+)
+def confirm_hitpay_payment(
+    request: Request,
+    order_id: int,
+    table_token: str,
+    session: Session = Depends(get_session),
+) -> dict:
+    """Verify a HitPay payment request is completed and mark our order as paid."""
+    table = session.exec(
+        select(models.Table).where(models.Table.token == table_token)
+    ).first()
+    if not table:
+        raise HTTPException(status_code=404, detail="Invalid table")
+
+    order = session.exec(
+        select(models.Order).where(
+            models.Order.id == order_id, models.Order.table_id == table.id
+        )
+    ).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    if not order.hitpay_payment_request_id:
+        raise HTTPException(
+            status_code=400,
+            detail="No HitPay payment request linked; create a HitPay checkout first",
+        )
+
+    tenant = session.exec(
+        select(models.Tenant).where(models.Tenant.id == order.tenant_id)
+    ).first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    hitpay_api_key = tenant.hitpay_api_key or settings.hitpay_api_key
+    if not hitpay_api_key or not hitpay_api_key.strip():
+        raise HTTPException(
+            status_code=400, detail="HitPay is not configured for this tenant"
+        )
+
+    try:
+        hitpay_request = _hitpay_retrieve_payment_request(
+            api_key=hitpay_api_key.strip(),
+            mode=_hitpay_mode(tenant),
+            request_id=order.hitpay_payment_request_id,
+        )
+    except requests.RequestException as e:
+        logger.exception("HitPay retrieve payment request failed")
+        raise HTTPException(status_code=502, detail="HitPay request failed") from e
+
+    if not _hitpay_status_is_paid(hitpay_request):
+        state = hitpay_request.get("status") or "unknown"
+        raise HTTPException(
+            status_code=400,
+            detail=f"HitPay payment request not completed (status: {state})",
+        )
+
+    items = session.exec(
+        select(models.OrderItem).where(models.OrderItem.order_id == order_id)
+    ).all()
+    total_cents = sum(item.price_cents * item.quantity for item in items)
+    currency = _resolve_tenant_payment_currency(tenant)
+    _validate_hitpay_payment_matches_order(
+        hitpay_request,
+        order=order,
+        total_cents=total_cents,
+        currency=currency,
+    )
+
+    _mark_order_paid_from_provider(
+        session=session,
+        order=order,
+        table=table,
+        payment_method="hitpay",
+        provider_reference=f"HitPay {order.hitpay_payment_request_id}",
+    )
+
+    return {"status": "paid", "order_id": order.id}
+
+
+@app.post("/payments/hitpay/webhook")
+async def hitpay_webhook(
+    request: Request,
+    session: Session = Depends(get_session),
+) -> dict:
+    """Receive HitPay payment-request webhooks and mark orders paid after HMAC validation."""
+    raw_body = await request.body()
+    try:
+        payload = json.loads(raw_body.decode("utf-8") or "{}")
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload") from e
+
+    request_id = (
+        payload.get("id")
+        or payload.get("payment_request_id")
+        or (payload.get("payment_request") or {}).get("id")
+    )
+    if not request_id:
+        raise HTTPException(status_code=400, detail="Missing HitPay payment request id")
+    request_id = str(request_id)
+
+    order = session.exec(
+        select(models.Order).where(models.Order.hitpay_payment_request_id == request_id)
+    ).first()
+    if not order:
+        reference_number = str(payload.get("reference_number") or "")
+        metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+        order_ref = str(metadata.get("order_id") or "")
+        if not order_ref and reference_number.startswith("pos-order-"):
+            order_ref = reference_number.removeprefix("pos-order-")
+        if order_ref.isdigit():
+            order = session.get(models.Order, int(order_ref))
+
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found for HitPay webhook")
+
+    tenant = session.get(models.Tenant, order.tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    salt = tenant.hitpay_webhook_salt or settings.hitpay_webhook_salt
+    if not salt or not salt.strip():
+        raise HTTPException(status_code=400, detail="HitPay webhook salt is not configured")
+
+    if not _hitpay_signature_valid(raw_body, request.headers.get("Hitpay-Signature"), salt.strip()):
+        raise HTTPException(status_code=401, detail="Invalid HitPay webhook signature")
+
+    event_type = (request.headers.get("Hitpay-Event-Type") or "").strip().lower()
+    event_object = (request.headers.get("Hitpay-Event-Object") or "").strip().lower()
+    should_mark_paid = (
+        _hitpay_status_is_paid(payload)
+        or event_type == "payment_request.completed"
+        or (event_object == "payment_request" and event_type == "completed")
+    )
+    if not should_mark_paid:
+        return {"status": "ignored", "order_id": order.id}
+
+    items = session.exec(
+        select(models.OrderItem).where(models.OrderItem.order_id == order.id)
+    ).all()
+    total_cents = sum(item.price_cents * item.quantity for item in items)
+    _validate_hitpay_payment_matches_order(
+        payload,
+        order=order,
+        total_cents=total_cents,
+        currency=_resolve_tenant_payment_currency(tenant),
+    )
+
+    table = session.get(models.Table, order.table_id) if order.table_id else None
+    _mark_order_paid_from_provider(
+        session=session,
+        order=order,
+        table=table,
+        payment_method="hitpay",
+        provider_reference=f"HitPay {request_id}",
+    )
     return {"status": "paid", "order_id": order.id}

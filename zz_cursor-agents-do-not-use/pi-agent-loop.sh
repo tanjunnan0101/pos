@@ -17,7 +17,7 @@ _tdir="${TMPDIR:-/tmp}"
 _tdir="${_tdir%/}"
 AGENT_LOOP_TMP="${AGENT_LOOP_TMP:-${_tdir}/pi-agent-loop}"
 unset _tdir
-GH_REPO="${AGENT_GH_REPO:-satisfecho/pos}"
+GH_REPO="${AGENT_GH_REPO:-tanjunnan0101/pos}"
 LAST_REVIEW_FILE="${SCRIPTDIR}/001-log-reviewer/time-of-last-review.txt"
 OLLAMA_URL="http://localhost:11434/api/generate"
 TRIAGE_MODEL="Gemma4:latest"
@@ -514,7 +514,7 @@ Environment:
   AGENT_LOOP_SLEEP_MINUTES   Sleep between full cycles when looping (default: 5).
   AGENT_GIT_SYNC             If 0, skip git fetch/pull before each step (default: 1).
   AGENT_LOOP_TMP             Directory for 001 preflight digest (default: \$TMPDIR/pi-agent-loop).
-  AGENT_GH_REPO              Repo for gh issue list (default: satisfecho/pos).
+  AGENT_GH_REPO              Repo for gh issue list (default: tanjunnan0101/pos).
   AGENT_LOG_REVIEWER_ALWAYS  If 1, always invoke 001 pi (skip preflight gate).
   AGENT_001_SKIP_PREFLIGHT   If 1, always invoke 001 (legacy).
   AGENT_001_RUN_WHEN_GH_UNKNOWN  If 1, run 001 when gh failed/missing and digest otherwise empty.

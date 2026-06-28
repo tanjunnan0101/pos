@@ -46,7 +46,7 @@ BEER_DATA = [
         "description": "Classic Spanish lager, crisp and refreshing with a balanced flavor profile. One of Spain's most popular beers.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.50",
+        "price": "$2.50",
         "image": "https://images.pexels.com/photos/1267701/pexels-photo-1267701.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -57,7 +57,7 @@ BEER_DATA = [
         "description": "Iconic Barcelona beer, light and smooth with Mediterranean character. Perfect for warm weather.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.50",
+        "price": "$2.50",
         "image": "https://images.pexels.com/photos/11098951/pexels-photo-11098951.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -68,7 +68,7 @@ BEER_DATA = [
         "description": "Traditional Andalusian beer, full-bodied with a distinctive flavor. A favorite in southern Spain.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.30",
+        "price": "$2.30",
         "image": "https://images.pexels.com/photos/4276950/pexels-photo-4276950.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -79,7 +79,7 @@ BEER_DATA = [
         "description": "Premium Spanish lager with a smooth, clean taste. Brewed since 1890 with traditional methods.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.40",
+        "price": "$2.40",
         "image": "https://images.pexels.com/photos/30271798/pexels-photo-30271798.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -90,7 +90,7 @@ BEER_DATA = [
         "description": "Premium Spanish beer with a rich, malty flavor and smooth finish. Aged for enhanced character.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.80",
+        "price": "$2.80",
         "image": "https://images.pexels.com/photos/31681158/pexels-photo-31681158.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -101,7 +101,7 @@ BEER_DATA = [
         "description": "Strong double malt lager with a rich, full-bodied taste. Higher alcohol content for a more intense experience.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€3.00",
+        "price": "$3.00",
         "image": "https://upload.wikimedia.org/wikipedia/commons/8/86/Voll-DammBotella33cl.jpg"
     },
     {
@@ -112,7 +112,7 @@ BEER_DATA = [
         "description": "World-famous Dutch lager with a distinctive green bottle. Crisp, refreshing taste with a slight bitterness.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.80",
+        "price": "$2.80",
         "image": "https://images.pexels.com/photos/1478386/pexels-photo-1478386.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -123,7 +123,7 @@ BEER_DATA = [
         "description": "Light, crisp Mexican lager with a smooth finish. Best served with a lime wedge.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€3.20",
+        "price": "$3.20",
         "image": "https://images.pexels.com/photos/1478386/pexels-photo-1478386.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -134,7 +134,7 @@ BEER_DATA = [
         "description": "Premium Belgian lager with a crisp, clean taste and golden color. Brewed since 1366.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€3.00",
+        "price": "$3.00",
         "image": "https://images.pexels.com/photos/11098951/pexels-photo-11098951.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -145,7 +145,7 @@ BEER_DATA = [
         "description": "Iconic Irish stout with a creamy head and rich, roasted flavor. Smooth and velvety texture.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€3.50",
+        "price": "$3.50",
         "image": "https://images.pexels.com/photos/30271798/pexels-photo-30271798.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -156,7 +156,7 @@ BEER_DATA = [
         "description": "American-style lager with a clean, crisp taste. Light and refreshing.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.90",
+        "price": "$2.90",
         "image": "https://images.pexels.com/photos/30271798/pexels-photo-30271798.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -167,7 +167,7 @@ BEER_DATA = [
         "description": "Danish pilsner with a balanced, smooth taste. Light and refreshing with a hint of hops.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.70",
+        "price": "$2.70",
         "image": "https://images.pexels.com/photos/31681158/pexels-photo-31681158.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -178,7 +178,7 @@ BEER_DATA = [
         "description": "Dutch lager with a light, refreshing taste. Smooth and easy-drinking.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.60",
+        "price": "$2.60",
         "image": "https://images.pexels.com/photos/31581609/pexels-photo-31581609.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -189,7 +189,7 @@ BEER_DATA = [
         "description": "German pilsner with a crisp, hoppy flavor. Brewed according to the German Purity Law.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.80",
+        "price": "$2.80",
         "image": "https://images.pexels.com/photos/4276950/pexels-photo-4276950.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -200,7 +200,7 @@ BEER_DATA = [
         "description": "Premium Italian lager with a crisp, clean taste and distinctive blue ribbon. Light and refreshing.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€3.10",
+        "price": "$3.10",
         "image": "https://images.pexels.com/photos/30271798/pexels-photo-30271798.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -211,7 +211,7 @@ BEER_DATA = [
         "description": "Refreshing shandy with natural lemon flavor. Light and citrusy, perfect for summer.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.50",
+        "price": "$2.50",
         "image": "https://images.pexels.com/photos/31581609/pexels-photo-31581609.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -222,7 +222,7 @@ BEER_DATA = [
         "description": "Gluten-free lager with the same great taste. Suitable for those with gluten intolerance.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.70",
+        "price": "$2.70",
         "image": "https://images.pexels.com/photos/30271798/pexels-photo-30271798.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -233,7 +233,7 @@ BEER_DATA = [
         "description": "Premium Galician beer with a rich, full flavor. Brewed with high-quality ingredients.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.90",
+        "price": "$2.90",
         "image": "https://images.pexels.com/photos/11098951/pexels-photo-11098951.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -244,7 +244,7 @@ BEER_DATA = [
         "description": "Classic Spanish beer with traditional flavor. Smooth and balanced taste.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.40",
+        "price": "$2.40",
         "image": "https://images.pexels.com/photos/31681158/pexels-photo-31681158.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -255,7 +255,7 @@ BEER_DATA = [
         "description": "Refreshing shandy mix of beer and lemonade. Light, sweet, and perfect for warm days.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.60",
+        "price": "$2.60",
         "image": "https://images.pexels.com/photos/31581609/pexels-photo-31581609.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -266,7 +266,7 @@ BEER_DATA = [
         "description": "Craft IPA with bold hop flavors and citrus notes. Aromatic and full-bodied.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€4.50",
+        "price": "$4.50",
         "image": "https://images.pexels.com/photos/7292296/pexels-photo-7292296.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -277,7 +277,7 @@ BEER_DATA = [
         "description": "Barcelona's classic pilsner, first brewed in 1856. Light golden color with white, fluffy foam. Brewed with extra-pale barley malt, Saaz hops, and mineral water from Font d'Or. Smooth flavor with sweet malt and cereal notes, and a hint of citrus.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.40",
+        "price": "$2.40",
         "image": "https://images.pexels.com/photos/1267701/pexels-photo-1267701.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -288,7 +288,7 @@ BEER_DATA = [
         "description": "A strong lager made with 100% barley malt for full-bodied richness and authentic character. Smooth, malty, and full of depth.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.75",
+        "price": "$2.75",
         "image": "https://images.pexels.com/photos/1267701/pexels-photo-1267701.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -299,7 +299,7 @@ BEER_DATA = [
         "description": "A powerful strong lager with 7.2% ABV, crafted from triple toasted and caramelized malts. Rich, intense, and full of character with deep malty sweetness.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.75",
+        "price": "$2.75",
         "image": "https://images.pexels.com/photos/31581609/pexels-photo-31581609.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -310,7 +310,7 @@ BEER_DATA = [
         "description": "A bold red India Pale Ale with intense hop bitterness balanced by rich malts. Features floral, herbal, and resinous hop aromas with fruity notes of apple, peach, and figs.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.95",
+        "price": "$2.95",
         "image": "https://images.pexels.com/photos/30271798/pexels-photo-30271798.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -321,7 +321,7 @@ BEER_DATA = [
         "description": "A refreshing shandy blending Moritz beer with natural lemon juice. Light, citrusy, and perfect for warm days.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.90",
+        "price": "$2.90",
         "image": "https://images.pexels.com/photos/11098951/pexels-photo-11098951.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -332,7 +332,7 @@ BEER_DATA = [
         "description": "Alcohol-free lager with a clean, crisp taste. Light-bodied and refreshing, ideal as a non-alcoholic alternative.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.90",
+        "price": "$2.90",
         "image": "https://images.pexels.com/photos/4276950/pexels-photo-4276950.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -343,7 +343,7 @@ BEER_DATA = [
         "description": "Toasted alcohol-free beer with rich notes of caramel, coffee, and liquorice. Dark amber color and full-bodied, offering complex flavors without alcohol.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€2.90",
+        "price": "$2.90",
         "image": "https://images.pexels.com/photos/31681158/pexels-photo-31681158.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -354,7 +354,7 @@ BEER_DATA = [
         "description": "A revival of a historic stout, deep black and opaque with a dense, creamy head. Roasted malt flavors with notes of coffee, cocoa, and a hint of smoke.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€4.90",
+        "price": "$4.90",
         "image": "https://images.pexels.com/photos/7292296/pexels-photo-7292296.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -365,7 +365,7 @@ BEER_DATA = [
         "description": "A gose-style experimental beer created by UPC students. Slightly cloudy, pale yellow, with lactic acidity, Himalayan salt, and coriander. Refreshing with a hint of spice and passion fruit aroma.",
         "volume_ml": 250,
         "unit": "draught",
-        "price": "€3.90",
+        "price": "$3.90",
         "image": "https://images.pexels.com/photos/1267701/pexels-photo-1267701.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -376,7 +376,7 @@ BEER_DATA = [
         "description": "Limited edition beer for Sant Jordi, infused with red rose petals from Las Ramblas. Floral aroma, sweet taste, and reddish hue. Brewed with beetroot, carrot, and rose flavoring.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€4.50",
+        "price": "$4.50",
         "image": "https://images.pexels.com/photos/31581609/pexels-photo-31581609.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -387,7 +387,7 @@ BEER_DATA = [
         "description": "A spiced lager infused with honey, ginger, bergamot, and cardamom. Aromatic and complex, inspired by historic flavors. Available exclusively at El 300 del Born and M-Store.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€4.50",
+        "price": "$4.50",
         "image": "https://images.pexels.com/photos/30271798/pexels-photo-30271798.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -398,7 +398,7 @@ BEER_DATA = [
         "description": "A dark, experimental beer with roasted grain character and a smooth, full body. Brewed in limited batches at Moritz Beer Lab.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€4.50",
+        "price": "$4.50",
         "image": "https://images.pexels.com/photos/11098951/pexels-photo-11098951.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -409,7 +409,7 @@ BEER_DATA = [
         "description": "A citrus-forward experimental lager with bright notes of orange, lemon, and grapefruit. Refreshing and aromatic, brewed with natural citrus extracts.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€4.50",
+        "price": "$4.50",
         "image": "https://images.pexels.com/photos/4276950/pexels-photo-4276950.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -420,7 +420,7 @@ BEER_DATA = [
         "description": "A malty, amber ale with a sweet profile and low bitterness. Inspired by Scottish ales, with caramel and toffee notes.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€4.50",
+        "price": "$4.50",
         "image": "https://images.pexels.com/photos/31681158/pexels-photo-31681158.jpeg?auto=compress&cs=tinysrgb&w=800"
     },
     {
@@ -431,7 +431,7 @@ BEER_DATA = [
         "description": "A tart, refreshing sour beer with fruity notes and a clean acidic finish. Brewed using natural lactic fermentation.",
         "volume_ml": 330,
         "unit": "bottle",
-        "price": "€4.50",
+        "price": "$4.50",
         "image": "https://images.pexels.com/photos/7292296/pexels-photo-7292296.jpeg?auto=compress&cs=tinysrgb&w=800"
     }
 ]
@@ -451,14 +451,14 @@ def parse_price(price_str: str) -> int | None:
     Parse price string to cents.
     
     Handles formats like:
-    - "€2.50" -> 250 cents
-    - "€3.20" -> 320 cents
+    - "$2.50" -> 250 cents
+    - "$3.20" -> 320 cents
     """
     if not price_str:
         return None
     
     # Remove currency symbols and whitespace
-    price_str = price_str.replace("€", "").replace("$", "").replace("£", "").strip()
+    price_str = price_str.replace("$", "").replace("$", "").replace("£", "").strip()
     
     # Handle range (e.g., "2.50–3.00" or "2.50-3.00")
     if "–" in price_str or "-" in price_str:
@@ -513,7 +513,7 @@ def download_and_store_image(
     try:
         # Download image with User-Agent header (required for Wikimedia Commons)
         headers = {
-            'User-Agent': 'Mozilla/5.0 (compatible; POS-System/1.0; +https://github.com/satisfecho/pos)'
+            'User-Agent': 'Mozilla/5.0 (compatible; POS-System/1.0; +https://github.com/tanjunnan0101/pos)'
         }
         response = requests.get(image_url, headers=headers, timeout=30, stream=True)
         response.raise_for_status()

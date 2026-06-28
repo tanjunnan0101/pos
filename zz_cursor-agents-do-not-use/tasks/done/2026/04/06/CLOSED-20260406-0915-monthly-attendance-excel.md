@@ -11,7 +11,7 @@
 # Monthly per-employee attendance Excel (legal-style timesheet)
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/165
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/165
 
 ## Status
 **CLOSED (PASS)** — Verified 2026-04-06 (UTC); see Test report below.

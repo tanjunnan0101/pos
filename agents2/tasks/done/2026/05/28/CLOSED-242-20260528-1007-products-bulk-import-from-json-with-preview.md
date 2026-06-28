@@ -11,7 +11,7 @@
 # Products: bulk import from JSON with preview
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/242
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/242
 - **242**
 
 ## Problem / goal
@@ -86,7 +86,7 @@ Staff need to add or update many menu products at once. Support an optional uplo
    - **Front build (latest):** **PASS** — `Application bundle generation complete` at 10:12 UTC; earlier 10:10–10:11 UTC log showed transient TS errors during hot reload, resolved before test window ended.
    - **JSON bulk import (manual / Puppeteer):** **FAIL** — Owner opens **Bulk import**, uploads valid JSON, **Preview import** → `POST /api/products/bulk-import/preview-json` returns **500**; modal shows generic error. No preview rows; create/update/confirm flow not reachable.
    - **Vision path (no API key):** **PASS** (partial) — `GET /api/products/bulk-import/vision-status` → `{"configured":false}` (200, authenticated). Menu photo tab shows not-configured hint; privacy notice on vision tab not exercised (tab not required when unconfigured).
-   - **Authorization:** **PASS** (API) — Tenant 1 waiter `ralf.roeber@amvara.de` token → `POST /products/bulk-import/preview-json` → **403 Forbidden** (logged before owner call). UI “no Bulk import button” for waiter not re-checked in browser (login password unknown); API gate behaves correctly.
+   - **Authorization:** **PASS** (API) — Tenant 1 waiter `ralf.roeber@sakario.sg` token → `POST /products/bulk-import/preview-json` → **403 Forbidden** (logged before owner call). UI “no Bulk import button” for waiter not re-checked in browser (login password unknown); API gate behaves correctly.
 
 5. **Overall:** **FAIL** — JSON preview/confirm path broken in running stack (`preview-json` 500). Criteria 3 and end-to-end save/update not met.
 
@@ -136,7 +136,7 @@ Puppeteer evidence: `preview-json` status **500**, body `Internal Server Error`;
    - **JSON bulk import (Puppeteer):** **PASS** — Owner **Bulk import** → paste JSON → **Preview import** → `POST /api/products/bulk-import/preview-json` **200** with `items` + `summary`; 1 preview row, no error banner.
    - **JSON create/update/confirm (API):** **PASS** — Preview two items (`create`×2) → confirm `created: 2`; re-preview same names with new prices → `update`×2 → confirm `updated: 2` (product ids 647, 648).
    - **Vision path (no API key):** **PASS** (partial) — `GET /api/products/bulk-import/vision-status` → `{"configured":false}` (200). Vision tab not exercised (expected when unconfigured).
-   - **Authorization:** **PASS** — Waiter `ralf.roeber@amvara.de` → `POST /products/bulk-import/preview-json` **403**; Products page has no **Bulk import** button (Puppeteer + JWT cookie).
+   - **Authorization:** **PASS** — Waiter `ralf.roeber@sakario.sg` → `POST /products/bulk-import/preview-json` **403**; Products page has no **Bulk import** button (Puppeteer + JWT cookie).
 
 5. **Overall:** **PASS** — Prior SlowAPI/`response: Response` fix verified in running stack; JSON preview, confirm, and update paths work.
 

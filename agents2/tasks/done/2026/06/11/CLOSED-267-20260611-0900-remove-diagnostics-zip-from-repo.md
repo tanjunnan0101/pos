@@ -11,7 +11,7 @@
 # Remove diagnostics zip from repository
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/267
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/267
 - **267**
 
 ## Problem / goal

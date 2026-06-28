@@ -11,7 +11,7 @@
 # Fix overlapping currency symbol on product price inputs
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/231
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/231
 - **231**
 
 ## Problem / goal

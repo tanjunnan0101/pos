@@ -1,7 +1,7 @@
 # Uploaded image too big
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/259
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/259
 - **259**
 
 ## Problem / goal

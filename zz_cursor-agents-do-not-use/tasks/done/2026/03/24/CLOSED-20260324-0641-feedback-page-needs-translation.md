@@ -12,7 +12,7 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
@@ -23,7 +23,7 @@ Public guest feedback at `/feedback/{tenant}` (e.g. with `?token=…`) must be f
 - Re-read **#67** and verify `/feedback/{tenant}` with and without `?token=…` across supported locales (`front/public/i18n/`, `FeedbackPublicComponent`).
 - Confirm no untranslated strings or title leaks; fix any gaps in templates, `TranslateService`, or JSON keys.
 - Run the dedicated feedback i18n / landing smoke scripts from `docs/testing.md` or `AGENTS.md` on the dev stack.
-- If dev matches acceptance: optional production spot-check on **satisfecho.de**; coordinate verification comment and close **#67** with product per `docs/agent-loop.md`.
+- If dev matches acceptance: optional production spot-check on **sakario.sg**; coordinate verification comment and close **#67** with product per `docs/agent-loop.md`.
 
 ## Implementation notes (coder, 2026-03-24 UTC)
 
@@ -56,7 +56,7 @@ Public guest feedback at `/feedback/{tenant}` (e.g. with `?token=…`) must be f
    - Feedback i18n script (`test-feedback-public-i18n.mjs`): **PASS** — exit **0**; all five `>>> RESULT:` lines OK; no `FEEDBACK.*` leaks reported.
    - Landing regression (`npm run test:landing-version --prefix front`): **PASS** — exit **0**; `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.` (browser console showed WebSocket auth noise during nav; script completed successfully).
 5. **Overall:** **PASS**
-6. **Product owner feedback:** Automated checks confirm public feedback stays fully translated across the supported locales and token/edge paths, with no raw `FEEDBACK.*` keys in the asserted UI. A quick human pass on tab titles and production (**satisfecho.de**) remains optional before closing **#67** with product.
+6. **Product owner feedback:** Automated checks confirm public feedback stays fully translated across the supported locales and token/edge paths, with no raw `FEEDBACK.*` keys in the asserted UI. A quick human pass on tab titles and production (**sakario.sg**) remains optional before closing **#67** with product.
 7. **URLs tested (Puppeteer, relative to `BASE_URL`):** (1) `/feedback/1` (default locale stub + locale switches), (2) `/feedback/1?token=…` (script-used token path), (3) post-submit thank-you route under feedback flow, (4) `/feedback/0` error UI (en + de), (5) `/` → login → `/dashboard` and 15 sidebar routes + 5 inventory sublinks (landing script).
 8. **GitHub automation:** Attempted `gh issue comment 67` for **agent:testing** handoff; **failed** with `Resource not accessible by personal access token (addComment)` — labels/comments not updated from this environment; human or token with Issues write can apply **`docs/agent-loop.md`** labels if desired.
 9. **Relevant log excerpts:** HAProxy (dev frontend/API traffic during run):

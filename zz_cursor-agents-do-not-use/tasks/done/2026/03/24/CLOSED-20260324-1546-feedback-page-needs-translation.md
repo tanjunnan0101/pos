@@ -12,11 +12,11 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public guest feedback URL (e.g. production-style `https://satisfecho.de/feedback/1?token=…`) still shows parts of the form or page that are not in the user-selected language. Acceptance: every guest-visible part of the feedback flow is translated; no raw `FEEDBACK.*` keys or wrong-language copy. See `front/src/app/feedback-public/`, `front/public/i18n/`, and `front/scripts/test-feedback-public-i18n.mjs` for prior verification work documented in `agents/tasks/done/`.
+Public guest feedback URL (e.g. production-style `https://sakario.sg/feedback/1?token=…`) still shows parts of the form or page that are not in the user-selected language. Acceptance: every guest-visible part of the feedback flow is translated; no raw `FEEDBACK.*` keys or wrong-language copy. See `front/src/app/feedback-public/`, `front/public/i18n/`, and `front/scripts/test-feedback-public-i18n.mjs` for prior verification work documented in `agents/tasks/done/`.
 
 ## High-level instructions for coder
 

@@ -47,7 +47,7 @@ def send_reservation_reminder_whatsapp(
     reservation_time: str,
     party_size: int,
     tenant_name: str,
-    default_country: str = "ES",
+    default_country: str = "SG",
 ) -> bool:
     """
     Send a reservation reminder via Twilio WhatsApp.
@@ -102,7 +102,7 @@ async def send_reservation_reminder_whatsapp_async(
     reservation_time: str,
     party_size: int,
     tenant_name: str,
-    default_country: str = "ES",
+    default_country: str = "SG",
 ) -> bool:
     """Async wrapper: runs sync Twilio request in thread so it doesn't block the event loop."""
     return await asyncio.to_thread(

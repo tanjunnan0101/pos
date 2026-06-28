@@ -11,7 +11,7 @@
 # Update README.md
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/132
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/132
 
 ## Problem / goal
 Improve root **README.md** so it matches the product: move rate-limiting documentation into dedicated files under **`docs/`**, refresh the feature list to reflect everything exposed in the side navigation and settings, and document **Revolut** payment where appropriate (see **`docs/REVOLUT.md`** if present).

@@ -521,7 +521,7 @@ export interface TenantSummary {
   /** Effective legal URLs (tenant-specific or server default). */
   terms_of_service_url?: string | null;
   privacy_policy_url?: string | null;
-  /** IANA timezone for reservation date/time UX (e.g. Europe/Madrid). */
+  /** IANA timezone for reservation date/time UX (e.g. Asia/Singapore). */
   timezone?: string | null;
   /** Optional max guests per time slot (tenant cap); for book UI limits */
   reservation_max_guests_per_slot?: number | null;
@@ -1089,7 +1089,7 @@ export interface OrderItem {
   kitchen_station_route?: string | null;
 }
 
-/** Server-issued fiscal invoice metadata (VeriFactu preparation). */
+/** Server-issued fiscal invoice metadata. */
 export interface FiscalInvoicePublic {
   id: number;
   order_id: number;
@@ -1103,7 +1103,7 @@ export interface FiscalInvoicePublic {
   verification_text: string;
 }
 
-/** Billing customer for Factura (tax invoice) */
+/** Billing customer for tax invoices. */
 export interface BillingCustomer {
   id: number;
   name: string;
@@ -1158,8 +1158,7 @@ export interface MenuResponse {
   tenant_website?: string | null;
   tenant_currency?: string | null;
   tenant_currency_code?: string | null;
-  tenant_stripe_publishable_key?: string | null;
-  tenant_revolut_configured?: boolean;
+  tenant_hitpay_configured?: boolean;
   tenant_immediate_payment_required?: boolean;
   tenant_public_background_color?: string | null;
   tenant_header_background_filename?: string | null;
@@ -1170,7 +1169,7 @@ export interface MenuResponse {
   products: Product[];
 }
 
-/** Tax (IVA) rate with validity period */
+/** Tax/GST rate with validity period. */
 export interface Tax {
   id: number;
   tenant_id: number;
@@ -1193,7 +1192,7 @@ export interface TenantSettings {
   website?: string | null;
   tax_id?: string | null;
   cif?: string | null;
-  /** Spanish labour: Código Cuenta de Cotización (optional; registro horario export). */
+  /** Optional payroll/account reference shown on attendance exports. */
   ccc?: string | null;
   default_tax_id?: number | null;
   logo_filename?: string | null;
@@ -1204,11 +1203,11 @@ export interface TenantSettings {
   currency_code?: string | null;
   default_language?: string | null;
   timezone?: string | null;
-  /** ISO 3166-1 alpha-2 (e.g. ES, IN); optional, improves contract template suggestions */
+  /** ISO 3166-1 alpha-2 (e.g. SG, IN); optional, improves contract template suggestions */
   country_code?: string | null;
-  stripe_secret_key?: string | null;
-  stripe_publishable_key?: string | null;
-  revolut_merchant_secret?: string | null;
+  hitpay_api_key?: string | null;
+  hitpay_webhook_salt?: string | null;
+  hitpay_mode?: 'sandbox' | 'live' | string | null;
   logo_size_bytes?: number | null;
   logo_size_formatted?: string | null;
   /** Staff clock QR is configured (no secret exposed). */
@@ -1264,7 +1263,7 @@ export interface TenantSettings {
   tip_entry_mode?: 'preset' | 'overpayment' | string | null;
   /** Resolved flags for staff UI modules (GET always expands defaults). */
   ui_modules?: Partial<Record<TenantUiModuleKey, boolean>> | null;
-  /** Spain-oriented fiscal invoicing (VeriFactu preparation): off | test | live */
+  /** Optional fiscal invoicing: off | test | live */
   fiscal_mode?: 'off' | 'test' | 'live' | string | null;
   fiscal_invoice_series?: string | null;
   fiscal_aeat_api_secret?: string | null;
@@ -2221,7 +2220,7 @@ export class ApiService {
     );
   }
 
-  // Billing customers (Factura)
+  // Billing customers
   getBillingCustomers(search?: string): Observable<BillingCustomer[]> {
     const params = search != null && search.trim() !== '' ? { params: { search: search.trim() } } : {};
     return this.http.get<BillingCustomer[]>(`${this.apiUrl}/billing-customers`, params);
@@ -2329,7 +2328,7 @@ export class ApiService {
     });
   }
 
-  /** Spanish «registro horario» monthly workbook (.xlsx); one sheet per staff. Requires `report:read`. */
+  /** Monthly attendance workbook (.xlsx); one sheet per staff. Requires `report:read`. */
   getReportsAttendanceRegistroHorarioExcel(
     year: number,
     month: number,
@@ -2375,27 +2374,26 @@ export class ApiService {
   }
 
   // Payments
-  createPaymentIntent(orderId: number, tableToken: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/orders/${orderId}/create-payment-intent?table_token=${tableToken}`, {});
-  }
-
-  confirmPayment(orderId: number, tableToken: string, paymentIntentId: string): Observable<any> {
-    return this.http.post(
-      `${this.apiUrl}/orders/${orderId}/confirm-payment?table_token=${tableToken}&payment_intent_id=${paymentIntentId}`,
+  createHitPayPaymentRequest(
+    orderId: number,
+    tableToken: string
+  ): Observable<{ checkout_url: string; hitpay_payment_request_id: string; order_id: number }> {
+    return this.http.post<{
+      checkout_url: string;
+      hitpay_payment_request_id: string;
+      order_id: number;
+    }>(
+      `${this.apiUrl}/orders/${orderId}/create-hitpay-payment-request?table_token=${tableToken}`,
       {}
     );
   }
 
-  createRevolutOrder(orderId: number, tableToken: string): Observable<{ checkout_url: string; revolut_order_id: string; order_id: number }> {
-    return this.http.post<{ checkout_url: string; revolut_order_id: string; order_id: number }>(
-      `${this.apiUrl}/orders/${orderId}/create-revolut-order?table_token=${tableToken}`,
-      {}
-    );
-  }
-
-  confirmRevolutPayment(orderId: number, tableToken: string): Observable<{ status: string; order_id: number }> {
+  confirmHitPayPayment(
+    orderId: number,
+    tableToken: string
+  ): Observable<{ status: string; order_id: number }> {
     return this.http.post<{ status: string; order_id: number }>(
-      `${this.apiUrl}/orders/${orderId}/confirm-revolut-payment?table_token=${tableToken}`,
+      `${this.apiUrl}/orders/${orderId}/confirm-hitpay-payment?table_token=${tableToken}`,
       {}
     );
   }
@@ -2410,31 +2408,6 @@ export class ApiService {
   callWaiter(tableToken: string, message?: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/menu/${tableToken}/call-waiter`, {
       message: message || null,
-    });
-  }
-
-  private tenantStripeKey = signal<string | null>(null);
-
-  getStripePublishableKey(): string {
-    // Use tenant-specific key if available, otherwise fallback to environment
-    return this.tenantStripeKey() || environment.stripePublishableKey || '';
-  }
-
-  setTenantStripeKey(key: string | null): void {
-    this.tenantStripeKey.set(key);
-  }
-
-  loadTenantStripeKey(): void {
-    // Load tenant settings to get Stripe publishable key
-    this.getTenantSettings().subscribe({
-      next: (settings) => {
-        this.tenantStripeKey.set(settings.stripe_publishable_key || null);
-      },
-      error: (err) => {
-        console.error('Failed to load tenant Stripe key:', err);
-        // Fallback to environment key
-        this.tenantStripeKey.set(null);
-      }
     });
   }
 
@@ -3193,6 +3166,11 @@ export class ApiService {
     return this.http.get<WorkSession | null>(`${this.apiUrl}/users/me/work-session`);
   }
 
+  /** Current open work session for a selected same-tenant staff user, or null. */
+  getUserOpenWorkSession(userId: number): Observable<WorkSession | null> {
+    return this.http.get<WorkSession | null>(`${this.apiUrl}/users/${userId}/work-session`);
+  }
+
   /** Whether venue QR and GPS are required for clock actions. */
   getMyClockQrStatus(): Observable<ClockQrStatus> {
     return this.http.get<ClockQrStatus>(`${this.apiUrl}/users/me/clock-qr-status`);
@@ -3202,8 +3180,16 @@ export class ApiService {
     return this.http.post<WorkSession>(`${this.apiUrl}/users/me/work-session/start`, payload ?? {});
   }
 
+  startUserWorkSession(userId: number, payload?: WorkSessionClockPayload): Observable<WorkSession> {
+    return this.http.post<WorkSession>(`${this.apiUrl}/users/${userId}/work-session/start`, payload ?? {});
+  }
+
   endMyWorkSession(payload?: WorkSessionClockPayload): Observable<WorkSession> {
     return this.http.post<WorkSession>(`${this.apiUrl}/users/me/work-session/end`, payload ?? {});
+  }
+
+  endUserWorkSession(userId: number, payload?: WorkSessionClockPayload): Observable<WorkSession> {
+    return this.http.post<WorkSession>(`${this.apiUrl}/users/${userId}/work-session/end`, payload ?? {});
   }
 
   startMyWorkSessionBreak(): Observable<WorkSession> {
@@ -3217,6 +3203,11 @@ export class ApiService {
   getMyWorkSessions(fromDate: string, toDate: string): Observable<WorkSession[]> {
     const params = new HttpParams().set('from_date', fromDate).set('to_date', toDate);
     return this.http.get<WorkSession[]>(`${this.apiUrl}/users/me/work-sessions`, { params });
+  }
+
+  getUserWorkSessions(userId: number, fromDate: string, toDate: string): Observable<WorkSession[]> {
+    const params = new HttpParams().set('from_date', fromDate).set('to_date', toDate);
+    return this.http.get<WorkSession[]>(`${this.apiUrl}/users/${userId}/work-sessions`, { params });
   }
 
   /** Owner/admin: all staff attendance in range (UTC days by started_at). */

@@ -12,11 +12,11 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public feedback URLs (e.g. `/feedback/{tenant}` with token) must show **every** part of the form in the user’s selected language. The reporter saw untranslated strings on a production-style URL (`satisfecho.de/feedback/1?token=…`).
+Public feedback URLs (e.g. `/feedback/{tenant}` with token) must show **every** part of the form in the user’s selected language. The reporter saw untranslated strings on a production-style URL (`sakario.sg/feedback/1?token=…`).
 
 Prior implementation and multiple **CLOSED** archives under `agents/tasks/done/` document i18n work and repeated tester **PASS** for this scope; **#67** remains **open** — treat remaining work as **final verification** (including production if applicable), any **real i18n gaps** found in QA, and **GitHub alignment** (comment / labels / close when product accepts). See `docs/agent-loop.md` and locale files under `front/public/i18n/`.
 
@@ -47,7 +47,7 @@ Prior implementation and multiple **CLOSED** archives under `agents/tasks/done/`
 7. **Automated:** From repo root:  
    `BASE_URL=http://127.0.0.1:4202 npm run test:feedback-public-i18n --prefix front`  
    `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front`
-8. **Production (optional):** After deploy, repeat (3)–(4) on `https://satisfecho.de/feedback/1` (or tenant URL from issue).
+8. **Production (optional):** After deploy, repeat (3)–(4) on `https://sakario.sg/feedback/1` (or tenant URL from issue).
 
 **GitHub #67:** If all pass, closer/product can comment, adjust labels per `docs/agent-loop.md`, and close when agreed.
 
@@ -73,7 +73,7 @@ Prior implementation and multiple **CLOSED** archives under `agents/tasks/done/`
 
 5. **Overall:** **PASS**
 
-6. **Product owner feedback:** Public feedback and book flows load translations on first paint without raw `FEEDBACK.*` keys; German and Simplified Chinese spot-checks match expectations, including document title. Recommend human confirmation on production (`satisfecho.de`) when convenient, then close **#67** if aligned.
+6. **Product owner feedback:** Public feedback and book flows load translations on first paint without raw `FEEDBACK.*` keys; German and Simplified Chinese spot-checks match expectations, including document title. Recommend human confirmation on production (`sakario.sg`) when convenient, then close **#67** if aligned.
 
 7. **URLs tested:**
    1. `http://127.0.0.1:4202/feedback/1` (en, de, zh-CN)

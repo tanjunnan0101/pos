@@ -12,11 +12,11 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public guest feedback URLs (e.g. `https://satisfecho.de/feedback/1?token=…`) must show **every** user-visible part of the flow in the **selected** language—not mixed or English-only strings. The reporter wants the full form and related UI translated.
+Public guest feedback URLs (e.g. `https://sakario.sg/feedback/1?token=…`) must show **every** user-visible part of the flow in the **selected** language—not mixed or English-only strings. The reporter wants the full form and related UI translated.
 
 Relevant areas: `front/src/app/feedback-public/`, locale JSON under `front/public/i18n/`, and any API error messages surfaced on that route. See `docs/agent-loop.md` for optional GitHub closure / production sign-off after verification.
 
@@ -64,7 +64,7 @@ Relevant areas: `front/src/app/feedback-public/`, locale JSON under `front/publi
 
 5. **Overall:** **PASS**.
 
-6. **Product owner feedback:** Public feedback i18n behaves as specified on local Docker: no translation-key leaks in the exercised DOM/title checks, all supported locales and error paths covered by automation. Production sign-off on https://github.com/satisfecho/pos/issues/67 remains a product decision; this run validates the dev stack only.
+6. **Product owner feedback:** Public feedback i18n behaves as specified on local Docker: no translation-key leaks in the exercised DOM/title checks, all supported locales and error paths covered by automation. Production sign-off on https://github.com/tanjunnan0101/pos/issues/67 remains a product decision; this run validates the dev stack only.
 
 7. **URLs tested** (via Puppeteer against `BASE_URL`):
    1. `http://127.0.0.1:4202/feedback/1` (default locale stub es-ES)

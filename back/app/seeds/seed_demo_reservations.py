@@ -40,7 +40,7 @@ DEMO_NAMES = [
     "Maria García", "Hans Müller", "Sophie Martin", "Luca Rossi", "Emma Wilson",
     "Carlos López", "Anna Schmidt", "Pierre Dubois", "Laura Fernández", "Thomas Weber",
 ]
-DEMO_PHONE_PREFIXES = ["+34 6", "+49 1", "+33 6", "+39 3", "+44 7"]
+DEMO_PHONE_PREFIXES = ["+65 8", "+65 9", "+65 6", "+65 3", "+65 2"]
 
 
 def _random_date_in_range(days_back: int, days_forward: int, bias_last_days: int = 30) -> date:

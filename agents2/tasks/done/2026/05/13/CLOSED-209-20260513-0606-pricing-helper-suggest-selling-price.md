@@ -11,7 +11,7 @@
 # Pricing helper: suggest selling price from cost / pour cost target (drinks & food)
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/209
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/209
 - **209**
 
 ## Problem / goal

@@ -11,7 +11,7 @@
 # Floor plan: decouple payment state from table fill — bottom chip for payment; operational color shows service phase only
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/187
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/187
 - **187**
 
 ## Problem / goal

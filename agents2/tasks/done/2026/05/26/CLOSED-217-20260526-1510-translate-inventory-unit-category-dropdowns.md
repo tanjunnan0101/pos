@@ -11,7 +11,7 @@
 # Translate inventory unit and category dropdowns
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/217
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/217
 - **217**
 
 ## Problem / goal

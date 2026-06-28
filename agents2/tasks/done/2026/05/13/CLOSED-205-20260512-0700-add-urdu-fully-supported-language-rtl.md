@@ -1,7 +1,7 @@
 # Add Urdu (ur) as a fully supported language across POS
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/205
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/205
 - **205**
 
 ## Problem / goal
@@ -92,13 +92,13 @@ API behaviour check (`?lang=ur` and `Accept-Language: ur-PK`):
 ```bash
 curl -s -X POST "http://127.0.0.1:4202/api/token?lang=ur" \
   -H 'Content-Type: application/x-www-form-urlencoded' \
-  --data 'username=nobody@amvara.de&password=wrong'
+  --data 'username=nobody@sakario.sg&password=wrong'
 # => {"detail":{"code":"incorrect_username_or_password","message":"غلط صارف نام یا پاس ورڈ"}}
 
 curl -s -X POST "http://127.0.0.1:4202/api/token" \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   -H 'Accept-Language: ur-PK' \
-  --data 'username=nobody@amvara.de&password=wrong'
+  --data 'username=nobody@sakario.sg&password=wrong'
 # => same Urdu message
 ```
 

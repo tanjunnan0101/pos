@@ -13,7 +13,7 @@
 ## GitHub Issue
 - **Number:** `#176`
 - **Title:** Enhance Settings > Google Review
-- **URL:** https://github.com/satisfecho/pos/issues/176
+- **URL:** https://github.com/tanjunnan0101/pos/issues/176
 - **Labels:** feat agent:wip
 - **Created:** 2026-04-07
 
@@ -34,7 +34,7 @@ Add description and auto-URL generation for Google Review URL field in Settings 
 **User Story:** As a restaurant manager, I want to add a Google review link so my guests can leave public reviews after submitting private feedback. The app should automatically generate the review URL when I paste my Google Place ID.
 
 ### Steps Completed
-1. ✅ Read full issue at: https://github.com/satisfecho/pos/issues/176
+1. ✅ Read full issue at: https://github.com/tanjunnan0101/pos/issues/176
 2. ✅ Identified affected files
 3. ✅ Implemented description field showing when field is empty
 4. ✅ Implemented auto-URL generation when Place ID is pasted

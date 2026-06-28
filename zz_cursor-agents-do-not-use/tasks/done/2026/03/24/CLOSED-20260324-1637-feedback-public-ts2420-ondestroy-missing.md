@@ -27,7 +27,7 @@
 ## Coder notes (implementation)
 
 - **Cause:** **TS2420** appears when the class **`implements OnDestroy`** but **`ngOnDestroy`** is missing (e.g. partial save or bad merge during hot reload).
-- **Fix (current tree):** Keep **`OnDestroy`** with a real **`ngOnDestroy()`** that unsubscribes **`titleI18nSub`**. Do **not** add **`takeUntilDestroyed`** on the inner **`translate.get(key)`** subscription: **`[2.0.53]`** changelog documents that production-static builds need that omission so **`document.title`** updates on satisfecho.de (GitHub **#67**). Merged translate events still use **`takeUntilDestroyed(this.destroyRef)`**; **`titleI18nSub?.unsubscribe()`** before each **`get()`** resubscribe avoids duplicate streams when **`updateDocumentTitle()`** runs often.
+- **Fix (current tree):** Keep **`OnDestroy`** with a real **`ngOnDestroy()`** that unsubscribes **`titleI18nSub`**. Do **not** add **`takeUntilDestroyed`** on the inner **`translate.get(key)`** subscription: **`[2.0.53]`** changelog documents that production-static builds need that omission so **`document.title`** updates on sakario.sg (GitHub **#67**). Merged translate events still use **`takeUntilDestroyed(this.destroyRef)`**; **`titleI18nSub?.unsubscribe()`** before each **`get()`** resubscribe avoids duplicate streams when **`updateDocumentTitle()`** runs often.
 - **Comment tweak:** Clarified in source why the inner subscription stays plain **`.subscribe()`** (production-static / **#67**).
 
 ## Testing instructions

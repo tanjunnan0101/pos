@@ -30,7 +30,7 @@ class TestDeleteTableApi(PgClientTestCase):
         self.session.refresh(tenant)
 
         owner = models.User(
-            email=f"del-table-owner-{uuid4().hex[:8]}@amvara.de",
+            email=f"del-table-owner-{uuid4().hex[:8]}@sakario.sg",
             hashed_password=security.get_password_hash("x"),
             full_name="Owner",
             tenant_id=tenant.id,

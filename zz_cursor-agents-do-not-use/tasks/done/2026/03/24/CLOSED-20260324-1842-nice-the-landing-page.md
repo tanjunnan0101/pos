@@ -11,7 +11,7 @@
 # Nice the landing page
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/69
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/69
 
 ## Problem / goal
 The public landing (`/` via HAProxy, e.g. `http://127.0.0.1:4202/`) should be a polished, modern experience for restaurant owners and guests. The reporter referenced external inspiration (AnythingLLM-style marketing page) and asked for research-backed visual and UX improvements, not a bare placeholder.

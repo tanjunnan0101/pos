@@ -11,10 +11,10 @@
 # Replace native HTML multi-select for Staff (optional) on Monthly attendance (Excel) export
 
 ## GitHub Issues
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- `gh issue list --repo satisfecho/pos --state open --limit 40`
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- `gh issue list --repo tanjunnan0101/pos --state open --limit 40`
 - Optional: `--json number,title,labels,updatedAt,url`
-- **Issue:** https://github.com/satisfecho/pos/issues/169
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/169
 
 ## Problem / goal
 The Monthly attendance Excel export screen uses a visible native `<select multiple>` listbox for optional staff filtering. It uses a lot of vertical space and feels inconsistent with a compact month picker plus download button.

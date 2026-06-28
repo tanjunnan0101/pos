@@ -170,7 +170,7 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
         <span class="footer-sep">·</span>
         <a routerLink="/provider/register" data-testid="landing-provider-register">{{ 'LANDING.REGISTER_AS_PROVIDER' | translate }}</a>
         <span class="footer-sep">·</span>
-        <a href="mailto:sales@satisfecho.de" data-testid="landing-contact-us">{{ 'LANDING.CONTACT_US' | translate }}</a>
+        <a href="mailto:sales@sakario.sg" data-testid="landing-contact-us">{{ 'LANDING.CONTACT_US' | translate }}</a>
         <span class="footer-sep">·</span>
         <a routerLink="/terms" data-testid="landing-terms">{{ 'LEGAL.TERMS_OF_SERVICE' | translate }}</a>
         <span class="footer-sep">·</span>
@@ -182,7 +182,7 @@ import { ApiErrorMessageService } from '../services/api-error-message.service';
             >{{ version || '0.0.0' }} <span class="landing-commit">{{ commitHash || '' }}</span></span
           >
           <a
-            href="https://github.com/satisfecho/pos/"
+            href="https://github.com/tanjunnan0101/pos/"
             target="_blank"
             rel="noopener noreferrer"
             class="landing-version-github"

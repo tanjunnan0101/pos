@@ -11,7 +11,7 @@
 # Rename floor-plan “Bill / ready to pay” label to “Ready to serve” (i18n only)
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/185
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/185
 - **185**
 
 ## Problem / goal

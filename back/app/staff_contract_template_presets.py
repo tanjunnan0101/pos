@@ -14,19 +14,19 @@ def _primary_subtag(tag: str | None) -> str:
 
 
 def infer_tenant_country_code(tenant: models.Tenant) -> str | None:
-    """Explicit country_code, else light heuristics (currency, CIF, timezone)."""
+    """Explicit country_code, else light heuristics (currency, tax id, timezone)."""
     if tenant.country_code and str(tenant.country_code).strip():
         cc = str(tenant.country_code).strip().upper()[:2]
         if len(cc) == 2 and cc.isalpha():
             return cc
     cur = (tenant.currency_code or "").strip().upper()
+    if cur == "SGD":
+        return "SG"
     if cur == "INR":
         return "IN"
-    if tenant.cif and str(tenant.cif).strip():
-        return "ES"
     tz = (tenant.timezone or "").lower()
-    if "madrid" in tz or "barcelona" in tz:
-        return "ES"
+    if "singapore" in tz:
+        return "SG"
     if "kolkata" in tz or "calcutta" in tz or "mumbai" in tz:
         return "IN"
     return None

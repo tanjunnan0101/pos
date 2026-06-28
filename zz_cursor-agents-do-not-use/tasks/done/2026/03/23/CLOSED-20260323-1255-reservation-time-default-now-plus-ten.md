@@ -11,7 +11,7 @@
 # Feedback / Time in reservation have to be the time now + 10 minutes
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/62
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/62
 
 ## Problem / goal
 When choosing a reservation time, the default should reflect **“now + 10 minutes”** (or equivalent minimum lead time), instead of a static or confusing default. Optionally, the product direction may evolve toward a richer calendar with only **available** days/hours (may overlap with issue #64).

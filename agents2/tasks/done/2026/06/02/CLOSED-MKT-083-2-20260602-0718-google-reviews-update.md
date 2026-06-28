@@ -2,7 +2,7 @@
 ## Closing summary (TOP)
 
 - **What happened:** Wimpi’s marketing site still displayed outdated Google review copy (4,7 / 5 · 102 valoraciones) while Google listed 4.8 from 239 reviews.
-- **What was done:** Updated `083_wimpi/src/app/data/site.data.ts` to **4,8 / 5** and **239 valoraciones**, pushed to marketing `main` (commit `8ec967e`), CI uploaded `wimpi-satisfecho-deploy`, then **Deploy to amvara9** (run 26805314668) synced production.
+- **What was done:** Updated `083_wimpi/src/app/data/site.data.ts` to **4,8 / 5** and **239 valoraciones**, pushed to marketing `main` (commit `8ec967e`), CI uploaded `wimpi-sakario-deploy`, then **Deploy to amvara9** (run 26805314668) synced production.
 - **What was tested:** Re-test **PASS** — production `/wimpi/es/` Opiniones shows **"Valoración media 4,8 / 5 · 239 valoraciones."**; bundle `main-CAHNR6GM.js` verified; deploy criteria 1–3 met.
 - **Why closed:** All required verification criteria passed after post-Build deploy; implementation complete and live.
 - **Closed at (UTC):** 2026-06-02 07:45
@@ -11,10 +11,10 @@
 # Google Reviews Update
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/083_wimpi/issues/2
-- **Marketing repo:** satisfecho/083_wimpi
+- **Issue:** https://github.com/sakario/083_wimpi/issues/2
+- **Marketing repo:** sakario/083_wimpi
 - **MKT-083-2**
-- **Live path:** https://www.satisfecho.de/wimpi/
+- **Live path:** https://www.sakario.sg/wimpi/
 
 ## Problem / goal
 Google lists Wimpi at **4.8** from **239** reviews. The site still shows outdated copy: **"Valoración media 4,7 / 5 · 102 valoraciones."** Update the displayed rating and review count to match current Google data (or wire a maintainable source if the site should stay in sync).
@@ -23,26 +23,26 @@ Google lists Wimpi at **4.8** from **239** reviews. The site still shows outdate
 - Clone or use sibling repo `~/projects/083_wimpi` (or `../083_wimpi` next to pos2).
 - Find where the average rating and review count are defined (likely hardcoded in template or i18n).
 - Update to **4.8** and **239** (or implement fetching from Google if that pattern already exists elsewhere in the repo).
-- Verify on https://www.satisfecho.de/wimpi/es/ (and other locales if the string is shared).
+- Verify on https://www.sakario.sg/wimpi/es/ (and other locales if the string is shared).
 - Implement in the **marketing repo**, not in POS `front/src/`.
-- Push to marketing repo `main`; ensure CI uploads artifact `wimpi-satisfecho-deploy`.
+- Push to marketing repo `main`; ensure CI uploads artifact `wimpi-sakario-deploy`.
 - If manifest artifact name or slug changes, update **`config/marketing-sites.json`** in pos2 and follow deploy steps (agent 005 / **Deploy to amvara9**).
 
 ## Implementation notes
 - Updated `083_wimpi/src/app/data/site.data.ts`: `ratingLabel` → `4,8 / 5`, `reviewsCountLabel` → `239 valoraciones`.
 - Values are bound via `contact.ratingLabel` / `contact.reviewsCountLabel` in `app.component.html`; all locales share the same data source (no per-locale hardcoding).
-- Marketing repo commit `8ec967e` pushed to `main`; CI run https://github.com/satisfecho/083_wimpi/actions/runs/26804787062 succeeded and uploaded artifact `wimpi-satisfecho-deploy`.
+- Marketing repo commit `8ec967e` pushed to `main`; CI run https://github.com/sakario/083_wimpi/actions/runs/26804787062 succeeded and uploaded artifact `wimpi-sakario-deploy`.
 - No change to `config/marketing-sites.json` (artifact name unchanged).
 
 ## Handoff log
 
-- **Handoff (`012-feature-coder-handoff.md`, 2026-06-02, user `012` pass — Cursor):** `./scripts/git-sync-development.sh` (OK). Marketing repo **`083_wimpi`** @ **`8ec967e`**: `site.data.ts` rating **4,8 / 5**, **239 valoraciones**; CI green (Build run 26804787062). Prior **Test report** **FAIL** on criteria **(1–3)** (prod bundle stale) resolved — **Deploy to amvara9** run 26805314668 **success** @ `2026-06-02T07:31:57Z` (after marketing Build). Production **`main-CAHNR6GM.js`** contains `4,8 / 5` and `239 valoraciones`. **Testing instructions** present. Per **TASKS-README.md**, implementation **complete**. **`WIP-MKT-083-2-…` → `UNTESTED-MKT-083-2-20260602-0718-google-reviews-update.md`**; **`gh issue edit 2 --repo satisfecho/083_wimpi --add-label "agent:untested" --remove-label "agent:wip"`**.
+- **Handoff (`012-feature-coder-handoff.md`, 2026-06-02, user `012` pass — Cursor):** `./scripts/git-sync-development.sh` (OK). Marketing repo **`083_wimpi`** @ **`8ec967e`**: `site.data.ts` rating **4,8 / 5**, **239 valoraciones**; CI green (Build run 26804787062). Prior **Test report** **FAIL** on criteria **(1–3)** (prod bundle stale) resolved — **Deploy to amvara9** run 26805314668 **success** @ `2026-06-02T07:31:57Z` (after marketing Build). Production **`main-CAHNR6GM.js`** contains `4,8 / 5` and `239 valoraciones`. **Testing instructions** present. Per **TASKS-README.md**, implementation **complete**. **`WIP-MKT-083-2-…` → `UNTESTED-MKT-083-2-20260602-0718-google-reviews-update.md`**; **`gh issue edit 2 --repo sakario/083_wimpi --add-label "agent:untested" --remove-label "agent:wip"`**.
 
 ## Testing instructions
-1. **Deploy (if not auto-deployed):** Download artifact `wimpi-satisfecho-deploy` from the CI run above and deploy to amvara9 per marketing deploy docs (agent 005).
-2. **Spanish (primary):** Open https://www.satisfecho.de/wimpi/es/ → scroll to **Opiniones** → confirm text reads **"Valoración media 4,8 / 5 · 239 valoraciones."**
+1. **Deploy (if not auto-deployed):** Download artifact `wimpi-sakario-deploy` from the CI run above and deploy to amvara9 per marketing deploy docs (agent 005).
+2. **Spanish (primary):** Open https://www.sakario.sg/wimpi/es/ → scroll to **Opiniones** → confirm text reads **"Valoración media 4,8 / 5 · 239 valoraciones."**
 3. **Other locales:** Spot-check `/wimpi/en/`, `/wimpi/ca/`, `/wimpi/de/` — same rating/count (labels may differ by locale wrapper, values should match).
-4. **Local build (optional):** In `~/projects/083_wimpi`, `npm ci --ignore-scripts && npm run build:satisfecho`; grep built `dist/wimpi-ocata/browser/es/main-*.js` for `4,8 / 5` and `239 valoraciones`.
+4. **Local build (optional):** In `~/projects/083_wimpi`, `npm ci --ignore-scripts && npm run build:sakario`; grep built `dist/wimpi-ocata/browser/es/main-*.js` for `4,8 / 5` and `239 valoraciones`.
 
 ---
 
@@ -54,9 +54,9 @@ Google lists Wimpi at **4.8** from **239** reviews. The site still shows outdate
 ### Environment
 
 - **Branch:** `development` (synced, up to date)
-- **Target:** Production `https://www.satisfecho.de/wimpi/`
-- **Marketing CI:** https://github.com/satisfecho/083_wimpi/actions/runs/26804787062 (`completed` / `success`, commit `8ec967e`, 2026-06-02T07:20:22Z, artifact `wimpi-satisfecho-deploy`)
-- **POS deploy (latest):** https://github.com/satisfecho/pos/actions/runs/26804705034 (`completed` / `success`, 2026-06-02T07:18:31Z) — finished **before** wimpi Build (~07:20:22Z); production bundle `Last-Modified: Tue, 02 Jun 2026 06:20:54 GMT`
+- **Target:** Production `https://www.sakario.sg/wimpi/`
+- **Marketing CI:** https://github.com/sakario/083_wimpi/actions/runs/26804787062 (`completed` / `success`, commit `8ec967e`, 2026-06-02T07:20:22Z, artifact `wimpi-sakario-deploy`)
+- **POS deploy (latest):** https://github.com/tanjunnan0101/pos/actions/runs/26804705034 (`completed` / `success`, 2026-06-02T07:18:31Z) — finished **before** wimpi Build (~07:20:22Z); production bundle `Last-Modified: Tue, 02 Jun 2026 06:20:54 GMT`
 
 ### What was tested
 
@@ -81,11 +81,11 @@ The data change in `083_wimpi` looks correct and CI is green, but visitors still
 
 ### URLs tested
 
-1. https://www.satisfecho.de/wimpi/es/
-2. https://www.satisfecho.de/wimpi/es/main-OY7OVYDV.js
-3. https://www.satisfecho.de/wimpi/en/ (redirect loop observed)
-4. https://www.satisfecho.de/wimpi/ca/
-5. https://www.satisfecho.de/wimpi/de/
+1. https://www.sakario.sg/wimpi/es/
+2. https://www.sakario.sg/wimpi/es/main-OY7OVYDV.js
+3. https://www.sakario.sg/wimpi/en/ (redirect loop observed)
+4. https://www.sakario.sg/wimpi/ca/
+5. https://www.sakario.sg/wimpi/de/
 
 ### Relevant log excerpts
 
@@ -114,9 +114,9 @@ Expected after deploy: `4,8 / 5` and `239 valoraciones`.
 ### Environment
 
 - **Branch:** `development` (synced via `./scripts/git-sync-development.sh`, up to date)
-- **Target:** Production `https://www.satisfecho.de/wimpi/`
-- **Marketing CI:** https://github.com/satisfecho/083_wimpi/actions/runs/26804787062 (`success`, commit `8ec967e`, artifact `wimpi-satisfecho-deploy`, 2026-06-02T07:20:22Z)
-- **Deploy to amvara9:** https://github.com/satisfecho/pos/actions/runs/26805314668 (`success`, completed 2026-06-02T07:34:52Z) — deploy **after** marketing Build; production bundle `main-CAHNR6GM.js`, `Last-Modified: Tue, 02 Jun 2026 07:20:54 GMT`
+- **Target:** Production `https://www.sakario.sg/wimpi/`
+- **Marketing CI:** https://github.com/sakario/083_wimpi/actions/runs/26804787062 (`success`, commit `8ec967e`, artifact `wimpi-sakario-deploy`, 2026-06-02T07:20:22Z)
+- **Deploy to amvara9:** https://github.com/tanjunnan0101/pos/actions/runs/26805314668 (`success`, completed 2026-06-02T07:34:52Z) — deploy **after** marketing Build; production bundle `main-CAHNR6GM.js`, `Last-Modified: Tue, 02 Jun 2026 07:20:54 GMT`
 
 ### What was tested
 
@@ -137,15 +137,15 @@ All required criteria **1–3** pass after deploy run 26805314668. Production se
 
 ### Product owner feedback
 
-Visitors on https://www.satisfecho.de/wimpi/es/ now see Google-aligned copy (4,8 / 239). Deploy sequencing is correct: marketing Build then **Deploy to amvara9**. If English/Catalan/German entry URLs should show locale-specific pages (not redirect stubs), that is a separate routing/i18n follow-up.
+Visitors on https://www.sakario.sg/wimpi/es/ now see Google-aligned copy (4,8 / 239). Deploy sequencing is correct: marketing Build then **Deploy to amvara9**. If English/Catalan/German entry URLs should show locale-specific pages (not redirect stubs), that is a separate routing/i18n follow-up.
 
 ### URLs tested
 
-1. https://www.satisfecho.de/wimpi/es/
-2. https://www.satisfecho.de/wimpi/es/main-CAHNR6GM.js
-3. https://www.satisfecho.de/wimpi/en/
-4. https://www.satisfecho.de/wimpi/ca/
-5. https://www.satisfecho.de/wimpi/de/
+1. https://www.sakario.sg/wimpi/es/
+2. https://www.sakario.sg/wimpi/es/main-CAHNR6GM.js
+3. https://www.sakario.sg/wimpi/en/
+4. https://www.sakario.sg/wimpi/ca/
+5. https://www.sakario.sg/wimpi/de/
 
 ### Relevant log excerpts
 
@@ -162,4 +162,4 @@ Browser Opiniones section (`/wimpi/es/`):
 Valoración media 4,8 / 5 · 239 valoraciones.
 ```
 
-Deploy signal: https://github.com/satisfecho/pos/actions/runs/26805314668 — `conclusion: success`, `updatedAt: 2026-06-02T07:34:52Z`.
+Deploy signal: https://github.com/tanjunnan0101/pos/actions/runs/26805314668 — `conclusion: success`, `updatedAt: 2026-06-02T07:34:52Z`.

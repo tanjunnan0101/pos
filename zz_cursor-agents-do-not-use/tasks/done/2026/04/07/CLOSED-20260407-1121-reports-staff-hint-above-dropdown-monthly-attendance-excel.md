@@ -11,10 +11,10 @@
 # Reports: staff hint above dropdown — Monthly attendance (Excel) layout
 
 ## GitHub Issues
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- `gh issue list --repo satisfecho/pos --state open --limit 40`
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- `gh issue list --repo tanjunnan0101/pos --state open --limit 40`
 - Optional: `--json number,title,labels,updatedAt,url`
-- **Issue:** https://github.com/satisfecho/pos/issues/171
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/171
 
 ## Problem / goal
 In Reports, the **Monthly attendance (Excel)** / **Asistencia mensual (Excel)** block shows the help text **below** the staff selector. The intended reading order is: optional section label → **hint** → staff control → download actions (or keep button alignment per existing design). Do **not** change i18n copy—only template structure and CSS/layout so the hint appears **above** the dropdown (including fixing flex/order if a horizontal toolbar currently inverts visual order).

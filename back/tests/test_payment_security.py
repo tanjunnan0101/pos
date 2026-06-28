@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from pg_client_mixin import PgClientTestCase
 
@@ -12,7 +12,13 @@ class TestPaymentSecurity(PgClientTestCase):
         self.setup_data()
 
     def setup_data(self):
-        self.tenant = models.Tenant(name="Test Restaurant", stripe_secret_key="sk_test_123")
+        self.tenant = models.Tenant(
+            name="Test Restaurant",
+            currency_code="SGD",
+            currency="$",
+            hitpay_api_key="hitpay_test_key",
+            hitpay_mode="sandbox",
+        )
         self.session.add(self.tenant)
         self.session.commit()
         self.session.refresh(self.tenant)
@@ -41,92 +47,73 @@ class TestPaymentSecurity(PgClientTestCase):
         self.session.commit()
         self.session.refresh(self.product)
 
-    @patch("stripe.PaymentIntent.retrieve")
+    def _create_order_with_hitpay_request(self, request_id: str = "hp_req_123") -> int:
+        response = self.client.post(
+            f"/menu/{self.table.token}/order",
+            json={
+                "items": [{"product_id": self.product.id, "quantity": 1}],
+                "notes": "Expensive Order",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        order_id = response.json()["order_id"]
+        order = self.session.get(models.Order, order_id)
+        self.assertIsNotNone(order)
+        order.hitpay_payment_request_id = request_id
+        self.session.add(order)
+        self.session.commit()
+        return order_id
+
+    @patch("app.main._hitpay_retrieve_payment_request")
     def test_prevent_payment_bypass_amount_mismatch(self, mock_retrieve):
-        response = self.client.post(
-            f"/menu/{self.table.token}/order",
-            json={
-                "items": [{"product_id": self.product.id, "quantity": 1}],
-                "notes": "Expensive Order",
-            },
-        )
-        self.assertEqual(response.status_code, 200)
-        order_data = response.json()
-        order_id = order_data["order_id"]
-
-        mock_intent = MagicMock()
-        mock_intent.status = "succeeded"
-        mock_intent.amount = 100
-        mock_intent.id = "pi_cheap_123"
-        mock_intent.metadata = {"order_id": str(order_id)}
-        mock_retrieve.return_value = mock_intent
+        order_id = self._create_order_with_hitpay_request()
+        mock_retrieve.return_value = {
+            "id": "hp_req_123",
+            "status": "completed",
+            "amount": "1.00",
+            "currency": "SGD",
+            "reference_number": f"pos-order-{order_id}",
+        }
 
         response = self.client.post(
-            f"/orders/{order_id}/confirm-payment",
-            params={
-                "table_token": self.table.token,
-                "payment_intent_id": "pi_cheap_123",
-            },
+            f"/orders/{order_id}/confirm-hitpay-payment",
+            params={"table_token": self.table.token},
         )
         self.assertEqual(response.status_code, 400)
-        self.assertIn("Payment mismatch: Amount", response.json()["detail"])
+        self.assertIn("amount does not match", response.json()["detail"])
 
-    @patch("stripe.PaymentIntent.retrieve")
+    @patch("app.main._hitpay_retrieve_payment_request")
     def test_prevent_payment_bypass_order_mismatch(self, mock_retrieve):
-        response = self.client.post(
-            f"/menu/{self.table.token}/order",
-            json={
-                "items": [{"product_id": self.product.id, "quantity": 1}],
-                "notes": "Expensive Order",
-            },
-        )
-        self.assertEqual(response.status_code, 200)
-        order_data = response.json()
-        order_id = order_data["order_id"]
-
-        mock_intent = MagicMock()
-        mock_intent.status = "succeeded"
-        mock_intent.amount = 10000
-        mock_intent.id = "pi_wrong_order"
-        mock_intent.metadata = {"order_id": "9999"}
-        mock_retrieve.return_value = mock_intent
+        order_id = self._create_order_with_hitpay_request()
+        mock_retrieve.return_value = {
+            "id": "hp_req_123",
+            "status": "completed",
+            "amount": "100.00",
+            "currency": "SGD",
+            "reference_number": "pos-order-9999",
+        }
 
         response = self.client.post(
-            f"/orders/{order_id}/confirm-payment",
-            params={
-                "table_token": self.table.token,
-                "payment_intent_id": "pi_wrong_order",
-            },
+            f"/orders/{order_id}/confirm-hitpay-payment",
+            params={"table_token": self.table.token},
         )
         self.assertEqual(response.status_code, 400)
-        self.assertIn("Payment mismatch: Payment does not belong to this order", response.json()["detail"])
+        self.assertIn("reference does not belong", response.json()["detail"])
 
-    @patch("stripe.PaymentIntent.retrieve")
+    @patch("app.main._hitpay_retrieve_payment_request")
     def test_payment_success(self, mock_retrieve):
-        response = self.client.post(
-            f"/menu/{self.table.token}/order",
-            json={
-                "items": [{"product_id": self.product.id, "quantity": 1}],
-                "notes": "Expensive Order",
-            },
-        )
-        self.assertEqual(response.status_code, 200)
-        order_data = response.json()
-        order_id = order_data["order_id"]
-
-        mock_intent = MagicMock()
-        mock_intent.status = "succeeded"
-        mock_intent.amount = 10000
-        mock_intent.id = "pi_correct"
-        mock_intent.metadata = {"order_id": str(order_id)}
-        mock_retrieve.return_value = mock_intent
+        order_id = self._create_order_with_hitpay_request()
+        mock_retrieve.return_value = {
+            "id": "hp_req_123",
+            "status": "completed",
+            "amount": "100.00",
+            "currency": "SGD",
+            "reference_number": f"pos-order-{order_id}",
+        }
 
         response = self.client.post(
-            f"/orders/{order_id}/confirm-payment",
-            params={
-                "table_token": self.table.token,
-                "payment_intent_id": "pi_correct",
-            },
+            f"/orders/{order_id}/confirm-hitpay-payment",
+            params={"table_token": self.table.token},
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["status"], "paid")

@@ -11,7 +11,7 @@
 # Translation needed for Settings > Data and privacy
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/108
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/108
 
 ## Problem / goal
 Staff **Settings → Data & privacy** is English-only. The section must be translated for every locale the app already supports (same coverage as other settings areas). Align keys, JSON files under `front` i18n, and any backend strings if this section touches API messages.

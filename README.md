@@ -3,12 +3,12 @@
 ![POS2 — Restaurant POS and ordering](docs/banner.svg)
 
 
-[![version](https://img.shields.io/github/v/release/satisfecho/pos?style=flat-square&label=version)](https://github.com/satisfecho/pos/releases)
-[![build](https://img.shields.io/github/check-runs/satisfecho/pos/master?style=flat-square&label=build)](https://github.com/satisfecho/pos/actions)
+[![version](https://img.shields.io/github/v/release/tanjunnan0101/pos?style=flat-square&label=version)](https://github.com/tanjunnan0101/pos/releases)
+[![build](https://img.shields.io/github/check-runs/tanjunnan0101/pos/master?style=flat-square&label=build)](https://github.com/tanjunnan0101/pos/actions)
 
 **Restaurant POS and ordering infrastructure — self-hosted, multi-tenant, real-time.**
 
-_A point-of-sale system with a customer-facing menu, table management, reservations, and online payments (**Stripe** and optional **Revolut**). Staff use the Angular admin; customers order via QR codes and pay at the table. You keep full control of your data and deployment._
+_A point-of-sale system with a customer-facing menu, table management, reservations, and online payments (**HitPay**, SGD only). Staff use the Angular admin; customers order via QR codes and pay at the table. You keep full control of your data and deployment._
 
 ---
 </div>
@@ -19,9 +19,9 @@ _A point-of-sale system with a customer-facing menu, table management, reservati
 POS2 is built for restaurants and venues that want:
 
 - **One place for everything** — Orders, tables, reservations, menu, and payments in a single stack.
-- **Customer ordering without apps** — Guests scan a table QR code, browse the menu, place orders, and pay with Stripe or Revolut (per-tenant). Optional table PIN keeps ordering secure.
+- **Customer ordering without apps** — Guests scan a table QR code, browse the menu, place orders, and pay with HitPay (SGD, per-tenant). Optional table PIN keeps ordering secure.
 - **Real-time updates** — Order status (pending → preparing → ready → delivered → paid) flows to staff and customers over WebSockets.
-- **Multi-tenant from day one** — Each restaurant (tenant) has isolated data, settings, and Stripe configuration.
+- **Multi-tenant from day one** — Each restaurant (tenant) has isolated data, settings, and HitPay configuration.
 - **Self-hosted** — Run on your own server or local network; no vendor lock-in.
 
 The frontend is Angular; the backend is FastAPI with PostgreSQL and Redis. All major flows are implemented and documented (see [ROADMAP.md](ROADMAP.md) and the `docs/` folder).
@@ -40,18 +40,18 @@ The staff dashboard gives quick access to Catalog, Reservations, Kitchen display
 
 | Area | What's included |
 |------|------------------|
-| **Orders** | Full lifecycle (pending → preparing → ready → delivered → paid). Session-based orders per browser. Item-level status; partial delivery; order modification and cancellation before delivery; soft delete with “Show removed items” in staff UI. **Print invoice** and **Print Factura** (with optional billing customer and tax breakdown) open the browser print dialog. See [docs/0017-billing-customers-factura.md](docs/0017-billing-customers-factura.md). |
-| **Tax (IVA)** | Tax-inclusive pricing with per-tenant tax rates (name, rate %, validity). Default tax in Settings; product-level tax override. Order items store applied tax snapshot for invoice breakdown. |
-| **Billing customers (Factura)** | Register customers that need a tax invoice with company details (name, company, CIF/tax ID, address, email, phone). List and search at `/customers`; from Orders, **Print Factura** lets you select a customer and print an invoice with “Bill to” block; optionally save the customer on the order. |
+| **Orders** | Full lifecycle (pending → preparing → ready → delivered → paid). Session-based orders per browser. Item-level status; partial delivery; order modification and cancellation before delivery; soft delete with “Show removed items” in staff UI. **Print invoice** and **Print tax invoice** (with optional billing customer and tax breakdown) open the browser print dialog. See [docs/0017-billing-customers-factura.md](docs/0017-billing-customers-factura.md). |
+| **Tax (GST)** | Tax-inclusive pricing with per-tenant tax rates (name, rate %, validity). Default tax in Settings; product-level tax override. Order items store applied tax snapshot for invoice breakdown. |
+| **Billing customers (Tax invoice)** | Register customers that need a tax invoice with company details (name, company, Tax ID/UEN, address, email, phone). List and search at `/customers`; from Orders, **Print tax invoice** lets you select a customer and print an invoice with “Bill to” block; optionally save the customer on the order. |
 | **Customer menu** | Browse menu, cart, place order, order history. Optional “immediate payment required” (checkout auto-opens after placing order). |
 | **Kitchen display** | Dedicated full-screen view at `/kitchen`: large order cards, auto-refresh and WebSocket updates, optional sound on new orders. Read-only; same access as Orders. See [docs/0015-kitchen-display.md](docs/0015-kitchen-display.md). |
 | **Reports** | Sales & revenue at `/reports` (owner/admin): date range, summary (total revenue, order count, average payment per client), reservation count and by source (public/staff), by product/category/table/waiter, charts, CSV/Excel export. See [docs/0016-reports.md](docs/0016-reports.md). |
-| **Payments** | **Stripe** and **Revolut** (online checkout on the customer menu; per-tenant configuration in **Settings**). **Cash** and **card terminal (dataphone)** when staff marks the order paid. Optional **immediate payment required** (checkout opens right after placing order). Revolut sandbox and redirect URLs: [docs/REVOLUT.md](docs/REVOLUT.md). |
+| **Payments** | **HitPay** (online checkout on the customer menu; per-tenant configuration in **Settings**). **Cash** and **card terminal (dataphone)** when staff marks the order paid. Optional **immediate payment required** (checkout opens right after placing order). HitPay checkout/webhook setup is configured in Settings. |
 | **Tables** | Table management, QR codes, canvas view. Table activation and 4-digit PIN so only present guests can order; PIN rate limiting via Redis. |
 | **Staff navigation** | After sign-in, the sidebar matches operational areas: **Dashboard**, **My shift** (optional), **Orders**, **Reservations** and **Guest feedback** (when the reservations module is enabled), **Tables** (list and canvas), **Kitchen** and **Bar** displays, **Customers**, **Products**, **Catalog** (when the providers module is enabled), **Reports**, **Working plan**, **Inventory** (items, suppliers, purchase orders, stock, reports — admin), **Users**, **Contracts** (when permitted), **Settings** (admin). |
 | **Reservations** | Staff: list, create, edit, seat, finish, cancel at `/reservations`. **Client notes** (from the customer at booking) and **owner notes** (internal staff notes). **Client technical info** (IP, user-agent, browser fingerprint, screen size) is recorded for public bookings and visible to staff. **No-show**: mark no-shows and **send reminders** by email and/or **WhatsApp** (when Twilio is configured). Public: book at `/book/:tenantId`, view/cancel at `/reservation?token=...`. Table status: available / reserved / occupied. |
 | **Real-time** | WebSocket updates for order status; token-based WS auth (`/ws-token`). |
-| **i18n & currency** | Multiple UI languages (e.g. en, es, ca, de, zh-CN, hi); backend localized messages; per-tenant currency (EUR, USD, MXN, etc.). |
+| **i18n & currency** | Multiple UI languages (e.g. en, es, ca, de, zh-CN, hi); backend localized messages; Singapore context with SGD currency. |
 | **Multi-tenant** | Isolated data per tenant; first user becomes owner; configurable roles (owner, admin, kitchen, bartender, waiter, receptionist) and permissions (e.g. reservation read/write). |
 | **Products & images** | Staff manage products at `/products`. On deploy, demo products are linked to catalog provider products so the Products page shows images (beer/pizza/wine import); first load of `/products` backfills image URLs. |
 | **Provider portal** | Suppliers register at `/provider/register`, log in at `/provider/login`, and manage their catalog at `/provider` (tile/list view, search, add/edit/delete products, company details). See [docs/0014-provider-portal.md](docs/0014-provider-portal.md). |
@@ -68,14 +68,14 @@ Planned but not yet implemented: batch order operations, and stricter “must pa
 - **Database:** PostgreSQL 18
 - **Cache / pub-sub:** Redis 7
 - **Real-time:** WebSocket bridge (custom service)
-- **Payments:** Stripe, Revolut (optional; see [docs/REVOLUT.md](docs/REVOLUT.md))
+- **Payments:** HitPay hosted checkout (SGD)
 - **Deployment:** Docker Compose, HAProxy
 
 ---
 
 ## Getting Started
 
-The quickest way to try POS out is to head over to [https://satisfecho.de/](https://satisfecho.de/) and set up your restaurant.
+The quickest way to try POS out is to head over to [https://sakario.sg/](https://sakario.sg/) and set up your restaurant.
 
 ### Prerequisites
 
@@ -86,7 +86,7 @@ The quickest way to try POS out is to head over to [https://satisfecho.de/](http
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/satisfecho/pos
+   git clone https://github.com/tanjunnan0101/pos
    cd pos
    ```
 
@@ -126,7 +126,7 @@ The quickest way to try POS out is to head over to [https://satisfecho.de/](http
 | **Provider dashboard** | http://localhost:4202/provider |
 | **Kitchen display** | http://localhost:4202/kitchen |
 | **Reports (owner/admin)** | http://localhost:4202/reports |
-| **Customers (Factura)** | http://localhost:4202/customers |
+| **Customers (Tax invoice)** | http://localhost:4202/customers |
 | **Dashboard (staff)** | http://localhost:4202/dashboard |
 
 If your frontend port is different (e.g. 4203), replace 4202 with that port. See [AGENTS.md](AGENTS.md) for how to detect the port and debug with logs.
@@ -145,11 +145,11 @@ Key variables in `config.env` (see `config.env.example` for the full list):
 | `WS_URL` | WebSocket URL (e.g. `ws://localhost:4202/ws`) | For custom domain |
 | `CORS_ORIGINS` | Allowed frontend origins (comma-separated) | Yes (production) |
 | `POSTGRES_*` / `DB_*` | Database connection | Yes |
-| `STRIPE_CURRENCY` | Fallback currency if tenant has none | Optional |
+| `HITPAY_MODE`, `HITPAY_API_KEY`, `HITPAY_WEBHOOK_SALT` | HitPay checkout configuration fallback for testing/demo tenants | Optional |
 | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_FROM` | Optional; when set, reservation reminders can be sent via WhatsApp (in addition to email) | Optional |
-| `DEFAULT_PHONE_COUNTRY` | ISO country code (e.g. `ES`, `DE`) for normalizing reservation phone numbers to E.164 | Optional (default `ES`) |
+| `DEFAULT_PHONE_COUNTRY` | ISO country code (e.g. `SG`, `US`) for normalizing reservation phone numbers to E.164 | Optional (default `SG`) |
 
-**Stripe** and **Revolut** credentials are configured per tenant in **Settings** (payment options) in the admin UI. Settings also include business profile, contact (phone, email, address, **Tax ID**, **CIF**), opening hours, and payment options. Revolut-specific env and setup are documented in [docs/REVOLUT.md](docs/REVOLUT.md). For deployment on a domain or IP, see [docs/0004-deployment.md](docs/0004-deployment.md).
+**HitPay** credentials are configured per tenant in **Settings** (payment options) in the admin UI. Settings also include business profile, contact (phone, email, address, **Tax ID/UEN**), opening hours, and payment options. For deployment on a domain or IP, see [docs/0004-deployment.md](docs/0004-deployment.md).
 
 ---
 
@@ -159,7 +159,7 @@ Key variables in `config.env` (see `config.env.example` for the full list):
 |----------|-------------|
 | [ROADMAP.md](ROADMAP.md) | Implemented vs planned features; security roadmap |
 | [docs/0020-rate-limiting-production.md](docs/0020-rate-limiting-production.md) | API rate limits (global, login, register, payments, public menu, uploads, admin), Redis, `X-Forwarded-For`, tests |
-| [docs/REVOLUT.md](docs/REVOLUT.md) | Revolut Merchant API: sandbox, redirect URLs, certificates, tenant setup |
+| HitPay setup | Configure HitPay mode, API key, and webhook salt in Settings. |
 | [CHANGELOG.md](CHANGELOG.md) | Release notes and unreleased changes |
 | [AGENTS.md](AGENTS.md) | How to find the app port and view logs (for developers/agents) |
 | [docs/README.md](docs/README.md) | **Index of all documentation** (deployment, email, features, plans, testing) |
@@ -177,7 +177,7 @@ Key variables in `config.env` (see `config.env.example` for the full list):
 | [docs/0013-verification-alternatives.md](docs/0013-verification-alternatives.md) | Verification flow alternatives |
 | [docs/0014-provider-portal.md](docs/0014-provider-portal.md) | Provider registration, login, and catalog management |
 | [docs/0015-kitchen-display.md](docs/0015-kitchen-display.md) | Kitchen display: full-screen view, auto-refresh, optional sound |
-| [docs/0017-billing-customers-factura.md](docs/0017-billing-customers-factura.md) | Billing customers (Factura): register company details, search, print invoice with “Bill to” |
+| [docs/0017-billing-customers-factura.md](docs/0017-billing-customers-factura.md) | Billing customers (Tax invoice): register company details, search, print invoice with “Bill to” |
 
 ---
 
@@ -258,7 +258,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file config
 ## Internationalization (i18n)
 
 - **Languages:** English, Spanish, Catalan, German, French, Bulgarian, Chinese (Simplified), Hindi, Urdu (RTL) — see `front/public/i18n/*.json`.
-- **Currency:** Per-tenant (e.g. EUR, USD, MXN, INR, CNY, TWD).
+- **Currency:** SGD only for this Sakario deployment.
 - **Language picker:** In admin sidebar and on the public menu.
 - **API:** Use `?lang=es` (or other code) for localized API messages.
 
@@ -290,7 +290,7 @@ Full guide: [docs/0004-deployment.md](docs/0004-deployment.md).
 
 ## Roadmap
 
-- **Done:** Order management, reservations, table PIN, Stripe, WebSocket, i18n, deployment docs. See [ROADMAP.md](ROADMAP.md) for the full list.
+- **Done:** Order management, reservations, table PIN, HitPay, WebSocket, i18n, deployment docs. See [ROADMAP.md](ROADMAP.md) for the full list.
 - **Planned:** Order Phase 4 (batch, audit, item replacement), optional stricter “immediate payment” enforcement. Further security items (e.g. CAPTCHA after failed logins) are noted in [ROADMAP.md](ROADMAP.md).
 
 ---
@@ -300,7 +300,7 @@ Full guide: [docs/0004-deployment.md](docs/0004-deployment.md).
 - **Production:** Set a strong `SECRET_KEY` and `REFRESH_SECRET_KEY` in `config.env`.
 - **CORS:** Set `CORS_ORIGINS` to your real frontend origin(s); avoid `*` in production if possible.
 - **Database:** Use strong credentials; do not commit `config.env`.
-- **Stripe:** Use live keys in production and configure them per tenant in Settings.
+- **HitPay:** Use live API keys in production and configure them per tenant in Settings.
 - **Rate limiting:** Global and per-route limits (login, register, payments, public menu, uploads, admin/management) are enforced via Redis; see [docs/0020-rate-limiting-production.md](docs/0020-rate-limiting-production.md) and [ROADMAP.md](ROADMAP.md). Table PIN attempts remain rate-limited as documented in [docs/0009-table-pin-security.md](docs/0009-table-pin-security.md).
 
 ---

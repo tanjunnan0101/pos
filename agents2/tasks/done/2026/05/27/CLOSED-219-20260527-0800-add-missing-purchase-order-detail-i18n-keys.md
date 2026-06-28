@@ -11,7 +11,7 @@
 # Add missing purchase order detail i18n keys
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/219
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/219
 - **219**
 
 ## Problem / goal

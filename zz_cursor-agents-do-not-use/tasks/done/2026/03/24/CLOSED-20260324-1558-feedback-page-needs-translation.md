@@ -12,11 +12,11 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…` on production URLs) must show **fully translated** UI: every form label, message, error, and document title in the **selected** language—no mixed languages, missing strings, or raw `FEEDBACK.*` keys. Reporter cited `https://satisfecho.de/feedback/1?token=…` as an example.
+Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…` on production URLs) must show **fully translated** UI: every form label, message, error, and document title in the **selected** language—no mixed languages, missing strings, or raw `FEEDBACK.*` keys. Reporter cited `https://sakario.sg/feedback/1?token=…` as an example.
 
 Relevant areas: `front/src/app/feedback-public/`, locale JSON under `front/public/i18n/`, and `front/scripts/test-feedback-public-i18n.mjs` for regression coverage. Prior closed tasks under `agents/tasks/done/` document many verification passes on **development**; issue may still need production sign-off or gap fixes.
 
@@ -38,7 +38,7 @@ Relevant areas: `front/src/app/feedback-public/`, locale JSON under `front/publi
 1. Start the dev stack so the app is reachable (e.g. HAProxy on `4202`).
 2. From repo root: `BASE_URL=http://127.0.0.1:4202 node front/scripts/test-feedback-public-i18n.mjs` — expect exit **0** and no `FEEDBACK.` substrings in the DOM assertions.
 3. Optional manual: open `/feedback/1` with and without `?token=…`, switch languages, submit once — confirm no raw keys or mixed-language chrome.
-4. For GitHub **#67** closure on production: repeat spot-check on `https://satisfecho.de/feedback/1` (or tenant under test) if product wants prod sign-off.
+4. For GitHub **#67** closure on production: repeat spot-check on `https://sakario.sg/feedback/1` (or tenant under test) if product wants prod sign-off.
 
 ---
 
@@ -58,7 +58,7 @@ Relevant areas: `front/src/app/feedback-public/`, locale JSON under `front/publi
 
 5. **Overall:** **PASS** (local Docker / dev acceptance per instructions 1–2).
 
-6. **Product owner feedback:** Public feedback i18n is covered by an automated Puppeteer script across default browser locale (es stub), all picker languages, token URL, invalid-token API error, thank-you flow, and invalid/missing tenant errors—all without raw `FEEDBACK.*` in the DOM. Production smoke on satisfecho.de is still optional before formally closing the GitHub issue if you want prod parity confirmation.
+6. **Product owner feedback:** Public feedback i18n is covered by an automated Puppeteer script across default browser locale (es stub), all picker languages, token URL, invalid-token API error, thank-you flow, and invalid/missing tenant errors—all without raw `FEEDBACK.*` in the DOM. Production smoke on sakario.sg is still optional before formally closing the GitHub issue if you want prod parity confirmation.
 
 7. **URLs tested** (via Puppeteer against `http://127.0.0.1:4202`):
    1. `http://127.0.0.1:4202/feedback/1` (multiple navigations, language switches en/de/fr/es/ca/zh-CN/hi)

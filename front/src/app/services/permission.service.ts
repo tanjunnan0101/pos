@@ -46,7 +46,7 @@ export type Permission =
   | 'translation:write'
   // Reports (revenue analysis)
   | 'report:read'
-  // Billing customers (Factura)
+  // Billing customers
   | 'billing_customer:read'
   | 'billing_customer:write'
   // Working plan (schedule)

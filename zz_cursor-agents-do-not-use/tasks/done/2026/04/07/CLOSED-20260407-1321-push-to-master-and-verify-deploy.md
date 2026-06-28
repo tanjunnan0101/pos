@@ -3,7 +3,7 @@
 
 - **What happened:** `development` was fast-forward merged to `master` and the amvara9 deploy pipeline ran for the promoted tip tied to issue #175.
 - **What was done:** `origin/master` was pushed at **`00e7f62`**; GitHub Actions **Deploy to amvara9** run **24084369755** completed successfully; production HTTPS was spot-checked.
-- **What was tested:** Workflow run status via `gh`, `curl` to `https://satisfecho.de/` (200), and alignment of `origin/master` with the documented commit — **all passed**.
+- **What was tested:** Workflow run status via `gh`, `curl` to `https://sakario.sg/` (200), and alignment of `origin/master` with the documented commit — **all passed**.
 - **Why closed:** Tester report **PASS**; deploy and production health criteria met.
 - **Closed at (UTC):** 2026-04-07 14:06
 ---
@@ -11,10 +11,10 @@
 # Push to master
 
 ## GitHub Issues
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- `gh issue list --repo satisfecho/pos --state open --limit 40`
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- `gh issue list --repo tanjunnan0101/pos --state open --limit 40`
 - Optional: `--json number,title,labels,updatedAt,url`
-- **Issue:** https://github.com/satisfecho/pos/issues/175
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/175
 
 ## Problem / goal
 Promote tested work from **`development`** to **`master`** and deploy to production when appropriate. If deploying to amvara9, confirm the deployment pipeline succeeded (e.g. GitHub Actions or documented deploy script status).
@@ -31,7 +31,7 @@ Promote tested work from **`development`** to **`master`** and deploy to product
 
 ## Testing instructions
 - **What to verify:** `master` on GitHub matches the promoted tip; production deploy for that push succeeded; optional spot-check production URLs.
-- **How to test:** `gh run view 24084369755 --repo satisfecho/pos` (expect **success**). Optional: `curl -s -o /dev/null -w "%{http_code}\n" https://satisfecho.de/` (expect **200**).
+- **How to test:** `gh run view 24084369755 --repo tanjunnan0101/pos` (expect **success**). Optional: `curl -s -o /dev/null -w "%{http_code}\n" https://sakario.sg/` (expect **200**).
 - **Pass/fail:** Pass if the workflow run is **success** and optional curl returns **200**. Fail if the run failed or production health checks fail.
 
 ---
@@ -42,14 +42,14 @@ Promote tested work from **`development`** to **`master`** and deploy to product
 
 **Environment:** Tester host; `gh` CLI authenticated; `curl` to production. Local repo fetched `origin/master` @ `00e7f6283a90832e426402c5389e4857c93c0a50` (short `00e7f62`), matching the promoted tip documented in Implementation notes.
 
-**What was tested:** Workflow run **24084369755** status; optional `https://satisfecho.de/` HTTP status; `origin/master` SHA alignment with **`00e7f62`**.
+**What was tested:** Workflow run **24084369755** status; optional `https://sakario.sg/` HTTP status; `origin/master` SHA alignment with **`00e7f62`**.
 
 **Results:**
 
 | Criterion | Result | Evidence |
 |-----------|--------|----------|
-| `gh run view 24084369755` shows success | **PASS** | Output: “✓ master Deploy to amvara9 · 24084369755”; job **deploy** completed with checkmark. Run URL: https://github.com/satisfecho/pos/actions/runs/24084369755 |
-| `curl` production `/` returns 200 | **PASS** | `curl -s -o /dev/null -w "%{http_code}\n" https://satisfecho.de/` → **200** |
+| `gh run view 24084369755` shows success | **PASS** | Output: “✓ master Deploy to amvara9 · 24084369755”; job **deploy** completed with checkmark. Run URL: https://github.com/tanjunnan0101/pos/actions/runs/24084369755 |
+| `curl` production `/` returns 200 | **PASS** | `curl -s -o /dev/null -w "%{http_code}\n" https://sakario.sg/` → **200** |
 | `master` tip matches promoted commit | **PASS** | `git fetch origin master` then `git rev-parse origin/master` → `00e7f6283a90832e426402c5389e4857c93c0a50` (matches task note **00e7f62**) |
 
 **Overall:** **PASS**
@@ -58,9 +58,9 @@ Promote tested work from **`development`** to **`master`** and deploy to product
 
 **URLs tested:**
 
-1. https://github.com/satisfecho/pos/actions/runs/24084369755
-2. https://satisfecho.de/
+1. https://github.com/tanjunnan0101/pos/actions/runs/24084369755
+2. https://sakario.sg/
 
 **Relevant log excerpts:** N/A — verification used `gh` and `curl` only (no Docker log window required).
 
-**GitHub:** Issue [#175](https://github.com/satisfecho/pos/issues/175) — optional label/comment updates not applied via CLI in this run.
+**GitHub:** Issue [#175](https://github.com/tanjunnan0101/pos/issues/175) — optional label/comment updates not applied via CLI in this run.

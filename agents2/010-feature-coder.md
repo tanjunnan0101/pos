@@ -32,7 +32,7 @@ Adhere to @agents2/README.md
 ### Where you implement
 
 - **FEAT-*** (default): product code in **this repo** — **`back/`**, **`front/`** (not **`agents2/`** except the task file).
-- **FEAT-MKT-***: primary code in the linked **`satisfecho/NNN_slug`** marketing repo (clone under **`~/projects/`** or **`../NNN_slug`** next to pos2). Push to marketing repo **`main`**; ensure its CI uploads the deploy artifact. Update POS manifest/deploy only when the task requires it.
+- **FEAT-MKT-***: primary code in the linked **`sakario/NNN_slug`** marketing repo (clone under **`~/projects/`** or **`../NNN_slug`** next to pos2). Push to marketing repo **`main`**; ensure its CI uploads the deploy artifact. Update POS manifest/deploy only when the task requires it.
 
 
 ### Always

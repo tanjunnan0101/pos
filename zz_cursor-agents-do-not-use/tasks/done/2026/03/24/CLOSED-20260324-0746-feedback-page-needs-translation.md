@@ -4,14 +4,14 @@
 - **What happened:** Closing review for GitHub **#67** (public feedback i18n): another coder/tester cycle concluded with no new code—implementation already matched acceptance.
 - **What was done:** Coder documented that `FeedbackPublicComponent` and locale JSON already cover guest copy, title updates, and API error paths; **no product changes** in this pass.
 - **What was tested:** `npm run test:feedback-public-i18n --prefix front` with `BASE_URL=http://127.0.0.1:4202` — **PASS** (exit 0; five `>>> RESULT: … OK` lines; thank-you, token URL, invalid tenant); front logs show clean bundle generation per test report.
-- **Why closed:** Tester **overall PASS**; all task pass/fail criteria satisfied; optional production check on satisfecho.de and issue **#67** close remain per product (`docs/agent-loop.md`).
+- **Why closed:** Tester **overall PASS**; all task pass/fail criteria satisfied; optional production check on sakario.sg and issue **#67** close remain per product (`docs/agent-loop.md`).
 - **Closed at (UTC):** 2026-03-24 08:05
 ---
 
 # Feedback page needs translation
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 Public guest feedback URLs such as `/feedback/{tenant}` with optional `?token=…` must show **fully translated** UI in the selected language. The issue reports untranslated strings on production-style URLs (example in issue body). Every part of the form and related states should use i18n; no raw translation keys in visible copy or document title. See `front/src/app/feedback-public/`, `front/public/i18n/`, and prior `agents/tasks/done/**/CLOSED-*-feedback-page-needs-translation.md` archives for context.
@@ -20,7 +20,7 @@ Public guest feedback URLs such as `/feedback/{tenant}` with optional `?token=�
 - Re-read issue **#67** and reproduce on local Docker (`/feedback/{tenant}`, with and without token) across supported locales (picker and `Accept-Language`).
 - Confirm no raw `FEEDBACK.*` keys in DOM, user-visible strings, or tab title after locale switches.
 - If gaps exist, fix templates/services and JSON under `front/public/i18n/`; keep API error paths localized where user-facing.
-- If dev already matches acceptance, capture concise evidence; optional production check on **satisfecho.de**; support product/GitHub closure of **#67** when agreed (`docs/agent-loop.md`).
+- If dev already matches acceptance, capture concise evidence; optional production check on **sakario.sg**; support product/GitHub closure of **#67** when agreed (`docs/agent-loop.md`).
 
 ## Coder (feature) — 2026-03-24
 
@@ -48,7 +48,7 @@ Public guest feedback URLs such as `/feedback/{tenant}` with optional `?token=�
 
 ### Follow-up (outside automated test)
 
-- Optional production check on **https://satisfecho.de**; GitHub **#67** comment / close when product accepts (`docs/agent-loop.md`).
+- Optional production check on **https://sakario.sg**; GitHub **#67** comment / close when product accepts (`docs/agent-loop.md`).
 
 ---
 
@@ -77,7 +77,7 @@ Public `/feedback/{tenant}` (with and without `?token=…`) for no raw `FEEDBACK
 **Overall:** **PASS**
 
 **Product owner feedback:**  
-Behaviour meets acceptance: feedback page is fully translated across supported locales; document title, form, thank-you state, and error states show no raw i18n keys. Ready for closing reviewer; optional production check on satisfecho.de remains if desired.
+Behaviour meets acceptance: feedback page is fully translated across supported locales; document title, form, thank-you state, and error states show no raw i18n keys. Ready for closing reviewer; optional production check on sakario.sg remains if desired.
 
 **URLs tested:**  
 - `http://127.0.0.1:4202/feedback/1` (with locale picker and token variants)  

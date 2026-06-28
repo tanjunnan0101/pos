@@ -12,7 +12,7 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/137
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/137
 
 ## Problem / goal
 
@@ -79,4 +79,4 @@ pos-front | Component update sent to client(s).
 
 **GitHub:** Comment posted on issue #137 (verification complete, PASS). `gh issue edit --add-label "agent:testing"` failed (label not defined in repo); adjust labels manually if needed.
 
-**Issue:** https://github.com/satisfecho/pos/issues/137
+**Issue:** https://github.com/tanjunnan0101/pos/issues/137

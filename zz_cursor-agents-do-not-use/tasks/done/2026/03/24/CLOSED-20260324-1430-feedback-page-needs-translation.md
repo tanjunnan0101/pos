@@ -12,7 +12,7 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
@@ -24,7 +24,7 @@ Public guest feedback URL (e.g. `/feedback/{tenant}` with optional `?token=…`)
 - Confirm templates, dynamic strings, API error paths, and document title stay localized; fix any missing keys or pipe/`TranslateService` usage gaps.
 - Align all locale JSON files under `front/public/i18n/` for `FEEDBACK` (and related keys) where needed.
 - Run or extend feedback-public i18n smoke / Puppeteer coverage if present; document evidence for GitHub when dev matches acceptance.
-- Optional: spot-check production (`https://satisfecho.de`) per `docs/agent-loop.md`; support closing **#67** when product agrees.
+- Optional: spot-check production (`https://sakario.sg`) per `docs/agent-loop.md`; support closing **#67** when product agrees.
 
 ## Coder notes (2026-03-24)
 

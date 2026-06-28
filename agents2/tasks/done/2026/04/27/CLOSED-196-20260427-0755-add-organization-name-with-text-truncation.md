@@ -11,7 +11,7 @@
 # Add Organization Name with Text Truncation
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/196
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/196
 - **196**
 
 ## Problem / goal

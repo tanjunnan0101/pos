@@ -11,7 +11,7 @@
 # Add public tenant menu API for marketing websites
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/250
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/250
 - **250**
 
 ## Problem / goal
@@ -53,7 +53,7 @@ Add a read-only public endpoint so marketing sites can fetch a grouped menu with
 
 3. **Gustazo (tenant 16)** on production when deployed:
    ```bash
-   curl -s "https://www.satisfecho.de/api/public/tenants/16/menu?lang=es" | jq .
+   curl -s "https://www.sakario.sg/api/public/tenants/16/menu?lang=es" | jq .
    ```
    Verify product names/prices match staff menu; no `cost_cents`, `ingredients`, or supplier fields.
 
@@ -85,14 +85,14 @@ Add a read-only public endpoint so marketing sites can fetch a grouped menu with
 | 2a. Local menu tenant 1 (shape, no auth) | **PASS** | HTTP 200; `tenant_id`, `tenant_name`, `currency`, `lang`, `categories` present; empty categories OK for tenant 1 |
 | 2b. Missing tenant 404 | **PASS** | `GET /api/public/tenants/999999/menu` → HTTP 404 |
 | 2c. Lang es / price_formatted comma | **PASS** (pytest) | Local tenant 1 has no visible products; `test_lang_query_es_formats_price_with_comma` asserts `3,50`; curl es returns `lang: es` |
-| 3. Gustazo tenant 16 on production | **N/A — deploy blocker** | `https://www.satisfecho.de/api/public/tenants/16/menu?lang=es` → HTTP 404 `{"detail":"Not Found"}` (endpoint not on amvara9 yet; feature on `development` only). Re-verify after `master` deploy per agent-loop deploy-blocker policy. |
+| 3. Gustazo tenant 16 on production | **N/A — deploy blocker** | `https://www.sakario.sg/api/public/tenants/16/menu?lang=es` → HTTP 404 `{"detail":"Not Found"}` (endpoint not on amvara9 yet; feature on `development` only). Re-verify after `master` deploy per agent-loop deploy-blocker policy. |
 | 4. OpenAPI / Public tag | **PASS** | `/api/openapi.json` path `/public/tenants/{tenant_id}/menu` GET, tags `["Public"]` |
 | 5. Table menu regression | **PASS** | `GET /api/menu/0a57107e-0927-45bc-bf70-cfc06669caa0?lang=en` → HTTP 200, valid menu payload |
 | 6. Landing smoke | **PASS** | `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:4202/` → `200` |
 
 5. **Overall:** **PASS** (local/dev verification complete; production Gustazo deferred until amvara9 deploy — not a code failure).
 
-6. **Product owner feedback:** The public menu endpoint is implemented correctly on local Docker: grouped categories, i18n lang support, no sensitive fields in tests, and existing table menu unchanged. Marketing sites can integrate against this API once the change is promoted to production; Gustazo (tenant 16) should be smoke-tested on satisfecho.de after the next deploy.
+6. **Product owner feedback:** The public menu endpoint is implemented correctly on local Docker: grouped categories, i18n lang support, no sensitive fields in tests, and existing table menu unchanged. Marketing sites can integrate against this API once the change is promoted to production; Gustazo (tenant 16) should be smoke-tested on sakario.sg after the next deploy.
 
 7. **URLs tested:**
    1. `http://127.0.0.1:4202/api/public/tenants/1/menu?lang=en`
@@ -101,7 +101,7 @@ Add a read-only public endpoint so marketing sites can fetch a grouped menu with
    4. `http://127.0.0.1:4202/api/openapi.json`
    5. `http://127.0.0.1:4202/api/menu/0a57107e-0927-45bc-bf70-cfc06669caa0?lang=en`
    6. `http://127.0.0.1:4202/`
-   7. `https://www.satisfecho.de/api/public/tenants/16/menu?lang=es` (404 — not deployed)
+   7. `https://www.sakario.sg/api/public/tenants/16/menu?lang=es` (404 — not deployed)
 
 8. **Relevant log excerpts (pos-back, UTC window):**
 

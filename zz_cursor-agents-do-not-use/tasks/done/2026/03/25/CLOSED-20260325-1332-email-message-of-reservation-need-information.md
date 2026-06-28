@@ -11,7 +11,7 @@
 # Email message of reservation need information
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/91
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/91
 
 ## Problem / goal
 Reservation emails sent via SMTP should include more useful guest-facing information, specifically a **link to the reservation** (e.g. manage/view flow) and a **contact phone number** (restaurant or relevant contact), so messages are actionable without hunting elsewhere.

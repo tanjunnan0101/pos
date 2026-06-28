@@ -1,7 +1,7 @@
 ---
 ## Closing summary (TOP)
 
-- **What happened:** Tester signed off on GitHub issue [#109](https://github.com/satisfecho/pos/issues/109) (distinct per-user colors on the Working plan calendar) with an overall **PASS** test report.
+- **What happened:** Tester signed off on GitHub issue [#109](https://github.com/tanjunnan0101/pos/issues/109) (distinct per-user colors on the Working plan calendar) with an overall **PASS** test report.
 - **What was done:** Per-user stable shift coloring was implemented on the working plan calendar (chips and week view accents); optional Karma coverage exists in `working-plan-shift-colors.spec.ts` but was not run in the Docker front image without Chrome.
 - **What was tested:** Angular front build clean in logs; `npm run test:working-plan` and `npm run test:working-plan-calendar` passed on dev stack (`BASE_URL` 4202); manual/dark-mode and multi-user spot-checks noted as bounded or deferred in the report.
 - **Why closed:** Verification criteria met per tester **Overall: PASS**; task archived per agent loop.
@@ -12,7 +12,7 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/109
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/109
 
 ## Problem / goal
 

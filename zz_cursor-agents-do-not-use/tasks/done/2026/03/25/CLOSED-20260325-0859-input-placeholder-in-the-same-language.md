@@ -10,7 +10,7 @@
 # Input placeholders not in the selected language (Account creation)
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/78
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/78
 
 ## Problem / goal
 When the UI language is set to Spanish, the account creation form shows some input placeholders still in English (instead of Spanish).

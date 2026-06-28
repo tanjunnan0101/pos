@@ -11,7 +11,7 @@
 # Adjust font size ratio of radio and checkboxes from reservation
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/128
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/128
 
 ## Problem / goal
 In the **Reservations** UI, improve visual balance: **radio buttons and checkboxes** should use a **font size ratio** that matches the rest of the form (readable and consistent with labels). The reporter also asks to **remove a redundant “allergic” textarea**—keep a **single** allergies/allergic free-text field (avoid duplicating the same textarea).

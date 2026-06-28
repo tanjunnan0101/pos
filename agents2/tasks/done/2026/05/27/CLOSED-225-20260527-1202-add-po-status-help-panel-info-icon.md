@@ -11,7 +11,7 @@
 # Add PO status help panel (info icon)
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/225
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/225
 - **225**
 
 ## Problem / goal

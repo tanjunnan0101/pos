@@ -11,7 +11,7 @@
 # Create a system to recover the password of the account
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/93
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/93
 
 ## Problem / goal
 Users who forget their password need a **self-service recovery** path (request reset, verify identity via email or similar, set a new password) instead of admin-only workarounds. Scope should cover **staff/tenant** accounts as appropriate for this product; align with existing **auth**, **email/SMTP**, and **security** patterns in the repo (see `README.md`, `AGENTS.md`, and any auth-related notes under `docs/`).

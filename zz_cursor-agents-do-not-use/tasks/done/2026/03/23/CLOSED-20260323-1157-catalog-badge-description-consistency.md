@@ -14,7 +14,7 @@
 **CLOSED** — tester verification **PASS** (2026-03-23 UTC).
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/34
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/34
 
 ## Problem / goal
 Catalog cards use varying description heights so prices and badges do not align across the grid. Request: uniform card body height (or max height) and a **“more”** affordance to expand long text so prices line up. Screenshot in the issue.

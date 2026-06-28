@@ -11,7 +11,7 @@
 # Add ice, lemon, and garnish costs to the pricing helper
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/269
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/269
 - **269**
 
 ## Problem / goal

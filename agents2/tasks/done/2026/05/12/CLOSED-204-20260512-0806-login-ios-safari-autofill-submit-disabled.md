@@ -12,7 +12,7 @@
 
 ## GitHub Issues
 
-- **Issue:** https://github.com/satisfecho/pos/issues/204
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/204
 - **204**
 
 ## Problem / goal

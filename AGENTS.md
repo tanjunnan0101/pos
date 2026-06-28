@@ -2,7 +2,7 @@
 
 These instructions apply to all work in this repository:
 
-- **Commits**: Do not add `Co-authored-by:`, `Signed-off-by:`, or any Cursor/agent/IDE attribution to commit messages. Do not advertise the agent or tool in commits. To enforce this locally, run `./scripts/install-git-hooks.sh` once (installs a prepare-commit-msg hook that strips such lines). **Always commit completed work**: when you finish a change, feature, or fix that the user asked for, stage and commit the changes so they are not lost. Do not leave the user to ask "was this committed?" — commit as part of doing the needed. **Use SSH for git remote**: this repo uses `id_rsa`; keep origin as `git@github.com:satisfecho/pos.git` (not HTTPS) so fetch/push work without prompting.
+- **Commits**: Do not add `Co-authored-by:`, `Signed-off-by:`, or any Cursor/agent/IDE attribution to commit messages. Do not advertise the agent or tool in commits. To enforce this locally, run `./scripts/install-git-hooks.sh` once (installs a prepare-commit-msg hook that strips such lines). **Always commit completed work**: when you finish a change, feature, or fix that the user asked for, stage and commit the changes so they are not lost. Do not leave the user to ask "was this committed?" — commit as part of doing the needed. **Git remote**: keep origin pointing at the Sakario repo `https://github.com/tanjunnan0101/pos.git` unless SSH access is explicitly reconfigured. Do not switch it back to old Satisfecho remotes.
 - **Branches and production (`development` vs `master`) — essential:** Do routine work on **`development`**, not **`master`**. **Before changing files** (including task markdown under **`agents/tasks/`**), sync with remote: run **`./scripts/git-sync-development.sh`** or **`git fetch origin`**, ensure you are on **`development`**, then **`git pull --rebase --autostash origin development`** — see **`.cursor/rules/git-development-branch-workflow.mdc`** (*Sync before you change anything*). After committing, **`git pull --rebase`** again on **`development`**, then **`git push origin development`**. Merge **`development` → `master`** and push **`master`** **only** when: (1) a **~2-hour** batch promotion window, (2) a **big production-impacting** change (security, payments, critical bugs, blocking migrations, etc.), or (3) the **GitHub issue** or **user** explicitly requests **urgent / hotfix / production** (label **`production-urgent`** when used). Otherwise **do not** merge to **`master`**. **When the user says to push** (or “you push it”) without asking for production: push **`development`**. Details: **`.cursor/rules/git-development-branch-workflow.mdc`** and **`docs/agent-loop.md`**. Do the full follow-through on sync without asking, within these branch rules.
 
 - Do not install anything on the host system. Use containers for any installs.
@@ -18,7 +18,7 @@ These instructions apply to all work in this repository:
 - **Prefer removing or simplifying over adding:** Removing overcomplicated code is better than adding new code. Think twice before adding; consider simplifying or deleting first. Prefer fewer, clearer paths over more features or branches.
 - **MUST ALWAYS DO — Angular/front compiler check:** When touching Angular/front code (or any change that can affect the frontend build), **always** check for compiler errors before concluding the change is done. With hot reload in DEV, the front container rebuilds on save; **check `docker compose logs since "10m ago" --tail=80 pos-front`** (or the front container’s log output) for TypeScript/Angular build errors (e.g. `TS2345`, `NG8002`, “Decorators are not valid here”, “Application bundle generation failed”). Fix any errors shown there. Do not report that a frontend change is complete until the build succeeds (no errors in the logs). This rule applies every time you edit frontend code or dependencies.
 - Never use `npm install`; always use `npm ci --ignore-scripts`, pin versions in package.json/package-lock.json, and avoid running scripts on install (supply chain risk). The front app has `front/.npmrc` with `save-exact=true` and `ignore-scripts=true` so new deps are pinned and install scripts never run.
-- **NEVER use example.com for mail tests.** Do not use `@example.com` (or any example.com address) as a recipient or sender in code or tests that send or assert on email (reservation confirmations, registration, reminders, etc.). example.com does not receive mail (RFC 2606). Use a real inbox (e.g. ralf.roeber@amvara.de) or an env-configured address (TEST_EMAIL, etc.) with a real default. See `.cursor/rules/no-example-com-email.mdc`.
+- **NEVER use example.com for mail tests.** Do not use `@example.com` (or any example.com address) as a recipient or sender in code or tests that send or assert on email (reservation confirmations, registration, reminders, etc.). example.com does not receive mail (RFC 2606). Use a real inbox (e.g. ralf.roeber@sakario.sg) or an env-configured address (TEST_EMAIL, etc.) with a real default. See `.cursor/rules/no-example-com-email.mdc`.
 
 ## Project overview
 
@@ -126,7 +126,7 @@ When debugging the running app (e.g. frontend not loading a route, API issues):
 
 Run these from the repo root or from `front/` when the app is up (e.g. on port 4203 or 4202). Chrome must be installed (e.g. `/Applications/Google Chrome.app` on macOS). Scripts auto-detect the first responding port among 4203, 4202, 4200.
 
-**Provider portal (manual testing):** `.env` can define `PROVIDER_TEST_EMAIL=pos-provider@amvara.de` and `PROVIDER_TEST_PASSWORD=123456` for testing the provider dashboard at `/provider` (log in at `/provider/login`).
+**Provider portal (manual testing):** `.env` can define `PROVIDER_TEST_EMAIL=pos-provider@sakario.sg` and `PROVIDER_TEST_PASSWORD=123456` for testing the provider dashboard at `/provider` (log in at `/provider/login`).
 
 **Staff flow (login → reservations → create → cancel):**
 
@@ -139,7 +139,7 @@ cd front && node scripts/debug-reservations.mjs
 ```
 
 Or with credentials inline (no .env):  
-`LOGIN_EMAIL="pos-staff-demo@amvara.de" LOGIN_PASSWORD="secret" node front/scripts/debug-reservations.mjs`
+`LOGIN_EMAIL="pos-staff-demo@sakario.sg" LOGIN_PASSWORD="secret" node front/scripts/debug-reservations.mjs`
 
 **Public flow (no login: book page → submit → view/cancel by token):**
 
@@ -150,7 +150,7 @@ node scripts/debug-reservations-public.mjs
 
 Optional env: `BASE_URL` (e.g. `http://127.0.0.1:4203`), `TENANT_ID` (default `1`). No credentials needed for the public test.
 
-**Run reservation tests on both localhost and production (satisfecho.de):**
+**Run reservation tests on both localhost and production (sakario.sg):**
 
 ```bash
 # From repo root: public tests only (default)
@@ -160,10 +160,10 @@ Optional env: `BASE_URL` (e.g. `http://127.0.0.1:4203`), `TENANT_ID` (default `1
 STAFF_TEST=1 ./scripts/run-reservation-tests.sh
 
 # Custom URLs, headless
-BASE_URLS="http://127.0.0.1:4203 http://satisfecho.de" HEADLESS=1 ./scripts/run-reservation-tests.sh
+BASE_URLS="http://127.0.0.1:4203 https://sakario.sg" HEADLESS=1 ./scripts/run-reservation-tests.sh
 ```
 
-Production (satisfecho.de) requires the front container’s nginx to strip the `/api` prefix when proxying to the backend; see `front/nginx.conf` (`location /api` → `proxy_pass http://pos-back:8020/`).
+Production (sakario.sg) requires the front container’s nginx to strip the `/api` prefix when proxying to the backend; see `front/nginx.conf` (`location /api` → `proxy_pass http://pos-back:8020/`).
 
 ## Demo tables (seed and test)
 
@@ -189,9 +189,9 @@ Exit 0 means tenant 1 has T01–T10 with the correct seat counts; exit 1 reports
 
 **Demo products (tenant 1):** Deploy also runs `app.seeds.seed_demo_products`, which seeds a default menu (main courses, beverages) for tenant 1. Idempotent; no images. To run manually: `docker compose exec back python -m app.seeds.seed_demo_products`.
 
-**Puppeteer test (demo data):** Verifies tenant 1 has ≥10 tables and ≥10 products and /book/1 loads. Run with tenant 1 credentials: `BASE_URL=http://satisfecho.de LOGIN_EMAIL=... LOGIN_PASSWORD=... node front/scripts/test-demo-data.mjs` (or `npm run test:demo-data` from front/). Runs headless by default; use `HEADLESS=0` to show the browser.
+**Puppeteer test (demo data):** Verifies tenant 1 has ≥10 tables and ≥10 products and /book/1 loads. Run with tenant 1 credentials: `BASE_URL=https://sakario.sg LOGIN_EMAIL=... LOGIN_PASSWORD=... node front/scripts/test-demo-data.mjs` (or `npm run test:demo-data` from front/). Runs headless by default; use `HEADLESS=0` to show the browser.
 
-**Puppeteer test (catalog + images):** `front/scripts/test-catalog.mjs` logs in, opens /catalog, and reports total cards, how many have loaded images vs placeholders. Compare dev vs amvara9: `BASE_URL=http://127.0.0.1:4202 LOGIN_EMAIL=... LOGIN_PASSWORD=... node front/scripts/test-catalog.mjs` and same with `BASE_URL=http://satisfecho.de`. Catalog data (ProductCatalog, ProviderProduct, images) comes from wine/beer/pizza import seeds, not from deploy; amvara9 has no catalog unless those imports are run on the server.
+**Puppeteer test (catalog + images):** `front/scripts/test-catalog.mjs` logs in, opens /catalog, and reports total cards, how many have loaded images vs placeholders. Compare dev vs amvara9: `BASE_URL=http://127.0.0.1:4202 LOGIN_EMAIL=... LOGIN_PASSWORD=... node front/scripts/test-catalog.mjs` and same with `BASE_URL=https://sakario.sg`. Catalog data (ProductCatalog, ProviderProduct, images) comes from wine/beer/pizza import seeds, not from deploy; amvara9 has no catalog unless those imports are run on the server.
 
 ## Development conventions
 

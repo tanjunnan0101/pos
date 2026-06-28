@@ -11,10 +11,10 @@
 # Reports UI: adjust staff clock-in/out (work session)
 
 ## GitHub Issues
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- `gh issue list --repo satisfecho/pos --state open --limit 40`
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- `gh issue list --repo tanjunnan0101/pos --state open --limit 40`
 - Optional: `--json number,title,labels,updatedAt,url`
-- **Issue:** https://github.com/satisfecho/pos/issues/159
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/159
 
 ## Problem / goal
 Staff with **report:read** need an **Adjust** action on **Reports** to correct a work session’s clock-in/out times and add a note. The flow should open a modal (**datetime-local** for start and end, plus note), call **`postReportWorkSessionAdjust(sessionId, { note, started_at, ended_at })`** with **ISO UTC** derived from the local inputs, reload attendance tables on success, and surface API errors via **`ApiErrorMessageService`**. Remove the duplicate **“Who is on shift now”** block from **`reports.component.html`**. Add **`REPORTS.*`** i18n keys in **all** **`front/public/i18n/*.json`** files.

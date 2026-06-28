@@ -11,7 +11,7 @@
 # New language: Bulgarian
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/103
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/103
 
 ## Problem / goal
 Add Bulgarian (`bg` or team-standard code) across the stack: complete `i18n` JSON coverage, expose the locale in backend and customer-facing language selectors, and verify the app builds and key routes render without missing keys.

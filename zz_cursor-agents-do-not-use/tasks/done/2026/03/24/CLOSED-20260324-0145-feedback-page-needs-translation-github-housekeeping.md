@@ -11,7 +11,7 @@
 # Feedback page needs translation
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 Public feedback URL (e.g. `/feedback/{tenant}` with token) should show the full form in the user’s selected language. Prior implementation and tester **PASS** are archived under `agents/tasks/done/2026/03/23/CLOSED-20260323-2214-feedback-page-needs-translation.md` and follow-up verification under `agents/tasks/done/2026/03/24/CLOSED-20260324-0133-feedback-page-needs-translation-close-loop.md`. Issue **#67** remains **open** on GitHub mainly for housekeeping: add a closing comment, apply labels per `docs/agent-loop.md`, and **close** when product agrees. Only reopen or extend scope if QA finds untranslated strings.

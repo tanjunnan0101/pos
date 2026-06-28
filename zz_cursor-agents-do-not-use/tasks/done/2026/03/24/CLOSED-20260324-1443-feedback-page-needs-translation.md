@@ -12,11 +12,11 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…` on production) must show **fully translated** UI in the selected language: no missing strings, wrong language, or raw i18n keys (`FEEDBACK.*`) in visible copy or document title. Issue reporter cited **https://satisfecho.de** example URL. See `front/public/i18n/`, `FeedbackPublicComponent`, and prior **`agents/tasks/done/`** archives for this theme (multiple tester PASS notes; optional production spot-check and GitHub close remain product decisions per `docs/agent-loop.md`).
+Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…` on production) must show **fully translated** UI in the selected language: no missing strings, wrong language, or raw i18n keys (`FEEDBACK.*`) in visible copy or document title. Issue reporter cited **https://sakario.sg** example URL. See `front/public/i18n/`, `FeedbackPublicComponent`, and prior **`agents/tasks/done/`** archives for this theme (multiple tester PASS notes; optional production spot-check and GitHub close remain product decisions per `docs/agent-loop.md`).
 
 ## High-level instructions for coder
 
@@ -40,7 +40,7 @@ Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…` on productio
    Or `npm run test:feedback-public-i18n --prefix front` with `BASE_URL` set if not using the default port discovery.
    Expect: all `>>> RESULT:` lines OK; **no** raw `FEEDBACK.` substrings in body or tab title during checks.
 3. **Manual spot-check (optional):** `/feedback/1` and `/feedback/1?token=test`; switch language picker through **en, de, fr, es, ca, zh-CN, hi**; confirm form, errors, thank-you, **invalid id** (`/feedback/0`), **missing tenant** (e.g. `/feedback/999999999`), and browser tab title track the locale.
-4. **Production (optional):** Repeat a subset on **https://satisfecho.de** per `docs/agent-loop.md` / product process.
+4. **Production (optional):** Repeat a subset on **https://sakario.sg** per `docs/agent-loop.md` / product process.
 
 ---
 
@@ -55,7 +55,7 @@ Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…` on productio
    - **No raw `FEEDBACK.` in body or document title (automated checks):** **PASS** — script asserts absence of `FEEDBACK.` substring and localized phrases per locale; including missing-tenant (404) EN/DE body and DE title.
    - **Optional manual / production spot-check:** **N/A** — not required for closure of this verification step per task text.
 5. **Overall:** **PASS**
-6. **Product owner feedback:** Public feedback i18n is covered end-to-end by the headless script on dev, including the new 404 tenant-not-found regression checks. Remaining decision is whether to spot-check **https://satisfecho.de** and close **#67** when product is satisfied.
+6. **Product owner feedback:** Public feedback i18n is covered end-to-end by the headless script on dev, including the new 404 tenant-not-found regression checks. Remaining decision is whether to spot-check **https://sakario.sg** and close **#67** when product is satisfied.
 7. **URLs tested (automated):**
    1. `http://127.0.0.1:4202/feedback/1` (browser stub `es-ES` first load)
    2. `http://127.0.0.1:4202/feedback/1` (language picker: en, de, fr, es, ca, zh-CN, hi)

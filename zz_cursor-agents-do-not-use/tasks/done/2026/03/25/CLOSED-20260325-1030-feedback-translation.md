@@ -11,7 +11,7 @@
 # Feedback page needs translation
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 The feedback page has UI text that is not localized. Translations needed for different languages (i18n). This is a feature/enhancement issue.

@@ -8,9 +8,9 @@
  *   BASE_URL=http://127.0.0.1:4202 HEADLESS=1 npm run test:provider-register
  *
  * Env:
- *   BASE_URL             App URL (default: auto-detect 4203, 4202, 4200 or http://satisfecho.de)
+ *   BASE_URL             App URL (default: auto-detect 4203, 4202, 4200 or https://sakario.sg)
  *   PROVIDER_NAME       Provider/company name (default: Test Provider <timestamp>)
- *   PROVIDER_EMAIL      Email (default: provider-<timestamp>@amvara.de)
+ *   PROVIDER_EMAIL      Email (default: provider-<timestamp>@sakario.sg)
  *   PROVIDER_PASSWORD   Password (default: testpass123)
  *   PROVIDER_FULL_NAME  Full name (default: Test Provider User)
  *   HEADLESS       Default headless; set 0, false, or no for a visible browser.
@@ -40,12 +40,12 @@ async function main() {
         }
       } catch (_) {}
     }
-    baseUrl = baseUrl || 'http://satisfecho.de';
+    baseUrl = baseUrl || 'https://sakario.sg';
   }
 
   const ts = Date.now();
   const providerName = process.env.PROVIDER_NAME || `Test Provider ${ts}`;
-  const email = process.env.PROVIDER_EMAIL || `provider-${ts}@amvara.de`;
+  const email = process.env.PROVIDER_EMAIL || `provider-${ts}@sakario.sg`;
   const password = process.env.PROVIDER_PASSWORD || 'testpass123';
   const fullName = process.env.PROVIDER_FULL_NAME || 'Test Provider User';
 

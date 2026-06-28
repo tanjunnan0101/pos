@@ -19,7 +19,7 @@ class TestPublicTenantWhatsapp(PgClientTestCase):
         tenant = models.Tenant(
             name="Test Restaurant",
             phone="+34 612 000 000",
-            email="pos-public-tenant-test@amvara.de",
+            email="pos-public-tenant-test@sakario.sg",
             whatsapp="+34612000111",
         )
         self.session.add(tenant)
@@ -35,7 +35,7 @@ class TestPublicTenantWhatsapp(PgClientTestCase):
         self.assertIn("whatsapp", data, "Response must include 'whatsapp' key")
         self.assertEqual(data["whatsapp"], "+34612000111")
         self.assertEqual(data["phone"], "+34 612 000 000")
-        self.assertEqual(data["email"], "pos-public-tenant-test@amvara.de")
+        self.assertEqual(data["email"], "pos-public-tenant-test@sakario.sg")
         self.assertIn("reservation_max_guests_per_slot", data)
         self.assertIsNone(data["reservation_max_guests_per_slot"])
         self.assertIn("website", data)

@@ -4,7 +4,7 @@
 - **What happened:** GitHub issue #67 (public guest feedback i18n) was driven through coder verification and an independent tester run on local dev; no further frontend changes were required in the final pass.
 - **What was done:** Confirmed `FeedbackPublicComponent` uses the translate pipe for guest-visible copy and updates the document title via `translate.get` so raw `FEEDBACK.*` keys do not appear; locale JSON under `front/public/i18n/` already covers the keys in use.
 - **What was tested:** `node front/scripts/test-feedback-public-i18n.mjs` against `http://127.0.0.1:4202` (locales, token URL, thank-you in de, invalid tenant); **PASS** with exit 0 and Angular build healthy per front container logs.
-- **Why closed:** All stated pass/fail criteria met; tester overall **PASS**; optional production check on satisfecho.de and GitHub comment/close remain product follow-up (not blocking archive).
+- **Why closed:** All stated pass/fail criteria met; tester overall **PASS**; optional production check on sakario.sg and GitHub comment/close remain product follow-up (not blocking archive).
 - **Closed at (UTC):** 2026-03-24 07:30
 ---
 
@@ -12,16 +12,16 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public guest feedback at `/feedback/{tenant}` (e.g. with `?token=…`) must show **no untranslated UI**: the full form and related states in the selected language. Implementation and multiple tester **PASS** archives exist under `agents/tasks/done/` for this theme; **#67** remains **open** on GitHub. Remaining work is **product verification** (optional production on **satisfecho.de**), any **real i18n gaps** found there, and **GitHub alignment** (verification comment, labels, close when product accepts). See `front/public/i18n/`, `FeedbackPublicComponent`, and `docs/agent-loop.md`.
+Public guest feedback at `/feedback/{tenant}` (e.g. with `?token=…`) must show **no untranslated UI**: the full form and related states in the selected language. Implementation and multiple tester **PASS** archives exist under `agents/tasks/done/` for this theme; **#67** remains **open** on GitHub. Remaining work is **product verification** (optional production on **sakario.sg**), any **real i18n gaps** found there, and **GitHub alignment** (verification comment, labels, close when product accepts). See `front/public/i18n/`, `FeedbackPublicComponent`, and `docs/agent-loop.md`.
 
 ## High-level instructions for coder
 
 - Re-read **#67** and verify `/feedback/{tenant}` with and without `?token=…` across supported locales (picker + `Accept-Language`); confirm no raw `FEEDBACK.*` keys in visible UI or document title.
-- If dev already matches acceptance, capture evidence for the issue; optional production spot-check on **satisfecho.de**; support a short verification comment and closing **#67** when product agrees.
+- If dev already matches acceptance, capture evidence for the issue; optional production spot-check on **sakario.sg**; support a short verification comment and closing **#67** when product agrees.
 - If gaps remain, fix copy, keys, or title handling in `FeedbackPublicComponent` and locale JSON; re-run the feedback i18n Puppeteer smoke if present.
 
 ## Coder (feature) — 2026-03-24
@@ -52,7 +52,7 @@ Public guest feedback at `/feedback/{tenant}` (e.g. with `?token=…`) must show
 
 ### Follow-up (outside tester script)
 
-- Optional production spot-check on **https://satisfecho.de**; GitHub **#67** verification comment and close when product accepts (see issue and `docs/agent-loop.md`).
+- Optional production spot-check on **https://sakario.sg**; GitHub **#67** verification comment and close when product accepts (see issue and `docs/agent-loop.md`).
 
 ---
 
@@ -72,7 +72,7 @@ Public guest feedback at `/feedback/{tenant}` (e.g. with `?token=…`) must show
 
 5. **Overall:** **PASS** (all criteria met).
 
-6. **Product owner feedback:** Public feedback matches the acceptance bar for local dev: every checked locale shows real copy, tab titles follow the language, and deep-link and error paths stay translated. Production on satisfecho.de was not exercised in this run; if you want parity proof there, a short manual pass is still optional. Closing the GitHub issue remains a product decision once you are satisfied.
+6. **Product owner feedback:** Public feedback matches the acceptance bar for local dev: every checked locale shows real copy, tab titles follow the language, and deep-link and error paths stay translated. Production on sakario.sg was not exercised in this run; if you want parity proof there, a short manual pass is still optional. Closing the GitHub issue remains a product decision once you are satisfied.
 
 7. **URLs tested:**
    1. `http://127.0.0.1:4202/feedback/1`

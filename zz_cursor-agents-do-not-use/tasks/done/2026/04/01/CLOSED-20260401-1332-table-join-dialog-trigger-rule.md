@@ -11,7 +11,7 @@
 # Table join dialog — trigger rule
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/142
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/142
 
 ## Problem / goal
 On the Tables layout, the “join / group tables” confirmation must appear only when the dragged table **actually overlaps** the other table in canvas space (bounding boxes or shape geometry intersect; intersection area greater than zero, or enforce a minimum overlap ratio if tiny touches should be ignored). Adjacent tables that are close but **not** overlapping must not open the join dialog. Do not rely on distance alone as the trigger.

@@ -53,8 +53,8 @@ This is **remote integration** (fetch/pull/rebase), not “open a GitHub PR befo
 
 | mac-stats-reviewer agent | POS role | Typical inputs | Writes / edits |
 |--------------------------|----------|----------------|----------------|
-| **001 Log reviewer** (`001-gh-reviewer.md`) | **GitHub → FEAT; logs → NEW** | **Issues:** up to **3 × `FEAT-…`** / run for **feature coders** (×5 in loop). **Logs:** **`NEW-…`** only for concrete Docker log incidents | **`agents/tasks/`** only. **`gh`** on **`satisfecho/pos`** issues. See **001** prompt — never use **`NEW-`** for GitHub-sourced work. |
-| **005 Marketing repos reviewer** (`005-marketing-repos-reviewer.md`) | **NNN_slug org repos → register / deploy / FEAT-MKT** | Preflight scans **`satisfecho/*`** repos named **`NNN_slug`** (e.g. **`083_wimpi`**) for pushes and open issues | **`config/marketing-sites.json`**, **`front/sites/<slug>/`**, **`FEAT-MKT-…`** tasks; triggers **`Deploy to amvara9`** when bundles change. Live at **`https://www.satisfecho.de/<slug>/`**. |
+| **001 Log reviewer** (`001-gh-reviewer.md`) | **GitHub → FEAT; logs → NEW** | **Issues:** up to **3 × `FEAT-…`** / run for **feature coders** (×5 in loop). **Logs:** **`NEW-…`** only for concrete Docker log incidents | **`agents/tasks/`** only. **`gh`** on **`tanjunnan0101/pos`** issues. See **001** prompt — never use **`NEW-`** for GitHub-sourced work. |
+| **005 Marketing repos reviewer** (`005-marketing-repos-reviewer.md`) | **NNN_slug org repos → register / deploy / FEAT-MKT** | Preflight scans **`sakario/*`** repos named **`NNN_slug`** (e.g. **`083_wimpi`**) for pushes and open issues | **`config/marketing-sites.json`**, **`front/sites/<slug>/`**, **`FEAT-MKT-…`** tasks; triggers **`Deploy to amvara9`** when bundles change. Live at **`https://www.sakario.sg/<slug>/`**. |
 | **002 Coder** (`002-coder-backend/CODER.md`) | **Implementer (main)** | **NEW** → **wip**; also continues **wip** when no **NEW** (orchestrator runs this step if **`NEW-*.md`** or **`WIP-*.md`** exists) | **`back/`**, **`front/`**, tests; task file status + **Testing instructions**; then **untested**. |
 | **006 Feature coder** (`010-feature-coder.md`) | **Implementer (FEAT queue)** | **`FEAT-*.md`** (including **`FEAT-MKT-*`** for marketing repos) → **wip** | POS **`back/`/`front/`** or sibling marketing repo per task. |
 | **003 Tester** (`TESTER.md`) | **Verifier** | **untested** → **testing** | Appends **Test report**; **closed** or back to **wip** on failure. Uses **`pytest`** (Docker), **`node front/scripts/…`**, **`npm run test:*`** per task. |
@@ -212,11 +212,11 @@ Optional: track last version bump time in **`agents/007-committer/last-version-b
 
 ## GitHub Issues integration (optional)
 
-**Is it possible?** **Yes.** [Issues for this repo](https://github.com/satisfecho/pos/issues) can be updated from the agent workflow using the **GitHub REST API** or the **`gh` CLI**, as long as a credential with permission to read/write issues is available (see **Authentication** below). Issues do **not** have a built-in “WIP” field; use **labels** (and/or **GitHub Projects** “Status”) so each role can signal state in a consistent, machine-friendly way.
+**Is it possible?** **Yes.** [Issues for this repo](https://github.com/tanjunnan0101/pos/issues) can be updated from the agent workflow using the **GitHub REST API** or the **`gh` CLI**, as long as a credential with permission to read/write issues is available (see **Authentication** below). Issues do **not** have a built-in “WIP” field; use **labels** (and/or **GitHub Projects** “Status”) so each role can signal state in a consistent, machine-friendly way.
 
 ### Authentication (required for updates)
 
-- **Fine-grained PAT** or **classic PAT** with **Issues** read/write on `satisfecho/pos`, **or** **`gh auth login`** on the machine running the agent.
+- **Fine-grained PAT** or **classic PAT** with **Issues** read/write on `tanjunnan0101/pos`, **or** **`gh auth login`** on the machine running the agent.
 - Expose to tools as **`GH_TOKEN`** / **`GITHUB_TOKEN`** (many tools accept either). **Never** commit tokens; use shell env, CI secrets, or local keychain via `gh`.
 - In **GitHub Actions**, the default `GITHUB_TOKEN` can comment and label on the same repo when workflows are enabled.
 
@@ -226,10 +226,10 @@ At the top of each task markdown (or immediately under the title), add a stable 
 
 ```markdown
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/NN
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/NN
 ```
 
-The **reviewer** uses the [issue list](https://github.com/satisfecho/pos/issues) as the **input backlog**. When they create the feature/task file, they record **`NN`** in that section (and optionally quote the issue title in the task body).
+The **reviewer** uses the [issue list](https://github.com/tanjunnan0101/pos/issues) as the **input backlog**. When they create the feature/task file, they record **`NN`** in that section (and optionally quote the issue title in the task body).
 
 ### Suggested labels (create once in the repo)
 
@@ -259,13 +259,13 @@ On **test failure** (**testing → wip**), the tester should comment on the issu
 ```bash
 export GH_TOKEN=…   # or rely on `gh auth login`
 
-gh issue list --repo satisfecho/pos --state open --limit 30
+gh issue list --repo tanjunnan0101/pos --state open --limit 30
 
-gh issue comment 50 --repo satisfecho/pos --body "Task file: agents/tasks/FEAT-20260323-1030-order-tip.md — planned for implementation (feature queue)."
+gh issue comment 50 --repo tanjunnan0101/pos --body "Task file: agents/tasks/FEAT-20260323-1030-order-tip.md — planned for implementation (feature queue)."
 
-gh issue edit 50 --repo satisfecho/pos --add-label "agent:planned"
+gh issue edit 50 --repo tanjunnan0101/pos --add-label "agent:planned"
 
-gh issue edit 50 --repo satisfecho/pos --remove-label "agent:planned" --add-label "agent:wip"
+gh issue edit 50 --repo tanjunnan0101/pos --remove-label "agent:planned" --add-label "agent:wip"
 ```
 
 Equivalent **HTTP** calls are documented in [GitHub REST: Issues](https://docs.github.com/en/rest/issues/issues).

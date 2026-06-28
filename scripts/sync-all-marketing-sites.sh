@@ -185,7 +185,7 @@ discover_siblings() {
     [[ -f "$dirpath/package.json" ]] || continue
 
     slug_mark "$slug"
-    local repo="satisfecho/${base}"
+    local repo="sakario/${base}"
 
     log "discovered ${base} → slug=${slug} repo=${repo}"
     if fetch_one "$slug" "$repo" "development" "dist"; then

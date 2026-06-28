@@ -11,7 +11,7 @@
 # Public book: default time must not be in the past for today
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/241
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/241
 - **241**
 
 ## Problem / goal

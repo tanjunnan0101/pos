@@ -1,11 +1,11 @@
 # CI/CD: Deploy to amvara9 on push to master
 
-When code is pushed to the **production branch** (**`master`**) of **https://github.com/satisfecho/pos**, GitHub Actions deploys to **amvara9** (167.235.138.59). Pushes to **`development`** do **not** trigger deploy (merge **`development` → `master`** to ship). Rename **`master` → `main`** on GitHub if your policy uses **`main`**; then update `.github/workflows/deploy-amvara9.yml` **`push.branches`** accordingly.
+When code is pushed to the **production branch** (**`master`**) of **https://github.com/tanjunnan0101/pos**, GitHub Actions deploys to **amvara9** (167.235.138.59). Pushes to **`development`** do **not** trigger deploy (merge **`development` → `master`** to ship). Rename **`master` → `main`** on GitHub if your policy uses **`main`**; then update `.github/workflows/deploy-amvara9.yml` **`push.branches`** accordingly.
 
 ## Server setup (already done)
 
 - **amvara9**: SSH key pair generated at `/root/.ssh/github_deploy`; public key added to `/root/.ssh/authorized_keys`.
-- Repo at `/development/pos` with **`origin`** pointing to **https://github.com/satisfecho/pos** so that `git pull origin master` pulls from satisfecho/pos. If the server was previously cloned from or pointed at raro42/pos2, run on amvara9: `cd /development/pos && git remote set-url origin https://github.com/satisfecho/pos.git`.
+- Repo at `/development/pos` with **`origin`** pointing to **https://github.com/tanjunnan0101/pos** so that `git pull origin master` pulls from tanjunnan0101/pos. If the server was previously cloned from or pointed at raro42/pos2, run on amvara9: `cd /development/pos && git remote set-url origin https://github.com/tanjunnan0101/pos.git`.
 - `config.env` created from `config.env.example`. Use **relative URLs** so registration and API work from any host (IP or domain): `API_URL=/api`, `WS_URL=` (empty; frontend then uses same-origin `/ws`). Edit SECRET_KEY, REFRESH_SECRET_KEY, CORS_ORIGINS, etc. as needed.
 - Docker and Docker Compose must be installed on amvara9 for the deploy to run containers.
 
@@ -20,7 +20,7 @@ The workflow accepts **either** the raw private key (with `-----BEGIN ... END---
    Copy the **entire** output (including `-----BEGIN OPENSSH PRIVATE KEY-----` and `-----END OPENSSH PRIVATE KEY-----` and all lines between).
 
 2. **Add it as a repository secret** in GitHub:
-   - Repository **satisfecho/pos** → **Settings** → **Secrets and variables** → **Actions**
+   - Repository **tanjunnan0101/pos** → **Settings** → **Secrets and variables** → **Actions**
    - Create or update secret **`SSH_PRIVATE_KEY_AMVARA9`**
    - Value: paste the full private key (raw PEM, all lines) or the **single-line base64** from `ssh amvara9 "base64 -w 0 /root/.ssh/github_deploy"` (base64 often works better in GitHub’s secret field)
    - Save
@@ -50,11 +50,11 @@ You can override defaults with these repository secrets:
 - **Deploy script behaviour (GitHub #49):**
   - **`docker compose build`** for **back** and **front** runs **before** stopping app containers; a failed build leaves the previous stack running.
   - By default, **`docker compose down` is not used**; only **front**, **haproxy**, **ws-bridge**, and **back** are stopped so **db** and **redis** stay up. Override with **`DEPLOY_FULL_DOWN=1`** on the server for a full teardown.
-  - **`git remote get-url origin`** must contain **`satisfecho/pos`** unless **`SKIP_ORIGIN_CHECK=1`** (forks/mirrors).
+  - **`git remote get-url origin`** must contain **`tanjunnan0101/pos`** unless **`SKIP_ORIGIN_CHECK=1`** (forks/mirrors).
   - Migrations run with **strict failure** (script exits if migrate or sync-idempotent fails).
   - After **`up -d`**, the script waits for **`http://127.0.0.1:8020/health`** inside the **back** container (retries) instead of a fixed long sleep.
-  - After **back** and **front** images build successfully, **`docker buildx prune -f`** runs to drop **unused** BuildKit cache and limit disk growth on the server ([issue #73](https://github.com/satisfecho/pos/issues/73)). It is non-interactive (`-f`). Override with **`SKIP_BUILDX_PRUNE=1`** on the server if you need to skip it. Failures are logged as a warning and do not abort deploy.
-- **Post-deploy smoke:** The workflow retries **landing**, **app-version** meta, and **`/api/health`** against **`SMOKE_TEST_BASE_URL`** (default **https://www.satisfecho.de**).
+  - After **back** and **front** images build successfully, **`docker buildx prune -f`** runs to drop **unused** BuildKit cache and limit disk growth on the server ([issue #73](https://github.com/tanjunnan0101/pos/issues/73)). It is non-interactive (`-f`). Override with **`SKIP_BUILDX_PRUNE=1`** on the server if you need to skip it. Failures are logged as a warning and do not abort deploy.
+- **Post-deploy smoke:** The workflow retries **landing**, **app-version** meta, and **`/api/health`** against **`SMOKE_TEST_BASE_URL`** (default **https://www.sakario.sg**).
 
 ## First deploy
 
@@ -99,27 +99,27 @@ On a clean clone to `/development/pos` with no `config.env`, the deploy script c
 
 ## Smoke test after deploy
 
-Once the GitHub Actions deploy job has finished, run smoke tests from a machine that can reach the production URL (e.g. your laptop, or a runner with network access to amvara9 / satisfecho.de).
+Once the GitHub Actions deploy job has finished, run smoke tests from a machine that can reach the production URL (e.g. your laptop, or a runner with network access to amvara9 / sakario.sg).
 
 **1. Landing (no credentials):**
 ```bash
 cd pos/front
 BASE_URL=http://167.235.138.59 HEADLESS=1 npm run test:landing-version
-# Or when DNS/SSL is set: BASE_URL=https://satisfecho.de HEADLESS=1 npm run test:landing-version
+# Or when DNS/SSL is set: BASE_URL=https://sakario.sg HEADLESS=1 npm run test:landing-version
 ```
 
 **2. Reports (owner/admin credentials required; create first user at /register after fresh install):**
 ```bash
 cd pos/front
-BASE_URL=http://167.235.138.59 HEADLESS=1 LOGIN_EMAIL=your-owner@amvara.de LOGIN_PASSWORD=yourpassword npm run test:reports
-# Or BASE_URL=https://satisfecho.de when DNS is set
+BASE_URL=http://167.235.138.59 HEADLESS=1 LOGIN_EMAIL=your-owner@sakario.sg LOGIN_PASSWORD=yourpassword npm run test:reports
+# Or BASE_URL=https://sakario.sg when DNS is set
 ```
 
 **3. Optional – full reservation tests:**
 ```bash
 # From repo root
-STAFF_TEST=1 BASE_URLS="https://satisfecho.de" HEADLESS=1 ./scripts/run-reservation-tests.sh
+STAFF_TEST=1 BASE_URLS="https://sakario.sg" HEADLESS=1 ./scripts/run-reservation-tests.sh
 # Set LOGIN_EMAIL / LOGIN_PASSWORD in env or .env (DEMO_LOGIN_EMAIL / DEMO_LOGIN_PASSWORD) for staff test
 ```
 
-If the production URL is not satisfecho.de, set `BASE_URL` (or `BASE_URLS`) to the actual app URL. See [AGENTS.md](../AGENTS.md) (Smoke tests required) and [testing.md](testing.md).
+If the production URL is not sakario.sg, set `BASE_URL` (or `BASE_URLS`) to the actual app URL. See [AGENTS.md](../AGENTS.md) (Smoke tests required) and [testing.md](testing.md).

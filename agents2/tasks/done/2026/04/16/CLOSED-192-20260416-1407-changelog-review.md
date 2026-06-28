@@ -1,7 +1,7 @@
 # Changelog Review
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/192
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/192
 - **192**
 
 ## Problem / goal

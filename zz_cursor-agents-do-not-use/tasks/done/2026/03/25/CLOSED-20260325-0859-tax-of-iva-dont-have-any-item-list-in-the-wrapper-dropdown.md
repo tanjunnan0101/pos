@@ -10,7 +10,7 @@
 # Tax of IVA dropdown has no items in Settings > Contact information
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/79
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/79
 
 ## Problem / goal
 In `Settings > Contact information`, the **“Tax of iva”** field shows the dropdown wrapper, but the dropdown option list is empty. The UI should normally offer IVA options (e.g. **10%**).

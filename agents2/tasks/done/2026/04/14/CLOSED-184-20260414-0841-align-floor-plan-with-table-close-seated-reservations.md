@@ -11,7 +11,7 @@
 # Align floor plan status with table close: finish seated reservations on POST /tables/{id}/close
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/184
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/184
 - **184**
 
 ## Problem / goal

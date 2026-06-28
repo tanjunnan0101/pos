@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Preflight for agent 005: scan satisfecho org repos named NNN_slug for pushes and open issues.
+# Preflight for agent 005: scan sakario org repos named NNN_slug for pushes and open issues.
 # Writes digest to stdout or AGENT_005_CTX file; sets G005_* for pos-cursor-loop.sh gating.
 #
 # Usage: marketing-repos-preflight.sh [digest_file]
-# Env: POS_REPO_ROOT, AGENT_GH_ORG (default satisfecho), AGENT_005_STATE (override state json path)
+# Env: POS_REPO_ROOT, AGENT_GH_ORG (default sakario), AGENT_005_STATE (override state json path)
 
 set -euo pipefail
 
 ROOT="${POS_REPO_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
-ORG="${AGENT_GH_ORG:-satisfecho}"
+ORG="${AGENT_GH_ORG:-sakario}"
 MANIFEST="${ROOT}/config/marketing-sites.json"
 TASKDIR="${ROOT}/agents2/tasks"
 STATE_DIR="${ROOT}/agents2/005-marketing-repos-reviewer"
@@ -215,7 +215,7 @@ emit "G005_NEW_REPOS=${G005_NEW_REPOS}"
 emit "G005_CHANGED_REPOS=${G005_CHANGED_REPOS}"
 emit "G005_UNTRACKED_ISSUES=${G005_UNTRACKED_ISSUES}"
 emit "G005_DEPLOY_CANDIDATES=${G005_DEPLOY_CANDIDATES}"
-emit "live_url_pattern: https://www.satisfecho.de/<slug>/ (e.g. /wimpi/)"
+emit "live_url_pattern: https://www.sakario.sg/<slug>/ (e.g. /wimpi/)"
 
 if [[ "${MARKETING_PREFLIGHT_READONLY:-0}" != "1" ]]; then
   printf '%s UTC | 005 preflight | new=%s changed=%s untracked_issues=%s deploy_candidates=%s\n\n' \

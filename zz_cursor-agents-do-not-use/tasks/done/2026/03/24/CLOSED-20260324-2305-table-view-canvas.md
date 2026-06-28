@@ -11,7 +11,7 @@
 # Table view > canvas
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/75
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/75
 
 ## Problem / goal
 On the tables floor-plan canvas, staff should reach **that table’s order(s)** with **one click** (minimal navigation), instead of hunting through the list or multiple steps.

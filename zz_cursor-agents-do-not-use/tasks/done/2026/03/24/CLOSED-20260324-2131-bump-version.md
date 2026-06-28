@@ -12,8 +12,8 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/70
-- **Related (same topic, dedupe — no separate FEAT-):** https://github.com/satisfecho/pos/issues/77
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/70
+- **Related (same topic, dedupe — no separate FEAT-):** https://github.com/tanjunnan0101/pos/issues/77
 
 ## Problem / goal
 

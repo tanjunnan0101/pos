@@ -11,7 +11,7 @@
 # Table tiles: even card height, spaced session buttons
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/236
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/236
 - **236**
 
 ## Problem / goal
@@ -37,7 +37,7 @@ On the Tables grid view (`/tables`), single-table cards in `.table-grid` vary in
 
 ## Testing instructions
 
-1. Log in as staff with table management access (demo: `pos-staff-demo@amvara.de` / env password).
+1. Log in as staff with table management access (demo: `pos-staff-demo@sakario.sg` / env password).
 2. Open **Tables** → **Tiles** view on a floor with a mix of **active** (with PIN) and **inactive** tables.
 3. Confirm all cards in a row share the same height; inactive **Activate** sits centered in the same action band as active **Close table**.
 4. On an active table with PIN: **New PIN** appears next to the PIN; **Close table** is in the footer action row (not stacked above it).

@@ -4,7 +4,7 @@
 - **What happened:** Work tracked for GitHub **#67** (fully localized guest feedback at `/feedback/{tenant}`) was completed on **development** and handed to the tester with clear PASS evidence.
 - **What was done:** Guest feedback UI uses `TranslateModule` / pipes and translated document titles; `FEEDBACK` keys are present across **en**, **de**, **fr**, **es**, **ca**, **zh-CN**, and **hi**; API error paths use translated strings. The coder pass found no further product code changes needed.
 - **What was tested:** `npm run test:feedback-public-i18n` and `npm run test:landing-version` (BASE_URL `http://127.0.0.1:4202`) both **PASS** on commit **a6d14f7**; manual full language-picker sweep and production spot-check were explicitly out of scope for this test report.
-- **Why closed:** Required automated verification passed; task meets archive criteria per **`agents/tasks/README.md`**. **#67** may stay open until optional product sign-off on **satisfecho.de** (as noted in the test report).
+- **Why closed:** Required automated verification passed; task meets archive criteria per **`agents/tasks/README.md`**. **#67** may stay open until optional product sign-off on **sakario.sg** (as noted in the test report).
 - **Closed at (UTC):** 2026-03-24 07:19
 ---
 
@@ -12,7 +12,7 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
@@ -26,7 +26,7 @@ Prior **`agents/tasks/done/`** archives document repeated dev/test **PASS** on *
 - Confirm no raw `FEEDBACK.*` keys (or other i18n leaks) in visible DOM, document title, or post-submit states.
 - If anything is still missing, add keys in all locale JSON files under `front/public/i18n/` and bind in the guest feedback templates/components.
 - Run or extend the existing feedback i18n smoke (Puppeteer under `front/scripts/` if present) and note results for the closer.
-- If dev matches acceptance: optional verification on **satisfecho.de**; support a short GitHub verification comment and closing **#67** when product agrees.
+- If dev matches acceptance: optional verification on **sakario.sg**; support a short GitHub verification comment and closing **#67** when product agrees.
 
 ## Coder verification (2026-03-24 UTC, feature-coder)
 
@@ -40,7 +40,7 @@ Prior **`agents/tasks/done/`** archives document repeated dev/test **PASS** on *
 - `BASE_URL=http://127.0.0.1:4202 npm run test:feedback-public-i18n --prefix front` — **PASS** (commit **3435dce**, branch **development**).
 - `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` — **PASS**.
 
-**Product:** Optional spot-check on **https://satisfecho.de/feedback/1** (and with a real reservation `?token=` if available); close **#67** when product agrees.
+**Product:** Optional spot-check on **https://sakario.sg/feedback/1** (and with a real reservation `?token=` if available); close **#67** when product agrees.
 
 ---
 
@@ -51,7 +51,7 @@ Prior **`agents/tasks/done/`** archives document repeated dev/test **PASS** on *
    Expect exit **0** and log lines ending with “no FEEDBACK.* leaks” / “Invalid tenant … OK”.
 2. **Regression:** `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` — exit **0**.
 3. **Manual (optional):** Open `/feedback/1`, cycle language picker; repeat with `?token=…`; open `/feedback/0` and confirm error strings are translated, not raw keys.
-4. **Production (optional):** Same checks on **satisfecho.de** before closing **#67**.
+4. **Production (optional):** Same checks on **sakario.sg** before closing **#67**.
 
 ---
 
@@ -69,7 +69,7 @@ Prior **`agents/tasks/done/`** archives document repeated dev/test **PASS** on *
 
 5. **Overall:** **PASS** (required automated criteria met).
 
-6. **Product owner feedback:** Guest feedback i18n automation on dev matches the acceptance described in **#67**: locales, token path, thank-you, and invalid-tenant error are covered without raw `FEEDBACK.*` in the DOM. Optional manual language-picker pass and **satisfecho.de** spot-check remain for product sign-off before closing the issue.
+6. **Product owner feedback:** Guest feedback i18n automation on dev matches the acceptance described in **#67**: locales, token path, thank-you, and invalid-tenant error are covered without raw `FEEDBACK.*` in the DOM. Optional manual language-picker pass and **sakario.sg** spot-check remain for product sign-off before closing the issue.
 
 7. **URLs tested (Puppeteer, primary script):**
    1. `http://127.0.0.1:4202/feedback/1` (multiple locale switches and loads)

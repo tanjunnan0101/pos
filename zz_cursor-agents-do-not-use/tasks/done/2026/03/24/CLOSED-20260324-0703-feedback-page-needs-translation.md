@@ -12,11 +12,11 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public guest feedback (e.g. `https://satisfecho.de/feedback/1?token=…`) must not show untranslated UI: the full form and related states should follow the selected language. Multiple **CLOSED** archives under `agents/tasks/done/` document dev/test **PASS**; **#67** stays open until product signs off (optional production check on **satisfecho.de**). See `front/public/i18n/`, `FeedbackPublicComponent`, and `docs/agent-loop.md`.
+Public guest feedback (e.g. `https://sakario.sg/feedback/1?token=…`) must not show untranslated UI: the full form and related states should follow the selected language. Multiple **CLOSED** archives under `agents/tasks/done/` document dev/test **PASS**; **#67** stays open until product signs off (optional production check on **sakario.sg**). See `front/public/i18n/`, `FeedbackPublicComponent`, and `docs/agent-loop.md`.
 
 ## High-level instructions for coder
 
@@ -38,7 +38,7 @@ Automated run (Docker dev stack, HAProxy **4202**):
 - `BASE_URL=http://127.0.0.1:4202 npm run test:feedback-public-i18n --prefix front` — **PASS** (es auto-detect via navigator stub, en/de/fr/es/ca/zh-CN/hi picker, `?token=` path, post-submit thank-you DE, invalid `/feedback/0` en+de, no `FEEDBACK.*` in body text or document title).
 - `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` — **PASS** (regression smoke).
 
-**Product:** Optional manual spot-check on **https://satisfecho.de/feedback/1** (and with a real reservation token if available); close **#67** when product agrees.
+**Product:** Optional manual spot-check on **https://sakario.sg/feedback/1** (and with a real reservation token if available); close **#67** when product agrees.
 
 ---
 
@@ -49,7 +49,7 @@ Automated run (Docker dev stack, HAProxy **4202**):
    Expect exit **0** and log lines ending with “no FEEDBACK.* leaks” / “Invalid tenant … OK”.
 2. **Regression:** `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` — exit **0**.
 3. **Manual (optional):** Open `/feedback/1`, cycle language picker; repeat with `?token=…`; open `/feedback/0` and confirm error strings are translated, not raw keys.
-4. **Production (optional):** Same checks on **satisfecho.de** if verifying before closing **#67**.
+4. **Production (optional):** Same checks on **sakario.sg** if verifying before closing **#67**.
 
 ---
 
@@ -62,7 +62,7 @@ Automated run (Docker dev stack, HAProxy **4202**):
    - **Primary** (`npm run test:feedback-public-i18n`): **PASS** — exit 0; script logged all `>>> RESULT: … OK` lines including “no FEEDBACK.* leaks” and “Invalid tenant /feedback/0 error UI i18n OK”.
    - **Regression** (`npm run test:landing-version`): **PASS** — exit 0; “Landing version OK; demo login (tenant=1) OK; sidebar nav OK.”
 5. **Overall:** **PASS** (no failed criteria).
-6. **Product owner feedback:** Automated checks confirm guest feedback UI stays translated across the covered locales and paths, with no raw `FEEDBACK.*` keys in the exercised DOM or titles. Issue **#67** can remain open until someone does an optional production spot-check on **satisfecho.de** and product explicitly signs off, as stated in the task body.
+6. **Product owner feedback:** Automated checks confirm guest feedback UI stays translated across the covered locales and paths, with no raw `FEEDBACK.*` keys in the exercised DOM or titles. Issue **#67** can remain open until someone does an optional production spot-check on **sakario.sg** and product explicitly signs off, as stated in the task body.
 7. **URLs tested (Puppeteer, via BASE_URL):**
    1. `http://127.0.0.1:4202/feedback/1` (default locale stub + language picker cycles)
    2. `http://127.0.0.1:4202/feedback/1?token=…` (script-built token query)

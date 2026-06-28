@@ -12,7 +12,7 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/65
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/65
 
 ## Problem / goal
 
@@ -54,7 +54,7 @@ Relevant areas: tables canvas / tables list, permissions and API payloads for as
 4. **Results:**
    - **Owner/admin — table view dropdowns:** **PASS** — After login (`.env` `DEMO_LOGIN_*`), `/tables` → Table view: **13** `<select>` elements under `.tables-data-table` (waiter assignment controls present).
    - **Owner/admin — tiles + canvas/floor defaults:** **PASS (partial)** — `npm run test:tables-page` confirms Table view and navigation; **floor-plan canvas and per-floor default waiter dropdowns** were not re-tested manually in this run (only list/table path exercised for owner).
-   - **Waiter — assigned name visible, read-only:** **PASS** — Login as tenant **1** waiter user `ralf.roeber@amvara.de` (password: local dev only, not recorded here), `/tables` → Table view: row text includes **Werni** for assigned tables; **no** empty broken `<select>` in `.tables-data-table`. **API check:** authenticated waiter session → `GET /api/tables/with-status` returns `assigned_waiter_name` / `effective_waiter_name` where applicable (e.g. T07).
+   - **Waiter — assigned name visible, read-only:** **PASS** — Login as tenant **1** waiter user `ralf.roeber@sakario.sg` (password: local dev only, not recorded here), `/tables` → Table view: row text includes **Werni** for assigned tables; **no** empty broken `<select>` in `.tables-data-table`. **API check:** authenticated waiter session → `GET /api/tables/with-status` returns `assigned_waiter_name` / `effective_waiter_name` where applicable (e.g. T07).
    - **Unassigned label:** **PASS** — Sample row **001** showed **Unassigned** in waiter session output.
    - **Receptionist (optional):** **N/A** — not run.
    - **Regression `test:landing-version`:** **PASS** — `BASE_URL=http://127.0.0.1:4202 HEADLESS=1 npm run test:landing-version --prefix front` exit **0** (includes `/tables` nav).

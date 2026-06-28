@@ -11,7 +11,7 @@
 # Erroneous task loop — remove stuck WIP-210 from agent queue
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/212
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/212
 - **212**
 
 ## Problem / goal

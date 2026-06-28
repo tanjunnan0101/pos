@@ -7,7 +7,7 @@
  *   BASE_URL=http://127.0.0.1:4202 node front/scripts/test-landing-provider-links.mjs
  *
  * Env:
- *   BASE_URL   App URL (default: auto-detect port 4203, 4202, 4200 or http://satisfecho.de)
+ *   BASE_URL   App URL (default: auto-detect port 4203, 4202, 4200 or https://sakario.sg)
  *   HEADLESS       Default headless; set 0, false, or no for a visible browser.
  */
 
@@ -35,7 +35,7 @@ async function main() {
         }
       } catch (_) {}
     }
-    baseUrl = baseUrl || 'http://satisfecho.de';
+    baseUrl = baseUrl || 'https://sakario.sg';
   }
 
   const headless = isHeadless();
@@ -112,7 +112,7 @@ async function main() {
       const el = document.querySelector('[data-testid="landing-contact-us"]');
       return el ? el.getAttribute('href') || '' : '';
     });
-    const expectedMailto = 'mailto:sales@satisfecho.de';
+    const expectedMailto = 'mailto:sales@sakario.sg';
     if (contactHref !== expectedMailto) {
       console.log('   FAIL: Contact link href expected', expectedMailto, 'got:', contactHref);
       await browser.close();

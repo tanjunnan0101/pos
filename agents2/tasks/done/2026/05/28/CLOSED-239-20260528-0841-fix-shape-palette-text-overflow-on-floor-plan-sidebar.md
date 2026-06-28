@@ -11,7 +11,7 @@
 # Fix shape palette text overflow on floor plan sidebar
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/239
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/239
 - **239**
 
 ## Problem / goal

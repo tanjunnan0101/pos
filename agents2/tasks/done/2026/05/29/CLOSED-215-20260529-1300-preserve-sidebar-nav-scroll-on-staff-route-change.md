@@ -11,7 +11,7 @@
 # Preserve sidebar nav scroll on staff route change
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/215
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/215
 - **215**
 
 ## Problem / goal

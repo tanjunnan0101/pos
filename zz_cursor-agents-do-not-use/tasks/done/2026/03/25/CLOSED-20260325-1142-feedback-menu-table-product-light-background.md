@@ -11,7 +11,7 @@
 # Feedback: light background when product added in menu table
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/85
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/85
 
 ## Problem / goal
 When a customer or waiter adds a product from the menu table view, the chosen row/item should read as “selected” or “marked” with a **light background** (consistent with existing selection patterns elsewhere in the app). Typo in original title: “backrgound” → background.

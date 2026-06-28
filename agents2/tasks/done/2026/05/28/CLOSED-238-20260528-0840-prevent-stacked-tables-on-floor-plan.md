@@ -11,7 +11,7 @@
 # Prevent stacked tables on floor plan (default placement + overlap hint)
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/238
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/238
 - **238**
 
 ## Problem / goal

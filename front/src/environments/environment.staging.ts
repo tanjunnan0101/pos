@@ -31,7 +31,6 @@ export const environment = {
   staging: true,
   apiUrl: getApiUrl(),
   wsUrl: getWsUrl(),
-  stripePublishableKey: (typeof window !== 'undefined' && (window as any).__STRIPE_PUBLISHABLE_KEY__) || '',
   version,
   commitHash,
 };

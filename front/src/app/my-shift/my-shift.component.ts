@@ -1,4 +1,4 @@
-import {
+﻿import {
   Component,
   Injector,
   OnDestroy,
@@ -18,6 +18,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import {
   ApiService,
   ClockQrStatus,
+  User,
   WorkSession,
   WorkSessionClockPayload,
   workSessionNetWorkSeconds,
@@ -55,6 +56,24 @@ const MY_SHIFT_QR_READER_ID = 'my-shift-qr-reader';
         }
         @if (clockStatus()?.clock_qr_location_verify) {
           <p class="hint">{{ 'MY_SHIFT.LOCATION_HINT' | translate }}</p>
+        }
+
+        @if (staffUsers().length > 1) {
+          <section class="card staff-selector-card">
+            <label for="my-shift-user-select">{{ 'MY_SHIFT.STAFF_SELECTOR_LABEL' | translate }}</label>
+            <select
+              id="my-shift-user-select"
+              class="staff-select"
+              [value]="selectedUserId() || ''"
+              (change)="onSelectedUserChange($event)"
+              [disabled]="loading() || actionLoading()"
+            >
+              @for (u of staffUsers(); track u.id) {
+                <option [value]="u.id">{{ displayUserName(u) }}</option>
+              }
+            </select>
+            <p class="hint selector-hint">{{ 'MY_SHIFT.STAFF_SELECTOR_HINT' | translate }}</p>
+          </section>
         }
 
         @if (exceedsContract()) {
@@ -117,7 +136,16 @@ const MY_SHIFT_QR_READER_ID = 'my-shift-qr-reader';
               </p>
             }
             <div class="btn-stack">
-              @if (s.on_break) {
+              @if (!selectedIsSelf()) {
+                <button
+                  type="button"
+                  class="btn btn-primary btn-end"
+                  (click)="endShift()"
+                  [disabled]="actionLoading() || qrBlocked()"
+                >
+                  {{ actionLoading() ? ('MY_SHIFT.WORKING' | translate) : ('MY_SHIFT.END_SHIFT' | translate) }}
+                </button>
+              } @else if (s.on_break) {
                 <button
                   type="button"
                   class="btn btn-primary"
@@ -176,7 +204,7 @@ const MY_SHIFT_QR_READER_ID = 'my-shift-qr-reader';
                   @for (row of history(); track row.id) {
                     <tr [class.open-row]="!row.ended_at">
                       <td>{{ formatDt(row.started_at) }}</td>
-                      <td>{{ row.ended_at ? formatDt(row.ended_at) : '—' }}</td>
+                      <td>{{ row.ended_at ? formatDt(row.ended_at) : '-' }}</td>
                       <td>{{ formatDuration(row) }}</td>
                     </tr>
                   }
@@ -298,6 +326,27 @@ const MY_SHIFT_QR_READER_ID = 'my-shift-qr-reader';
       padding: 1.25rem 1.5rem;
       margin-bottom: 1.5rem;
     }
+    .staff-selector-card {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .staff-selector-card label {
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+    .staff-select {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--color-border, #d7d7d7);
+      border-radius: 8px;
+      padding: 0 0.75rem;
+      background: var(--color-surface, #fff);
+      color: var(--color-text, #1a1a1a);
+      font-size: 1rem;
+    }
+    .selector-hint {
+      margin: 0;
+    }
     .clock-card .status {
       font-weight: 600;
       margin: 0 0 0.75rem;
@@ -379,6 +428,8 @@ export class MyShiftComponent implements OnInit, OnDestroy {
   open = signal<WorkSession | null>(null);
   history = signal<WorkSession[]>([]);
   clockStatus = signal<ClockQrStatus | null>(null);
+  staffUsers = signal<User[]>([]);
+  selectedUserId = signal<number | null>(null);
   /** From ?clock_qr=, scan, or sessionStorage */
   clockQrToken = signal<string | null>(null);
 
@@ -400,6 +451,12 @@ export class MyShiftComponent implements OnInit, OnDestroy {
   contractHours = computed(() => {
     const m = this.open()?.contract_threshold_minutes ?? 480;
     return Math.round(m / 60);
+  });
+
+  selectedIsSelf = computed(() => {
+    const me = this.api.getCurrentUser();
+    const selected = this.selectedUserId();
+    return selected == null || selected === me?.id;
   });
 
   qrBlocked = computed(() => {
@@ -438,6 +495,7 @@ export class MyShiftComponent implements OnInit, OnDestroy {
         });
       }
     });
+    this.loadStaffUsers();
     this.refreshAll();
     this.overtimeTimer = setInterval(() => this.overtimeTick.update((n) => n + 1), 1000);
   }
@@ -631,13 +689,96 @@ export class MyShiftComponent implements OnInit, OnDestroy {
     return of(payload);
   }
 
+  private activeUserId(): number | null {
+    return this.selectedUserId() ?? this.api.getCurrentUser()?.id ?? null;
+  }
+
+  private activeUserIsSelf(): boolean {
+    const id = this.activeUserId();
+    const me = this.api.getCurrentUser();
+    return id == null || id === me?.id;
+  }
+
+  displayUserName(user: User): string {
+    return user.full_name?.trim() || user.email || `User ${user.id}`;
+  }
+
+  onSelectedUserChange(event: Event): void {
+    const raw = (event.target as HTMLSelectElement | null)?.value || '';
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed) || parsed <= 0) return;
+    this.selectedUserId.set(parsed);
+    this.refreshAll();
+  }
+
+  private loadStaffUsers(): void {
+    const me = this.api.getCurrentUser();
+    if (me?.id != null) {
+      this.selectedUserId.set(me.id);
+      this.staffUsers.set([me]);
+    }
+    this.api
+      .getUsers()
+      .pipe(catchError(() => of([] as User[])))
+      .subscribe((users) => {
+        const tenantId = me?.tenant_id;
+        const staff = users
+          .filter((u) => u.id != null)
+          .filter((u) => u.tenant_id === tenantId)
+          .filter((u) => String(u.role).toLowerCase() !== 'provider')
+          .sort((a, b) => this.displayUserName(a).localeCompare(this.displayUserName(b)));
+        if (me?.id != null && !staff.some((u) => u.id === me.id)) {
+          staff.unshift(me);
+        }
+        if (staff.length > 0) {
+          this.staffUsers.set(staff);
+          const selected = this.selectedUserId();
+          if (!selected || !staff.some((u) => u.id === selected)) {
+            this.selectedUserId.set(staff[0].id ?? me?.id ?? null);
+          }
+        }
+      });
+  }
+
+  private getActiveOpenWorkSession(): Observable<WorkSession | null> {
+    const id = this.activeUserId();
+    if (id != null && !this.activeUserIsSelf()) {
+      return this.api.getUserOpenWorkSession(id);
+    }
+    return this.api.getMyOpenWorkSession();
+  }
+
+  private getActiveWorkSessions(from: string, to: string): Observable<WorkSession[]> {
+    const id = this.activeUserId();
+    if (id != null && !this.activeUserIsSelf()) {
+      return this.api.getUserWorkSessions(id, from, to);
+    }
+    return this.api.getMyWorkSessions(from, to);
+  }
+
+  private startActiveWorkSession(payload: WorkSessionClockPayload): Observable<WorkSession> {
+    const id = this.activeUserId();
+    if (id != null && !this.activeUserIsSelf()) {
+      return this.api.startUserWorkSession(id, payload);
+    }
+    return this.api.startMyWorkSession(payload);
+  }
+
+  private endActiveWorkSession(payload: WorkSessionClockPayload): Observable<WorkSession> {
+    const id = this.activeUserId();
+    if (id != null && !this.activeUserIsSelf()) {
+      return this.api.endUserWorkSession(id, payload);
+    }
+    return this.api.endMyWorkSession(payload);
+  }
+
   refreshAll(): void {
     this.loading.set(true);
     this.error.set(null);
     const { from, to } = this.rangeLastDays(30);
     forkJoin({
-      open: this.api.getMyOpenWorkSession(),
-      history: this.api.getMyWorkSessions(from, to),
+      open: this.getActiveOpenWorkSession(),
+      history: this.getActiveWorkSessions(from, to),
       qr: this.api.getMyClockQrStatus(),
     }).subscribe({
       next: ({ open, history, qr }) => {
@@ -658,7 +799,7 @@ export class MyShiftComponent implements OnInit, OnDestroy {
     this.error.set(null);
     this.buildClockPayload()
       .pipe(
-        switchMap((payload) => this.api.startMyWorkSession(payload)),
+        switchMap((payload) => this.startActiveWorkSession(payload)),
         finalize(() => this.actionLoading.set(false))
       )
       .subscribe({
@@ -677,7 +818,7 @@ export class MyShiftComponent implements OnInit, OnDestroy {
     this.error.set(null);
     this.buildClockPayload()
       .pipe(
-        switchMap((payload) => this.api.endMyWorkSession(payload)),
+        switchMap((payload) => this.endActiveWorkSession(payload)),
         finalize(() => this.actionLoading.set(false))
       )
       .subscribe({
@@ -692,6 +833,10 @@ export class MyShiftComponent implements OnInit, OnDestroy {
   }
 
   startBreak(): void {
+    if (!this.activeUserIsSelf()) {
+      this.error.set('Break actions are only available for your own shift.');
+      return;
+    }
     this.actionLoading.set(true);
     this.error.set(null);
     this.api.startMyWorkSessionBreak().subscribe({
@@ -708,6 +853,10 @@ export class MyShiftComponent implements OnInit, OnDestroy {
   }
 
   endBreak(): void {
+    if (!this.activeUserIsSelf()) {
+      this.error.set('Break actions are only available for your own shift.');
+      return;
+    }
     this.actionLoading.set(true);
     this.error.set(null);
     this.buildClockPayload()
@@ -733,7 +882,7 @@ export class MyShiftComponent implements OnInit, OnDestroy {
 
   private refreshHistoryOnly(): void {
     const { from, to } = this.rangeLastDays(30);
-    this.api.getMyWorkSessions(from, to).subscribe({
+    this.getActiveWorkSessions(from, to).subscribe({
       next: (rows) => this.history.set(rows),
       error: () => {},
     });
@@ -751,7 +900,7 @@ export class MyShiftComponent implements OnInit, OnDestroy {
       if (h > 0) return `${h}h ${m}m`;
       return `${m}m`;
     }
-    if (!row.ended_at) return '…';
-    return '—';
+    if (!row.ended_at) return '...';
+    return '-';
   }
 }

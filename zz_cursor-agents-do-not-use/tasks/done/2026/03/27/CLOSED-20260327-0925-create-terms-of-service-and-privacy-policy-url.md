@@ -1,7 +1,7 @@
 ---
 ## Closing summary (TOP)
 
-- **What happened:** Tester signed off on GitHub issue [#110](https://github.com/satisfecho/pos/issues/110) (tenant-configurable Terms of Service and Privacy Policy URLs with global fallbacks) with an overall **PASS** test report.
+- **What happened:** Tester signed off on GitHub issue [#110](https://github.com/tanjunnan0101/pos/issues/110) (tenant-configurable Terms of Service and Privacy Policy URLs with global fallbacks) with an overall **PASS** test report.
 - **What was done:** Schema fields and migration, `PUBLIC_*` settings, `GET /public/legal-urls`, effective URLs on public tenant payloads and `PUT /tenant/settings`, Angular `LegalLinksComponent` wired across landing, auth, booking, public feedback, and Settings → Data & privacy, plus i18n and front **2.0.64**.
 - **What was tested:** Migration to `20260327100000`, `pytest tests/test_guest_feedback.py` (**8 passed**), front build tail clean, `npm run test:landing-version` OK, `curl /api/public/legal-urls` OK; optional global env vars not exercised; full manual “Settings UI → visible footer links with real URLs” left as a PO spot-check per report.
 - **Why closed:** Verification criteria met per tester **Overall: PASS**; task archived per agent loop.
@@ -11,7 +11,7 @@
 # Create Terms of Service URL and a Privacy Policy URL
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/110
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/110
 
 ## Problem / goal
 El producto necesita URLs accesibles (y enlazables desde la app) para **Términos del servicio** y **Política de privacidad**, típicamente requeridas en registros, pies de página públicos, cumplimiento y tiendas de aplicaciones. El issue no detalla si deben ser rutas internas estáticas, páginas por tenant o enlaces externos configurables; el implementador debe alinearlo con el modelo multi-tenant y con **Settings** / datos públicos existentes. Revisar **`docs/`** y **landing / registro / ajustes** si ya hay huecos para legales o “data & privacy”.
@@ -55,7 +55,7 @@ El producto necesita URLs accesibles (y enlazables desde la app) para **Término
    - **Logs front + `npm run test:landing-version`:** **PASS** — últimas líneas del servicio `front`: `Application bundle generation complete` sin errores TS/NG en el tail; humo `exit_code: 0`, mensaje `Landing version OK; demo login (tenant=1) OK; sidebar nav OK` (incluye visita a `/settings`).
    - **`curl /api/public/legal-urls`:** **PASS** — respuesta `{"terms_of_service_url":null,"privacy_policy_url":null}`.
 
-5. **Overall:** **PASS** (criterios obligatorios satisfechos; limitación explícita en la parte visual del punto 4).
+5. **Overall:** **PASS** (criterios obligatorios sakarios; limitación explícita en la parte visual del punto 4).
 
 6. **Product owner feedback:** La API y la migración están alineadas con lo descrito en la tarea; los tests de feedback invitado cubren el endpoint global y la resolución efectiva por tenant. Conviene una pasada manual corta en Settings → Datos y privacidad y en el pie de reserva pública con dos URLs de prueba para cerrar la verificación visual.
 

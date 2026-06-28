@@ -11,10 +11,10 @@
 # Spanish monthly time record (registro horario) Excel export — spec
 
 ## GitHub Issues
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- `gh issue list --repo satisfecho/pos --state open --limit 40`
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- `gh issue list --repo tanjunnan0101/pos --state open --limit 40`
 - Optional: `--json number,title,labels,updatedAt,url`
-- **Issue:** https://github.com/satisfecho/pos/issues/170
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/170
 
 ## Problem / goal
 Deliver a **Spanish-style monthly “registro horario”** export as **`.xlsx`** that follows the **official paper-style layout** as closely as product data allows. This is **additive**: keep the existing “one row per work session” attendance export unless product explicitly replaces it; prefer a **new export type** or file so there is no silent regression.

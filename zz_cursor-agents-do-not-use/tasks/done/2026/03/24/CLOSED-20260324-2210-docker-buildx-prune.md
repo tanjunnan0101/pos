@@ -11,7 +11,7 @@
 # docker buildx prune
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/73
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/73
 
 ## Problem / goal
 The amvara9 build pipeline should run **`docker buildx prune`** so temporary BuildKit/buildx layers do not accumulate in the Docker cache and fill disk.

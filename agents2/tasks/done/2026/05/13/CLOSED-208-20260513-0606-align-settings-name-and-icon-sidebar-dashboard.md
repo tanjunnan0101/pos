@@ -11,7 +11,7 @@
 # Align Settings name and icon between sidebar and dashboard card
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/208
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/208
 - **208**
 
 ## Problem / goal

@@ -11,7 +11,7 @@
 # Social post composer: image + caption, multi-network publish/schedule
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/199
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/199
 - **199**
 
 ## Problem / goal

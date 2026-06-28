@@ -11,8 +11,8 @@
 # Align staff /reservations form with public /book (zones & slot grid)
 
 ## GitHub Issues
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- **Issue:** https://github.com/satisfecho/pos/issues/164
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/164
 
 ## Problem / goal
 The staff reservation form should be aligned with the public booking form, specifically regarding how zones and the slot grid are displayed and used to ensure consistency between staff and public booking experiences.

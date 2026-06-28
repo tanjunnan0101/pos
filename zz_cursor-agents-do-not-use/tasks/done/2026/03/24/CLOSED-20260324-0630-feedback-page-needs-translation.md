@@ -3,7 +3,7 @@
 
 - **What happened:** GitHub issue #67 (public feedback page i18n) completed the pipeline: coder re-verified implementation and keys; tester recorded a PASS on the dev stack.
 - **What was done:** No additional `front/` changes were needed; FeedbackPublic already uses the translate pipe and `TranslateService` for titles; `FEEDBACK.*` keys are present across supported locales per task notes.
-- **What was tested:** `BASE_URL=http://127.0.0.1:4202 node front/scripts/test-feedback-public-i18n.mjs` (HEADLESS=1) exited 0; locales, `?token=`, thank-you (DE), and `/feedback/0` error paths passed; optional satisfecho.de spot-check was N/A for that run.
+- **What was tested:** `BASE_URL=http://127.0.0.1:4202 node front/scripts/test-feedback-public-i18n.mjs` (HEADLESS=1) exited 0; locales, `?token=`, thank-you (DE), and `/feedback/0` error paths passed; optional sakario.sg spot-check was N/A for that run.
 - **Why closed:** Test report **Overall: PASS**; no raw `FEEDBACK.` leaks; criteria in the task met for archiving.
 - **Closed at (UTC):** 2026-03-24 07:45
 ---
@@ -12,18 +12,18 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public guest feedback URL (e.g. `/feedback/{tenant}` with optional `?token=…`) must show **fully translated** UI: every form label, message, and document title in the user’s selected language (and `Accept-Language`), with **no raw i18n keys** (e.g. `FEEDBACK.*`) visible. Example from the issue: production-style URL on satisfecho.de with token query. Multiple **PASS** archives exist under `agents/tasks/done/` for dev verification; remaining scope often includes **production parity**, **GitHub closure** when product agrees, and any **real gaps** still found.
+Public guest feedback URL (e.g. `/feedback/{tenant}` with optional `?token=…`) must show **fully translated** UI: every form label, message, and document title in the user’s selected language (and `Accept-Language`), with **no raw i18n keys** (e.g. `FEEDBACK.*`) visible. Example from the issue: production-style URL on sakario.sg with token query. Multiple **PASS** archives exist under `agents/tasks/done/` for dev verification; remaining scope often includes **production parity**, **GitHub closure** when product agrees, and any **real gaps** still found.
 
 Relevant areas: `front/src/app/feedback-public/`, `front/public/i18n/`, `docs/agent-loop.md`.
 
 ## High-level instructions for coder
 
 - Re-verify `/feedback/{tenant}` with and without `?token=…` across supported locales (picker + `Accept-Language`); confirm UI and **browser tab title** stay translated after load and language changes.
-- If dev is clean: optional spot-check **satisfecho.de** for cache/deploy drift; fix any remaining untranslated strings or title handling.
+- If dev is clean: optional spot-check **sakario.sg** for cache/deploy drift; fix any remaining untranslated strings or title handling.
 - Run or extend automated coverage (e.g. public feedback i18n Puppeteer script from `docs/testing.md` / `AGENTS.md`) if gaps appear.
 - When product accepts: post a short verification comment on **#67** and close the issue; align labels per `docs/agent-loop.md` (human may need to post if automation lacks **Issues** write on `gh`).
 
@@ -31,7 +31,7 @@ Relevant areas: `front/src/app/feedback-public/`, `front/public/i18n/`, `docs/ag
 
 - **FEAT → WIP** picked up; **no `front/` or `back/` code changes** — `FeedbackPublicComponent` already uses `translate` pipe / `TranslateService.get()` for document title (with `onLangChange` + `onTranslationChange`), and all public `FEEDBACK.*` keys exist in **en, de, es, fr, ca, zh-CN, hi** (script-checked: no missing keys vs `en.json`).
 - **Puppeteer** `front/scripts/test-feedback-public-i18n.mjs` against `BASE_URL=http://127.0.0.1:4202`: all assertions passed (locales, token URL, post-submit thank-you de, `/feedback/0` error UI, ES `navigator.language` stub).
-- **Production:** optional spot-check **satisfecho.de** `/feedback/1` (and with `?token=…` if available) remains for tester / human — not run from this environment.
+- **Production:** optional spot-check **sakario.sg** `/feedback/1` (and with `?token=…` if available) remains for tester / human — not run from this environment.
 
 ---
 
@@ -50,7 +50,7 @@ Relevant areas: `front/src/app/feedback-public/`, `front/public/i18n/`, `docs/ag
   `BASE_URL=http://127.0.0.1:4202 node front/scripts/test-feedback-public-i18n.mjs`  
   Optional: `TENANT_ID=1` (default).
 - Manual: open `/feedback/1`, switch languages via picker, confirm tab title and form strings; hard-refresh and repeat.
-- Optional prod: same checks on `https://satisfecho.de/feedback/1` after deploy.
+- Optional prod: same checks on `https://sakario.sg/feedback/1` after deploy.
 
 ### Pass / fail criteria
 
@@ -73,11 +73,11 @@ Relevant areas: `front/src/app/feedback-public/`, `front/public/i18n/`, `docs/ag
    - Title updates after language change (de, fr, es, ca, zh-CN, hi): **PASS** — each locale asserts expected title substring after `select('.language-select', …)`.
    - Error path `/feedback/0`: **PASS** — EN “Invalid restaurant”, DE “Ungültiger Restaurant”, titles localized.
    - After submit: thank-you in DE (`Vielen Dank`), title without `FEEDBACK.`: **PASS**.
-   - Optional production `satisfecho.de`: **N/A** — not in scope for this run (task lists as optional).
+   - Optional production `sakario.sg`: **N/A** — not in scope for this run (task lists as optional).
 
 5. **Overall:** **PASS**
 
-6. **Product owner feedback:** Public feedback is fully covered by automated checks on the dev stack: all supported languages show real copy and tab titles, including token URLs and the thank-you step. Production spot-check on satisfecho.de remains a quick sanity check after deploy if you want parity confirmation outside Docker.
+6. **Product owner feedback:** Public feedback is fully covered by automated checks on the dev stack: all supported languages show real copy and tab titles, including token URLs and the thank-you step. Production spot-check on sakario.sg remains a quick sanity check after deploy if you want parity confirmation outside Docker.
 
 7. **URLs tested**
    1. `http://127.0.0.1:4202/feedback/1` (multiple navigations, locale switches, submit)

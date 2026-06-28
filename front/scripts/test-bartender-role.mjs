@@ -5,7 +5,7 @@
  * includes an option with value "bartender".
  *
  * Env:
- *   BASE_URL       App URL (default: auto-detect 4203/4202/4200 or satisfecho.de)
+ *   BASE_URL       App URL (default: auto-detect 4203/4202/4200 or sakario.sg)
  *   LOGIN_EMAIL    Admin or owner user email (required)
  *   LOGIN_PASSWORD Password
  *   HEADLESS       Default headless; set 0, false, or no for a visible browser.
@@ -35,7 +35,7 @@ async function main() {
         }
       } catch (_) {}
     }
-    baseUrl = baseUrl || 'http://satisfecho.de';
+    baseUrl = baseUrl || 'https://sakario.sg';
   }
 
   const headless = isHeadless();

@@ -12,18 +12,18 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public guest feedback URLs (e.g. `https://satisfecho.de/feedback/1?token=…`) must show **the entire form and UI** in the selected language. The reporter still saw untranslated fragments on that flow.
+Public guest feedback URLs (e.g. `https://sakario.sg/feedback/1?token=…`) must show **the entire form and UI** in the selected language. The reporter still saw untranslated fragments on that flow.
 
 Implementation and multiple tester **PASS** archives already exist under `agents/tasks/done/` for this theme; **#67** remains **open** on GitHub. Treat remaining work as **verification** (dev and, if product requires, production), any **real i18n gaps** found there, and **GitHub alignment** (short verification comment, labels, close when product accepts). See `front/public/i18n/`, `FeedbackPublicComponent`, and `docs/agent-loop.md`.
 
 ## High-level instructions for coder
 
 - Re-read **#67** and verify `/feedback/{tenant}` with and without `?token=…` across supported locales (picker + `Accept-Language`); confirm no raw `FEEDBACK.*` keys in visible UI or document title.
-- If dev/staging already match acceptance: optional production spot-check on **satisfecho.de**; if product agrees, post a verification comment on **#67** and support closing the issue (human may need to post if automation lacks **Issues** write on `gh`).
+- If dev/staging already match acceptance: optional production spot-check on **sakario.sg**; if product agrees, post a verification comment on **#67** and support closing the issue (human may need to post if automation lacks **Issues** write on `gh`).
 - Run or extend automated coverage if gaps appear (e.g. `front/scripts` feedback-public i18n tests when applicable).
 
 ## Coder notes (2026-03-24)
@@ -46,7 +46,7 @@ Implementation and multiple tester **PASS** archives already exist under `agents
 
 - Stack up (e.g. HAProxy dev): `docker compose -f docker-compose.yml -f docker-compose.dev.yml ps` — use host port from **haproxy** (often `4202`).
 - From repo: `BASE_URL=http://127.0.0.1:4202 node front/scripts/test-feedback-public-i18n.mjs`
-- Optional manual: open `/feedback/1`, cycle languages, submit a rating; optional prod spot-check on `https://satisfecho.de/feedback/1` if product requires.
+- Optional manual: open `/feedback/1`, cycle languages, submit a rating; optional prod spot-check on `https://sakario.sg/feedback/1` if product requires.
 
 ### Pass / fail criteria
 
@@ -76,7 +76,7 @@ Implementation and multiple tester **PASS** archives already exist under `agents
 
 5. **Overall:** **PASS** (all criteria above).
 
-6. **Product owner feedback:** Public guest feedback is covered by automated i18n checks on dev; no leaked translation keys were observed. Production spot-check on satisfecho.de was not required by pass criteria; recommend a quick manual glance on prod before closing **#67** if desired.
+6. **Product owner feedback:** Public guest feedback is covered by automated i18n checks on dev; no leaked translation keys were observed. Production spot-check on sakario.sg was not required by pass criteria; recommend a quick manual glance on prod before closing **#67** if desired.
 
 7. **URLs tested (Puppeteer):**
    1. `http://127.0.0.1:4202/feedback/1` (multiple locales and flows per script)

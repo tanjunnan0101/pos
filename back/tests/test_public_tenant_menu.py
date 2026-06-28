@@ -19,8 +19,8 @@ class TestPublicTenantMenu(PgClientTestCase):
         super().setUp()
         self.tenant = models.Tenant(
             name="Marketing Menu Tenant",
-            email="pos-public-menu-test@amvara.de",
-            currency_code="EUR",
+            email="pos-public-menu-test@sakario.sg",
+            currency_code="SGD",
         )
         self.session.add(self.tenant)
         self.session.commit()
@@ -36,7 +36,7 @@ class TestPublicTenantMenu(PgClientTestCase):
         data = response.json()
         self.assertEqual(data["tenant_id"], self.tenant.id)
         self.assertEqual(data["tenant_name"], "Marketing Menu Tenant")
-        self.assertEqual(data["currency"], "EUR")
+        self.assertEqual(data["currency"], "SGD")
         self.assertEqual(data["lang"], "en")
         self.assertEqual(data["categories"], [])
 

@@ -11,7 +11,7 @@
 # Fix payment chip: keep “Payment pending” until paid; do not hide when order status becomes ready
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/189
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/189
 - **189**
 
 ## Problem / goal

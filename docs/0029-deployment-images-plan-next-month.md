@@ -22,7 +22,7 @@
 
 **Needs:**
 
-- **Registry:** GitHub Container Registry (ghcr.io). Confirm org/repo for image names, e.g. `ghcr.io/satisfecho/pos-front`, `pos-back`.
+- **Registry:** GitHub Container Registry (ghcr.io). Confirm org/repo for image names, e.g. `ghcr.io/tanjunnan0101/pos-front`, `pos-back`.
 - **Image visibility:** Private (recommended) or public. If private, server must log in to pull.
 - **Credentials:**
   - **CI:** Use `GITHUB_TOKEN` with `packages: write` to push (no extra secret in config.env).
@@ -63,7 +63,7 @@
 
 **Decisions:**
 
-- [ ] Confirm registry: GHCR with image names e.g. `ghcr.io/satisfecho/pos-front`, `pos-back`.
+- [ ] Confirm registry: GHCR with image names e.g. `ghcr.io/tanjunnan0101/pos-front`, `pos-back`.
 - [ ] Confirm image visibility: private (recommended) or public.
 
 **One-time on GitHub:**

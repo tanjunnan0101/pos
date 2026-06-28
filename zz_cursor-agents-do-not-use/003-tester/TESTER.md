@@ -37,7 +37,7 @@ If verification fails **more than three** times for the same change, stop cyclin
 
 ### Production / amvara9 — wait for deploy, do not “sleep and hope”
 
-When **Testing instructions** (or the task scope) include **deployment to amvara9** / **production** / verification on **`satisfecho.de`** (or another URL that only updates after CI/CD):
+When **Testing instructions** (or the task scope) include **deployment to amvara9** / **production** / verification on **`sakario.sg`** (or another URL that only updates after CI/CD):
 
 1. **Do not** rely on a **fixed sleep** (e.g. “wait 3 minutes”) as the main way to know the new build is live. That wastes time when deploy is fast and is **unsafe** when deploy is slow or fails — you may test the **old** stack and report a false **PASS** or **FAIL**.
 2. **Wait for success signals** instead (use what the task or human specifies; otherwise pick sensible defaults):

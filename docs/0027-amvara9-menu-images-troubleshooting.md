@@ -1,6 +1,6 @@
-# amvara9: Public menu images not loading (satisfecho.de)
+# amvara9: Public menu images not loading (sakario.sg)
 
-If images on the public menu (e.g. https://satisfecho.de/menu/{table_token}) or on /products or /catalog are missing or broken, the backend is likely returning 404 for `/api/uploads/...` requests. This doc explains the fix and how to verify on the server.
+If images on the public menu (e.g. https://sakario.sg/menu/{table_token}) or on /products or /catalog are missing or broken, the backend is likely returning 404 for `/api/uploads/...` requests. This doc explains the fix and how to verify on the server.
 
 ## Cause and fix (in repo)
 
@@ -16,10 +16,10 @@ From your workstation:
 
 ```bash
 # Health
-curl -sI https://satisfecho.de/api/health
+curl -sI https://sakario.sg/api/health
 
 # If you have a known image path (e.g. tenant 1 product image), replace with a real filename from DB or back/uploads
-curl -sI "https://satisfecho.de/api/uploads/1/products/some-existing-file.jpg"
+curl -sI "https://sakario.sg/api/uploads/1/products/some-existing-file.jpg"
 # Expect: 200 OK (if file exists) or 404 with body {"detail":"Image not found"} (route is present, file missing)
 # Bad: 404 with no JSON or different body → old back image without explicit routes; redeploy.
 ```
@@ -67,5 +67,5 @@ If the script prints “OK: explicit upload route is active” but the browser s
 ## If images still 404 after a fresh deploy
 
 1. Ensure the deploy script **built** the back image: `docker compose ... build back` (deploy-amvara9.sh does this).
-2. Ensure **no host-level proxy** (e.g. nginx on the host) is routing `satisfecho.de` to a different backend or stripping paths.
+2. Ensure **no host-level proxy** (e.g. nginx on the host) is routing `sakario.sg` to a different backend or stripping paths.
 3. Ensure `back/uploads` on the host has the files (tenant and catalog imports write there); see AGENTS.md “Demo tables” and “Catalog on deploy”.

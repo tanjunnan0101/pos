@@ -1,5 +1,5 @@
 /**
- * Billing customers (Factura) – register company details for tax invoicing.
+ * Billing customers - register company details for tax invoicing.
  * Staff can add/search customers and use them when printing invoices from orders.
  */
 import { Component, inject, signal, OnInit } from '@angular/core';

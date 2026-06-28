@@ -11,7 +11,7 @@
 # Change plate ordered with products like pizza
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/50
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/50
 
 ## Problem / goal
 During ordering, staff (or customers where applicable) need to **customize** composite products—e.g. remove pepperoni and add another cheese—similar to pizza-style modifiers, without breaking pricing, kitchen tickets, or catalog sync.

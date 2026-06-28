@@ -12,17 +12,17 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…`) must show **fully translated** UI: every part of the form and related states in the selected language—no leftover English or raw translation keys. Reporter cited **satisfecho.de** example URL. Prior **`agents/tasks/done/`** archives record repeated dev/test **PASS** on **`development`**; the issue may still be open until **production** verification and product sign-off. See `front/public/i18n/`, `FeedbackPublicComponent` (`front/src/app/feedback-public/`), and `docs/agent-loop.md`.
+Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…`) must show **fully translated** UI: every part of the form and related states in the selected language—no leftover English or raw translation keys. Reporter cited **sakario.sg** example URL. Prior **`agents/tasks/done/`** archives record repeated dev/test **PASS** on **`development`**; the issue may still be open until **production** verification and product sign-off. See `front/public/i18n/`, `FeedbackPublicComponent` (`front/src/app/feedback-public/`), and `docs/agent-loop.md`.
 
 ## High-level instructions for coder
 
 - Re-read **#67** and reproduce on local Docker (`/feedback/{tenant}`, with and without token) across supported locales (language picker and `Accept-Language`); confirm no raw `FEEDBACK.*` keys in visible UI or document title.
 - If gaps remain, extend JSON in `front/public/i18n/` and wire any missing strings in `FeedbackPublicComponent` (template + title + error paths).
-- If dev already matches acceptance, capture concise evidence; optional production check on **https://satisfecho.de**; support product/GitHub closure of **#67** when agreed (`docs/agent-loop.md`).
+- If dev already matches acceptance, capture concise evidence; optional production check on **https://sakario.sg**; support product/GitHub closure of **#67** when agreed (`docs/agent-loop.md`).
 
 ## Coder verification (2026-03-24 UTC)
 
@@ -40,7 +40,7 @@ Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…`) must show *
 4. **Error states:** `http://127.0.0.1:4202/feedback/0` (or non-numeric id) → invalid-tenant message translated. Unknown tenant id → not-found message translated.
 5. **Submit errors (optional):** With UI in e.g. **Deutsch**, submit invalid contact email/phone or trigger rate limit; confirm user-visible message is German (frontend `FEEDBACK.*` and/or backend `detail` via `Accept-Language`), not a bare key.
 6. **Regression:** `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` → exit **0**.
-7. **Production (optional):** After deploy, spot-check `https://satisfecho.de/feedback/<tenant>` for the same checks; close **#67** when product agrees.
+7. **Production (optional):** After deploy, spot-check `https://sakario.sg/feedback/<tenant>` for the same checks; close **#67** when product agrees.
 
 ---
 
@@ -59,7 +59,7 @@ Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…`) must show *
    - **Regression landing:** **PASS** — `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` → exit **0** (ended 2026-03-24T08:13:52Z).
    - **Production spot-check:** **N/A** — optional; not executed.
 5. **Overall:** **PASS**
-6. **Product owner feedback:** Public guest feedback on local Docker matches the acceptance goal for issue **#67**: translated UI and titles across the exercised locales, with no visible raw i18n keys. Production on **satisfecho.de** was not re-verified in this pass; recommend a short spot-check after the next deploy if the issue stays open for prod sign-off.
+6. **Product owner feedback:** Public guest feedback on local Docker matches the acceptance goal for issue **#67**: translated UI and titles across the exercised locales, with no visible raw i18n keys. Production on **sakario.sg** was not re-verified in this pass; recommend a short spot-check after the next deploy if the issue stays open for prod sign-off.
 7. **URLs tested:**
    1. `http://127.0.0.1:4202/feedback/1` (curl + Puppeteer flows in script)
    2. `http://127.0.0.1:4202/feedback/1?token=…` (script token path)

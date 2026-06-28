@@ -1,6 +1,6 @@
 # HAProxy SSL on amvara9 (durable configuration)
 
-SSL for satisfecho.de is terminated by HAProxy in the POS stack. This document explains how the certificate is integrated so it **survives deploy and rebuilds**, and how to restore it if it was lost.
+SSL for sakario.sg is terminated by HAProxy in the POS stack. This document explains how the certificate is integrated so it **survives deploy and rebuilds**, and how to restore it if it was lost.
 
 ## Why the certificate can disappear
 
@@ -12,12 +12,12 @@ SSL for satisfecho.de is terminated by HAProxy in the POS stack. This document e
 
 ## Durable setup (current)
 
-1. **Host directory**  
-   The combined PEM used by HAProxy lives in **`/development/pos/certbot/haproxy-certs/`** (e.g. `satisfecho.de.pem`). This matches the path used on amvara9 for certbot.  
-   - `certbot/www/` is the webroot for `certbot certonly --webroot -w /development/pos/certbot/www`.  
+1. **Host directory**
+   The combined PEM used by HAProxy lives in **`/development/pos/certbot/haproxy-certs/`** (e.g. `sakario.sg.pem`). This matches the path used on amvara9 for certbot.
+   - `certbot/www/` is the webroot for `certbot certonly --webroot -w /development/pos/certbot/www`.
    - `certbot/haproxy-certs/` is **not** removed by `git reset --hard`; `*.pem` there are in **.gitignore**, so certs survive deploy.
 
-2. **Compose**  
+2. **Compose**
    In **docker-compose.prod.yml**, HAProxy has:
    ```yaml
    volumes:
@@ -25,14 +25,14 @@ SSL for satisfecho.de is terminated by HAProxy in the POS stack. This document e
    ```
    So whatever is in `./certbot/haproxy-certs` on the host is visible read-only in the container at `/etc/haproxy/certs`.
 
-3. **HAProxy config**  
+3. **HAProxy config**
    In **haproxy/haproxy.cfg**, 443 is bound with:
    ```text
    bind *:443 ssl crt /etc/haproxy/certs
    ```
    HAProxy loads all `.pem` files from that directory. At least one valid PEM (certificate + private key) must be present or HAProxy will not start.
 
-4. **Deploy script**  
+4. **Deploy script**
    **scripts/deploy-amvara9.sh** runs `mkdir -p certbot/www certbot/haproxy-certs` before `docker compose up`. It does **not** delete or overwrite files in `certbot/haproxy-certs/`.
 
 So: **certificate stays on the host in `./certbot/haproxy-certs`; deploy never touches it; HAProxy always uses it from the mount.** That is the durable integration.
@@ -44,16 +44,16 @@ So: **certificate stays on the host in `./certbot/haproxy-certs`; deploy never t
 On amvara9 the certs were created like this:
 
 ```bash
-certbot certonly --webroot -w /development/pos/certbot/www -d satisfecho.de -d www.satisfecho.de
-cat /etc/letsencrypt/live/satisfecho.de/fullchain.pem \
-    /etc/letsencrypt/live/satisfecho.de/privkey.pem \
-    > /development/pos/certbot/haproxy-certs/satisfecho.de.pem
+certbot certonly --webroot -w /development/pos/certbot/www -d sakario.sg -d www.sakario.sg
+cat /etc/letsencrypt/live/sakario.sg/fullchain.pem \
+    /etc/letsencrypt/live/sakario.sg/privkey.pem \
+    > /development/pos/certbot/haproxy-certs/sakario.sg.pem
 docker exec pos-haproxy kill -HUP 1
 ```
 
-The durable setup uses **the same path** `./certbot/haproxy-certs`, so if `satisfecho.de.pem` is already there, HAProxy will use it after deploy. If it was lost, check:
+The durable setup uses **the same path** `./certbot/haproxy-certs`, so if `sakario.sg.pem` is already there, HAProxy will use it after deploy. If it was lost, check:
 
-- **Let's Encrypt** — `/etc/letsencrypt/live/satisfecho.de/` (fullchain.pem + privkey.pem); combine and write to `certbot/haproxy-certs/satisfecho.de.pem`.
+- **Let's Encrypt** — `/etc/letsencrypt/live/sakario.sg/` (fullchain.pem + privkey.pem); combine and write to `certbot/haproxy-certs/sakario.sg.pem`.
 - **Old path** — `/development/pos/certbot/haproxy-certs/` (might still be there if not wiped).
 
 ## Restoring or renewing the certificate
@@ -64,11 +64,11 @@ The durable setup uses **the same path** `./certbot/haproxy-certs`, so if `satis
 ssh amvara9
 cd /development/pos
 mkdir -p certbot/haproxy-certs
-sudo cat /etc/letsencrypt/live/satisfecho.de/fullchain.pem \
-        /etc/letsencrypt/live/satisfecho.de/privkey.pem \
-        > certbot/haproxy-certs/satisfecho.de.pem
-sudo chown "$(whoami):$(whoami)" certbot/haproxy-certs/satisfecho.de.pem
-chmod 600 certbot/haproxy-certs/satisfecho.de.pem
+sudo cat /etc/letsencrypt/live/sakario.sg/fullchain.pem \
+        /etc/letsencrypt/live/sakario.sg/privkey.pem \
+        > certbot/haproxy-certs/sakario.sg.pem
+sudo chown "$(whoami):$(whoami)" certbot/haproxy-certs/sakario.sg.pem
+chmod 600 certbot/haproxy-certs/sakario.sg.pem
 docker exec pos-haproxy kill -HUP 1
 # Or full restart: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d haproxy
 ```
@@ -76,10 +76,10 @@ docker exec pos-haproxy kill -HUP 1
 ### Full create/renew workflow (amvara9)
 
 ```bash
-certbot certonly --webroot -w /development/pos/certbot/www -d satisfecho.de -d www.satisfecho.de
-cat /etc/letsencrypt/live/satisfecho.de/fullchain.pem \
-    /etc/letsencrypt/live/satisfecho.de/privkey.pem \
-    > /development/pos/certbot/haproxy-certs/satisfecho.de.pem
+certbot certonly --webroot -w /development/pos/certbot/www -d sakario.sg -d www.sakario.sg
+cat /etc/letsencrypt/live/sakario.sg/fullchain.pem \
+    /etc/letsencrypt/live/sakario.sg/privkey.pem \
+    > /development/pos/certbot/haproxy-certs/sakario.sg.pem
 docker exec pos-haproxy kill -HUP 1
 ```
 
@@ -94,7 +94,7 @@ After placing at least one `.pem` in `certbot/haproxy-certs/`, reload or restart
 | Item | Purpose |
 |------|--------|
 | **Webroot** | `/development/pos/certbot/www` – for `certbot certonly --webroot -w ...` |
-| **Host path for PEM** | `/development/pos/certbot/haproxy-certs/` (e.g. satisfecho.de.pem) – not wiped by deploy |
+| **Host path for PEM** | `/development/pos/certbot/haproxy-certs/` (e.g. sakario.sg.pem) – not wiped by deploy |
 | **.gitignore** | `certbot/www/`, `certbot/haproxy-certs/*.pem` – certs never committed |
 | **Compose** | `./certbot/haproxy-certs` → `/etc/haproxy/certs:ro` in HAProxy |
 | **haproxy.cfg** | `bind *:443 ssl crt /etc/haproxy/certs` |

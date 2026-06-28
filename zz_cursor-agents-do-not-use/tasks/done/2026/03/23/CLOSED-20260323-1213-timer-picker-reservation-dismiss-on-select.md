@@ -11,7 +11,7 @@
 # Timer picker: dismiss on select, open on input focus (reservations)
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/60
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/60
 
 ## Problem / goal
 On **Create reservation**, the time picker stays open after selecting a time; it only appears when clicking the clock icon. Expected: time picker opens when focusing the time input; it closes on blur and when the user confirms/selects a time (consistent with typical datetime UX). See issue screenshot.

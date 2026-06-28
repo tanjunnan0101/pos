@@ -112,7 +112,7 @@ def update_wine_prices() -> dict[str, int]:
                         session.add(pp)
                         updated += 1
                         if updated <= 10:  # Show first 10
-                            print(f"  {pp.name}: €{old_price:.2f} -> €{new_price:.2f} (bottle={api_data['bottle_price']}, glass={api_data['glass_price']})")
+                            print(f"  {pp.name}: ${old_price:.2f} -> ${new_price:.2f} (bottle={api_data['bottle_price']}, glass={api_data['glass_price']})")
                     else:
                         unchanged += 1
             else:

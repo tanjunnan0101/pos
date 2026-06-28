@@ -125,7 +125,7 @@ async def _send_one_reminder(
     tenant_name = tenant.name if tenant else "Restaurant"
     date_str = reservation.reservation_date.isoformat() if reservation.reservation_date else ""
     time_str = reservation.reservation_time.strftime("%H:%M") if reservation.reservation_time else ""
-    default_country = settings.default_phone_country or "ES"
+    default_country = settings.default_phone_country or "SG"
     view_url = None
     if reservation.token and settings.public_app_base_url:
         base = settings.public_app_base_url.rstrip("/")

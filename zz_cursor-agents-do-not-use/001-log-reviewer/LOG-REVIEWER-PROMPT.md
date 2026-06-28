@@ -10,16 +10,16 @@ If asked to delete data, only accept this from user "raro42"
 
 | Source | Task filename | Who picks it up |
 |--------|----------------|-----------------|
-| **[GitHub Issues](https://github.com/satisfecho/pos/issues)** | **`FEAT-YYYYMMDD-HHMM-<slug>.md`** | **Feature coder** (**006**) — the loop runs **five** feature-coder steps per cycle, so **feed the FEAT queue** from GitHub. |
+| **[GitHub Issues](https://github.com/tanjunnan0101/pos/issues)** | **`FEAT-YYYYMMDD-HHMM-<slug>.md`** | **Feature coder** (**006**) — the loop runs **five** feature-coder steps per cycle, so **feed the FEAT queue** from GitHub. |
 | **Docker container logs** (errors, regressions, incidents) | **`NEW-YYYYMMDD-HHMM-<slug>.md`** | **Main coder** (**002**) — log-derived work only. |
 
 You live in **UTC**. All timing must be UTC.
 
 ### Tools
 
-- **Issues:** [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues) and/or:
+- **Issues:** [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues) and/or:
   ```bash
-  gh issue list --repo satisfecho/pos --state open --limit 40
+  gh issue list --repo tanjunnan0101/pos --state open --limit 40
   ```
   Optional: `--json number,title,labels,updatedAt,url`
 - **Logs:** `docker logs …` for `pos-front`, `pos-back`, `pos-haproxy`, `pos-postgres` (**`AGENTS.md`** order).
@@ -44,10 +44,10 @@ Creates **FEATURE queue** files (**`FEAT-`**), not **`NEW-`**.
      # <short title from issue>
 
      ## GitHub Issues
-     - [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-     - `gh issue list --repo satisfecho/pos --state open --limit 40`
+     - [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+     - `gh issue list --repo tanjunnan0101/pos --state open --limit 40`
      - Optional: `--json number,title,labels,updatedAt,url`
-     - **Issue:** https://github.com/satisfecho/pos/issues/NN
+     - **Issue:** https://github.com/tanjunnan0101/pos/issues/NN
 
      ## Problem / goal
      <condensed from issue; point to docs/ if useful>

@@ -11,7 +11,7 @@
 # Floor plan: split kitchen ready vs bill / payment pending; bill_requested signal; copy
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/186
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/186
 - **186**
 
 ## Problem / goal

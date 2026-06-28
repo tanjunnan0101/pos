@@ -11,7 +11,7 @@
 # Update CHANGELOG [Unreleased] for closed issues #213–#244
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/248
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/248
 - **248**
 
 ## Problem / goal

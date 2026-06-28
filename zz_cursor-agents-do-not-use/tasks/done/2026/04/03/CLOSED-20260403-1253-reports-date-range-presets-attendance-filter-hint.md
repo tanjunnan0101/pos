@@ -11,10 +11,10 @@
 # Reports: date-range presets + attendance filter hint
 
 ## GitHub Issues
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- `gh issue list --repo satisfecho/pos --state open --limit 40`
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- `gh issue list --repo tanjunnan0101/pos --state open --limit 40`
 - Optional: `--json number,title,labels,updatedAt,url`
-- **Issue:** https://github.com/satisfecho/pos/issues/161
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/161
 
 ## Problem / goal
 Improve the Reports screen with quick date-range presets (Today, Last 7 days, This week, This month, Previous month) that set `fromDate` / `toDate` as local calendar dates (`YYYY-MM-DD`) and trigger the same data reload as **Refresh** (sales report + work-sessions list). Add a short hint above the staff attendance section explaining that the historical attendance table follows the header date range and **Refresh**. Optionally allow a separate from/to (and load) for attendance only so sales and attendance ranges can diverge; if done, wire `getReportWorkSessions` to that range and document it in the hint. Add `REPORTS.*` i18n keys across `front/public/i18n/*.json`. See **docs/** for reports/i18n conventions if present.

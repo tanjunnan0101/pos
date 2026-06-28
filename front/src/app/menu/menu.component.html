@@ -232,12 +232,12 @@
             </div>
             } @else {
             @if (canCancelOrder(order)) {
-            <button class="btn-cancel-order" (click)="cancelOrder(order.id)" [disabled]="processingPayment()">
+            <button class="btn-cancel-order" (click)="cancelOrder(order.id)" [disabled]="paymentRequestSending()">
               {{ 'COMMON.CANCEL' | translate }}
             </button>
             }
-            <button class="btn-pay-now" (click)="startCheckout(order)" [disabled]="processingPayment()">
-              {{ processingPayment() ? ('PAYMENTS.PROCESSING' | translate) : ('PAYMENTS.PAY_NOW' | translate) }}
+            <button class="btn-pay-now" (click)="startCheckout(order)" [disabled]="paymentRequestSending()">
+              {{ paymentRequestSending() ? ('PAYMENTS.PROCESSING' | translate) : ('PAYMENTS.PAY_NOW' | translate) }}
             </button>
             }
           </div>
@@ -851,8 +851,14 @@
               }
             </div>
             <div class="payment-option-text">
-              <span class="payment-option-title">{{ paymentRequestSending() ? ('PAYMENTS.PROCESSING' | translate) : ('PAYMENTS.PAY_ONLINE' | translate) }}</span>
-              <span class="payment-option-desc">{{ 'PAYMENTS.PAY_ONLINE_DESC' | translate }}</span>
+              <span class="payment-option-title">
+                {{ paymentRequestSending()
+                  ? ('PAYMENTS.PROCESSING' | translate)
+                  : ('PAYMENTS.PAY_WITH_HITPAY' | translate) }}
+              </span>
+              <span class="payment-option-desc">
+                {{ 'PAYMENTS.PAY_WITH_HITPAY_DESC' | translate }}
+              </span>
             </div>
             @if (!paymentRequestSending()) {
             <svg class="payment-option-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -860,30 +866,6 @@
             </svg>
             }
           </button>
-
-          @if (tenantRevolutConfigured()) {
-          <button class="payment-option-btn" (click)="selectPayRevolut()" [disabled]="paymentRequestSending()">
-            <div class="payment-option-icon">
-              @if (paymentRequestSending()) {
-              <span class="spinner-small"></span>
-              } @else {
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-                <line x1="1" y1="10" x2="23" y2="10" />
-              </svg>
-              }
-            </div>
-            <div class="payment-option-text">
-              <span class="payment-option-title">{{ paymentRequestSending() ? ('PAYMENTS.PROCESSING' | translate) : ('PAYMENTS.PAY_WITH_REVOLUT' | translate) }}</span>
-              <span class="payment-option-desc">{{ 'PAYMENTS.PAY_WITH_REVOLUT_DESC' | translate }}</span>
-            </div>
-            @if (!paymentRequestSending()) {
-            <svg class="payment-option-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9,18 15,12 9,6" />
-            </svg>
-            }
-          </button>
-          }
 
           <button class="payment-option-btn" (click)="selectPayCard()">
             <div class="payment-option-icon">
@@ -1018,66 +1000,5 @@
   </div>
   }
 
-  <!-- Stripe Payment Modal -->
-  @if (showPaymentModal()) {
-  <div class="modal-overlay">
-    <div class="modal-sheet payment-modal" (click)="$event.stopPropagation()">
-      <div class="modal-handle">
-        <span class="handle-bar"></span>
-      </div>
-      <div class="modal-content">
-        <div class="modal-header-row">
-          <h3 class="modal-title">{{ 'MENU.CHECKOUT' | translate }}</h3>
-          <button class="close-btn" (click)="cancelPayment()">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <div class="payment-amount">
-          <span class="payment-label">{{ 'COMMON.TOTAL' | translate }}</span>
-          <span class="payment-value">{{ formatPrice(paymentAmount()) }}</span>
-        </div>
-
-        <div id="card-element" class="card-element"></div>
-
-        @if (cardError()) {
-        <div class="card-error">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 8v4M12 16h.01" />
-          </svg>
-          {{ cardError() }}
-        </div>
-        }
-
-        @if (paymentSuccess()) {
-        <div class="payment-success">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-            <polyline points="22 4 12 14.01 9 11.01" />
-          </svg>
-          <span>{{ 'PAYMENTS.PAYMENT_SUCCESSFUL' | translate }}</span>
-        </div>
-        }
-
-        <div class="modal-actions">
-          @if (!paymentSuccess()) {
-          <button class="btn-secondary" (click)="cancelPayment()">{{ 'COMMON.CANCEL' | translate }}</button>
-          <button class="btn-primary" (click)="processPayment()" [disabled]="processingPayment()">
-            @if (processingPayment()) {
-            <span class="spinner-small"></span>
-            }
-            {{ processingPayment() ? ('PAYMENTS.PROCESSING' | translate) : ('PAYMENTS.PAY' | translate) }}
-          </button>
-          } @else {
-          <button class="btn-primary full-width" (click)="finishPayment()">{{ 'MENU.DONE' | translate }}</button>
-          }
-        </div>
-      </div>
-    </div>
-  </div>
-  }
   }
 </div>

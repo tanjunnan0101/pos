@@ -11,7 +11,7 @@
 # Order header actions: stable alignment in badge (Orders)
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/59
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/59
 
 ## Problem / goal
 On **Orders**, header action buttons inside the badge jump between `flex-start`, centered, and other positions (layout inconsistency). Actions should have a single, predictable alignment regardless of badge content length or viewport. See issue screenshot.

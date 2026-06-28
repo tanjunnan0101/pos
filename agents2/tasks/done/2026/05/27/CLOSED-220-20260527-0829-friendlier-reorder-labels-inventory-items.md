@@ -11,7 +11,7 @@
 # Friendlier reorder labels in inventory items
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/220
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/220
 - **220**
 
 ## Problem / goal

@@ -24,7 +24,7 @@ This document captures thoughts on adding **WhatsApp reminders** for reservation
 
 - **Keep email reminder** as is. Add “send via WhatsApp when phone number is present and WhatsApp is configured”.
 - **One action for staff**: “Send reminder” → backend sends email (if email present) and/or WhatsApp (if phone present and tenant/app has WhatsApp enabled). No need for two buttons unless you want “Email only” / “WhatsApp only” for power users.
-- **Phone format**: WhatsApp (and most APIs) require **E.164** (e.g. `+34931234567`). Store or normalize `customer_phone` to E.164 when sending; accept national format on input and normalize in backend or at send time.
+- **Phone format**: WhatsApp (and most APIs) require **E.164** (e.g. `+6581234567`). Store or normalize `customer_phone` to E.164 when sending; accept national format on input and normalize in backend or at send time.
 - **Optional per tenant**: Config flag “Allow WhatsApp reminders” and/or “WhatsApp enabled” so only tenants that have set up WhatsApp get it. Global config is simpler for v1.
 
 ---
@@ -38,7 +38,7 @@ Two main approaches:
 | **WhatsApp Business API (Meta)** | Official, full control, templates. | Business verification, Meta approval, conversation-based pricing. Setup is heavier. |
 | **Provider (Twilio, MessageBird, 360dialog, etc.)** | Faster onboarding, often same API under the hood, support. | Monthly/provider cost; dependency on third party. |
 
-For a typical POS/restaurant product, **using a provider** (e.g. Twilio Conversations for WhatsApp, or a dedicated WhatsApp API provider) is often the fastest way to get “send template message to +34…” working. You still need a Meta Business Account and an approved **template** for the first message (e.g. “Reservation reminder: …”).
+For a typical POS/restaurant product, **using a provider** (e.g. Twilio Conversations for WhatsApp, or a dedicated WhatsApp API provider) is often the fastest way to get “send template message to +65…” working. You still need a Meta Business Account and an approved **template** for the first message (e.g. “Reservation reminder: …”).
 
 **Template requirement**: For “business-initiated” messages (we message the user first), Meta requires **pre-approved message templates**. You’d submit something like: “Hi {{1}}, reminder: your reservation at {{2}} on {{3}} at {{4}}. Party of {{5}}. See you soon!” and use it when sending. No free-form body for the first message in a 24h window.
 

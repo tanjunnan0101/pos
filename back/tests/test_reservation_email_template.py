@@ -46,7 +46,7 @@ def _tenant(**kwargs) -> models.Tenant:
         reservation_prepayment_text=None,
         reservation_dress_code="Smart casual",
         reservation_arrival_tolerance_minutes=15,
-        currency_code="EUR",
+        currency_code="SGD",
         reservation_confirmation_email_subject=None,
         reservation_confirmation_email_body=None,
     )
@@ -147,7 +147,7 @@ class TestReservationEmailTemplate(unittest.TestCase):
             tenant, "Ana", "2026-03-22", "19:00", 2, None, lang="es"
         )
         self.assertIn("Importe del prepago:", text)
-        self.assertIn("5.00 EUR", text)
+        self.assertIn("5.00 SGD", text)
         self.assertIn("Pague al llegar.", text)
         self.assertIn("10", text)
         self.assertIn("minutos", text.lower())

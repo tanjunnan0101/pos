@@ -11,10 +11,10 @@
 # Settings → Security: download printable staff clock-in QR
 
 ## GitHub Issues
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- `gh issue list --repo satisfecho/pos --state open --limit 40`
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- `gh issue list --repo tanjunnan0101/pos --state open --limit 40`
 - Optional: `--json number,title,labels,updatedAt,url`
-- **Issue:** https://github.com/satisfecho/pos/issues/155
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/155
 
 ## Problem / goal
 Owners need a **printable** staff clock-in QR from **Settings → Security**, in the **Staff clock-in QR** card. When clock QR is enabled and a valid printable URL exists (full app URL with `/my-shift?clock_qr=` and the current token, aligned with how **SETTINGS.CLOCK_QR_URL_HINT** documents the URL), add UI to **generate a high-resolution QR** (PNG or SVG) and **trigger a browser download** for venue printing. Do not surface the raw token in new places beyond what **regenerate** already exposes. Keep **tenant and role** checks consistent with existing clock-QR settings APIs and UI.

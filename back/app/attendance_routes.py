@@ -196,9 +196,9 @@ def export_attendance_registro_horario_excel(
     staff_ids: Annotated[list[int] | None, Query(description="Optional staff user IDs (tenant must match)")] = None,
 ) -> StreamingResponse:
     """
-    Spanish-style monthly «registro horario» workbook (.xlsx), one sheet per employee.
+    Monthly attendance workbook (.xlsx), one sheet per employee.
     Distinct from `/attendance-excel` (session rows). Includes planned shifts, clocked blocks
-    split mañana/tarde, signature column on each day row (empty), totals and legal footer.
+    split morning/afternoon, signature column on each day row (empty), totals and footer.
     """
     if current_user.tenant_id is None:
         raise HTTPException(status_code=403, detail="Tenant required")

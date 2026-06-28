@@ -11,7 +11,7 @@
 # Nice the landing page
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/69
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/69
 
 ## Problem / goal
 The public landing at `http://127.0.0.1:4202/` (and production) should feel polished and welcoming for both restaurant owners and restaurant clients. The reporter pointed at a reference layout (wz-it “AnythingLLM” page) as inspiration: research strong landing patterns, then evolve our landing toward a clearer, more beautiful experience without abandoning existing design tokens and i18n expectations. Prior closed tasks archived implementation and verification notes; treat this queue item as the feature-coder path until the issue is closed on GitHub.

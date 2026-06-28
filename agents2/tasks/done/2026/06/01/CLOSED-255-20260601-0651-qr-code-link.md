@@ -11,7 +11,7 @@
 # QR Code Link (clickable in browser)
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/255
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/255
 - **255**
 
 ## Problem / goal

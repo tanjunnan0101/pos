@@ -12,11 +12,11 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public guest feedback at `/feedback/{tenant}` (e.g. with `?token=…`) must show **no untranslated UI**: every part of the form and related states in the selected language. Prior CLOSED archives under `agents/tasks/done/` record repeated dev verification; **#67** remains open — align implementation with issue acceptance, optional production check on **satisfecho.de**, and GitHub closure when product agrees. See `front/public/i18n/`, `FeedbackPublicComponent`, and `docs/agent-loop.md`.
+Public guest feedback at `/feedback/{tenant}` (e.g. with `?token=…`) must show **no untranslated UI**: every part of the form and related states in the selected language. Prior CLOSED archives under `agents/tasks/done/` record repeated dev verification; **#67** remains open — align implementation with issue acceptance, optional production check on **sakario.sg**, and GitHub closure when product agrees. See `front/public/i18n/`, `FeedbackPublicComponent`, and `docs/agent-loop.md`.
 
 ## High-level instructions for coder
 
@@ -31,7 +31,7 @@ Public guest feedback at `/feedback/{tenant}` (e.g. with `?token=…`) must show
 - **Locales:** `FEEDBACK` keys in `front/public/i18n/en.json` are present for **de, es, fr, ca, zh-CN, hi** (same key set).
 - **API errors:** public POST uses localized `get_message(..., lang)` for tenant/token/email/phone failures; the client maps 429 and 422-style responses to `FEEDBACK.RATE_LIMIT` / `FEEDBACK.VALIDATION_ERROR`.
 - **Automated evidence:** `npm run test:feedback-public-i18n --prefix front` with `BASE_URL=http://127.0.0.1:4202` completed successfully (ES `navigator.language` stub on first paint, EN→DE/FR/ES/CA/zh-CN/hi via picker, `?token=` path, submit → thank-you in DE, `/feedback/0` error copy).
-- **GitHub #67:** Implementation matches stated acceptance on dev; close after product sign-off. Optional prod spot-check: same script with `BASE_URL=https://satisfecho.de`.
+- **GitHub #67:** Implementation matches stated acceptance on dev; close after product sign-off. Optional prod spot-check: same script with `BASE_URL=https://sakario.sg`.
 
 ## Testing instructions
 
@@ -60,7 +60,7 @@ Public guest feedback at `/feedback/{tenant}` (e.g. with `?token=…`) must show
 
 5. **Overall:** **PASS** (no failed criteria).
 
-6. **Product owner feedback:** Public guest feedback at `/feedback/1` is covered by an automated i18n smoke that checks seven locales plus token URL, submit flow, and invalid tenant. No raw translation keys appeared in the exercised paths. Optional manual spot-check on `/feedback/1` and production (`BASE_URL=https://satisfecho.de`) remain at product discretion before closing **#67**.
+6. **Product owner feedback:** Public guest feedback at `/feedback/1` is covered by an automated i18n smoke that checks seven locales plus token URL, submit flow, and invalid tenant. No raw translation keys appeared in the exercised paths. Optional manual spot-check on `/feedback/1` and production (`BASE_URL=https://sakario.sg`) remain at product discretion before closing **#67**.
 
 7. **URLs tested:**
    1. `http://127.0.0.1:4202/feedback/1` (default locale stub, then per-locale checks)

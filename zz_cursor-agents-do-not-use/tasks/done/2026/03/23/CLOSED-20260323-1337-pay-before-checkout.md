@@ -11,7 +11,7 @@
 # Pay before checkout
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/23
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/23
 
 ## Problem / goal
 Some customers want to pay before food is fully prepared. Orders must support **taking payment at any appropriate point** in the flow, not only at a single “checkout” moment.

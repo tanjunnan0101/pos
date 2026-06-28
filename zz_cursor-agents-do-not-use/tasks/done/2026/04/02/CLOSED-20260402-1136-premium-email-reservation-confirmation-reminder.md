@@ -11,7 +11,7 @@
 # Premium email experience: reservation confirmation + reservation reminder (layout, branding, localization)
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/150
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/150
 
 ## Problem / goal
 Stakeholders want transactional reservation emails (confirmation after booking, reminder before visit) to look professional and on-brand: clear hierarchy, readable typography, email-safe HTML, optional tenant logo, strong CTAs where self-service links exist, human-readable localized dates/times using tenant timezone when available. Confirmation should improve defaults and wrappers while preserving owner-customizable placeholders (`reservation_email_template.py` allowlist). Reminder path should be redesigned to match confirmation quality or share a common layout module; align tone and subject with confirmation. Follow existing i18n patterns (`get_message` / messages), escape user content, avoid secrets in logs. See `docs/0030-reservation-confirmation-email-troubleshooting.md` and `docs/0024-whatsapp-reminder-notes.md` where relevant.

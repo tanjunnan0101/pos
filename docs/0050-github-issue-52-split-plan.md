@@ -1,6 +1,6 @@
 # GitHub #52 — dedicated issues & plan
 
-**Parent:** [#52 — Various topics to enhance](https://github.com/satisfecho/pos/issues/52)
+**Parent:** [#52 — Various topics to enhance](https://github.com/tanjunnan0101/pos/issues/52)
 
 The umbrella issue listed many themes. This document **plans** them as **separate GitHub issues** with suggested **order**, **dependencies**, and **ready-to-paste** titles and bodies.
 
@@ -12,7 +12,7 @@ The umbrella issue listed many themes. This document **plans** them as **separat
 
 | Phase | Themes | Rationale |
 |-------|--------|-----------|
-| **A — Guest & CRM** | Surveys/Google extensions, birthdays | Builds on existing guest feedback, billing CRM, ties to [#54](https://github.com/satisfecho/pos/issues/54). |
+| **A — Guest & CRM** | Surveys/Google extensions, birthdays | Builds on existing guest feedback, billing CRM, ties to [#54](https://github.com/tanjunnan0101/pos/issues/54). |
 | **B — Floor & money** | Join tables, split invoice | High daily value for restaurants; touches orders, payments, printing. |
 | **C — Stock & supply** | Multi-warehouse, central kitchen → branches | Inventory and fulfillment model; larger schema + UX. |
 | **D — Growth & channels** | Marketing/promos, Uber Eats | Pricing engine + external APIs; compliance and ops overhead. |
@@ -58,7 +58,7 @@ flowchart LR
 Support **multiple stock locations** per tenant (e.g. main kitchen, cold room, bar) so stock moves and purchasing can be tied to a **warehouse**, not only a global SKU count.
 
 ## Context
-Tracked under umbrella [#52](https://github.com/satisfecho/pos/issues/52). Current inventory is purchase-oriented without per-location semantics.
+Tracked under umbrella [#52](https://github.com/tanjunnan0101/pos/issues/52). Current inventory is purchase-oriented without per-location semantics.
 
 ## Scope (proposal)
 - Data model: `Warehouse` (tenant-scoped), optional `warehouse_id` on stock-related entities / moves.
@@ -78,7 +78,7 @@ Tracked under umbrella [#52](https://github.com/satisfecho/pos/issues/52). Curre
 
 ## Issue 2 — Split invoice / split bill
 
-**Title:** `feat: Split bill / partial payments (multi-party, Stripe, Factura)`
+**Title:** `feat: Split bill / partial payments (multi-party, HitPay, Tax invoice)`
 
 **Body:**
 
@@ -87,12 +87,12 @@ Tracked under umbrella [#52](https://github.com/satisfecho/pos/issues/52). Curre
 Allow **splitting** an order bill: partial payments, multiple payers, or separate tickets while preserving audit trail.
 
 ## Context
-[#52](https://github.com/satisfecho/pos/issues/52). Touches `Order`, Stripe PaymentIntents, staff **Mark as paid**, and **Print Factura** (`docs/0017-billing-customers-factura.md`).
+[#52](https://github.com/tanjunnan0101/pos/issues/52). Touches `Order`, HitPay payment requests, staff **Mark as paid**, and **Print tax invoice** (`docs/0017-billing-customers-factura.md`).
 
 ## Scope (proposal)
 - Model: payment allocations or sub-orders; define whether split is **by line**, **by amount**, or **by guest session**.
-- Stripe: multiple intents or partial capture strategy (product decision).
-- Factura: one invoice per payer vs. single invoice with split notation (legal review).
+- HitPay: multiple intents or partial capture strategy (product decision).
+- Tax invoice: one invoice per payer vs. single invoice with split notation (legal review).
 
 ## Dependencies
 - May interact with **join tables** (single party, merged tables) — align UX early.
@@ -116,7 +116,7 @@ Allow **splitting** an order bill: partial payments, multiple payers, or separat
 When guests **combine physical tables**, staff can **join** them in the POS: shared or separate bills, correct capacity for reservations/walk-ins.
 
 ## Context
-[#52](https://github.com/satisfecho/pos/issues/52). Per-table **session_id** for customer menu already exists — see `docs/0008-order-management-logic.md`.
+[#52](https://github.com/tanjunnan0101/pos/issues/52). Per-table **session_id** for customer menu already exists — see `docs/0008-order-management-logic.md`.
 
 ## Scope (proposal)
 - Floor UI: select tables → “Join group” / “Unjoin”.
@@ -145,14 +145,14 @@ When guests **combine physical tables**, staff can **join** them in the POS: sha
 Allow **critical flows** (e.g. take order, cash payment) to work with **intermittent connectivity**, then **sync** to the server.
 
 ## Context
-[#52](https://github.com/satisfecho/pos/issues/52). Large architecture: service worker, local persistence, idempotent APIs, conflict resolution.
+[#52](https://github.com/tanjunnan0101/pos/issues/52). Large architecture: service worker, local persistence, idempotent APIs, conflict resolution.
 
 ## Scope (proposal)
 - Phase 0: spike — which surfaces (staff-only vs. customer menu) and offline duration targets.
 - Phase 1: read-only cache of menu/products; Phase 2: write queue with retry.
 
 ## Risks
-- Double submission, clock skew, Stripe when offline (likely **cash-only** offline).
+- Double submission, clock skew, HitPay when offline (likely **cash-only** offline).
 
 ## Acceptance criteria (MVP)
 - [ ] Written **architecture ADR** + threat model (duplicates, fraud).
@@ -172,7 +172,7 @@ Allow **critical flows** (e.g. take order, cash payment) to work with **intermit
 Provide a **repeatable path** to import products, tables, customers, and optionally historical orders from **another system**.
 
 ## Context
-[#52](https://github.com/satisfecho/pos/issues/52). Today: seeds and specialized imports exist; no generic migration toolkit or **cutover runbook**.
+[#52](https://github.com/tanjunnan0101/pos/issues/52). Today: seeds and specialized imports exist; no generic migration toolkit or **cutover runbook**.
 
 ## Scope (proposal)
 - Mapping templates (CSV columns → our models).
@@ -194,11 +194,11 @@ Provide a **repeatable path** to import products, tables, customers, and optiona
 
 ```markdown
 ## Summary
-**Extend** the existing guest feedback flow and Google deep-links; remaining work from [#52](https://github.com/satisfecho/pos/issues/52) after MVP shipped.
+**Extend** the existing guest feedback flow and Google deep-links; remaining work from [#52](https://github.com/tanjunnan0101/pos/issues/52) after MVP shipped.
 
 ## Already shipped (baseline)
 - `/feedback/:tenantId`, star rating, optional comment/contact.
-- Tenant **Google review URL** + optional **Google Maps** link on public pages (see `CHANGELOG.md`, [#54](https://github.com/satisfecho/pos/issues/54)).
+- Tenant **Google review URL** + optional **Google Maps** link on public pages (see `CHANGELOG.md`, [#54](https://github.com/tanjunnan0101/pos/issues/54)).
 
 ## Possible extensions
 - NPS / short survey templates; optional post-reservation email/SMS link.
@@ -222,7 +222,7 @@ Provide a **repeatable path** to import products, tables, customers, and optiona
 Capture **birthdays** for **guests** (e.g. on reservations), not only billing customers; optional **reminders** or campaigns.
 
 ## Context
-[#52](https://github.com/satisfecho/pos/issues/52). **Done:** optional `birth_date` on **billing customers** (Factura CRM). **Open:** reservation guest profile, consent, automation → overlaps [#54](https://github.com/satisfecho/pos/issues/54).
+[#52](https://github.com/tanjunnan0101/pos/issues/52). **Done:** optional `birth_date` on **billing customers** (Tax invoice CRM). **Open:** reservation guest profile, consent, automation → overlaps [#54](https://github.com/tanjunnan0101/pos/issues/54).
 
 ## Scope (proposal)
 - Optional `birth_date` (or month/day only) on reservation or linked guest record.
@@ -248,7 +248,7 @@ Capture **birthdays** for **guests** (e.g. on reservations), not only billing cu
 **Promotions engine**: happy hour, %-off categories, BOGO-lite, or coupon codes with eligibility (time window, tenant, channel).
 
 ## Context
-[#52](https://github.com/satisfecho/pos/issues/52). Overlaps [#54](https://github.com/satisfecho/pos/issues/54) (comms) but this issue is **pricing + cart application**.
+[#52](https://github.com/tanjunnan0101/pos/issues/52). Overlaps [#54](https://github.com/tanjunnan0101/pos/issues/54) (comms) but this issue is **pricing + cart application**.
 
 ## Scope (proposal)
 - Rule types MVP; stackability policy; audit on order lines (snapshot discount).
@@ -274,7 +274,7 @@ Capture **birthdays** for **guests** (e.g. on reservations), not only billing cu
 One **production kitchen** fulfils items for **multiple branches** (sucursales): transfer, visibility, and billing between sites.
 
 ## Context
-[#52](https://github.com/satisfecho/pos/issues/52). Not in current schema; likely multi-tenant or multi-site flags, transfer orders.
+[#52](https://github.com/tanjunnan0101/pos/issues/52). Not in current schema; likely multi-tenant or multi-site flags, transfer orders.
 
 ## Scope (proposal)
 - Phase 0: domain model workshop (same tenant vs. linked tenants).
@@ -301,7 +301,7 @@ One **production kitchen** fulfils items for **multiple branches** (sucursales):
 Interface to **aggregators** (Uber Eats, …): menu sync, order ingestion, status callbacks (within API constraints).
 
 ## Context
-[#52](https://github.com/satisfecho/pos/issues/52). See `docs/0031-order-customizations-plan.md` (delivery integrations).
+[#52](https://github.com/tanjunnan0101/pos/issues/52). See `docs/0031-order-customizations-plan.md` (delivery integrations).
 
 ## Scope (proposal)
 - Phase 0: vendor API review + sandbox credentials pattern (env, secrets).

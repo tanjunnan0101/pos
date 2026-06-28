@@ -11,7 +11,7 @@
 # Add centiliter (cl) volume unit
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/214
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/214
 - **214**
 
 ## Problem / goal

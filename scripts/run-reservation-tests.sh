@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Run reservation Puppeteer tests against localhost and optionally production (satisfecho.de).
+# Run reservation Puppeteer tests against localhost and optionally production (sakario.sg).
 # Usage: from repo root:
 #   ./scripts/run-reservation-tests.sh
-#   BASE_URLS="http://127.0.0.1:4203 http://satisfecho.de" ./scripts/run-reservation-tests.sh
+#   BASE_URLS="http://127.0.0.1:4203 https://sakario.sg" ./scripts/run-reservation-tests.sh
 #
 # Env:
-#   BASE_URLS     Space-separated list of base URLs (default: 127.0.0.1 then satisfecho.de)
+#   BASE_URLS     Space-separated list of base URLs (default: 127.0.0.1 then sakario.sg)
 #   HEADLESS      Default 1 (headless); set 0 for a visible browser
 #   STAFF_TEST    Set to 1 to also run staff reservation test (needs LOGIN_EMAIL, LOGIN_PASSWORD or .env)
 #   TENANT_ID     Tenant id for book page (default 1)
@@ -16,7 +16,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
-BASE_URLS="${BASE_URLS:-http://127.0.0.1:4202 http://127.0.0.1:4203 http://satisfecho.de}"
+BASE_URLS="${BASE_URLS:-http://127.0.0.1:4202 http://127.0.0.1:4203 https://sakario.sg}"
 HEADLESS="${HEADLESS:-1}"
 STAFF_TEST="${STAFF_TEST:-0}"
 TENANT_ID="${TENANT_ID:-1}"

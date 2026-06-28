@@ -13,7 +13,7 @@ class TestPublicTenantsList(PgClientTestCase):
         super().setUp()
         tenant = models.Tenant(
             name="Public List Test",
-            email="pos-public-list-test@amvara.de",
+            email="pos-public-list-test@sakario.sg",
         )
         self.session.add(tenant)
         self.session.commit()
@@ -29,7 +29,7 @@ class TestPublicTenantsList(PgClientTestCase):
         match = next((t for t in data if t["id"] == self.tenant_id), None)
         self.assertIsNotNone(match, "Created tenant must appear in list")
         self.assertEqual(match["name"], "Public List Test")
-        self.assertEqual(match["email"], "pos-public-list-test@amvara.de")
+        self.assertEqual(match["email"], "pos-public-list-test@sakario.sg")
         for key in (
             "id",
             "name",

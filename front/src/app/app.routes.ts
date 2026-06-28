@@ -69,7 +69,7 @@ export const routes: Routes = [
 
   // Staff orders (list and manage orders)
   { path: 'staff/orders', canActivate: [authGuard, orderAccessGuard], loadComponent: () => import('./orders/orders.component').then(m => m.OrdersComponent) },
-  // Billing customers (Factura)
+  // Billing customers
   { path: 'customers', canActivate: [authGuard, orderAccessGuard], loadComponent: () => import('./customers/customers.component').then(m => m.CustomersComponent) },
   // Kitchen display (cocina: main course) and Bar display (beverages only) - same component, filtered by category
   { path: 'kitchen', canActivate: [authGuard, uiModuleGuard('kitchen_bar'), orderAccessGuard], loadComponent: () => import('./kitchen-display/kitchen-display.component').then(m => m.KitchenDisplayComponent), data: { view: 'kitchen' } },

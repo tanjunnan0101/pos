@@ -11,7 +11,7 @@
 # Fix: “Forgot password” does not send the reset email (Login)
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/148
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/148
 
 ## Problem / goal
 Staff and/or provider “Forgot password” flow does not deliver the password-reset email, even when the UI shows a generic success. Expected: a valid registered email receives a transactional message with a reset link that targets the correct public app URL. Rate limiting and non-enumeration (generic success for unknown emails) must remain as designed.

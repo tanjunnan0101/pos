@@ -7,10 +7,10 @@
 
 2026-06-01T10:58:00Z UTC | 005 agent | registered=3 (la-moca,wimpi,bosskebabypizzeria) deploy_triggered=pending feat_mkt=0
 
-2026-06-01T11:02:00Z UTC | 005 agent | registered=3 deploy=https://github.com/satisfecho/pos/actions/runs/26750692550 feat_mkt=0 | note: la-moca CI ok; wimpi+bosskebab CI failed (no artifacts yet)
+2026-06-01T11:02:00Z UTC | 005 agent | registered=3 deploy=https://github.com/tanjunnan0101/pos/actions/runs/26750692550 feat_mkt=0 | note: la-moca CI ok; wimpi+bosskebab CI failed (no artifacts yet)
 2026-06-01T11:37:12Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
-2026-06-01T11:44:30Z UTC | 005 agent | registered=0 deploy=https://github.com/satisfecho/pos/actions/runs/26752666859 (wimpi, already live) feat_mkt=0 | note: 085_Bosskebabypizzeria CI still failing (TS in public-menu.service.ts), manifest deferred
+2026-06-01T11:44:30Z UTC | 005 agent | registered=0 deploy=https://github.com/tanjunnan0101/pos/actions/runs/26752666859 (wimpi, already live) feat_mkt=0 | note: 085_Bosskebabypizzeria CI still failing (TS in public-menu.service.ts), manifest deferred
 
 2026-06-01T11:44:22Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
@@ -94,7 +94,7 @@
 
 2026-06-01T15:36:06Z UTC | 005 preflight | new=0 changed=1 untracked_issues=0 deploy_candidates=1
 
-2026-06-01T15:38:00Z UTC | 005 agent | registered=0 deploy=https://github.com/satisfecho/pos/actions/runs/26765110266 (wimpi bundle update) feat_mkt=0 | note: 085_Bosskebabypizzeria CI still failing — manifest deferred per 3d4034f0
+2026-06-01T15:38:00Z UTC | 005 agent | registered=0 deploy=https://github.com/tanjunnan0101/pos/actions/runs/26765110266 (wimpi bundle update) feat_mkt=0 | note: 085_Bosskebabypizzeria CI still failing — manifest deferred per 3d4034f0
 
 2026-06-01T15:40:38Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
@@ -104,7 +104,7 @@
 
 2026-06-01T15:57:54Z UTC | 005 preflight | new=0 changed=1 untracked_issues=0 deploy_candidates=0
 
-2026-06-01T15:59:20Z UTC | 005 agent | registered=1 (bosskebabypizzeria) deploy=https://github.com/satisfecho/pos/actions/runs/26766300832 feat_mkt=0 | note: 085 CI green; manifest was deferred until TS fix
+2026-06-01T15:59:20Z UTC | 005 agent | registered=1 (bosskebabypizzeria) deploy=https://github.com/tanjunnan0101/pos/actions/runs/26766300832 feat_mkt=0 | note: 085 CI green; manifest was deferred until TS fix
 2026-06-01T16:04:36Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
 2026-06-01T16:10:24Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
@@ -123,7 +123,7 @@
 
 2026-06-01T17:09:49Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
-2026-06-01T17:20:00Z UTC | 005 agent | registered=0 deploy=https://github.com/satisfecho/pos/actions/runs/26770417180 (gustazo bundle: remove local-04) feat_mkt=0 | note: CI green artifact gustazo-dist; issue #1 already linked WIP-MKT-040-1
+2026-06-01T17:20:00Z UTC | 005 agent | registered=0 deploy=https://github.com/tanjunnan0101/pos/actions/runs/26770417180 (gustazo bundle: remove local-04) feat_mkt=0 | note: CI green artifact gustazo-dist; issue #1 already linked WIP-MKT-040-1
 
 2026-06-01T17:22:16Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
@@ -399,15 +399,15 @@
 
 2026-06-02T06:59:11Z UTC | 005 preflight | new=0 changed=1 untracked_issues=1 deploy_candidates=1
 
-2026-06-02T07:02:00Z UTC | 005 agent | registered=0 deploy=https://github.com/satisfecho/pos/actions/runs/26803925488 (wimpi bundle 06:20Z) feat_mkt=1 (FEAT-MKT-085-1 bosskebab 404 assets) | note: manifest unchanged; bosskebab base href mismatch /boss-kebab/ vs /bosskebabypizzeria/
+2026-06-02T07:02:00Z UTC | 005 agent | registered=0 deploy=https://github.com/tanjunnan0101/pos/actions/runs/26803925488 (wimpi bundle 06:20Z) feat_mkt=1 (FEAT-MKT-085-1 bosskebab 404 assets) | note: manifest unchanged; bosskebab base href mismatch /boss-kebab/ vs /bosskebabypizzeria/
 
 2026-06-02T07:00:29Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
-2026-06-02T07:18:30Z UTC | 005 agent | registered=0 deploy=https://github.com/satisfecho/pos/actions/runs/26804705034 (085_Bosskebabypizzeria bundle after baseHref fix, CI 26804039764) feat_mkt=1 (FEAT-MKT-083-2 google reviews) | note: 085 issue #1 skip linked WIP-MKT-085-1; no new repos
+2026-06-02T07:18:30Z UTC | 005 agent | registered=0 deploy=https://github.com/tanjunnan0101/pos/actions/runs/26804705034 (085_Bosskebabypizzeria bundle after baseHref fix, CI 26804039764) feat_mkt=1 (FEAT-MKT-083-2 google reviews) | note: 085 issue #1 skip linked WIP-MKT-085-1; no new repos
 
 2026-06-02T07:19:21Z UTC | 005 preflight | new=0 changed=1 untracked_issues=0 deploy_candidates=1
 
-2026-06-02T07:32:00Z UTC | 005 agent | registered=0 deploy=https://github.com/satisfecho/pos/actions/runs/26805314668 (wimpi Google reviews 4.8/239, CI 26804787062) feat_mkt=0 | note: issue #2 skip linked WIP-MKT-083-2; manifest unchanged
+2026-06-02T07:32:00Z UTC | 005 agent | registered=0 deploy=https://github.com/tanjunnan0101/pos/actions/runs/26805314668 (wimpi Google reviews 4.8/239, CI 26804787062) feat_mkt=0 | note: issue #2 skip linked WIP-MKT-083-2; manifest unchanged
 
 2026-06-02T07:36:28Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
@@ -569,7 +569,7 @@
 
 2026-06-02T15:22:56Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
-2026-06-02T15:32:00Z UTC | 005 agent | registered=1 (rico-kebab, 088_ricokebab) deploy=https://github.com/satisfecho/pos/actions/runs/26830188307 feat_mkt=0 | note: slug rico-kebab matches SPA baseHref; removed mistaken ricokebab path; CI green 26829863787; no bundle-change deploy candidates; no untracked issues
+2026-06-02T15:32:00Z UTC | 005 agent | registered=1 (rico-kebab, 088_ricokebab) deploy=https://github.com/tanjunnan0101/pos/actions/runs/26830188307 feat_mkt=0 | note: slug rico-kebab matches SPA baseHref; removed mistaken ricokebab path; CI green 26829863787; no bundle-change deploy candidates; no untracked issues
 
 2026-06-02T15:30:27Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
@@ -593,13 +593,13 @@
 
 2026-06-02T16:18:14Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
-2026-06-02T16:34:02Z UTC | 005 agent | registered=0 deploy=https://github.com/satisfecho/pos/actions/runs/26833059965 (088_ricokebab opening-hours bundle, CI 26833000932) feat_mkt=0 | note: deploy already triggered 16:20Z; issue #1 skip linked WIP-MKT-088-1; /es/ path stale per tester — coder action pending
+2026-06-02T16:34:02Z UTC | 005 agent | registered=0 deploy=https://github.com/tanjunnan0101/pos/actions/runs/26833059965 (088_ricokebab opening-hours bundle, CI 26833000932) feat_mkt=0 | note: deploy already triggered 16:20Z; issue #1 skip linked WIP-MKT-088-1; /es/ path stale per tester — coder action pending
 
 2026-06-02T16:34:10Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
 2026-06-02T16:41:12Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
-2026-06-02T16:48:47Z UTC | 005 agent | registered=0 deploy=https://github.com/satisfecho/pos/actions/runs/26834576186 (088_ricokebab bundle 16:47Z, CI 26834533491) feat_mkt=0 | note: issue #1 skip linked WIP-MKT-088-1; no new repos; manifest unchanged
+2026-06-02T16:48:47Z UTC | 005 agent | registered=0 deploy=https://github.com/tanjunnan0101/pos/actions/runs/26834576186 (088_ricokebab bundle 16:47Z, CI 26834533491) feat_mkt=0 | note: issue #1 skip linked WIP-MKT-088-1; no new repos; manifest unchanged
 2026-06-02T16:49:17Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
 2026-06-02T16:58:15Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
@@ -1362,7 +1362,7 @@
 
 2026-06-04T08:56:20Z UTC | 005 preflight | new=1 changed=0 untracked_issues=0 deploy_candidates=0
 
-2026-06-04T08:58:00Z UTC | 005 agent | registered=1 (pizzaluna, 087_pizzalluna) deploy=https://github.com/satisfecho/pos/actions/runs/26941757537 feat_mkt=0 | note: slug pizzaluna (not repo-derived pizzalluna) matches SPA baseHref /pizzaluna/es/; deploySubpath es; CI 26941499049 green; first deploy failed root placeholder text — fixed @ e709161c
+2026-06-04T08:58:00Z UTC | 005 agent | registered=1 (pizzaluna, 087_pizzalluna) deploy=https://github.com/tanjunnan0101/pos/actions/runs/26941757537 feat_mkt=0 | note: slug pizzaluna (not repo-derived pizzalluna) matches SPA baseHref /pizzaluna/es/; deploySubpath es; CI 26941499049 green; first deploy failed root placeholder text — fixed @ e709161c
 
 2026-06-04T09:02:11Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
@@ -1384,7 +1384,7 @@
 
 2026-06-04T09:55:44Z UTC | 005 preflight | new=0 changed=1 untracked_issues=0 deploy_candidates=1
 
-2026-06-04T09:58:00Z UTC | 005 agent | registered=0 deploy=https://github.com/satisfecho/pos/actions/runs/26944626919 (087_pizzalluna favicon bundle 09:51Z, CI 26944387660) feat_mkt=0 | note: manifest unchanged; artifact pizzaluna-satisfecho-deploy; live /pizzaluna/es/
+2026-06-04T09:58:00Z UTC | 005 agent | registered=0 deploy=https://github.com/tanjunnan0101/pos/actions/runs/26944626919 (087_pizzalluna favicon bundle 09:51Z, CI 26944387660) feat_mkt=0 | note: manifest unchanged; artifact pizzaluna-sakario-deploy; live /pizzaluna/es/
 
 2026-06-04T10:01:20Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
@@ -1406,7 +1406,7 @@
 
 2026-06-04T10:54:22Z UTC | 005 preflight | new=0 changed=1 untracked_issues=0 deploy_candidates=1
 
-2026-06-04T10:56:00Z UTC | 005 agent | registered=0 deploy=https://github.com/satisfecho/pos/actions/runs/26947198727 (087_pizzalluna split-shift hours bundle 10:50Z, CI 26947185197) feat_mkt=0 | note: deploy already triggered by master push; manifest unchanged; live /pizzaluna/es/ 200 OK; last-scan resynced
+2026-06-04T10:56:00Z UTC | 005 agent | registered=0 deploy=https://github.com/tanjunnan0101/pos/actions/runs/26947198727 (087_pizzalluna split-shift hours bundle 10:50Z, CI 26947185197) feat_mkt=0 | note: deploy already triggered by master push; manifest unchanged; live /pizzaluna/es/ 200 OK; last-scan resynced
 
 2026-06-04T10:55:55Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
@@ -1416,7 +1416,7 @@
 
 2026-06-04T11:13:45Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
-2026-06-04T11:20:12Z UTC | 005 agent | registered=0 deploy=https://github.com/satisfecho/pos/actions/runs/26948338121 (087_pizzalluna bundle 11:14Z, CI 26948288418) feat_mkt=0 | note: deploy already triggered by master push @ 11:15Z; manifest unchanged; live /pizzaluna/es/ 200 OK; last-scan resynced
+2026-06-04T11:20:12Z UTC | 005 agent | registered=0 deploy=https://github.com/tanjunnan0101/pos/actions/runs/26948338121 (087_pizzalluna bundle 11:14Z, CI 26948288418) feat_mkt=0 | note: deploy already triggered by master push @ 11:15Z; manifest unchanged; live /pizzaluna/es/ 200 OK; last-scan resynced
 
 2026-06-04T11:20:17Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
@@ -1430,7 +1430,7 @@
 
 2026-06-04T11:49:57Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
-2026-06-04T11:56:26Z UTC | 005 agent | registered=0 deploy=https://github.com/satisfecho/pos/actions/runs/26950185202 (087_pizzalluna category banner bundle 11:52Z, CI 26950010371) feat_mkt=0 | note: manifest unchanged; live /pizzaluna/es/ 200 OK; last-scan resynced
+2026-06-04T11:56:26Z UTC | 005 agent | registered=0 deploy=https://github.com/tanjunnan0101/pos/actions/runs/26950185202 (087_pizzalluna category banner bundle 11:52Z, CI 26950010371) feat_mkt=0 | note: manifest unchanged; live /pizzaluna/es/ 200 OK; last-scan resynced
 
 2026-06-04T11:56:36Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
@@ -1452,7 +1452,7 @@
 
 2026-06-04T12:50:38Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
-2026-06-04T13:06:56Z UTC | 005 agent | registered=0 deploy=https://github.com/satisfecho/pos/actions/runs/26953414778 (087_pizzalluna legal pages bundle 13:00Z, CI 26953296217) feat_mkt=0 | note: manifest unchanged; artifact pizzaluna-satisfecho-deploy; live /pizzaluna/es/ 200 OK
+2026-06-04T13:06:56Z UTC | 005 agent | registered=0 deploy=https://github.com/tanjunnan0101/pos/actions/runs/26953414778 (087_pizzalluna legal pages bundle 13:00Z, CI 26953296217) feat_mkt=0 | note: manifest unchanged; artifact pizzaluna-sakario-deploy; live /pizzaluna/es/ 200 OK
 
 2026-06-04T13:07:07Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
@@ -1472,7 +1472,7 @@
 
 2026-06-04T14:04:20Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
-2026-06-04T14:10:54Z UTC | 005 agent | registered=0 deploy=https://github.com/satisfecho/pos/actions/runs/26957177362 (087_pizzalluna subcategory banner bundle 14:08Z, CI 26957026938) feat_mkt=0 | note: manifest unchanged; artifact pizzaluna-satisfecho-deploy; live /pizzaluna/es/
+2026-06-04T14:10:54Z UTC | 005 agent | registered=0 deploy=https://github.com/tanjunnan0101/pos/actions/runs/26957177362 (087_pizzalluna subcategory banner bundle 14:08Z, CI 26957026938) feat_mkt=0 | note: manifest unchanged; artifact pizzaluna-sakario-deploy; live /pizzaluna/es/
 
 2026-06-04T14:11:11Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
@@ -1606,7 +1606,7 @@
 
 2026-06-04T21:47:55Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
-2026-06-05T21:55:59Z UTC | 005 agent | registered=1 (labellatoscana, 060_labellatoscana) deploy=https://github.com/satisfecho/pos/actions/runs/27042170617 feat_mkt=0 | note: 086_pitahouse already in manifest as pita-house; wimpi bundle 12:46Z (remove carta/booking CTAs, CI 27015693708); labellatoscana CI 27013031946 green; es/ placeholder added
+2026-06-05T21:55:59Z UTC | 005 agent | registered=1 (labellatoscana, 060_labellatoscana) deploy=https://github.com/tanjunnan0101/pos/actions/runs/27042170617 feat_mkt=0 | note: 086_pitahouse already in manifest as pita-house; wimpi bundle 12:46Z (remove carta/booking CTAs, CI 27015693708); labellatoscana CI 27013031946 green; es/ placeholder added
 
 2026-06-06T21:54:27Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
@@ -3062,7 +3062,7 @@
 
 
 2026-06-15T11:32:00Z UTC | 005 run | registered=1 (089_amigokebab→amigo-kebab) deploy_triggered=1 (run 27543063406) FEAT-MKT=0
-  live: https://www.satisfecho.de/amigo-kebab/es/ → 200, bundle OK
+  live: https://www.sakario.sg/amigo-kebab/es/ → 200, bundle OK
 2026-06-15T11:34:36Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
 2026-06-15T11:40:22Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
@@ -3957,7 +3957,7 @@
 
 2026-06-17T12:55:33Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
-2026-06-17T13:03:35Z UTC | 005 run | registered=1 (ariba-doner/090_aribakebab, already on master via PR #268; merged CHANGELOG+placeholder) deploy_triggered=1 (master push queued run 27690974232) feat_mkt_created=0 | live https://www.satisfecho.de/ariba-doner/es/ → 200
+2026-06-17T13:03:35Z UTC | 005 run | registered=1 (ariba-doner/090_aribakebab, already on master via PR #268; merged CHANGELOG+placeholder) deploy_triggered=1 (master push queued run 27690974232) feat_mkt_created=0 | live https://www.sakario.sg/ariba-doner/es/ → 200
 2026-06-17T13:04:39Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
 2026-06-17T13:10:30Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
@@ -5645,4 +5645,176 @@
 2026-06-22T10:52:55Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 
 2026-06-22T11:00:10Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T11:06:42Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T11:17:43Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T11:23:47Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T11:29:55Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T11:36:02Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T11:42:11Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T11:48:15Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T11:54:27Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T12:00:36Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T12:06:40Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T12:12:45Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T12:18:46Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T12:24:53Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T12:30:58Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T12:37:05Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T12:43:09Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T12:49:13Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T12:55:20Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T13:01:30Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T13:07:40Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T13:13:53Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T13:20:05Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T13:26:11Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T13:32:19Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T13:38:30Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T13:44:47Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T13:51:00Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T13:57:09Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T14:03:16Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T14:09:27Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T14:15:36Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T14:21:49Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T14:28:01Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T14:34:09Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T14:40:17Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T14:46:24Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T14:52:30Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T16:15:35Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T16:21:44Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T16:27:53Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T19:35:26Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T19:40:37Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T19:45:48Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T19:50:58Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T19:56:09Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T20:01:19Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T20:06:30Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T20:11:41Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T20:16:51Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T20:22:02Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-22T20:27:12Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-23T00:02:29Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-23T00:08:28Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-23T05:16:35Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-23T06:05:29Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-23T06:10:48Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-23T06:15:59Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T16:13:41Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T16:18:54Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T16:24:07Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T16:29:22Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T16:34:36Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T16:39:50Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T16:45:03Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T16:50:17Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T16:55:31Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T17:00:45Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T17:51:21Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T17:59:06Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T18:05:54Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T18:11:09Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T20:14:48Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T20:20:02Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T20:39:53Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T20:45:06Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T20:50:20Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T20:55:33Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T21:00:46Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T21:22:51Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-27T22:54:44Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-28T00:07:31Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-28T01:20:20Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-28T02:18:06Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-28T03:50:42Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-28T05:02:14Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
+
+2026-06-28T05:18:50Z UTC | 005 preflight | new=0 changed=0 untracked_issues=0 deploy_candidates=0
 

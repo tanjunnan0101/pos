@@ -11,7 +11,7 @@
 # Add field for OpenStreet maps link
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/102
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/102
 
 ## Problem / goal
 Tenant settings (“información de contacto”) need an optional OpenStreetMap URL. When set, surface a map link after relevant flows (e.g. post-submit) and include it in reservation emails. Reservation emails should also retain or add the guest link to change/manage the reservation (align with existing confirmation/reminder patterns in `docs/` if present).

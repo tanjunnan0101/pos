@@ -11,7 +11,7 @@
 # Fix missing expected date column i18n key
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/218
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/218
 - **218**
 
 ## Problem / goal

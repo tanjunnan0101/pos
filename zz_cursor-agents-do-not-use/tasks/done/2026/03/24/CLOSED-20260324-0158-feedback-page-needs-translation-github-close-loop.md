@@ -12,7 +12,7 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
@@ -47,7 +47,7 @@ Issue **#67** is still **OPEN** on GitHub; primary remaining work is **process/G
 - **Docker `front` logs:** bundle generation complete, no TS/build errors in tail.
 
 ### GitHub **#67** (automation)
-- **`gh issue comment 67 --repo satisfecho/pos`** → **`GraphQL: Resource not accessible by personal access token (addComment)`** (same as prior archives).
+- **`gh issue comment 67 --repo tanjunnan0101/pos`** → **`GraphQL: Resource not accessible by personal access token (addComment)`** (same as prior archives).
 - **Hand off:** Human with **Issues** write should post the comment below, adjust labels per **`docs/agent-loop.md`** (remove **`agent:wip`** / **`agent:testing`** if present; close when product agrees), and **`gh issue close 67`**.
 
 **Suggested closing comment for #67:**
@@ -84,7 +84,7 @@ Issue **#67** is still **OPEN** on GitHub; primary remaining work is **process/G
    - **`de.json` valid JSON:** **PASS** — `node -e "JSON.parse(require('fs').readFileSync('front/public/i18n/de.json','utf8')); console.log('OK')"` exited 0, printed `OK`.
    - **Public feedback DE/ES (`.feedback-intro`):** **PASS** — Puppeteer (`puppeteer-core` + host Chrome): navigated `http://127.0.0.1:4202/feedback/1`, `select('.language-select','de')` then waited for intro containing `Wir freuen uns über Ihre Rückmeldung`; then `es` and intro containing `Nos encantaría saber tu opinión`.
    - **Smoke `test:landing-version`:** **PASS** — `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` exited 0; log ended with `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.` (`elapsed_ms: 42765`).
-   - **GitHub #67 comment / `agent:testing` label:** **N/A (automation blocked)** — `gh issue comment 67 -R satisfecho/pos` → `GraphQL: Resource not accessible by personal access token (addComment)`; `gh issue edit … --add-label agent:testing` → label not found in repo. Hand off to human with Issues write per task body.
+   - **GitHub #67 comment / `agent:testing` label:** **N/A (automation blocked)** — `gh issue comment 67 -R tanjunnan0101/pos` → `GraphQL: Resource not accessible by personal access token (addComment)`; `gh issue edit … --add-label agent:testing` → label not found in repo. Hand off to human with Issues write per task body.
 
 5. **Overall:** **PASS** (product verification criteria 1–3). GitHub actions remain manual.
 

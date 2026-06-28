@@ -1,7 +1,7 @@
 # Add inventory transaction type i18n keys
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/228
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/228
 - **228**
 
 ## Problem / goal

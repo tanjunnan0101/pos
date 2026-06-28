@@ -1,7 +1,7 @@
 # Floor plan payment chip: anchor on bottom edge (half outside table shape); operational fill unchanged
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/188
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/188
 - **188**
 
 ## Problem / goal

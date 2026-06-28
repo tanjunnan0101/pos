@@ -12,11 +12,11 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public guest feedback URLs (e.g. `https://satisfecho.de/feedback/1?token=…`) must show **every** part of the form and related UI in the **selected** language—not a mix of English and the locale. The reporter saw untranslated strings on that flow. Prior implementation and multiple **CLOSED** tasks under `agents/tasks/done/` document rounds of i18n work and tester passes; the issue remains **open**—treat this queue item as **feature-coder follow-up**: confirm no regressions, close any real gaps, and support **GitHub alignment** (comment / labels / close when product accepts). See `docs/agent-loop.md` and `front/public/i18n/`.
+Public guest feedback URLs (e.g. `https://sakario.sg/feedback/1?token=…`) must show **every** part of the form and related UI in the **selected** language—not a mix of English and the locale. The reporter saw untranslated strings on that flow. Prior implementation and multiple **CLOSED** tasks under `agents/tasks/done/` document rounds of i18n work and tester passes; the issue remains **open**—treat this queue item as **feature-coder follow-up**: confirm no regressions, close any real gaps, and support **GitHub alignment** (comment / labels / close when product accepts). See `docs/agent-loop.md` and `front/public/i18n/`.
 
 ## High-level instructions for coder
 
