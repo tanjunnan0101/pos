@@ -8,18 +8,18 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
 from sqlmodel import Field, Relationship, SQLModel
 
 
-# ============ TAX (VAT/IVA) ============
+# ============ TAX / GST ============
 
 
 class Tax(SQLModel, table=True):
     """
-    Per-tenant tax rates (e.g. IVA 10%, 21%, 0%) with validity period.
+    Per-tenant tax rates (e.g. GST 9%, GST 0%) with validity period.
     Prices are tax-inclusive; used for invoice breakdown and reporting.
     """
     __tablename__ = "tax"
     id: int | None = Field(default=None, primary_key=True)
     tenant_id: int = Field(foreign_key="tenant.id", index=True)
-    name: str = Field(max_length=128)  # e.g. "IVA 10%", "IVA reducido"
+    name: str = Field(max_length=128)  # e.g. "GST 9%", "GST 0%"
     rate_percent: int = Field()  # 0, 10, 21
     valid_from: date = Field(sa_column=Column(Date, nullable=False))
     valid_to: date | None = Field(default=None, sa_column=Column(Date, nullable=True))
@@ -27,7 +27,7 @@ class Tax(SQLModel, table=True):
 
 
 class TaxCreate(SQLModel):
-    """Create a tax rate (e.g. IVA 10%, 21%, 0%)."""
+    """Create a tax rate (e.g. GST 9%, GST 0%)."""
     name: str = Field(max_length=128)
     rate_percent: int = Field(ge=0, le=100)
     valid_from: date
@@ -86,8 +86,8 @@ class Tenant(SQLModel, table=True):
     address: str | None = None
     website: str | None = None
     tax_id: str | None = None  # Tax ID / VAT number (e.g. DE123456789)
-    cif: str | None = None  # CIF / NIF (Spain: B12345678)
-    ccc: str | None = None  # Código Cuenta de Cotización (ES social security account); optional legal header
+    cif: str | None = None  # Tax identifier (Singapore context: UEN/GST registration number)
+    ccc: str | None = None  # Optional payroll/account reference for attendance exports
     logo_filename: str | None = None  # Stored in uploads/{tenant_id}/logo/
     header_background_filename: str | None = None  # Stored in uploads/{tenant_id}/header/
     # Public-facing pages (book, menu, reservation view): background color as hex (e.g. #1E22AA for RAL5002 Azul)
@@ -109,10 +109,10 @@ class Tenant(SQLModel, table=True):
     # Default UI language for this tenant (e.g. en, es, ca, de, zh-CN, hi)
     default_language: str | None = Field(default=None)
 
-    # IANA timezone for this tenant (e.g. America/Mazatlan, Europe/Madrid)
+    # IANA timezone for this tenant (e.g. Asia/Singapore)
     timezone: str | None = Field(default=None)
 
-    # ISO 3166-1 alpha-2 (e.g. ES, IN); used for contract-template presets and similar locale rules
+    # ISO 3166-1 alpha-2 (e.g. SG, IN); used for contract-template presets and similar locale rules
     country_code: str | None = Field(default=None, max_length=2)
 
     hitpay_api_key: str | None = Field(
@@ -189,12 +189,12 @@ class Tenant(SQLModel, table=True):
 
     # POS checkout: up to 4 tip percentages (e.g. 5,10,15,20); empty list disables tips; null = legacy default in API
     tip_preset_percents: list | None = Field(default=None, sa_column=Column(JSONB, nullable=True))
-    # VAT/IVA rate (0–100) applied to tip amount for invoice breakdown (tax-inclusive tip, same basis as menu prices)
+    # Tax/GST rate (0-100) applied to tip amount for invoice breakdown.
     tip_tax_rate_percent: int | None = Field(default=0)
     # POS: "preset" = tip from tip_preset_percents; "overpayment" = staff enters amount paid, tip = difference (see OrderMarkPaid)
     tip_entry_mode: str = Field(default="preset", max_length=32)
 
-    # Default tax (IVA) applied system-wide when product has no tax override
+    # Default tax/GST applied system-wide when product has no tax override.
     default_tax_id: int | None = Field(default=None, foreign_key="tax.id", index=True)
 
     # KDS: unmapped products fall back to these prep stations (by category route)
@@ -220,7 +220,7 @@ class Tenant(SQLModel, table=True):
     # When clock QR is active, optionally require GPS within tenant latitude/longitude + location_radius_meters
     clock_qr_location_verify: bool = Field(default=False)
 
-    # Spain VeriFactu-oriented fiscal invoicing (server-side issuance; AEAT wiring is separate)
+    # Optional server-side fiscal invoicing metadata.
     fiscal_mode: str = Field(default="off", max_length=16)  # off | test | live
     fiscal_invoice_series: str = Field(default="VF", max_length=32)
     fiscal_invoice_next_number: int = Field(default=1)
@@ -673,7 +673,7 @@ class GuestFeedback(TenantMixin, table=True):
 
 
 class BillingCustomer(TenantMixin, table=True):
-    """Customer registered for tax invoicing (Factura). Company details for printing invoices."""
+    """Customer registered for tax invoicing. Company details for printing invoices."""
     __tablename__ = "billing_customer"
     id: int | None = Field(default=None, primary_key=True)
     tenant_id: int = Field(foreign_key="tenant.id", index=True)
@@ -690,7 +690,7 @@ class BillingCustomer(TenantMixin, table=True):
 
 
 class FiscalInvoice(SQLModel, table=True):
-    """Server-issued fiscal document row for an order (VeriFactu preparation; not a substitute for AEAT filing)."""
+    """Server-issued fiscal document row for an order."""
 
     __tablename__ = "fiscal_invoice"
 
@@ -717,7 +717,7 @@ class Order(TenantMixin, table=True):
     notes: str | None = None  # General order notes
     session_id: str | None = Field(default=None, index=True)  # Unique session identifier per browser
     customer_name: str | None = Field(default=None, index=True)  # Optional customer name for restaurant staff
-    billing_customer_id: int | None = Field(default=None, foreign_key="billing_customer.id", index=True)  # For Factura
+    billing_customer_id: int | None = Field(default=None, foreign_key="billing_customer.id", index=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     # Cancellation tracking
@@ -1133,7 +1133,7 @@ class TenantUpdate(SQLModel):
     timezone: str | None = None
     country_code: str | None = Field(default=None, max_length=2)
 
-    default_tax_id: int | None = None  # FK to tax.id; system-wide default IVA
+    default_tax_id: int | None = None  # FK to tax.id; system-wide default tax/GST.
 
     hitpay_api_key: str | None = None
     hitpay_webhook_salt: str | None = None
@@ -1197,7 +1197,7 @@ class TenantUpdate(SQLModel):
     tip_tax_rate_percent: int | None = Field(default=None, ge=0, le=100)
     tip_entry_mode: str | None = None  # "preset" | "overpayment"
 
-    # VeriFactu / fiscal invoicing (Spain-oriented)
+    # Optional fiscal invoicing settings
     fiscal_mode: str | None = Field(default=None, max_length=16)
     fiscal_invoice_series: str | None = Field(default=None, max_length=32)
     fiscal_aeat_api_secret: str | None = Field(default=None, max_length=512)

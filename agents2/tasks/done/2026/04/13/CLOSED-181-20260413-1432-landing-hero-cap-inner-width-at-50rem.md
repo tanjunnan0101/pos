@@ -11,7 +11,7 @@
 # Landing hero: cap inner width at 50rem
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/181
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/181
 - **181**
 
 ## Problem / goal

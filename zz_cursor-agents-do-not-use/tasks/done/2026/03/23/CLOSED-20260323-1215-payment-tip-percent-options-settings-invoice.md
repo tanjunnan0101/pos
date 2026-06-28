@@ -11,7 +11,7 @@
 # Payment tips: owner-configurable presets (e.g. 5/10/15/20%), invoice, tax
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/58
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/58
 
 ## Problem / goal
 Restaurant owner configures tip options in settings (e.g. four percentages). POS applies selected tip to payment total automatically; tip line appears on invoice/receipt. Tax treatment for tips should be configurable in the backend (issue asks which tax applies — design and document default).

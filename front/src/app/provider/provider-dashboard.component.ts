@@ -186,7 +186,7 @@ import { environment } from '../../environments/environment';
           </div>
           <div class="form-row form-row-half">
             <label>Country</label>
-            <input type="text" [(ngModel)]="formCountry" name="country" placeholder="e.g. Spain">
+            <input type="text" [(ngModel)]="formCountry" name="country" placeholder="e.g. Singapore">
           </div>
           <div class="form-row form-row-half">
             <label>Region</label>

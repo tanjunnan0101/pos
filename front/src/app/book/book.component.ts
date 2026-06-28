@@ -160,7 +160,7 @@ export class BookComponent implements OnInit {
     return url ? this.sanitizer.bypassSecurityTrustStyle('url("' + url + '")') : null;
   }
 
-  /** Build WhatsApp wa.me link from phone string (e.g. +34 612 345 678 -> https://wa.me/34612345678). */
+  /** Build WhatsApp wa.me link from phone string (e.g. +65 8123 4567 -> https://wa.me/6581234567). */
   getWhatsAppUrl(phone: string): string {
     const digits = (phone || '').replace(/\D/g, '');
     return `https://wa.me/${digits}`;

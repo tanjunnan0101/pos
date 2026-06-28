@@ -67,7 +67,7 @@ The app mounted `StaticFiles` on `/uploads` over the entire `uploads/` tree. Sta
 | Area | Notes |
 |------|--------|
 | Table PIN / menu | Documented in `docs/0009-table-pin-security.md`. Table token is unique; PIN is 4-digit — rate-limit menu/order endpoints in production (`RATE_LIMIT_*`). |
-| Stripe / Revolut | **No inbound payment webhooks** in-repo for Stripe; confirmation uses `PaymentIntent.retrieve` / Revolut API with **tenant-scoped secret** and checks metadata amount/order (`main.py`). Table-bound public flows require `table_token` + matching `order_id`. |
+| HitPay | **No inbound payment webhooks** in-repo for HitPay; confirmation uses `PaymentIntent.retrieve` / HitPay API with **tenant-scoped secret** and checks metadata amount/order (`main.py`). Table-bound public flows require `table_token` + matching `order_id`. |
 | Rate limiting | `slowapi` + Redis; client IP from **first** `X-Forwarded-For` hop — **trust only when the edge proxy strips/spoof-proof headers** (see HAProxy config). |
 | Reservation delay notice | Extra Redis counter per IP + reservation id. |
 

@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * Puppeteer smoke test for amvara9 production (www.satisfecho.de).
+ * Puppeteer smoke test for amvara9 production (www.sakario.sg).
  * Visits landing, login, public book page, and checks API health. No login required.
  *
  * Usage (from repo root):
  *   node front/scripts/test-amvara9-smoke.mjs
- *   BASE_URL=https://www.satisfecho.de HEADLESS=1 node front/scripts/test-amvara9-smoke.mjs
+ *   BASE_URL=https://www.sakario.sg HEADLESS=1 node front/scripts/test-amvara9-smoke.mjs
  *
  * Env:
- *   BASE_URL   Base URL (default: https://www.satisfecho.de)
+ *   BASE_URL   Base URL (default: https://www.sakario.sg)
  *   HEADLESS       Default headless; set 0, false, or no for a visible browser.
  */
 
@@ -21,7 +21,7 @@ const CHROME_PATH =
   process.env.PUPPETEER_EXECUTABLE_PATH ||
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
-const DEFAULT_BASE = 'https://www.satisfecho.de';
+const DEFAULT_BASE = 'https://www.sakario.sg';
 
 async function main() {
   const baseUrl = process.env.BASE_URL || DEFAULT_BASE;

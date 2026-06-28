@@ -2,7 +2,7 @@
 
 ## GitHub Issues
 
-- **Issue:** https://github.com/satisfecho/pos/issues/232
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/232
 - **232**
 
 ## Problem / goal

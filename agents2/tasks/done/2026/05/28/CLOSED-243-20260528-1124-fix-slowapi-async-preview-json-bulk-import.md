@@ -11,9 +11,9 @@
 # Fix slowapi on async preview-json bulk import (500 Response type)
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/243
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/243
 - **243**
-- **Blocks:** https://github.com/satisfecho/pos/issues/242 (bulk import preview unusable in browser until this is fixed)
+- **Blocks:** https://github.com/tanjunnan0101/pos/issues/242 (bulk import preview unusable in browser until this is fixed)
 
 ## Problem / goal
 

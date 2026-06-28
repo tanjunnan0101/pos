@@ -11,10 +11,10 @@
 # Reservation confirmation emails: consistent language + no duplicate prepay text
 
 ## GitHub Issues
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- `gh issue list --repo satisfecho/pos --state open --limit 40`
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- `gh issue list --repo tanjunnan0101/pos --state open --limit 40`
 - Optional: `--json number,title,labels,updatedAt,url`
-- **Issue:** https://github.com/satisfecho/pos/issues/162
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/162
 
 ## Problem / goal
 Reservation confirmation emails should use a single language end-to-end: prefer tenant default language (normalized as today), or reservation/booking locale if the model already stores it—use that when sending.

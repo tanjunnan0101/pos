@@ -11,7 +11,7 @@
 # Bulagarian internal dashboard subtitle not translated
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/107
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/107
 
 ## Problem / goal
 With Bulgarian selected and after login, the internal dashboard still shows the English subtitle **"Manage your business operations from here"**. The Bulgarian i18n JSON (and any related keys for the dashboard / home shell) needs to be completed so this string is translated like the rest of the staff UI. Related prior work: issue **#103** (Bulgarian language) — this is a follow-up gap on the dashboard subtitle.

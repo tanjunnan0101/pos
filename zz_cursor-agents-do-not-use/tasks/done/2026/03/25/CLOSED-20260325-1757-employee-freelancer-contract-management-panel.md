@@ -12,7 +12,7 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/99
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/99
 
 ## Problem / goal
 
@@ -187,7 +187,7 @@ There is no structured way in the staff area to create, store, and manage **empl
    | Staff SPA bootstrap (login form, no **Circular dependency** / **NG0200**) | **PASS** | Puppeteer: **`input[type="email"]`** filled on `/login?tenant=1`; landed **`/dashboard`**; browser console stream had **no** `Circular dependency` / **NG0200** lines (vite + “Angular is running in development mode” only aside from unrelated WS **1008** messages on some routes). |
    | Optional **`test:landing-version`** | **PASS** | Exit code **0**; step **[15/16] -> /contracts** navigated successfully. |
    | Optional **`curl /`** | **PASS** | **`200`**. |
-   | Manual UI (admin PDF + second-user waiter in browser) | **PARTIAL** | Admin/owner path covered by sidebar automation incl. **`/contracts`**. Full **two-account** manual PDF flow not re-run. Separate one-off Puppeteer login **`pos-staff-demo@amvara.de` / `secret`** stayed on **`/login`** on this DB — **waiter UI not confirmed in browser**; waiter rules still covered by **`test_waiter_cannot_create`** / **`test_waiter_no_tax_id_for_other_contract`**. |
+   | Manual UI (admin PDF + second-user waiter in browser) | **PARTIAL** | Admin/owner path covered by sidebar automation incl. **`/contracts`**. Full **two-account** manual PDF flow not re-run. Separate one-off Puppeteer login **`pos-staff-demo@sakario.sg` / `secret`** stayed on **`/login`** on this DB — **waiter UI not confirmed in browser**; waiter rules still covered by **`test_waiter_cannot_create`** / **`test_waiter_no_tax_id_for_other_contract`**. |
 
 5. **Overall:** **PASS** — Required steps **1–4** and optional **5–7** from task instructions succeed; prior **FAIL** (circular **ApiService**) is **not** reproduced. Residual gap: **waiter browser session** not validated locally (credentials/seed mismatch); API tests provide waiter RBAC evidence.
 

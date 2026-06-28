@@ -11,10 +11,10 @@
 # Tables canvas: remove move-mode toggle; revert layout on join dialog cancel
 
 ## GitHub Issues
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- `gh issue list --repo satisfecho/pos --state open --limit 40`
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- `gh issue list --repo tanjunnan0101/pos --state open --limit 40`
 - Optional: `--json number,title,labels,updatedAt,url`
-- **Issue:** https://github.com/satisfecho/pos/issues/156
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/156
 
 ## Problem / goal
 Remove the “Moviendo mesas” / move-mode UI and any logic that forces Alt or a toggle to reposition tables. Default table drag should always persist layout position like normal floor-plan editing. Keep overlap + hold + release → “Join tables?” modal. If the user cancels or dismisses without confirming, snap all affected tables back to positions captured at drag start. On confirm, keep current success path (API + layout restore). Update i18n and hints so they no longer mention Alt, move toggle, or move mode.

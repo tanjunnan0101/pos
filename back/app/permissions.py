@@ -66,7 +66,7 @@ class Permission(str, Enum):
     # Reports (revenue / sales analysis – owner & admin)
     REPORT_READ = "report:read"
 
-    # Billing customers (for Factura / tax invoicing)
+    # Billing customers (for tax invoicing)
     BILLING_CUSTOMER_READ = "billing_customer:read"
     BILLING_CUSTOMER_WRITE = "billing_customer:write"
 

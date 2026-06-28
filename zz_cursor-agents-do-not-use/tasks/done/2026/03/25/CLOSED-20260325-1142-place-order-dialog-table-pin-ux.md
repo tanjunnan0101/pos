@@ -1,7 +1,7 @@
 ---
 ## Closing summary (TOP)
 
-- **What happened:** GitHub [#86](https://github.com/satisfecho/pos/issues/86): staff opening the menu from **Tables** hit the public PIN gate when placing orders, which was poor UX for waiters.
+- **What happened:** GitHub [#86](https://github.com/tanjunnan0101/pos/issues/86): staff opening the menu from **Tables** hit the public PIN gate when placing orders, which was poor UX for waiters.
 - **What was done:** Staff **Open menu** now uses `GET /tables/{id}/staff-menu-token` and `/menu/{token}?staff_access=…` (aligned with Staff orders); guests still use public URLs. When a PIN is still required, the sheet shows **Table: {name}** via i18n (`MENU.PIN_TABLE_CONTEXT`).
 - **What was tested:** Tester reported **PASS** — staff path skips PIN modal, public copy/QR still require PIN with table context, `test:landing-version` and `test-staff-menu-link-puppeteer.mjs` pass, front logs clean.
 - **Why closed:** Verification complete; all testing criteria met.
@@ -11,7 +11,7 @@
 # Place an order: table PIN dialog UX
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/86
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/86
 
 ## Problem / goal
 When placing an order, a dialog asks for the **table PIN**. Waiters find it hard to leave that flow to check the tables view and return to continue the order. Reporter suggests showing the **table PIN in the dialog** (e.g. upper area) so the waiter does not need to navigate away.

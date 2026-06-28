@@ -24,7 +24,7 @@ class TestPasswordReset(PgClientTestCase):
         self.session.commit()
         self.session.refresh(self.tenant)
         self.user = models.User(
-            email="pwreset-staff@amvara.de",
+            email="pwreset-staff@sakario.sg",
             hashed_password=security.get_password_hash("old-secret-9"),
             tenant_id=self.tenant.id,
             role=models.UserRole.owner,
@@ -47,13 +47,13 @@ class TestPasswordReset(PgClientTestCase):
         settings.public_app_base_url = "http://127.0.0.1:4202"
         r = self.client.post(
             "/password-reset/request",
-            json={"email": "pwreset-staff@amvara.de", "tenant_id": self.tenant.id},
+            json={"email": "pwreset-staff@sakario.sg", "tenant_id": self.tenant.id},
         )
         self.assertEqual(r.status_code, 200, r.text)
         self.assertEqual(r.json().get("status"), "ok")
         mock_send.assert_called_once()
         args, kwargs = mock_send.call_args
-        self.assertEqual(args[0], "pwreset-staff@amvara.de")
+        self.assertEqual(args[0], "pwreset-staff@sakario.sg")
         self.assertIn("/reset-password?token=", args[1])
         self.assertIsNotNone(kwargs.get("tenant"))
         self.assertEqual(kwargs.get("lang"), "en")
@@ -66,7 +66,7 @@ class TestPasswordReset(PgClientTestCase):
         settings.public_app_base_url = "http://127.0.0.1:4202"
         r = self.client.post(
             "/password-reset/request?lang=de",
-            json={"email": "pwreset-staff@amvara.de", "tenant_id": self.tenant.id},
+            json={"email": "pwreset-staff@sakario.sg", "tenant_id": self.tenant.id},
         )
         self.assertEqual(r.status_code, 200, r.text)
         mock_send.assert_called_once()
@@ -78,7 +78,7 @@ class TestPasswordReset(PgClientTestCase):
         settings.public_app_base_url = "http://127.0.0.1:4202"
         r = self.client.post(
             "/password-reset/request",
-            json={"email": "nobody-here-xyz@amvara.de", "tenant_id": self.tenant.id},
+            json={"email": "nobody-here-xyz@sakario.sg", "tenant_id": self.tenant.id},
         )
         self.assertEqual(r.status_code, 200, r.text)
         self.assertEqual(r.json().get("status"), "ok")
@@ -88,7 +88,7 @@ class TestPasswordReset(PgClientTestCase):
         from app.settings import settings
 
         settings.public_app_base_url = ""
-        for email in ("nobody-here-xyz@amvara.de", "pwreset-staff@amvara.de"):
+        for email in ("nobody-here-xyz@sakario.sg", "pwreset-staff@sakario.sg"):
             r = self.client.post(
                 "/password-reset/request",
                 json={"email": email, "tenant_id": self.tenant.id},
@@ -106,7 +106,7 @@ class TestPasswordReset(PgClientTestCase):
         settings.public_app_base_url = "http://127.0.0.1:4202"
         self.client.post(
             "/password-reset/request",
-            json={"email": "pwreset-staff@amvara.de", "tenant_id": self.tenant.id},
+            json={"email": "pwreset-staff@sakario.sg", "tenant_id": self.tenant.id},
         )
         self.assertTrue(mock_send.called)
         reset_url = mock_send.call_args[0][1]

@@ -11,7 +11,7 @@
 # Register working hours of personal
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/57
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/57
 
 ## Problem / goal
 When staff (“personal”) logs in, the product should record working hours for reporting and payroll. On the logged-in staff’s personal page, provide explicit **start-shift** and **end-shift** actions so shifts are confirmed rather than inferred.

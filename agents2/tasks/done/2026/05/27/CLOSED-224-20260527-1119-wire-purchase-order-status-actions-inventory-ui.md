@@ -11,7 +11,7 @@
 # Wire purchase order status actions in inventory UI
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/224
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/224
 - **224**
 
 ## Problem / goal

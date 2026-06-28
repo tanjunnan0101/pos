@@ -16,11 +16,11 @@ docker compose $COMPOSE_OPTS exec back python scripts/diagnose_reservation_email
 
 This prints: global SMTP status, **per-tenant SMTP** (confirmations use tenant SMTP if set, else global `config.env`), recent reservations with email, and what to check next. Share this output to investigate further.
 
-**Create a test reservation (Puppeteer)** after deploy to trigger the confirmation flow; the reservation email defaults to **ralf.roeber@amvara.de** so you can verify the mail in the inbox. Then inspect backend logs:
+**Create a test reservation (Puppeteer)** after deploy to trigger the confirmation flow; the reservation email defaults to **ralf.roeber@sakario.sg** so you can verify the mail in the inbox. Then inspect backend logs:
 
 ```bash
 # From repo root (or front/)
-BASE_URL=https://www.satisfecho.de HEADLESS=1 node front/scripts/test-reservation-create.mjs
+BASE_URL=https://www.sakario.sg HEADLESS=1 node front/scripts/test-reservation-create.mjs
 # Override email: TEST_EMAIL=you@your-domain.com node front/scripts/test-reservation-create.mjs
 # Or: npm run test:reservation-create --prefix front
 ```

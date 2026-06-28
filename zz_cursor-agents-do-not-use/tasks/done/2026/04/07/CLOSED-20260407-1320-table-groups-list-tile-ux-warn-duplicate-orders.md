@@ -11,10 +11,10 @@
 # Table groups: grouped List + Tile UX + warn on duplicate orders across joined tables
 
 ## GitHub Issues
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- `gh issue list --repo satisfecho/pos --state open --limit 40`
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- `gh issue list --repo tanjunnan0101/pos --state open --limit 40`
 - Optional: `--json number,title,labels,updatedAt,url`
-- **Issue:** https://github.com/satisfecho/pos/issues/174
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/174
 
 ## Problem / goal
 **Part A — List & Tile:** Tables that share `table_group_id` are joined on the floor plan, but List and Tile views should show **one combined row (List)** and **one combined card (Tile)** per group, not one per physical table. Primary line: combined names, combined seat count, floor once. Nested/expandable area: each member table keeps its own actions (QR, Activate, menu, copy, etc.) per `docs/0051-table-groups-mvp.md`. Ungrouped tables behave as today. Add i18n for new labels; sort groups and ungrouped tables predictably.
@@ -76,4 +76,4 @@
 
 **Relevant log excerpts:** Front container: recent lines show successful incremental rebuilds (`Application bundle generation complete`) with no errors in the sampled window. No back-end errors required for this UI verification.
 
-**GitHub:** Issue [#174](https://github.com/satisfecho/pos/issues/174) — label updates not applied via CLI in this run (optional per `docs/agent-loop.md`).
+**GitHub:** Issue [#174](https://github.com/tanjunnan0101/pos/issues/174) — label updates not applied via CLI in this run (optional per `docs/agent-loop.md`).

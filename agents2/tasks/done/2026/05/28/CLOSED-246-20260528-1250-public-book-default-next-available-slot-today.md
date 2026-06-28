@@ -1,7 +1,7 @@
 # Public book: default time slot must be next available time today, not first slot of day
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/246
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/246
 - **246**
 
 ## Problem / goal

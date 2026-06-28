@@ -1,9 +1,9 @@
 """
-Spanish monthly «registro horario» (RD-ley 8/2019 style) Excel export.
+Monthly attendance Excel export.
 
 Builds one sheet per employee with a fixed paper-like layout: company header,
-daily grid (planned vs clocked, split mañana/tarde at 12:00 local), signature
-column on every day row (cells left empty for ink), totals and legal footer text.
+daily grid (planned vs clocked, split morning/afternoon at 12:00 local), signature
+column on every day row (cells left empty for ink), totals and footer text.
 
 Aggregation uses the tenant IANA timezone when set; otherwise UTC.
 

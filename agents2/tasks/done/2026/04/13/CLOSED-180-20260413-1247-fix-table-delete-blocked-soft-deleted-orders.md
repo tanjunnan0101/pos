@@ -11,7 +11,7 @@
 # Fix table delete blocked by soft-deleted orders
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/180
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/180
 - **180**
 
 ## Problem / goal

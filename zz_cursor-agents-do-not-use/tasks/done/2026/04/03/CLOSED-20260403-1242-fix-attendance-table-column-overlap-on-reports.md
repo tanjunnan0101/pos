@@ -11,10 +11,10 @@
 # Fix attendance table column overlap on Reports
 
 ## GitHub Issues
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- `gh issue list --repo satisfecho/pos --state open --limit 40`
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- `gh issue list --repo tanjunnan0101/pos --state open --limit 40`
 - Optional: `--json number,title,labels,updatedAt,url`
-- **Issue:** https://github.com/satisfecho/pos/issues/160
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/160
 
 ## Problem / goal
 On the Reports screen, work-session attendance tables overlap columns (e.g. Adjust/Corregir actions vs IP-related columns) because shared table styles force a fixed four-column layout. The fix should scope aggressive layout rules to revenue tables only and give attendance tables their own layout so columns stay readable on typical viewports.

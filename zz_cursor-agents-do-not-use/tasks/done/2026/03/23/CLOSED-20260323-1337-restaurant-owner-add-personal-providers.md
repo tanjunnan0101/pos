@@ -11,7 +11,7 @@
 # Make restaurant owner add personal providers
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/25
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/25
 
 ## Problem / goal
 A restaurant may use a supplier not present in the global/provider catalog. Owners need to **add their own providers** and **link them to products**, including non-menu items (e.g. toilet paper) that are not “on sale” in the usual sense.

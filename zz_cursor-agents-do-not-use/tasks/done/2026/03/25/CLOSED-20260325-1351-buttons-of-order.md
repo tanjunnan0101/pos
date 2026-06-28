@@ -11,7 +11,7 @@
 # Buttons of order
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/92
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/92
 
 ## Problem / goal
 In the order UI, **`order-header-actions`** (buttons of order) should be **removed or hidden only in the orders context** — not globally elsewhere. Layout: ensure **`align-items: center`** applies as intended for that area. See issue body and any related order-header / staff order components in `front/`.

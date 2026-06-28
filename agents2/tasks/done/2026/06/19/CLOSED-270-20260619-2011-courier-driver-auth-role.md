@@ -11,7 +11,7 @@
 # Phase 1 — Courier driver auth and role (foundation for delivery app)
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/270
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/270
 - **270**
 
 ## Problem / goal
@@ -43,11 +43,11 @@ Reuse existing `User` / JWT / tenant patterns (see staff `/login` and provider `
 
 1. **Migrate:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python -m app.migrate` (applies `20260619120000_add_courier_role.sql`).
 2. **Backend enum test:** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python3 -m pytest tests/test_user_role_pg_enum.py -q` → expect **1 passed**.
-3. **Create courier user (owner/admin):** Log in as tenant owner → **Users** → **Add user** → role **Courier** → save.  
-   Or seed for tenant 1:  
-   `docker compose exec back python3 -c "..."` (see commit) / use email `courier-test-phase1@amvara.de` password `secret` if seeded in dev.
-4. **Courier login API:**  
-   `curl -c /tmp/cj -b /tmp/cj -X POST 'http://127.0.0.1:4202/api/token?scope=courier' -H 'Content-Type: application/x-www-form-urlencoded' -d 'username=courier-test-phase1@amvara.de&password=secret'`  
+3. **Create courier user (owner/admin):** Log in as tenant owner → **Users** → **Add user** → role **Courier** → save.
+   Or seed for tenant 1:
+   `docker compose exec back python3 -c "..."` (see commit) / use email `courier-test-phase1@sakario.sg` password `secret` if seeded in dev.
+4. **Courier login API:**
+   `curl -c /tmp/cj -b /tmp/cj -X POST 'http://127.0.0.1:4202/api/token?scope=courier' -H 'Content-Type: application/x-www-form-urlencoded' -d 'username=courier-test-phase1@sakario.sg&password=secret'`
    then `curl -b /tmp/cj http://127.0.0.1:4202/api/courier/me` → JSON with `role: courier`, `tenant_id`, `tenant_name`.
 5. **Non-courier rejected:** Log in as staff, call `GET /api/courier/me` → **403** (or **401** if session invalid).
 6. **Frontend:** Open `http://127.0.0.1:4202/courier/login` → sign in as courier → lands on `/courier` placeholder with logout. Footer links on `/` and `/login` include **Courier login**.
@@ -69,9 +69,9 @@ Reuse existing `User` / JWT / tenant patterns (see staff `/login` and provider `
 |---|-----------|--------|----------|
 | 1 | DB migration applies courier role | **PASS** | `python -m app.migrate` → schema version **20260619120000** (already applied). |
 | 2 | `test_user_role_pg_enum.py` | **PASS** | `1 passed in 2.27s`. |
-| 3 | Courier user creatable / exists | **PASS** | User `courier-test-phase1@amvara.de` (id 1859, tenant 1) listed on `/users` as **Courier**; **Add User** role dropdown includes **Courier**. |
+| 3 | Courier user creatable / exists | **PASS** | User `courier-test-phase1@sakario.sg` (id 1859, tenant 1) listed on `/users` as **Courier**; **Add User** role dropdown includes **Courier**. |
 | 4 | Courier login API + `/courier/me` | **PASS** | `POST /api/token?scope=courier` → 200; `GET /api/courier/me` → `{"role":"courier","tenant_id":1,"tenant_name":"Cobalto",…}`. |
-| 5 | Non-courier rejected on `/courier/me` | **PASS** | Waiter JWT (`ralf.roeber@amvara.de`) → **403** `Courier account required`; unauthenticated → **401**. |
+| 5 | Non-courier rejected on `/courier/me` | **PASS** | Waiter JWT (`ralf.roeber@sakario.sg`) → **403** `Courier account required`; unauthenticated → **401**. |
 | 6 | Frontend courier login + footer links | **PASS** | Browser: `/courier/login` → sign-in → `/courier` shows **Log out**, profile, placeholder; `/` and `/login?tenant=1` footers include **Courier login**. |
 | 7 | Guard isolation | **PASS** | Courier session: `/dashboard` → `/courier`. Owner session: `/courier` → `/courier/login`. |
 | 8 | Angular build clean | **PASS** | Transient TS2741 (`permission.service` missing `courier`) at ~20:14 UTC during incremental rebuild; resolved by ~20:14:31; subsequent logs show **Application bundle generation complete** with no TS/NG errors in the final window. |

@@ -12,11 +12,11 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…`) must show fully translated UI: no missing strings, wrong language, or raw `FEEDBACK.*` keys in visible copy or document title. Reporter cited production-style URLs (e.g. satisfecho.de). Many **CLOSED** archives under `agents/tasks/done/` cover this theme; **#67** remains open until product verification and GitHub closure align with `docs/agent-loop.md`.
+Public guest feedback (`/feedback/{tenant}`, e.g. with `?token=…`) must show fully translated UI: no missing strings, wrong language, or raw `FEEDBACK.*` keys in visible copy or document title. Reporter cited production-style URLs (e.g. sakario.sg). Many **CLOSED** archives under `agents/tasks/done/` cover this theme; **#67** remains open until product verification and GitHub closure align with `docs/agent-loop.md`.
 
 ## High-level instructions for coder
 

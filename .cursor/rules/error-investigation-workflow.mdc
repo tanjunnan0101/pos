@@ -22,4 +22,4 @@ When investigating or fixing reported errors:
 
 4. **Fix and retest**: Apply the fix, then re-run the same reproduction steps (Puppeteer or browser) until the error is gone. Do not report "fixed" until the test passes.
 
-5. **Amvara9**: The amvara9 deployment has a slightly different setup (see e.g. `docs/0001-ci-cd-amvara9.md`, `docs/0027-amvara9-menu-images-troubleshooting.md`, `docs/0026-haproxy-ssl-amvara9.md`). If the error might be environment-specific, check those docs and consider prod vs dev differences (ports, certs, nginx, API base URL).
+5. **Sakario9**: The amvara9 deployment has a slightly different setup (see e.g. `docs/0001-ci-cd-amvara9.md`, `docs/0027-amvara9-menu-images-troubleshooting.md`, `docs/0026-haproxy-ssl-amvara9.md`). If the error might be environment-specific, check those docs and consider prod vs dev differences (ports, certs, nginx, API base URL).

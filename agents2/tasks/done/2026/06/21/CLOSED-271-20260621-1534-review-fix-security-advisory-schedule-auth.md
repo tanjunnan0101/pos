@@ -11,7 +11,7 @@
 # Review and fix security advisory — schedule self-only authorization
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/271
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/271
 - **271**
 
 ## Problem / goal
@@ -20,7 +20,7 @@ GitHub security advisory **GHSA-h23p-7x2f-92qr** (high severity, CWE-862 Missing
 
 Documented intent is that these roles manage **their own** shifts; owner/admin should retain full tenant schedule management. Shift data feeds `/attendance-excel` export used for labor-compliance reporting, so unauthorized edits affect payroll/legal record integrity.
 
-Reference: https://github.com/satisfecho/pos/security/advisories/GHSA-h23p-7x2f-92qr  
+Reference: https://github.com/tanjunnan0101/pos/security/advisories/GHSA-h23p-7x2f-92qr
 Feature context: `docs/0021-working-plan.md`
 
 ## High-level instructions for coder

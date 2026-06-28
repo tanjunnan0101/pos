@@ -11,7 +11,7 @@
 # Polish pricing helper dialog UI
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/213
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/213
 - **213**
 
 ## Problem / goal

@@ -11,7 +11,7 @@
 # Always show all five product categories in staff UI dropdowns
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/263
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/263
 - **263**
 
 ## Problem / goal

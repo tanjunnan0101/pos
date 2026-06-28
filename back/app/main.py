@@ -712,7 +712,7 @@ class TenantSummary(_BaseModel):
     # Effective legal links: tenant URL if set, else PUBLIC_* from server config
     terms_of_service_url: str | None = None
     privacy_policy_url: str | None = None
-    # IANA timezone (e.g. Europe/Madrid) for public book page date/time UX
+    # IANA timezone (e.g. Asia/Singapore) for public book page date/time UX
     timezone: str | None = None
     # Optional cap on guests per slot (for UI max party hint)
     reservation_max_guests_per_slot: int | None = None
@@ -1833,6 +1833,40 @@ def _require_tenant_staff_for_work_session(user: models.User) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Work sessions are only for restaurant staff accounts",
         )
+    if user.role == models.UserRole.provider:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Work sessions are only for restaurant staff accounts",
+        )
+
+
+def _work_session_user_name(user: models.User) -> str:
+    return user.full_name or user.email or ""
+
+
+def _resolve_work_session_target_user(
+    current_user: models.User,
+    target_user_id: int,
+    session: Session,
+) -> models.User:
+    """Return a same-tenant staff user. Non-managers can only target themselves."""
+    if current_user.id != target_user_id and not has_permission(current_user, Permission.USER_READ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied. Required: user:read",
+        )
+    if current_user.tenant_id is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Tenant required")
+    target = session.exec(
+        select(models.User).where(
+            models.User.id == target_user_id,
+            models.User.tenant_id == current_user.tenant_id,
+        )
+    ).first()
+    if not target:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    _require_tenant_staff_for_work_session(target)
+    return target
 
 
 @app.get("/users/me/clock-qr-status")
@@ -2075,6 +2109,142 @@ def list_my_work_sessions(
         .order_by(models.WorkSession.started_at.desc())
     ).all()
     name = current_user.full_name or current_user.email or ""
+    return [serialize_work_session(r, name, session=session) for r in rows]
+
+
+@app.get("/users/{user_id}/work-session")
+def get_user_open_work_session(
+    user_id: int,
+    current_user: Annotated[models.User, Depends(security.get_current_user)],
+    session: Session = Depends(get_session),
+) -> dict | None:
+    """Current open clock-in for a selected same-tenant staff user."""
+    target_user = _resolve_work_session_target_user(current_user, user_id, session)
+    open_row = session.exec(
+        select(models.WorkSession).where(
+            models.WorkSession.user_id == target_user.id,
+            models.WorkSession.ended_at.is_(None),
+        )
+    ).first()
+    if not open_row:
+        return None
+    return serialize_work_session(open_row, _work_session_user_name(target_user), session=session)
+
+
+@app.post("/users/{user_id}/work-session/start")
+def start_user_work_session(
+    request: Request,
+    user_id: int,
+    current_user: Annotated[models.User, Depends(security.get_current_user)],
+    session: Session = Depends(get_session),
+    body: WorkSessionClockBody | None = Body(default=None),
+) -> dict:
+    """Clock in a selected same-tenant staff user from a shared dashboard session."""
+    target_user = _resolve_work_session_target_user(current_user, user_id, session)
+    assert target_user.tenant_id is not None
+    payload = body or WorkSessionClockBody()
+    tenant = session.get(models.Tenant, target_user.tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    _verify_clock_qr_token(tenant, payload)
+    _verify_clock_location_if_required(tenant, payload)
+
+    existing = session.exec(
+        select(models.WorkSession).where(
+            models.WorkSession.user_id == target_user.id,
+            models.WorkSession.ended_at.is_(None),
+        )
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Already clocked in; clock out first",
+        )
+    ws = models.WorkSession(
+        tenant_id=target_user.tenant_id,
+        user_id=target_user.id,
+        started_at=datetime.now(timezone.utc),
+        start_ip=_client_ip_from_request(request),
+    )
+    session.add(ws)
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Could not start session (already clocked in?)",
+        )
+    session.refresh(ws)
+    return serialize_work_session(ws, _work_session_user_name(target_user), session=session)
+
+
+@app.post("/users/{user_id}/work-session/end")
+def end_user_work_session(
+    request: Request,
+    user_id: int,
+    current_user: Annotated[models.User, Depends(security.get_current_user)],
+    session: Session = Depends(get_session),
+    body: WorkSessionClockBody | None = Body(default=None),
+) -> dict:
+    """Clock out a selected same-tenant staff user from a shared dashboard session."""
+    target_user = _resolve_work_session_target_user(current_user, user_id, session)
+    assert target_user.tenant_id is not None
+    payload = body or WorkSessionClockBody()
+    tenant = session.get(models.Tenant, target_user.tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    _verify_clock_qr_token(tenant, payload)
+    _verify_clock_location_if_required(tenant, payload)
+
+    open_row = session.exec(
+        select(models.WorkSession).where(
+            models.WorkSession.user_id == target_user.id,
+            models.WorkSession.ended_at.is_(None),
+        )
+    ).first()
+    if not open_row:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No open work session to end",
+        )
+    now = datetime.now(timezone.utc)
+    _close_open_break_for_session(session, open_row, end_at=now)
+    open_row.ended_at = now
+    open_row.end_ip = _client_ip_from_request(request)
+    session.add(open_row)
+    session.commit()
+    session.refresh(open_row)
+    return serialize_work_session(open_row, _work_session_user_name(target_user), session=session)
+
+
+@app.get("/users/{user_id}/work-sessions")
+def list_user_work_sessions(
+    user_id: int,
+    current_user: Annotated[models.User, Depends(security.get_current_user)],
+    session: Session = Depends(get_session),
+    from_date: str = Query(..., description="Start date YYYY-MM-DD (UTC day)"),
+    to_date: str = Query(..., description="End date YYYY-MM-DD (UTC day, inclusive)"),
+) -> list[dict]:
+    """List a selected same-tenant staff user's sessions in a date range."""
+    target_user = _resolve_work_session_target_user(current_user, user_id, session)
+    try:
+        fd = datetime.strptime(from_date, "%Y-%m-%d").date()
+        td = datetime.strptime(to_date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format; use YYYY-MM-DD")
+    if fd > td:
+        raise HTTPException(status_code=400, detail="from_date must be <= to_date")
+    start_utc = datetime.combine(fd, time.min, tzinfo=timezone.utc)
+    end_exclusive = datetime.combine(td + timedelta(days=1), time.min, tzinfo=timezone.utc)
+    rows = session.exec(
+        select(models.WorkSession)
+        .where(models.WorkSession.user_id == target_user.id)
+        .where(models.WorkSession.started_at >= start_utc)
+        .where(models.WorkSession.started_at < end_exclusive)
+        .order_by(models.WorkSession.started_at.desc())
+    ).all()
+    name = _work_session_user_name(target_user)
     return [serialize_work_session(r, name, session=session) for r in rows]
 
 
@@ -3410,7 +3580,7 @@ def delete_kitchen_station(
     return {"status": "deleted", "id": station_id}
 
 
-# ============ TAXES (IVA) ============
+# ============ TAXES / GST ============
 
 
 @app.get("/taxes")
@@ -3426,15 +3596,15 @@ def list_taxes(
     current_only: bool = Query(True, description="If true, only return taxes valid today"),
 ) -> list[dict]:
     """List taxes for the current tenant. Optionally filter to those valid today."""
-    # Auto-seed default Spanish IVA taxes when a tenant has none yet.
+    # Auto-seed default tax rates when a tenant has none yet.
     # This prevents Settings dropdowns from rendering as an empty list.
     has_any = session.exec(
         select(models.Tax.id).where(models.Tax.tenant_id == current_user.tenant_id).limit(1)
     ).first()
     if not has_any:
-        from app.seeds.seed_spanish_taxes import seed_spanish_taxes
+        from app.seeds.seed_default_taxes import seed_default_taxes
 
-        seed_spanish_taxes(tenant_id=current_user.tenant_id, set_default=True)
+        seed_default_taxes(tenant_id=current_user.tenant_id, set_default=True)
 
     query = select(models.Tax).where(models.Tax.tenant_id == current_user.tenant_id)
     if current_only:
@@ -9328,9 +9498,9 @@ async def send_reservation_reminder(
     tenant_name = tenant.name if tenant else "Restaurant"
     date_str = reservation.reservation_date.isoformat() if reservation.reservation_date else ""
     time_str = reservation.reservation_time.strftime("%H:%M") if reservation.reservation_time else ""
-    default_country = settings.default_phone_country or "ES"
+    default_country = settings.default_phone_country or "SG"
     if tenant and tenant.timezone:
-        # Optional: derive country from timezone (e.g. Europe/Madrid -> ES); for now use global default
+        # Optional: derive country from timezone later; for now use global default.
         pass
 
     email_sent = False
@@ -9994,7 +10164,7 @@ def get_menu(
             ]
             if first_part in wine_types:
                 wine_type = first_part
-            # Also check for Spanish terms
+            # Also check for translated wine terms
             elif "Red" in first_part or "Tinto" in first_part or "Tintos" in first_part:
                 wine_type = "Red Wine"
             elif (
@@ -11335,7 +11505,7 @@ def list_orders(
             ).all()
             product_map = {p.id: p for p in products}
 
-        # Billing customer for Factura (if set)
+        # Billing customer for tax invoice (if set)
         billing_customer = None
         if order.billing_customer_id:
             bc = session.get(models.BillingCustomer, order.billing_customer_id)
@@ -11720,7 +11890,7 @@ def set_order_billing_customer(
     current_user: Annotated[models.User, Depends(require_permission(Permission.ORDER_READ))],
     session: Session = Depends(get_session)
 ) -> dict:
-    """Set or clear the billing customer (Factura) for an order."""
+    """Set or clear the billing customer for an order."""
     order = session.exec(
         select(models.Order).where(
             models.Order.id == order_id,
@@ -11835,7 +12005,7 @@ def set_order_staff_urgent(
     return {"order_id": order.id, "staff_urgent": order.staff_urgent}
 
 
-# ---------- Billing customers (Factura) ----------
+# ---------- Billing customers ----------
 
 
 @app.get("/billing-customers")

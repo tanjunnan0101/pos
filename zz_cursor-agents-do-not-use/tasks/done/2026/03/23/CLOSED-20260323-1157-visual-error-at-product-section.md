@@ -11,7 +11,7 @@
 # Visual error at product section
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/33
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/33
 
 ## Problem / goal
 The products UI shows a small white gap (likely last row **`td`** height or table/footer styling). Screenshot in the issue: white strip in the product section.

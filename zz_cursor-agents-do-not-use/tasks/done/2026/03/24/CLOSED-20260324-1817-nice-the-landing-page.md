@@ -11,7 +11,7 @@
 # Nice the landing page
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/69
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/69
 
 ## Problem / goal
 The public landing at `http://127.0.0.1:4202/` (and production equivalent) should feel polished and welcoming for both restaurant owners and guests. The issue suggests benchmarking modern landing patterns (example reference in the issue) and upgrading visuals, layout, and overall experience—not a minimal placeholder.

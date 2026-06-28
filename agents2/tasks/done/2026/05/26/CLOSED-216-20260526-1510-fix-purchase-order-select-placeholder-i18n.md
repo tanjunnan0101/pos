@@ -11,7 +11,7 @@
 # Fix purchase order select placeholder i18n
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/216
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/216
 - **216**
 
 ## Problem / goal

@@ -807,7 +807,7 @@ ModuleRegistry.registerModules([
           </div>
         }
 
-        <!-- Print Factura Modal -->
+        <!-- Print tax invoice modal -->
         @if (facturaOrder()) {
           <div class="modal-overlay">
             <div class="modal modal-edit-order" (click)="$event.stopPropagation()" appFocusFirstInput>
@@ -2013,7 +2013,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   facturaOrder = signal<Order | null>(null);
   facturaCustomers = signal<BillingCustomer[]>([]);
   facturaCustomerId: number | null = null;
-  /** When true, modal is in "Edit order" mode (Save primary); when false, "Print Factura" mode (Print primary). */
+  /** When true, modal is in "Edit order" mode (Save primary); when false, print invoice mode. */
   facturaModalEditMode = signal<boolean>(false);
 
   /** Full order edit widget: add/remove/change items, billing, print. Same modal from cards and history. */
@@ -2993,7 +2993,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
     const address = settings?.address ? `<p>${this.escapeHtml(settings.address)}</p>` : '';
     const taxLine: string[] = [];
     if (settings?.tax_id) taxLine.push(`Tax ID: ${this.escapeHtml(settings.tax_id)}`);
-    if (settings?.cif) taxLine.push(`CIF: ${this.escapeHtml(settings.cif)}`);
+    if (settings?.cif) taxLine.push(`Tax ID/UEN: ${this.escapeHtml(settings.cif)}`);
     const taxBlock = taxLine.length ? `<p style="font-size:11px;color:#555;">${taxLine.join(' &nbsp;|&nbsp; ')}</p>` : '';
 
     const dateStr = order.created_at
@@ -3065,7 +3065,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
     const taxSummaryRows = Object.entries(taxByRate)
       .sort(([a], [b]) => Number(a) - Number(b))
       .map(([rate, cents]) =>
-        `<tr><td colspan="4" style="text-align:right; font-size: 12px; color: #555;">IVA ${rate}%</td><td style="text-align:right">${this.formatPrice(cents)}</td></tr>`
+        `<tr><td colspan="4" style="text-align:right; font-size: 12px; color: #555;">GST ${rate}%</td><td style="text-align:right">${this.formatPrice(cents)}</td></tr>`
       ).join('');
 
     let qrDataUrl = '';
@@ -3176,7 +3176,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
 
   private getInvoiceOssLine(): string {
     const prefix = this.translate.instant('ORDERS.INVOICE_OSS_PREFIX');
-    const repoUrl = 'https://github.com/satisfecho/pos';
+    const repoUrl = 'https://github.com/tanjunnan0101/pos';
     const version = environment.version || '0.0.0';
     const commit = environment.commitHash || '';
     return `${this.escapeHtml(prefix)} · ${this.escapeHtml(repoUrl)} · v${this.escapeHtml(version)}${commit ? ` (${this.escapeHtml(commit)})` : ''}`;

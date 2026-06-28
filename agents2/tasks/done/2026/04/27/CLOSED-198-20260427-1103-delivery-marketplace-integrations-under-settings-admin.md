@@ -1,7 +1,7 @@
 # Delivery marketplace integrations under Settings (admin)
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/198
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/198
 - **198**
 
 ## Problem / goal

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Manual de usuario | Satisfecho POS</title>
+    <title>Manual de usuario | Sakario POS</title>
     <style>
       :root {
         --bg: #f6f7fb;
@@ -433,7 +433,7 @@
     <main class="page">
       <header class="hero">
         <p class="eyebrow">Manual para clientes y equipos de restaurante</p>
-        <h1>Cómo usar Satisfecho POS de principio a fin</h1>
+        <h1>Cómo usar Sakario POS de principio a fin</h1>
         <p class="hero-copy">
           Esta guía explica la aplicación completa con pasos prácticos: configuración inicial, mesas,
           pedidos, pagos, reservas, cocina, barra, inventario, reportes, turnos, contratos, opiniones y
@@ -452,7 +452,7 @@
         <div class="grid">
           <div class="col-8">
             <p>
-              Satisfecho POS está dividido en tres experiencias. El personal trabaja desde el panel
+              Sakario POS está dividido en tres experiencias. El personal trabaja desde el panel
               interno; los clientes usan el menú público desde un QR, enlace o búsqueda de mesa; los
               proveedores usan un portal separado cuando el restaurante desea recibir catálogos de
               producto externos.
@@ -663,13 +663,13 @@
         <h3>Contacto, ubicación, legal y reseñas</h3>
         <p>
           En <strong>Contacto</strong> se guardan dirección, web, enlaces a Google Maps y OpenStreetMap,
-          URL de reseñas de Google, NIF/CIF, CCC, URL de términos públicos, URL de privacidad pública y
+          URL de reseñas de Google, NIF/Tax ID/UEN, Payroll ref, URL de términos públicos, URL de privacidad pública y
           datos fiscales básicos. También se define el impuesto por defecto cuando el producto no tiene
           una regla específica.
         </p>
         <figure>
           <img src="img/settings-contact.png" alt="Configuración de contacto, ubicación y datos legales" loading="lazy" />
-          <figcaption>Contacto. Estos datos ayudan al cliente a encontrarte y alimentan facturas o páginas públicas.</figcaption>
+          <figcaption>Contacto. Estos datos ayudan al cliente a encontrarte y alimentan invoices o páginas públicas.</figcaption>
         </figure>
 
         <h3>Horarios, turnos esperados y excepciones</h3>
@@ -686,8 +686,8 @@
         <h3>Pagos, facturación, propinas y verificación de ubicación</h3>
         <p>
           En <strong>Pagos</strong> se ajustan métodos de pago visibles, propinas, comportamiento de
-          cobro y datos de proveedores de pago como Stripe o Revolut cuando estén activados en tu
-          instalación. También puede haber opciones de factura fiscal, serie interna, modo de pruebas o
+          cobro y datos de proveedores de pago como HitPay o HitPay cuando estén activados en tu
+          instalación. También puede haber opciones de tax invoice, serie interna, modo de pruebas o
           producción, y verificación de ubicación para pagos presenciales.
         </p>
         <figure>
@@ -720,9 +720,9 @@
           recordatorios automáticos.
         </p>
 
-        <h3>Impuestos e IVA</h3>
+        <h3>Impuestos e GST</h3>
         <p>
-          En <strong>Impuestos</strong> puedes crear tipos de IVA o impuestos equivalentes. Después,
+          En <strong>Impuestos</strong> puedes crear tipos de GST o impuestos equivalentes. Después,
           cada producto puede usar el impuesto por defecto del restaurante o una regla propia.
         </p>
         <figure>
@@ -956,7 +956,7 @@
         <h3>Formas de pago visibles al cliente</h3>
         <p>
           Las opciones dependen de la configuración del restaurante. Pueden aparecer pago en línea,
-          terminal, efectivo, Revolut, Stripe o llamada al camarero. Si el pago en línea no está
+          terminal, efectivo, HitPay o llamada al camarero. Si el pago en línea no está
           configurado, el cliente puede pedir que el personal cobre en mesa.
         </p>
 
@@ -1004,7 +1004,7 @@
         <p>
           En el modal de pago puedes elegir método, registrar propina, gestionar sobrepago cuando
           aplique, finalizar orden y abrir factura. Los métodos visibles dependen de configuración:
-          efectivo, terminal, Stripe, Revolut u otros.
+          efectivo, terminal, HitPay u otros.
         </p>
         <figure>
           <img src="img/orders-unpaid.png" alt="Pedidos pendientes de pago" loading="lazy" />
@@ -1157,9 +1157,9 @@
 
         <h3>Clientes fiscales</h3>
         <p>
-          La sección <strong>Clientes</strong> guarda datos necesarios para facturas o identificación
+          La sección <strong>Clientes</strong> guarda datos necesarios para invoices o identificación
           fiscal. El personal autorizado puede crear y editar clientes para asociarlos con pedidos y
-          facturas.
+          invoices.
         </p>
         <figure>
           <img src="img/customers.png" alt="Gestión de clientes fiscales" loading="lazy" />
@@ -1295,7 +1295,7 @@
               <ul class="checklist">
                 <li>Cerrar pedidos activos y revisar cuentas sin pagar.</li>
                 <li>Resolver pedidos cancelados o líneas retiradas.</li>
-                <li>Revisar propinas, métodos de pago y facturas.</li>
+                <li>Revisar propinas, métodos de pago y invoices.</li>
                 <li>Registrar mermas o ajustes de stock relevantes.</li>
                 <li>Mirar reportes del día y anotar incidencias.</li>
                 <li>Revisar opiniones nuevas y responder internamente.</li>

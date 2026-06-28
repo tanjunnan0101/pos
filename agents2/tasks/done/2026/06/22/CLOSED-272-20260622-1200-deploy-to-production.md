@@ -4,19 +4,19 @@
 - **What happened:** Initial production promotion shipped **2.1.5** @ **`7405465c`** (Deploy to amvara9 run **27912680055** **success**). Post-deploy verification **FAIL** on courier portal (#270): production `POST /api/token?scope=courier` → **500** (`userrole` enum missing `courier`).
 - **Why not UNTESTED:** Deploy verification incomplete; **`development`** @ **`3ccf551e`** is **30** commits ahead of **`master`** **`7405465c`**; no post-fix deploy. Courier enum fix (**#273**, **`0f6ba00b`**) not yet on production.
 - **Why archived:** GitHub **#272** **CLOSED**; successor **#274** **OPEN** (same deploy scope). Per **012** loop protection, active work moves to **`WIP-274-20260622-1200-deploy-courier-enum-fix-production.md`**, not this file.
-- **Resume:** Merge **`development` → `master`**, green **Deploy to amvara9**, verify courier token returns **401**/ **200** (not **500**) on satisfecho.de — under **#274**.
+- **Resume:** Merge **`development` → `master`**, green **Deploy to amvara9**, verify courier token returns **401**/ **200** (not **500**) on sakario.sg — under **#274**.
 - **Closed at (UTC):** 2026-06-22 12:00
 ---
 
 # Deploy to production
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/272
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/272
 - **272**
 
 ## Problem / goal
 
-Promote tested work from **`development`** to **`master`** and deploy to **amvara9** (production / **satisfecho.de**). The issue author requests shipping the latest changes to production.
+Promote tested work from **`development`** to **`master`** and deploy to **amvara9** (production / **sakario.sg**). The issue author requests shipping the latest changes to production.
 
 Follow **`.cursor/rules/git-development-branch-workflow.mdc`** — this is an explicit production-promotion request (issue opened 2026-06-21).
 
@@ -28,7 +28,7 @@ Follow **`.cursor/rules/git-development-branch-workflow.mdc`** — this is an ex
 - Review **`CHANGELOG.md`** / version in **`front/package.json`** — bump and release notes if user-visible changes warrant it (see **`.cursor/rules/commit-changelog-version.mdc`**).
 - Merge **`development` → `master`** (merge commit or team-preferred fast-forward), push **`origin/master`**.
 - Watch **Deploy to amvara9** GitHub Actions for the pushed **`master`** commit; document run URL and conclusion in the task file.
-- Verify production: `curl -sf https://www.satisfecho.de/api/health`; optional `LANDING_VERSION_ONLY=1 BASE_URL=https://www.satisfecho.de npm run test:landing-version` from `front/`.
+- Verify production: `curl -sf https://www.sakario.sg/api/health`; optional `LANDING_VERSION_ONLY=1 BASE_URL=https://www.sakario.sg npm run test:landing-version` from `front/`.
 - If deploy fails, check Actions logs and **`docs/0001-ci-cd-amvara9.md`** (migrations, dirty tree, marketing artifacts) before retrying.
 - Append **Testing instructions** when ready for tester; follow **wip → untested** flow per **`TASKS-README.md`**.
 
@@ -37,8 +37,8 @@ Follow **`.cursor/rules/git-development-branch-workflow.mdc`** — this is an ex
 - **Pre-deploy local:** `curl` → **200** on `http://127.0.0.1:4202/`. Landing Puppeteer with `.env` credentials failed login (401) — local DB credentials may differ; version footer showed **2.1.5** before deploy.
 - **Changelog:** Cut **`## [2.1.5] - 2026-06-21`** with #269, #270, #271 and release note (#272).
 - **Merge:** Fast-forward **`development` → `master`** at **`7405465c`**; pushed **`origin/master`** and **`origin/development`**.
-- **Deploy:** **Deploy to amvara9** run **success** — https://github.com/satisfecho/pos/actions/runs/27912680055 (3m21s, push on `master`).
-- **Production verify:** `curl -sf https://www.satisfecho.de/api/health` → `{"status":"ok"}`. Landing test `LANDING_VERSION_ONLY=1 BASE_URL=https://www.satisfecho.de` → **2.1.5 7405465c**.
+- **Deploy:** **Deploy to amvara9** run **success** — https://github.com/tanjunnan0101/pos/actions/runs/27912680055 (3m21s, push on `master`).
+- **Production verify:** `curl -sf https://www.sakario.sg/api/health` → `{"status":"ok"}`. Landing test `LANDING_VERSION_ONLY=1 BASE_URL=https://www.sakario.sg` → **2.1.5 7405465c**.
 
 ## Handoff log
 
@@ -52,8 +52,8 @@ Follow **`.cursor/rules/git-development-branch-workflow.mdc`** — this is an ex
 
 ## Testing instructions
 
-1. **Production health:** `curl -sf https://www.satisfecho.de/api/health` → `{"status":"ok"}`.
-2. **Landing version:** From `front/`, `LANDING_VERSION_ONLY=1 BASE_URL=https://www.satisfecho.de npm run test:landing-version` → footer shows **2.1.5** and commit **`7405465c`**.
+1. **Production health:** `curl -sf https://www.sakario.sg/api/health` → `{"status":"ok"}`.
+2. **Landing version:** From `front/`, `LANDING_VERSION_ONLY=1 BASE_URL=https://www.sakario.sg npm run test:landing-version` → footer shows **2.1.5** and commit **`7405465c`**.
 3. **Pricing helper (#269):** Log in as owner/admin → **Products → Pricing helper** → confirm **Garnishes** section with ice/lemon/other costs; verify pour-cost math includes garnish amounts.
 4. **Courier portal (#270):** In **Users**, assign **Courier** role to a test user → sign in at **`/courier/login`** → lands on **`/courier`** placeholder; staff routes blocked for courier; courier routes blocked for staff.
 5. **Schedule auth (#271):** Log in as staff with `schedule:write` (not owner/admin) → **Working plan** → can edit own shifts only; API returns 403 for other users' shifts; edit/delete hidden for others' rows in UI.
@@ -63,27 +63,27 @@ Follow **`.cursor/rules/git-development-branch-workflow.mdc`** — this is an ex
 
 1. **Date/time (UTC):** 2026-06-21 17:52:00 – 18:00:00 UTC. Log window: amvara9 `pos-back` logs during courier API probes; local `pos-front` `--since 15m`.
 
-2. **Environment:** Production `BASE_URL=https://www.satisfecho.de`; local `http://127.0.0.1:4202`; branch `development` @ `7405465c` (matches deployed `master`); compose `docker-compose.yml` + `docker-compose.dev.yml` for local pytest.
+2. **Environment:** Production `BASE_URL=https://www.sakario.sg`; local `http://127.0.0.1:4202`; branch `development` @ `7405465c` (matches deployed `master`); compose `docker-compose.yml` + `docker-compose.dev.yml` for local pytest.
 
 3. **What was tested:** Production deploy verification per **Testing instructions** (#272): health, landing version/hash, pricing helper (#269), courier portal (#270), schedule auth (#271), local regression; supplementary local pytest for schedule/pricing/courier enum.
 
 4. **Results:**
    - **Production health (`/api/health`):** **PASS** — `{"status":"ok"}`.
-   - **Landing version:** **PASS** — Puppeteer `LANDING_VERSION_ONLY=1` → footer **2.1.5 7405465c**; deploy signal: GitHub Actions https://github.com/satisfecho/pos/actions/runs/27912680055 **success** on `7405465c`.
+   - **Landing version:** **PASS** — Puppeteer `LANDING_VERSION_ONLY=1` → footer **2.1.5 7405465c**; deploy signal: GitHub Actions https://github.com/tanjunnan0101/pos/actions/runs/27912680055 **success** on `7405465c`.
    - **Pricing helper (#269) UI on production:** **FAIL (blocked)** — `ralf@roeber.de` (`.env` `DEMO_LOGIN_*`) → 401 on `POST /api/token?tenant_id=1`; no owner/admin prod credentials available. Partial deploy evidence: production `en.json` includes `PRICING.SECTION_GARNISHES` and garnish keys. Local `test_pricing_service.py` → **11 passed**.
    - **Courier portal (#270) on production:** **FAIL** — `/courier/login` → **200** (UI loads). `POST /api/token?scope=courier` → **500** Internal Server Error (any username). amvara9 `pos-back` log: `invalid input value for enum userrole: "courier"`. Production DB: `user.role` column uses enum **`userrole`** (values: owner, admin, kitchen, bartender, waiter, receptionist, provider — **no courier**); separate enum **`user_role`** includes courier. Migration **20260619120000** marked applied in `schema_version` but altered wrong enum. Zero courier users in prod `user` table. Local `test_user_role_pg_enum.py` → **passed** (local DB uses `user_role` on column).
-   - **Schedule auth (#271) on production:** **FAIL (blocked)** — same 401 for prod staff login; cannot verify Working plan UI or cross-user 403 on satisfecho.de. Local `test_schedule_auth.py` + bulk/copy-week → **13 passed**.
+   - **Schedule auth (#271) on production:** **FAIL (blocked)** — same 401 for prod staff login; cannot verify Working plan UI or cross-user 403 on sakario.sg. Local `test_schedule_auth.py` + bulk/copy-week → **13 passed**.
    - **Local regression curl:** **PASS** — `http://127.0.0.1:4202/` → **200**.
 
-5. **Overall:** **FAIL** — failed criteria: **#270 courier** (production 500 / enum mismatch); **#269** and **#271** production browser/API checks blocked by missing prod credentials (not verified on satisfecho.de).
+5. **Overall:** **FAIL** — failed criteria: **#270 courier** (production 500 / enum mismatch); **#269** and **#271** production browser/API checks blocked by missing prod credentials (not verified on sakario.sg).
 
 6. **Product owner feedback:** The deploy pipeline and version footer confirm **2.1.5** / **7405465c** is live, but courier login is broken on production: the courier migration updated `user_role` while the live `user.role` column still uses legacy enum `userrole` without `courier`, causing 500 on any courier-scoped auth query. Fix requires a migration that adds `courier` to `userrole` (or aligns column type), redeploy, then create a courier test user and re-run portal checks. Provide or document production smoke credentials for owner and schedule:write waiter so post-deploy verification is not blocked.
 
 7. **URLs tested:**
-   1. https://www.satisfecho.de/api/health
-   2. https://www.satisfecho.de/
-   3. https://www.satisfecho.de/courier/login
-   4. https://www.satisfecho.de/i18n/en.json (pricing garnish keys)
+   1. https://www.sakario.sg/api/health
+   2. https://www.sakario.sg/
+   3. https://www.sakario.sg/courier/login
+   4. https://www.sakario.sg/i18n/en.json (pricing garnish keys)
    5. http://127.0.0.1:4202/
 
 8. **Relevant log excerpts:**
@@ -92,7 +92,7 @@ Follow **`.cursor/rules/git-development-branch-workflow.mdc`** — this is an ex
 ```
 sqlalchemy.exc.DataError: (psycopg.errors.InvalidTextRepresentation) invalid input value for enum userrole: "courier"
 [SQL: SELECT ... FROM "user" WHERE "user".email = %(email_1)s::VARCHAR AND "user".role = %(role_1)s ...]
-[parameters: {'email_1': 'nonexistent@amvara.de', 'role_1': 'courier'}]
+[parameters: {'email_1': 'nonexistent@sakario.sg', 'role_1': 'courier'}]
 ```
 
 **Production DB enum check (`userrole` — column type for `user.role`):**

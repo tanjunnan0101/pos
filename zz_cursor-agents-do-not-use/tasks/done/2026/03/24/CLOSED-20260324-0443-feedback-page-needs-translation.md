@@ -1,7 +1,7 @@
 ---
 ## Closing summary (TOP)
 
-- **What happened:** GitHub [#67](https://github.com/satisfecho/pos/issues/67) — public `/feedback/{tenant}` (with optional token) needed full translation coverage and correct document titles after locale/translation load.
+- **What happened:** GitHub [#67](https://github.com/tanjunnan0101/pos/issues/67) — public `/feedback/{tenant}` (with optional token) needed full translation coverage and correct document titles after locale/translation load.
 - **What was done:** Coder merged `TranslateService.onLangChange` with `onTranslationChange` in `FeedbackPublicComponent` so the browser tab title tracks the active locale when translations arrive after first paint; confirmed `FEEDBACK` / related `BOOK` keys across all seven locale files; automated smoke via `front/scripts/test-feedback-public-i18n.mjs` per task notes.
 - **What was tested:** On docker dev (`BASE_URL=http://127.0.0.1:4202`), `node front/scripts/test-feedback-public-i18n.mjs` and `npm run test:landing-version --prefix front` — **PASS**; no raw `FEEDBACK.*` in body text, titles and invalid-tenant copy verified across locales; front bundle generation clean in logs.
 - **Why closed:** Tester test report records **PASS** for all stated criteria; archive per `agents/tasks/README.md`. `gh issue comment` / close may still require a human token (Issues write) — see task body.
@@ -12,11 +12,11 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public guest feedback URLs (e.g. `https://satisfecho.de/feedback/1?token=…`) must show **the entire form** in the user’s selected language. The reporter saw untranslated strings. Prior implementation and tester archives live under `agents/tasks/done/` (multiple **CLOSED** entries for this theme); **#67** remains **open** — finish verification, close any real i18n gaps, and align GitHub (comment / labels / close when product accepts). See `front/public/i18n/` and `docs/agent-loop.md`.
+Public guest feedback URLs (e.g. `https://sakario.sg/feedback/1?token=…`) must show **the entire form** in the user’s selected language. The reporter saw untranslated strings. Prior implementation and tester archives live under `agents/tasks/done/` (multiple **CLOSED** entries for this theme); **#67** remains **open** — finish verification, close any real i18n gaps, and align GitHub (comment / labels / close when product accepts). See `front/public/i18n/` and `docs/agent-loop.md`.
 
 ## High-level instructions for coder
 

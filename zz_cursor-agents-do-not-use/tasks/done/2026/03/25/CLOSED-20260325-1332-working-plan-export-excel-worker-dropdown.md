@@ -11,7 +11,7 @@
 # I can't see the button (export excel) in working plan
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/90
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/90
 
 ## Problem / goal
 After changes around `front/src/app/working-plan/working-plan.component.ts` (reference commit `7bcbae7` in the issue), the reporter cannot see the **export to Excel** control or the **worker selection** dropdown on the working plan screen. They need those UI elements visible and usable so they can interact with the feature.

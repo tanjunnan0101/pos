@@ -11,7 +11,7 @@
 # tables > canvas view is broken
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/71
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/71
 
 ## Problem / goal
 Visiting `/tables/canvas` (e.g. `http://127.0.0.1:4202/tables/canvas`) redirects to the dashboard instead of showing the floor-plan canvas. Expected: canvas loads; investigate routing, guards, and any redirect rules.

@@ -11,7 +11,7 @@
 # Move floor plan zoom controls clear of shape palette; translate palette labels
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/240
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/240
 - **240**
 
 ## Problem / goal

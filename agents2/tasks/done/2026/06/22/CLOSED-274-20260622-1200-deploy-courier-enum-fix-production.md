@@ -4,20 +4,20 @@
 - **What happened:** Production `POST /api/token?scope=courier` returned **500** because amvara9 still used legacy PostgreSQL enum **`userrole`** (no **`courier`** value), as documented in **#273**.
 - **What was done:** **`development`** was promoted to **`master`** at **`1bfafe84`**; **Deploy to amvara9** run **27948191494** applied migration **`20260621120000_align_user_role_column_enum.sql`** (fix **`0f6ba00b`**).
 - **What was tested:** Production courier token → **401** (not **500**); DB **`user.role`** `udt_name` = **`user_role`**; deploy run green; local **`test_user_role_pg_enum.py`** passed (2/2).
-- **Why closed:** All pass–fail criteria in the test report **PASS**; production hotfix verified live on satisfecho.de.
+- **Why closed:** All pass–fail criteria in the test report **PASS**; production hotfix verified live on sakario.sg.
 - **Closed at (UTC):** 2026-06-22 11:10
 ---
 
 # Deploy courier enum fix to production (amvara9)
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/274
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/274
 - **274**
-- **Supersedes:** https://github.com/satisfecho/pos/issues/272 (closed; archived **`CLOSED-272-20260622-1200-deploy-to-production.md`**) and https://github.com/satisfecho/pos/issues/273 (closed; archived **`CLOSED-273-20260622-1200-multiple-500-errors-courier-token.md`**)
+- **Supersedes:** https://github.com/tanjunnan0101/pos/issues/272 (closed; archived **`CLOSED-272-20260622-1200-deploy-to-production.md`**) and https://github.com/tanjunnan0101/pos/issues/273 (closed; archived **`CLOSED-273-20260622-1200-multiple-500-errors-courier-token.md`**)
 
 ## Problem / goal
 
-Production (**satisfecho.de**) returns **500** on `POST /api/token?scope=courier`. Root cause documented in **#273**: PostgreSQL column `user.role` on amvara9 still uses legacy enum **`userrole`**, which has no value **`courier`**.
+Production (**sakario.sg**) returns **500** on `POST /api/token?scope=courier`. Root cause documented in **#273**: PostgreSQL column `user.role` on amvara9 still uses legacy enum **`userrole`**, which has no value **`courier`**.
 
 The code fix is **already merged on `development`** (commit **`0f6ba00b`**, migration **`20260621120000_align_user_role_column_enum.sql`**, plus **#270** courier role). **Do not re-implement** courier auth or duplicate migrations.
 
@@ -42,7 +42,7 @@ The code fix is **already merged on `development`** (commit **`0f6ba00b`**, migr
 - Push **`origin/master`**; watch **Deploy to amvara9** GitHub Actions for green conclusion; document run URL in this file.
 - On amvara9: migrations run via deploy (`python -m app.migrate` and `--sync-idempotent` per **`scripts/deploy-amvara9.sh`**).
 - Verify on production:
-  - `POST https://www.satisfecho.de/api/token?scope=courier` with invalid creds → **401**, not **500**.
+  - `POST https://www.sakario.sg/api/token?scope=courier` with invalid creds → **401**, not **500**.
   - DB: `user.role` column `udt_name` = **`user_role`** (not **`userrole`**).
   - Optional: courier test user + **`/courier/login`** smoke.
 - Append **Testing instructions** when ready for tester; follow **wip → untested** flow per **`TASKS-README.md`**.
@@ -71,12 +71,12 @@ The code fix is **already merged on `development`** (commit **`0f6ba00b`**, migr
 ```bash
 # Expect 401 (not 500) for invalid credentials
 curl -s -o /dev/null -w "%{http_code}\n" \
-  -X POST "https://www.satisfecho.de/api/token?scope=courier" \
+  -X POST "https://www.sakario.sg/api/token?scope=courier" \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=nonexistent@amvara.de&password=wrong"
+  -d "username=nonexistent@sakario.sg&password=wrong"
 
 # Health check (regression)
-curl -sf https://www.satisfecho.de/api/health
+curl -sf https://www.sakario.sg/api/health
 ```
 
 **Production DB (amvara9 SSH):**
@@ -108,9 +108,9 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml exec -T back \
 ### Environment
 
 - **Branch:** `development` (synced; `origin/development` @ `1bfafe84`)
-- **Production target:** `https://www.satisfecho.de`
+- **Production target:** `https://www.sakario.sg`
 - **Local compose:** `docker-compose.yml` + `docker-compose.dev.yml`
-- **Deploy evidence:** GitHub Actions run [27948191494](https://github.com/satisfecho/pos/actions/runs/27948191494) — **success**, headSha **`1bfafe84`**
+- **Deploy evidence:** GitHub Actions run [27948191494](https://github.com/tanjunnan0101/pos/actions/runs/27948191494) — **success**, headSha **`1bfafe84`**
 
 ### What was tested
 
@@ -124,7 +124,7 @@ Per **Testing instructions**: production courier token endpoint, production DB e
 | 2 | Production DB `user.role` `udt_name` = **`user_role`** | **PASS** | amvara9 psql: `role \| user_role` |
 | 3 | Deploy run **27948191494** green on **`1bfafe84`** | **PASS** | `gh run view 27948191494` → `conclusion: success` |
 | 4 | Optional local pytest `test_user_role_pg_enum.py` | **PASS** | `2 passed in 2.47s` |
-| 5 | Optional courier portal (`/courier/login`) | **N/A** | No courier test user on production (`courier-test-phase1@amvara.de` → **401**); invalid-cred path already confirms no **500** |
+| 5 | Optional courier portal (`/courier/login`) | **N/A** | No courier test user on production (`courier-test-phase1@sakario.sg` → **401**); invalid-cred path already confirms no **500** |
 
 ### Overall
 
@@ -136,9 +136,9 @@ The production hotfix is verified: courier authentication fails gracefully with 
 
 ### URLs tested
 
-1. `https://www.satisfecho.de/api/token?scope=courier` (POST, invalid credentials)
-2. `https://www.satisfecho.de/api/token?scope=courier` (POST, optional known test user — not present on prod)
-3. `https://www.satisfecho.de/api/health` (GET)
+1. `https://www.sakario.sg/api/token?scope=courier` (POST, invalid credentials)
+2. `https://www.sakario.sg/api/token?scope=courier` (POST, optional known test user — not present on prod)
+3. `https://www.sakario.sg/api/health` (GET)
 
 ### Relevant log excerpts
 
@@ -146,7 +146,7 @@ The production hotfix is verified: courier authentication fails gracefully with 
 
 ```
 courier_token_http_code=401  (invalid creds)
-valid_courier_http=401       (courier-test-phase1@amvara.de — user not on prod)
+valid_courier_http=401       (courier-test-phase1@sakario.sg — user not on prod)
 health_http_code=200
 ```
 

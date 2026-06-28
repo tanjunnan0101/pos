@@ -1,4 +1,4 @@
-# Order customizations (pizza-style modifiers) — GitHub [#50](https://github.com/satisfecho/pos/issues/50)
+# Order customizations (pizza-style modifiers) — GitHub [#50](https://github.com/tanjunnan0101/pos/issues/50)
 
 **Goal:** Let guests change a dish when ordering (e.g. remove pepperoni, add another cheese), not only fixed “one answer per question” flows.
 
@@ -47,7 +47,7 @@
 ## Out of scope (unless product asks)
 
 - Full POS “recipe / BOM” inventory depletion per topping.
-- Third-party delivery menu sync (Uber Eats, etc.) — see roadmap doc for [#52](https://github.com/satisfecho/pos/issues/52).
+- Third-party delivery menu sync (Uber Eats, etc.) — see roadmap doc for [#52](https://github.com/tanjunnan0101/pos/issues/52).
 
 ## References
 

@@ -11,7 +11,7 @@
 # Join / unjoin tables
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/140
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/140
 
 ## Problem / goal
 Staff need to treat multiple physical tables as one party: shared capacity, coherent booking, and clear rules for orders and QR/menu. Deliver a **table group** concept (e.g. `table_group_id` on `Table` or a small `TableGroup` table scoped by tenant), with APIs to create a group from N tables, dissolve it, and validate same-tenant membership and non-conflicting table state. Align session vs multiple orders on grouped tables with `docs/0008-order-management-logic.md` and `docs/0050-github-issue-52-split-plan.md` (Issue 3 — Join tables). When seating reservations, support or document MVP (e.g. join first, then seat; or target a group when party size spans tables).

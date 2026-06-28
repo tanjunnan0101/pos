@@ -67,7 +67,7 @@ class Settings(BaseSettings):
     smtp_password: str = Field(default="", validation_alias="SMTP_PASSWORD")
     smtp_use_tls: bool = Field(default=True, validation_alias="SMTP_USE_TLS")
     email_from: str = Field(
-        default="noreply@satisfecho.de",
+        default="noreply@sakario.sg",
         validation_alias="EMAIL_FROM",
         description="From address when tenant has none; use a domain you control (not example.com).",
     )
@@ -82,7 +82,7 @@ class Settings(BaseSettings):
         description="E.g. +14155238886 (Twilio sandbox) or your WhatsApp Business number",
     )
     default_phone_country: str = Field(
-        default="ES",
+        default="SG",
         validation_alias="DEFAULT_PHONE_COUNTRY",
         description="ISO 3166-1 alpha-2 country code for normalizing phone numbers without + prefix",
     )
@@ -91,7 +91,7 @@ class Settings(BaseSettings):
     public_app_base_url: str = Field(
         default="",
         validation_alias="PUBLIC_APP_BASE_URL",
-        description="e.g. https://satisfecho.de or http://127.0.0.1:4202 — required for password-reset and reservation email links; if empty, POST /password-reset/request returns 503",
+        description="e.g. https://sakario.sg or http://127.0.0.1:4202 — required for password-reset and reservation email links; if empty, POST /password-reset/request returns 503",
     )
 
     # Product-wide legal URLs when a tenant has not set its own (landing, auth pages).
@@ -137,7 +137,7 @@ class Settings(BaseSettings):
     # OpenAPI docs and spec URLs are correct (e.g. /api/docs, /api/openapi.json).
     root_path: str = Field(default="", validation_alias="ROOT_PATH")
 
-    # Rate limiting (see ROADMAP.md / satisfecho/pos ROADMAP)
+    # Rate limiting (see ROADMAP.md)
     rate_limit_enabled: bool = Field(default=True, validation_alias="RATE_LIMIT_ENABLED")
     rate_limit_redis_url: str = Field(
         default="", validation_alias="RATE_LIMIT_REDIS_URL"

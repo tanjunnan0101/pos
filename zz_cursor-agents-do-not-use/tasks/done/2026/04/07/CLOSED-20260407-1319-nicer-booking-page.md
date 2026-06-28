@@ -11,10 +11,10 @@
 # Nicer booking page
 
 ## GitHub Issues
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- `gh issue list --repo satisfecho/pos --state open --limit 40`
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- `gh issue list --repo tanjunnan0101/pos --state open --limit 40`
 - Optional: `--json number,title,labels,updatedAt,url`
-- **Issue:** https://github.com/satisfecho/pos/issues/173
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/173
 
 ## Problem / goal
 Improve the public booking page (example tenant URL in issue: `/book/1081` on local dev). **Readability:** the `hero-content` area should use styling (background, rounded corners, padding/margins) so text stays readable over the existing background image—keep the image, improve contrast and legibility. **Links:** when the restaurant has a website URL configured, expose it as a normal clickable link in the UI.

@@ -12,7 +12,7 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
@@ -66,7 +66,7 @@ Public feedback routes (`/feedback/{tenant}`, token flows) must be fully localiz
    | (2) `npm run test:landing-version --prefix front` exit 0 | **PASS** | Console: `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.`; `exit_code: 0` |
    | (3) Manual de/fr/es picker on `/feedback/1` | **N/A** | Optional; automated script already exercises **en**, **de**, **fr** on `/feedback/1` including document title assertions |
    | (4) Production | **N/A** | Optional; not run from this environment |
-   | (5) GitHub | **FAIL** (automation) | \`gh issue comment 67 --repo satisfecho/pos\` → \`Resource not accessible by personal access token (addComment)\`; closer/product must comment/close **#67** manually |
+   | (5) GitHub | **FAIL** (automation) | \`gh issue comment 67 --repo tanjunnan0101/pos\` → \`Resource not accessible by personal access token (addComment)\`; closer/product must comment/close **#67** manually |
 
 5. **Overall:** **PASS** — mandatory checks (1) and (2) passed. Item (5) blocked by PAT scope; no product-code retest required.
 

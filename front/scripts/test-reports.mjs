@@ -4,11 +4,11 @@
  * Requires an owner or admin user (Reports is admin-only).
  *
  * Usage (from repo root):
- *   LOGIN_EMAIL=owner@amvara.de LOGIN_PASSWORD=secret node front/scripts/test-reports.mjs
+ *   LOGIN_EMAIL=owner@sakario.sg LOGIN_PASSWORD=secret node front/scripts/test-reports.mjs
  *   BASE_URL=http://127.0.0.1:4202 HEADLESS=1 npm run test:reports --prefix front
  *
  * Env:
- *   BASE_URL       App URL (default: auto-detect 4203, 4202, 4200 or http://satisfecho.de)
+ *   BASE_URL       App URL (default: auto-detect 4203, 4202, 4200 or https://sakario.sg)
  *   LOGIN_EMAIL    Owner/admin email (required)
  *   LOGIN_PASSWORD Password
  *   HEADLESS       Default headless; set 0, false, or no for a visible browser.
@@ -38,7 +38,7 @@ async function main() {
         }
       } catch (_) {}
     }
-    baseUrl = baseUrl || 'http://satisfecho.de';
+    baseUrl = baseUrl || 'https://sakario.sg';
   }
 
   const headless = isHeadless();

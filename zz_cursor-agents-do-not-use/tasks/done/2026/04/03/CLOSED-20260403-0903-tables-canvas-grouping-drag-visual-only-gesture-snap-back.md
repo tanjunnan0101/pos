@@ -11,10 +11,10 @@
 # Tables canvas: grouping drag as visual-only gesture with snap-back
 
 ## GitHub Issues
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- `gh issue list --repo satisfecho/pos --state open --limit 40`
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- `gh issue list --repo tanjunnan0101/pos --state open --limit 40`
 - Optional: `--json number,title,labels,updatedAt,url`
-- **Issue:** https://github.com/satisfecho/pos/issues/154
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/154
 
 ## Problem / goal
 Refactor the tables canvas so **grouping drag** is a **pure visual gesture**: while dragging for a join, do **not** persist `x_position` / `y_position` or mark the layout dirty. Use a **temporary offset** (e.g. SVG translate or CSS transform on the dragged table only) that follows the pointer. On **any** pointer end (successful join, failed join, cancelled modal, no valid target), **reset** that offset so the table **snaps back** to stored coordinates. **Overlap / join detection** must use **effective** positions (stored x,y plus current drag offset) so join behavior stays consistent with today. Keep **real repositioning** as a **separate** interaction if the product still needs moving tables (dedicated layout mode, long-press, or other control). **Autosave** must run only for **actual** layout changes, not for the grouping gesture.

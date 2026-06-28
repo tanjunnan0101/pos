@@ -11,7 +11,7 @@
 # Reservation reminder
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/74
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/74
 
 ## Problem / goal
 Reservation reminder emails should include a link so guests can **update** the reservation (not only view/cancel), matching the ask in the issue.

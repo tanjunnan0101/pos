@@ -6,11 +6,11 @@
  *
  * Usage (from front/ or repo root):
  *   node front/scripts/test-register.mjs
- *   BASE_URL=http://satisfecho.de node front/scripts/test-register.mjs
+ *   BASE_URL=https://sakario.sg node front/scripts/test-register.mjs
  *
  * Env:
- *   BASE_URL          App URL (default: auto-detect 4203, 4202, 4200, or http://satisfecho.de)
- *   REGISTER_EMAIL    Email (default: test-<timestamp>@amvara.de)
+ *   BASE_URL          App URL (default: auto-detect 4203, 4202, 4200, or https://sakario.sg)
+ *   REGISTER_EMAIL    Email (default: test-<timestamp>@sakario.sg)
  *   REGISTER_PASSWORD Password (default: testpass123)
  *   REGISTER_FULL_NAME Full name (default: Test User)
  *   REGISTER_TENANT_NAME Organization name (default: Test Restaurant)
@@ -41,11 +41,11 @@ async function main() {
         }
       } catch (_) {}
     }
-    baseUrl = baseUrl || 'http://satisfecho.de';
+    baseUrl = baseUrl || 'https://sakario.sg';
   }
   const registerUrl = new URL('/register', baseUrl).href;
 
-  const email = process.env.REGISTER_EMAIL || `test-${Date.now()}@amvara.de`;
+  const email = process.env.REGISTER_EMAIL || `test-${Date.now()}@sakario.sg`;
   const password = process.env.REGISTER_PASSWORD || 'testpass123';
   const fullName = process.env.REGISTER_FULL_NAME || 'Test User';
   const tenantName = process.env.REGISTER_TENANT_NAME || 'Test Restaurant';

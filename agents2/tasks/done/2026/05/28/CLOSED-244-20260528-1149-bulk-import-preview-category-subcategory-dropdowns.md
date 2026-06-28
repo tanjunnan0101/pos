@@ -11,7 +11,7 @@
 # Bulk import preview: category/subcategory dropdowns like add product
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/244
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/244
 - **244**
 
 ## Problem / goal

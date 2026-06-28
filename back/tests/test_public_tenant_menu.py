@@ -19,7 +19,7 @@ class TestPublicTenantMenu(PgClientTestCase):
         super().setUp()
         self.tenant = models.Tenant(
             name="Marketing Menu Tenant",
-            email="pos-public-menu-test@amvara.de",
+            email="pos-public-menu-test@sakario.sg",
             currency_code="SGD",
         )
         self.session.add(self.tenant)

@@ -1,4 +1,4 @@
-"""Server-side fiscal invoice issuance (VeriFactu preparation). No production AEAT HTTP calls."""
+"""Server-side fiscal invoice issuance metadata."""
 
 from __future__ import annotations
 
@@ -18,20 +18,20 @@ _ISSUABLE_STATUSES = frozenset(
 
 
 def _verification_stub(mode: str, full_number: str, tenant_name: str) -> tuple[str, str]:
-    """QR payload string and legal disclaimer text (stub until AEAT integration)."""
-    base_url = "https://www.agenciatributaria.es/static_files/information/verifactu.html"
+    """QR payload string and legal disclaimer text."""
+    base_url = "https://sakario.sg/fiscal-record"
     safe_name = (tenant_name or "")[:80]
     qr_content = f"{base_url}#stub={full_number}&ref={safe_name}"
     if mode == "live":
         text = (
-            "VeriFactu — internal registration only. "
-            "Submission to the AEAT must follow the official technical specification and professional tax advice. "
-            "This application does not replace legal compliance."
+            "Internal fiscal registration only. "
+            "Configure local tax compliance requirements with qualified professional advice. "
+            "This application does not replace statutory filing or legal compliance."
         )
     else:
         text = (
-            "VeriFactu — test / draft mode. "
-            "This is not a real AEAT submission. Final field mapping must follow the official specification."
+            "Test / draft fiscal record. "
+            "This is not a statutory filing. Review the final field mapping before production use."
         )
     return qr_content, text
 
@@ -56,7 +56,7 @@ def build_issue_payload(
         "tenant_id": tenant.id,
         "tenant_tax_id": tenant.tax_id or tenant.cif,
         "billing_customer": bc,
-        "disclaimer": "Stub payload; AEAT wire format is not implemented in this endpoint.",
+        "disclaimer": "Stub payload; statutory filing is not implemented in this endpoint.",
     }
 
 
@@ -110,7 +110,7 @@ def issue_or_get_fiscal_invoice(
     req_payload = build_issue_payload(order, tenant_locked, full_number, billing_customer)
     resp_payload = {
         "status": "stub",
-        "note": "No AEAT HTTP call performed; integrate using official AEAT technical documentation.",
+        "note": "No statutory filing call performed; integrate with the required local authority where applicable.",
     }
 
     fi = models.FiscalInvoice(

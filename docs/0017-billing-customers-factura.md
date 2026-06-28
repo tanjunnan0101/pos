@@ -1,12 +1,12 @@
-# Billing Customers (Factura)
+# Billing Customers (Tax invoice)
 
 ## Overview
 
-Restaurants often need to issue **tax invoices (Factura)** to B2B customers or anyone who requires company details on the invoice (e.g. for VAT deduction). This feature lets you:
+Restaurants often need to issue **tax invoices (Tax invoice)** to B2B customers or anyone who requires company details on the invoice (e.g. for VAT deduction). This feature lets you:
 
-- **Register billing customers** with company name, tax ID (CIF/NIF/VAT), address, email, and phone.
+- **Register billing customers** with company name, tax ID (Tax ID/UEN/NIF/VAT), address, email, and phone.
 - **Search** existing customers by name, company, tax ID, or email.
-- **Print an invoice (Factura)** for any order with a selected billing customer; the printed document includes a “Bill to” block with the customer’s company details.
+- **Print an invoice (Tax invoice)** for any order with a selected billing customer; the printed document includes a “Bill to” block with the customer’s company details.
 - Optionally **link the billing customer to the order** so it is remembered for future prints.
 
 ---
@@ -15,16 +15,16 @@ Restaurants often need to issue **tax invoices (Factura)** to B2B customers or a
 
 - **Access**: Staff with order access (owner, admin, waiter, receptionist). Write (add/edit/delete) requires `billing_customer:write` (owner, admin, waiter).
 - **List**: All billing customers for the tenant, with search by name, company name, tax ID, or email.
-- **Add**: “Add customer” opens a form: Name (required), Company name, Tax ID / CIF, Address, Email, Phone, optional **Birth date** (CRM / occasions; not printed on the tax invoice).
+- **Add**: “Add customer” opens a form: Name (required), Company name, Tax ID / Tax ID/UEN, Address, Email, Phone, optional **Birth date** (CRM / occasions; not printed on the tax invoice).
 - **Edit / Delete**: From the table; delete does not remove the link on orders that already reference the customer (order keeps the saved data).
 
 ---
 
-## Print Factura from Orders
+## Print tax invoice from Orders
 
-- **Where**: On **Orders** (`/orders`), for any order card (Pedidos Activos, Sin Pagar) or from **Historial de Pedidos** (grid: “Print Factura” column).
+- **Where**: On **Orders** (`/orders`), for any order card (Pedidos Activos, Sin Pagar) or from **Historial de Pedidos** (grid: “Print tax invoice” column).
 - **Flow**:
-  1. Click **Print Factura** for an order.
+  1. Click **Print tax invoice** for an order.
   2. A modal opens with the order summary and a **Customer for invoice** dropdown (list of billing customers).
   3. Select a customer (or “None” for a receipt without company block).
   4. Click **Print invoice**. A new window opens with the invoice; if a customer was selected, a **Bill to** block shows company name, tax ID, address, and email. The browser print dialog opens.
@@ -50,13 +50,13 @@ Restaurants often need to issue **tax invoices (Factura)** to B2B customers or a
 
 ## i18n
 
-- **CUSTOMERS**: title, add, edit, name, company, tax ID, address, email, phone, search placeholder, loading, none, delete confirm, Print Factura, Select customer for invoice, Bill to.
-- **NAV.CUSTOMERS**: “Customers (Factura)” (or equivalent).
+- **CUSTOMERS**: title, add, edit, name, company, tax ID, address, email, phone, search placeholder, loading, none, delete confirm, Print tax invoice, Select customer for invoice, Bill to.
+- **NAV.CUSTOMERS**: “Customers (Tax invoice)” (or equivalent).
 
 Locales: English, Spanish (others can be added following the same keys).
 
 ---
 
-## VeriFactu preparation (Spain)
+## Fiscal Records
 
-For **server-side fiscal issuance**, tenant **`fiscal_mode`**, persisted fiscal documents, and the **QR / legal text print path**, see **`docs/0018-verifactu-fiscal-invoicing.md`**.
+For optional server-side fiscal issuance, tenant **`fiscal_mode`** controls whether printed invoices include a persisted fiscal record, QR content, and disclaimer text.

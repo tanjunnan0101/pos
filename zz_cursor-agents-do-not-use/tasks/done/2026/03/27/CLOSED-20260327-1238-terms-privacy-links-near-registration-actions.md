@@ -1,7 +1,7 @@
 ---
 ## Closing summary (TOP)
 
-- **What happened:** El tester dio **PASS** al issue [#114](https://github.com/satisfecho/pos/issues/114): enlaces de Términos y Privacidad junto a las acciones de registro/auth (landing, `/login`, `/register`, portal proveedor).
+- **What happened:** El tester dio **PASS** al issue [#114](https://github.com/tanjunnan0101/pos/issues/114): enlaces de Términos y Privacidad junto a las acciones de registro/auth (landing, `/login`, `/register`, portal proveedor).
 - **What was done:** Se unificó el pie con `app-legal-links` (modo inline), filas `.auth-actions-foot` en login/registro público, landing en una sola línea con separadores, y pies de `/provider/login` y `/provider/register` con contacto + legales vía **`getPublicLegalUrls()`** e i18n.
 - **What was tested:** Landing, login, register, provider login/register, `npm run test:landing-version` y `npm run test:landing-provider-links` — **PASS**; enlaces legales omitidos cuando la API devuelve URLs nulas (esperado).
 - **Why closed:** Criterios de aceptación cumplidos según informe de pruebas (**Overall: PASS**); archivo archivado según el bucle de agentes.
@@ -11,12 +11,12 @@
 # Terms and privacy links near registration / auth actions
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/114
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/114
 
 ## Problem / goal
 On the public/auth surface (e.g. login or sign-up flows), **Terms** and **Privacy** links should sit **close to** the other account actions (create account, provider login, register as provider, contact us), not isolated or easy to miss. The issue gives a target ordering example:  
 `Don't have an account?` → Create account, Provider login, Register as provider, Contact us, **Terms**, **Privacy**.  
-Align with existing tenant/global Terms & Privacy URL behaviour from [#110](https://github.com/satisfecho/pos/issues/110) / related settings docs if needed.
+Align with existing tenant/global Terms & Privacy URL behaviour from [#110](https://github.com/tanjunnan0101/pos/issues/110) / related settings docs if needed.
 
 ## High-level instructions for coder
 - Locate the template(s) for the relevant login / registration / landing footers (Angular) where those links are rendered.
@@ -27,7 +27,7 @@ Align with existing tenant/global Terms & Privacy URL behaviour from [#110](http
 
 ## Implementation notes (coder)
 - **`app-legal-links`:** optional **`[inline]="true"`** — host uses `display: contents` and nav flows inline with footer separators.
-- **`/login`**, **`/register`:** single **`.auth-actions-foot`** flex row: create account / sign-in, provider links, `mailto:sales@satisfecho.de`, then Terms & Privacy (via existing **`getPublicLegalUrls()`**).
+- **`/login`**, **`/register`:** single **`.auth-actions-foot`** flex row: create account / sign-in, provider links, `mailto:sales@sakario.sg`, then Terms & Privacy (via existing **`getPublicLegalUrls()`**).
 - **Landing:** Terms/Privacy inline after Contact (same `·` separators); removed block wrapper that forced a line break.
 - **`/provider/login`**, **`/provider/register`:** same legal URL fetch; provider login footer consolidated with i18n **`PROVIDER_AUTH.*`** + **`TranslateModule`**; register footer adds contact + inline legal links.
 
@@ -51,7 +51,7 @@ Align with existing tenant/global Terms & Privacy URL behaviour from [#110](http
    - **Landing `/` footer flow + provider testids:** **PASS** — `npm run test:landing-provider-links` OK; footer text (normalized): `Don't have an account?Create account·Provider login·Register as provider·Contact us`. **`GET /api/public/legal-urls`** returned `terms_of_service_url: null`, `privacy_policy_url: null` → Terms/Privacy block correctly omitted per template.
    - **`/login` footer order:** **PASS** — `Don't have an account? Create account · Provider login · Register as provider · Contact us` (no legal links without URLs).
    - **`/register` footer order:** **PASS** — `Already have an account? Sign in · Provider login · Register as provider · Contact us`.
-   - **`/provider/login` & `/provider/register`:** **PASS** — Footers include **Contact us** (`mailto:sales@satisfecho.de`); legal links absent when API returns null (expected). Footer copy uses **`translate`** (e.g. `PROVIDER_AUTH.*`, `LANDING.CONTACT_US`). **Note:** No **language picker** on `/provider/login`; with **`localStorage` `pos_language=es`** and reload, footer renders Spanish (`¿No tiene cuenta de proveedor?` … `Contáctenos`) — **PASS** for i18n following stored locale; consider adding picker on provider pages if product wants on-page switching without visiting landing first.
+   - **`/provider/login` & `/provider/register`:** **PASS** — Footers include **Contact us** (`mailto:sales@sakario.sg`); legal links absent when API returns null (expected). Footer copy uses **`translate`** (e.g. `PROVIDER_AUTH.*`, `LANDING.CONTACT_US`). **Note:** No **language picker** on `/provider/login`; with **`localStorage` `pos_language=es`** and reload, footer renders Spanish (`¿No tiene cuenta de proveedor?` … `Contáctenos`) — **PASS** for i18n following stored locale; consider adding picker on provider pages if product wants on-page switching without visiting landing first.
    - **Automated `test:landing-version`:** **PASS** — exit `0`, result line `>>> RESULT: Landing version OK; demo login (tenant=1) OK; sidebar nav OK.` (browser console showed WebSocket `1008` token messages during nav; script still completed successfully).
    - **Automated `test:landing-provider-links`:** **PASS** — exit `0`, `>>> RESULT: Landing shows provider login, register, and contact links; register link works.`
 5. **Overall:** **PASS** (all criteria met for current env; legal links conditional on configured URLs).

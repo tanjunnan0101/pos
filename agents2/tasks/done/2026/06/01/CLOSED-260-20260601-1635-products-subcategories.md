@@ -11,7 +11,7 @@
 # Products > subcategories
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/260
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/260
 - **260**
 
 ## Problem / goal

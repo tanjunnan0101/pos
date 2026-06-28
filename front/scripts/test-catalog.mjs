@@ -2,14 +2,14 @@
 /**
  * Puppeteer test: catalog page and images.
  * Logs in, opens /catalog, counts cards and checks how many show real images vs placeholders.
- * Use to compare dev (127.0.0.1) vs amvara9 (satisfecho.de).
+ * Use to compare dev (127.0.0.1) vs amvara9 (sakario.sg).
  *
  * Usage (from repo root):
  *   LOGIN_EMAIL=u@x.com LOGIN_PASSWORD=secret node front/scripts/test-catalog.mjs
- *   BASE_URL=http://satisfecho.de LOGIN_EMAIL=ralf@roeber.de LOGIN_PASSWORD=secret node front/scripts/test-catalog.mjs
+ *   BASE_URL=https://sakario.sg LOGIN_EMAIL=ralf@roeber.de LOGIN_PASSWORD=secret node front/scripts/test-catalog.mjs
  *
  * Env:
- *   BASE_URL       App URL (default: auto-detect 4203, 4202, 4200 or http://satisfecho.de)
+ *   BASE_URL       App URL (default: auto-detect 4203, 4202, 4200 or https://sakario.sg)
  *   LOGIN_EMAIL    Required for /catalog
  *   LOGIN_PASSWORD Required
  *   HEADLESS       Default headless; set 0, false, or no for a visible browser.
@@ -39,7 +39,7 @@ async function main() {
         }
       } catch (_) {}
     }
-    baseUrl = baseUrl || 'http://satisfecho.de';
+    baseUrl = baseUrl || 'https://sakario.sg';
   }
 
   const headless = isHeadless();

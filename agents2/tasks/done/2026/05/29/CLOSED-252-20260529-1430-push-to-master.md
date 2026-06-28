@@ -11,10 +11,10 @@
 # Push to master
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/252
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/252
 - **252** (CLOSED — 2026-05-29; no open successor)
-- **Supersedes:** https://github.com/satisfecho/pos/issues/251 (closed; archived as **`CLOSED-251-20260529-1200-push-to-master.md`**)
-- **Also related:** https://github.com/satisfecho/pos/issues/195 (closed; archived as **`CLOSED-195-20260529-1200-push-to-master.md`**)
+- **Supersedes:** https://github.com/tanjunnan0101/pos/issues/251 (closed; archived as **`CLOSED-251-20260529-1200-push-to-master.md`**)
+- **Also related:** https://github.com/tanjunnan0101/pos/issues/195 (closed; archived as **`CLOSED-195-20260529-1200-push-to-master.md`**)
 
 ## Problem / goal
 
@@ -54,7 +54,7 @@ Follow **`.cursor/rules/git-development-branch-workflow.mdc`** for merge timing.
 
 1. **Git:** After promotion, **`git rev-parse origin/master origin/development`** — tips should match (or **`master`** is intended release SHA).
 2. **GitHub Actions:** Latest **Deploy to amvara9** for **`headBranch: master`** is **green** (marketing artifacts, SSH, build/restart, smoke test).
-3. **Optional live:** **`https://satisfecho.de/api/health`** returns OK after deploy.
+3. **Optional live:** **`https://sakario.sg/api/health`** returns OK after deploy.
 4. **Manual fallback:** Document if **`scripts/deploy-amvara9.sh`** used instead of green CI run.
 
 **Pass criteria:** **`development`** promoted to **`master`** and **Deploy to amvara9** **green** for that commit (or documented manual parity).

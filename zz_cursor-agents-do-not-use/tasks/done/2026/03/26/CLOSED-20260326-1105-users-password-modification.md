@@ -11,7 +11,7 @@
 # Users — password modification
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/105
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/105
 
 ## Problem / goal
 On **Users → User management → modify user** (`/users`), when the **account owner** changes a user’s password, the flow must require **current password** first, then **new password** (and typical confirmation), so password changes are not possible without re-authentication.

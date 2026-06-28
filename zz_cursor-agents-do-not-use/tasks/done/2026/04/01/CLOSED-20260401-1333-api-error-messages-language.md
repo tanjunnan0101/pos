@@ -11,7 +11,7 @@
 # API error messages / language
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/143
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/143
 
 ## Problem / goal
 User-visible errors must follow the app locale. Avoid surfacing raw English detail strings from the backend in the UI.

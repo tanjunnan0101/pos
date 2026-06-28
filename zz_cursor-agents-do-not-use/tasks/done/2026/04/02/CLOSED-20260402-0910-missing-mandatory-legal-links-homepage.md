@@ -11,7 +11,7 @@
 # Missing mandatory legal links on homepage
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/146
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/146
 
 ## Problem / goal
 The public homepage must expose **Terms of Service** and **Privacy Policy** in a way that meets mandatory legal accessibility expectations: both documents should be easy to find from the landing/home page (clear links in the footer or another standard, discoverable location consistent with the rest of the app).

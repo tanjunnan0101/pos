@@ -86,7 +86,7 @@ import { LegalLinksComponent } from '../shared/legal-links.component';
                 id="phone"
                 type="tel"
                 formControlName="phone"
-                placeholder="+34 600 000 000"
+                placeholder="+65 8123 4567"
               >
             </div>
             <div class="form-group">
@@ -193,7 +193,7 @@ import { LegalLinksComponent } from '../shared/legal-links.component';
           <span class="auth-foot-sep" aria-hidden="true">·</span>
           <a routerLink="/login">{{ 'PROVIDER_AUTH.BACK_STAFF_LOGIN' | translate }}</a>
           <span class="auth-foot-sep" aria-hidden="true">·</span>
-          <a href="mailto:sales@satisfecho.de">{{ 'LANDING.CONTACT_US' | translate }}</a>
+          <a href="mailto:sales@sakario.sg">{{ 'LANDING.CONTACT_US' | translate }}</a>
           @if (legalTermsUrl() || legalPrivacyUrl()) {
             <span class="auth-foot-sep" aria-hidden="true">·</span>
             <app-legal-links [inline]="true" [termsUrl]="legalTermsUrl()" [privacyUrl]="legalPrivacyUrl()" />

@@ -1,6 +1,6 @@
 # Rate Limiting – Production Readiness
 
-Rate limiting is implemented per the [ROADMAP](../../ROADMAP.md) (satisfecho/pos). This doc covers production checklist and behaviour.
+Rate limiting is implemented per the [ROADMAP](../../ROADMAP.md) (tanjunnan0101/pos). This doc covers production checklist and behaviour.
 
 ## What is implemented
 

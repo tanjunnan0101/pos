@@ -12,10 +12,10 @@
 # Feedback page needs translation
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
-The public feedback URL (e.g. `https://satisfecho.de/feedback/1?token=…`) shows UI that does not respect the user’s selected language: parts of the form remain untranslated. Every visible string on that flow should use the same i18n approach as the rest of the app so locale selection is consistent end-to-end.
+The public feedback URL (e.g. `https://sakario.sg/feedback/1?token=…`) shows UI that does not respect the user’s selected language: parts of the form remain untranslated. Every visible string on that flow should use the same i18n approach as the rest of the app so locale selection is consistent end-to-end.
 
 ## High-level instructions for coder
 - Audit the feedback route/component(s) and templates for hard-coded or missing translation keys.

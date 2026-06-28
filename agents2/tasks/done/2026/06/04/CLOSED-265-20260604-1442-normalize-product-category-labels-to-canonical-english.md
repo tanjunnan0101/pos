@@ -11,7 +11,7 @@
 # Normalize product category labels from all UI locales to canonical English keys
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/265
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/265
 - **265**
 
 ## Problem / goal

@@ -11,7 +11,7 @@
 # Products: delete all with confirmation modal
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/245
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/245
 - **245**
 
 ## Problem / goal

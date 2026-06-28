@@ -11,7 +11,7 @@
 # Login — show selected restaurant name when arriving from tenant picker
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/206
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/206
 - **206**
 
 ## Problem / goal

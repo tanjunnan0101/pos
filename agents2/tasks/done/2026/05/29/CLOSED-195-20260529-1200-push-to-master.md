@@ -11,9 +11,9 @@
 # Push to Master
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/195
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/195
 - **195** (CLOSED — superseded by **#251**)
-- **Issue:** https://github.com/satisfecho/pos/issues/251
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/251
 - **251** (OPEN — active successor; see **`WIP-251-20260529-1200-push-to-master.md`**)
 
 ## Problem / goal
@@ -44,8 +44,8 @@ Follow repo branching rules: routine promotion timing vs urgent production fixes
 ## Testing instructions
 
 1. **Git:** `git fetch origin && git rev-parse origin/master origin/development`; optional `git merge-base --is-ancestor origin/master origin/development` (exit **0** expected when **`development`** has advanced past **`master`**).
-2. **GitHub Actions:** Latest **Deploy to amvara9** run for **`headBranch: master`** — expect **green** through **Fetch marketing site artifacts**, **Set up SSH**, **Build and restart stack on amvara9**, **Smoke test**. Reference run **`24773000757`** until a newer **`master`** run supersedes it. Use **`gh run list --repo satisfecho/pos --workflow "Deploy to amvara9"`** and **`gh run view`**. After **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`** are set per **`config/marketing-sites.json`**, **Re-run failed jobs** or trigger a new **`master`** deploy.
-3. **Optional live:** After a **green** deploy, **`https://satisfecho.de/api/health`** (and UI per **`docs/0001-ci-cd-amvara9.md`**).
+2. **GitHub Actions:** Latest **Deploy to amvara9** run for **`headBranch: master`** — expect **green** through **Fetch marketing site artifacts**, **Set up SSH**, **Build and restart stack on amvara9**, **Smoke test**. Reference run **`24773000757`** until a newer **`master`** run supersedes it. Use **`gh run list --repo tanjunnan0101/pos --workflow "Deploy to amvara9"`** and **`gh run view`**. After **`MARKETING_ARTIFACT_TOKEN` / `GH_TOKEN`** are set per **`config/marketing-sites.json`**, **Re-run failed jobs** or trigger a new **`master`** deploy.
+3. **Optional live:** After a **green** deploy, **`https://sakario.sg/api/health`** (and UI per **`docs/0001-ci-cd-amvara9.md`**).
 4. **Manual fallback:** **`scripts/deploy-amvara9.sh`** on the server per **`README.md`** / **`AGENTS.md`** if CI cannot be fixed immediately (document parity if used in place of a green run).
 
 **Criterion (2):** **PASS** only when **§2** shows a **green** **Deploy to amvara9** for the promoted **`master`** commit, or **§4** manual parity is documented. Until then, **wip → untested** is **not** warranted.

@@ -1,11 +1,11 @@
 # Deploy to amvara9 only when the production branch is pushed (this repo: `master`).
 # Pushes to `development` do not run this workflow (merge to `master` to deploy). Use workflow_dispatch for manual runs.
-# Repository: https://github.com/satisfecho/pos — workflow must run from satisfecho/pos; server clone must have origin = satisfecho/pos.
+# Repository: https://github.com/tanjunnan0101/pos — workflow must run from tanjunnan0101/pos; server clone must have origin = tanjunnan0101/pos.
 # Requires repository secret: SSH_PRIVATE_KEY_AMVARA9 (private key for root@amvara9; raw PEM or base64).
 # Optional: DEPLOY_HOST (default 167.235.138.59), DEPLOY_USER (default root), DEPLOY_PATH (default /development/pos).
 # Marketing sites under /<slug>/ (see config/marketing-sites.json): optional GUSTAZO_ARTIFACT_TOKEN / MARKETING_ARTIFACT_TOKEN (PAT with Actions read on each repo). CI rsync runs after git reset so bundles are not wiped.
 # Optional repo Variables: GUSTAZO_BRANCH, GUSTAZO_ARTIFACT_NAME per legacy Gustazo defaults.
-# Smoke test uses SMOKE_TEST_BASE_URL (default https://www.satisfecho.de) so SSL validates.
+# Smoke test uses SMOKE_TEST_BASE_URL (default https://www.sakario.sg) so SSL validates.
 
 name: Deploy to amvara9
 
@@ -24,7 +24,7 @@ jobs:
       cancel-in-progress: false
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-      GUSTAZO_REPO: satisfecho/040_gustazo
+      GUSTAZO_REPO: sakario/040_gustazo
       GUSTAZO_BRANCH: ${{ vars.GUSTAZO_BRANCH }}
       GUSTAZO_ARTIFACT_NAME: ${{ vars.GUSTAZO_ARTIFACT_NAME }}
     steps:
@@ -97,7 +97,7 @@ jobs:
 
       - name: Smoke test (landing, version, API health)
         env:
-          SMOKE_TEST_BASE_URL: ${{ vars.SMOKE_TEST_BASE_URL || 'https://www.satisfecho.de' }}
+          SMOKE_TEST_BASE_URL: ${{ vars.SMOKE_TEST_BASE_URL || 'https://www.sakario.sg' }}
         run: |
           BASE="${SMOKE_TEST_BASE_URL}"
           echo "Smoke test: $BASE (landing), version in footer, $BASE/api/health"

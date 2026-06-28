@@ -4,16 +4,16 @@
 - **What happened:** GitHub **#253** requested **`development` → `master`** promotion and a green **Deploy to amvara9** on production.
 - **What was done:** Fixed **`.github/workflows/deploy-amvara9.yml`** (`git checkout -f` / `git clean -fd` on amvara9 after dirty-tree deploy failures), merged **`development` → `master`** at **`65f68e92`**, pushed **`origin/master`**, and triggered deploy run **`26710660453`** (**success**, ~2m56s).
 - **What was tested:** Tester confirmed merge commit on **`origin/master`**, green **Deploy to amvara9**, live **`/api/health`**, landing version **2.0.86** with git hash **`65f68e92`** — **PASS** (login step optional/out of scope).
-- **Why closed:** All pass criteria met; production promotion and deploy verified on **satisfecho.de**.
+- **Why closed:** All pass criteria met; production promotion and deploy verified on **sakario.sg**.
 - **Closed at (UTC):** 2026-05-31 11:02
 ---
 
 # Push to master
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/253
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/253
 - **253**
-- **Supersedes:** https://github.com/satisfecho/pos/issues/252 (closed 2026-05-29; archived as **`CLOSED-252-20260529-1430-push-to-master.md`**)
+- **Supersedes:** https://github.com/tanjunnan0101/pos/issues/252 (closed 2026-05-29; archived as **`CLOSED-252-20260529-1430-push-to-master.md`**)
 
 ## Problem / goal
 
@@ -37,14 +37,14 @@ Follow **`.cursor/rules/git-development-branch-workflow.mdc`** for merge timing 
 | **`origin/development`** | **`676425f7`** |
 | **`origin/master`** | **`65f68e92`** (merge of development + prior La Moca commit) |
 | Latest **Deploy to amvara9** on **`master`** | **`26710660453`** — **success** (push, 2026-05-31) |
-| Live smoke (coder) | `https://www.satisfecho.de/` 200, `/api/health` 200, `/gustazo/` not placeholder |
+| Live smoke (coder) | `https://www.sakario.sg/` 200, `/api/health` 200, `/gustazo/` not placeholder |
 
 ## Testing instructions
 
 1. **Git:** `git fetch origin && git rev-parse origin/master origin/development` — **`master`** should be merge commit **`65f68e92`** containing development work; tips need not be identical SHA.
 2. **GitHub Actions:** `gh run view 26710660453` — **Deploy to amvara9** **green** (marketing artifacts, SSH, build/restart, smoke test).
-3. **Live:** `curl -sf https://www.satisfecho.de/api/health` returns OK.
-4. **Optional:** `BASE_URL=https://www.satisfecho.de HEADLESS=1 npm run test:landing-version` from `front/`.
+3. **Live:** `curl -sf https://www.sakario.sg/api/health` returns OK.
+4. **Optional:** `BASE_URL=https://www.sakario.sg HEADLESS=1 npm run test:landing-version` from `front/`.
 
 **Pass criteria:** **`development`** promoted to **`master`** and **Deploy to amvara9** **green** for that commit (or documented manual parity).
 
@@ -52,9 +52,9 @@ Follow **`.cursor/rules/git-development-branch-workflow.mdc`** for merge timing 
 
 ## Test report
 
-**Date/time (UTC):** 2026-05-31T10:59:00Z – 2026-05-31T11:02:00Z  
-**Log window:** N/A — production verification via `gh`, `curl`, Puppeteer (no local compose logs for this task).  
-**Environment:** `origin/master` / `origin/development` after `./scripts/git-sync-development.sh`; production **`BASE_URL=https://www.satisfecho.de`**.
+**Date/time (UTC):** 2026-05-31T10:59:00Z – 2026-05-31T11:02:00Z
+**Log window:** N/A — production verification via `gh`, `curl`, Puppeteer (no local compose logs for this task).
+**Environment:** `origin/master` / `origin/development` after `./scripts/git-sync-development.sh`; production **`BASE_URL=https://www.sakario.sg`**.
 
 ### What was tested
 
@@ -65,8 +65,8 @@ Promotion of **`development` → `master`**, green **Deploy to amvara9** for mer
 | # | Criterion | Result | Evidence |
 |---|-----------|--------|----------|
 | 1 | **`origin/master`** is merge commit **`65f68e92`** containing development work | **PASS** | `git rev-parse origin/master` → `65f68e92cc50f2f8ecc028d27b993419b588c8d6`; merge parents `4fa55922` + `676425f71` (development tip at promotion). `origin/development` now **`419c99b9`** (ahead post-merge — expected). |
-| 2 | **Deploy to amvara9** run **`26710660453`** green | **PASS** | `gh run view 26710660453`: `conclusion=success`, `headSha=65f68e92`, duration ~2m56s. URL: https://github.com/satisfecho/pos/actions/runs/26710660453 |
-| 3 | Live **`/api/health`** OK | **PASS** | `curl -sf https://www.satisfecho.de/api/health` → `{"status":"ok"}` |
+| 2 | **Deploy to amvara9** run **`26710660453`** green | **PASS** | `gh run view 26710660453`: `conclusion=success`, `headSha=65f68e92`, duration ~2m56s. URL: https://github.com/tanjunnan0101/pos/actions/runs/26710660453 |
+| 3 | Live **`/api/health`** OK | **PASS** | `curl -sf https://www.sakario.sg/api/health` → `{"status":"ok"}` |
 | 4 | Optional landing version test | **PASS** (partial) | `npm run test:landing-version`: landing loads, footer shows **`2.0.86`** and git hash **`65f68e92`** (matches deployed commit). Login step failed (401 — no credentials in env); out of scope for pass criteria. |
 
 ### Overall
@@ -79,10 +79,10 @@ Production promotion succeeded after the deploy workflow fix (`git checkout -f` 
 
 ### URLs tested
 
-1. https://www.satisfecho.de/api/health  
-2. https://www.satisfecho.de/  
-3. https://www.satisfecho.de/gustazo/  
-4. https://www.satisfecho.de/ (Puppeteer landing + login attempt)
+1. https://www.sakario.sg/api/health
+2. https://www.sakario.sg/
+3. https://www.sakario.sg/gustazo/
+4. https://www.sakario.sg/ (Puppeteer landing + login attempt)
 
 ### Relevant log excerpts
 

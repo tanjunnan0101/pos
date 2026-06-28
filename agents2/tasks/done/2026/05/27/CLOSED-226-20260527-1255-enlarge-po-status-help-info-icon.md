@@ -1,7 +1,7 @@
 # Enlarge PO status help info icon
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/226
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/226
 - **226**
 
 ## Problem / goal

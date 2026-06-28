@@ -12,8 +12,8 @@
 
 ## GitHub Issues
 
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- **Issue:** https://github.com/satisfecho/pos/issues/151
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/151
 
 ## Problem / goal
 

@@ -11,7 +11,7 @@
 # Monthly attendance Excel — optional staff filter before download
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/168
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/168
 - **168**
 
 ## Problem / goal

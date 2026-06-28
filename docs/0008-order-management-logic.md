@@ -105,7 +105,7 @@ Currently, when multiple browsers/devices use the same table link (table token),
   - Frontend clears order from localStorage
   - Session can still create new orders
 - **Payment Methods**:
-  - **Online Payment**: Customer pays via Stripe → Order automatically marked as `paid`
+  - **Online Payment**: Customer pays via HitPay → Order automatically marked as `paid`
   - **Terminal/Cash Payment**: Restaurant staff manually marks order as `paid` in backend interface
   - **Use Case**: Customer orders, receives items, then pays at bar/terminal with cash or card
 - **Payment Tracking**:
@@ -1189,12 +1189,12 @@ All customer-facing order modification endpoints require and validate `session_i
 
 ### Use Case: Manual Payment (Terminal/Cash)
 
-**Scenario**: Customer orders, receives items, then pays at bar/terminal with cash or card terminal (not via online Stripe payment).
+**Scenario**: Customer orders, receives items, then pays at bar/terminal with cash or card terminal (not via online HitPay payment).
 
 **Business Rules**:
 - Order status `completed` means all items are delivered, but payment may not be received yet
 - Restaurant staff can manually mark order as `paid` in the backend interface
-- This is separate from online Stripe payment flow
+- This is separate from online HitPay payment flow
 
 **Implementation**:
 - Add "Mark as Paid" button in restaurant orders interface for `completed` orders
@@ -1265,12 +1265,12 @@ All customer-facing order modification endpoints require and validate `session_i
 
 ### Use Case: Manual Payment (Terminal/Cash) ✅ **IMPLEMENTED**
 
-**Scenario**: Customer orders, receives items, then pays at bar/terminal with cash or card terminal (not via online Stripe payment).
+**Scenario**: Customer orders, receives items, then pays at bar/terminal with cash or card terminal (not via online HitPay payment).
 
 **Business Rules**:
 - Order status `completed` means all items are delivered, but payment may not be received yet
 - Restaurant staff can manually mark order as `paid` in the backend interface
-- This is separate from online Stripe payment flow
+- This is separate from online HitPay payment flow
 - Orders with `status = completed` and `paid_at = null` are considered "not paid yet"
 
 **Implementation**:

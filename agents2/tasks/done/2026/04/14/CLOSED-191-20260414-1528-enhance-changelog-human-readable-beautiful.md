@@ -11,7 +11,7 @@
 # Enhance CHANGELOG.md for human readability and presentation
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/191
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/191
 - **191**
 
 ## Problem / goal

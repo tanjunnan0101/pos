@@ -11,7 +11,7 @@
 # Enable + Disable Options
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/72
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/72
 
 ## Problem / goal
 Tenants want a cleaner dashboard and sidebar by **hiding modules they do not use** (e.g. tables, shift/working plan, providers). Settings should let an owner toggle which areas are enabled; disabled areas disappear from **dashboard** and **sidebar** navigation (and likely route access / deep links behaviour should be defined—e.g. redirect or 404).

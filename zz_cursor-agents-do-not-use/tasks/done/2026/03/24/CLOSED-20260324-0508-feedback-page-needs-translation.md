@@ -12,7 +12,7 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
@@ -47,7 +47,7 @@ Public guest feedback (`/feedback/{tenant}`, optional `?token=…`) must be full
 
 - Start dev stack (HAProxy on host port **4202** typical).
 - From repo: `BASE_URL=http://127.0.0.1:4202 npm run test:feedback-public-i18n --prefix front`
-- Optional manual spot-check: production `https://satisfecho.de/feedback/1` (or tenant URL in use) with 2–3 locales and hard refresh.
+- Optional manual spot-check: production `https://sakario.sg/feedback/1` (or tenant URL in use) with 2–3 locales and hard refresh.
 
 ### Pass / fail criteria
 

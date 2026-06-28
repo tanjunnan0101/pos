@@ -11,7 +11,7 @@
 # QR Code Link to public menu of restaurant
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/254
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/254
 - **254**
 
 ## Problem / goal

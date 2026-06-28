@@ -11,7 +11,7 @@
 # Compact joined-table tile card (keep per-table QR)
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/237
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/237
 - **237**
 
 ## Problem / goal
@@ -39,7 +39,7 @@ See `docs/0051-table-groups-mvp.md` for group semantics.
 
 ## Testing instructions
 
-1. Log in as staff with table access (demo: `pos-staff-demo@amvara.de` / env password).
+1. Log in as staff with table access (demo: `pos-staff-demo@sakario.sg` / env password).
 2. Open **Tables** → **Tiles** on a floor with a **joined table group** (create via floor plan if needed).
 3. Confirm the group card is compact: member rows show name, active/inactive, and PIN when set; full QR blocks are not stacked by default.
 4. Expand one member row: compact QR (96px), session actions (Activate / New PIN / Close), Open menu, and Copy link work for that table only.

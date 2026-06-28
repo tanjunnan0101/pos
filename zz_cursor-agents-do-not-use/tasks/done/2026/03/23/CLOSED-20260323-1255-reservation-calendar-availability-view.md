@@ -11,7 +11,7 @@
 # Enhacements / reservation needs improvements
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/64
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/64
 
 ## Problem / goal
 Public/staff reservation flow should rely on a **calendar-first** experience instead of separate date/time inputs. The calendar should default to **today**, show each day as a column with **time slots**, and visually distinguish **booked/reserved** vs **free** slots (e.g. red vs green) so users can pick an available slot and complete a reservation. Reference screenshot in the issue.

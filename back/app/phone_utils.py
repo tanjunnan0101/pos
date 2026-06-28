@@ -31,9 +31,9 @@ _COUNTRY_CODES: dict[str, str] = {
 }
 
 
-def normalize_phone_to_e164(phone: str, default_country: str = "ES") -> str | None:
+def normalize_phone_to_e164(phone: str, default_country: str = "SG") -> str | None:
     """
-    Normalize a phone number to E.164 format (e.g. +34931234567).
+    Normalize a phone number to E.164 format (e.g. +6581234567).
 
     - Strips spaces, dashes, parentheses.
     - If the number already starts with +, treat as international and ensure digits only after +.
@@ -57,8 +57,8 @@ def normalize_phone_to_e164(phone: str, default_country: str = "ES") -> str | No
     digits_only = re.sub(r"\D", "", raw)
     if len(digits_only) < 8:
         return None
-    country_upper = (default_country or "ES").upper()[:2]
-    prefix = _COUNTRY_CODES.get(country_upper, "34")
+    country_upper = (default_country or "SG").upper()[:2]
+    prefix = _COUNTRY_CODES.get(country_upper, "65")
     # If number already starts with country code, use as-is with +
     if digits_only.startswith(prefix) and len(digits_only) >= len(prefix) + 6:
         return "+" + digits_only

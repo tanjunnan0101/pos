@@ -4,7 +4,7 @@
 - **What happened:** GitHub issue #67 (public guest feedback i18n) completed another dev/test cycle: coder confirmed existing implementation meets the bar; an independent tester re-ran the full feedback-public i18n smoke on local Docker.
 - **What was done:** No additional product code in this pass; `FeedbackPublicComponent` already uses the translate pipe and `translate.get` for the document title; `FEEDBACK` / `BOOK` keys are present across locale JSON. Tester noted `gh issue comment` failed from this environment (token scope); GitHub sync remains a human/token follow-up per `docs/agent-loop.md`.
 - **What was tested:** `npm run test:feedback-public-i18n --prefix front` with `BASE_URL=http://127.0.0.1:4202` — **PASS** (exit 0, five `>>> RESULT: … OK` lines; error and thank-you paths; front logs show successful bundle generation).
-- **Why closed:** Tester overall **PASS**; all pass/fail criteria in the task met; optional production verification on satisfecho.de and issue #67 close remain product decisions.
+- **Why closed:** Tester overall **PASS**; all pass/fail criteria in the task met; optional production verification on sakario.sg and issue #67 close remain product decisions.
 - **Closed at (UTC):** 2026-03-24 07:40
 ---
 
@@ -12,16 +12,16 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public guest feedback (e.g. `https://satisfecho.de/feedback/1?token=…`) must show **no untranslated UI**: every part of the form and related states should follow the selected language. Prior **CLOSED** archives under `agents/tasks/done/` document repeated dev/test **PASS**; the issue may stay open until optional production verification and product sign-off. See `front/public/i18n/`, `FeedbackPublicComponent`, and `docs/agent-loop.md`.
+Public guest feedback (e.g. `https://sakario.sg/feedback/1?token=…`) must show **no untranslated UI**: every part of the form and related states should follow the selected language. Prior **CLOSED** archives under `agents/tasks/done/` document repeated dev/test **PASS**; the issue may stay open until optional production verification and product sign-off. See `front/public/i18n/`, `FeedbackPublicComponent`, and `docs/agent-loop.md`.
 
 ## High-level instructions for coder
 
 - Re-read **#67** and verify `/feedback/{tenant}` with and without `?token=…` across supported locales (language picker and `Accept-Language`); confirm no raw `FEEDBACK.*` keys in visible UI or document title.
-- If dev already matches acceptance, capture evidence for GitHub; optional production spot-check on **satisfecho.de**; support a short verification comment and closing **#67** when product agrees.
+- If dev already matches acceptance, capture evidence for GitHub; optional production spot-check on **sakario.sg**; support a short verification comment and closing **#67** when product agrees.
 - If gaps remain, extend `front/public/i18n/*.json` and `feedback-public` templates so all guest-visible strings and titles stay localized.
 
 ## Coder (feature) — 2026-03-24
@@ -52,7 +52,7 @@ Public guest feedback (e.g. `https://satisfecho.de/feedback/1?token=…`) must s
 
 ### Follow-up (outside automated test)
 
-- Optional production check on **https://satisfecho.de**; GitHub **#67** comment / close when product accepts (`docs/agent-loop.md`).
+- Optional production check on **https://sakario.sg**; GitHub **#67** comment / close when product accepts (`docs/agent-loop.md`).
 
 ---
 
@@ -73,7 +73,7 @@ Public guest feedback (e.g. `https://satisfecho.de/feedback/1?token=…`) must s
 
 5. **Overall:** **PASS** (no failed criteria).
 
-6. **Product owner feedback:** Guest feedback flows in dev look fully localized for the locales exercised by automation, including the Spanish-first-visit stub and the German thank-you path. Production sign-off on **satisfecho.de** is still optional per the task; GitHub **#67** can be updated or closed when product agrees.
+6. **Product owner feedback:** Guest feedback flows in dev look fully localized for the locales exercised by automation, including the Spanish-first-visit stub and the German thank-you path. Production sign-off on **sakario.sg** is still optional per the task; GitHub **#67** can be updated or closed when product agrees.
 
 7. **URLs tested:**
    1. `http://127.0.0.1:4202/feedback/1` (and locale iterations per script)

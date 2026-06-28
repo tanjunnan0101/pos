@@ -304,7 +304,7 @@ import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_MB } from '../shared/image-upl
             </form>
           </div>
         } @else if (activeSection() === 'taxes') {
-          <!-- Taxes (IVA) Section -->
+          <!-- Taxes/GST section -->
           <div class="section">
             <div class="section-header">
               <h2>{{ 'SETTINGS.TAXES' | translate }}</h2>

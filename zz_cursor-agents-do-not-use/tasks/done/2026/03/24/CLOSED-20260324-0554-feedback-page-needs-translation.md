@@ -1,7 +1,7 @@
 ---
 ## Closing summary (TOP)
 
-- **What happened:** Work tracked GitHub [#67](https://github.com/satisfecho/pos/issues/67): public `/feedback/{tenant}` must be fully translated (including `?token=`, thank-you, and invalid tenant).
+- **What happened:** Work tracked GitHub [#67](https://github.com/tanjunnan0101/pos/issues/67): public `/feedback/{tenant}` must be fully translated (including `?token=`, thank-you, and invalid tenant).
 - **What was done:** Feature review found no further application changes needed—`FeedbackPublicComponent`, language picker / `Accept-Language`, and `FEEDBACK` keys in `front/public/i18n/*.json` already satisfy acceptance; automated smoke `test-feedback-public-i18n.mjs` documents the check.
 - **What was tested:** `BASE_URL=http://127.0.0.1:4202` `npm run test:feedback-public-i18n --prefix front` — **PASS** (all locales, token path, post-submit DE thank-you, `/feedback/0` EN+DE; no raw `FEEDBACK.*` in body or title).
 - **Why closed:** Tester **Overall: PASS**; criteria met on local Docker stack; production spot-check left to human if needed.
@@ -12,7 +12,7 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
@@ -21,7 +21,7 @@ Public guest feedback URLs (e.g. `/feedback/{tenant}` with optional `?token=…`
 ## High-level instructions for coder
 
 - Re-read **#67** and verify `/feedback/{tenant}` with and without `?token=…` across supported locales (picker + `Accept-Language`); confirm no raw `FEEDBACK.*` keys in UI or document title.
-- If dev/staging already match acceptance, optional production spot-check on **satisfecho.de**; if product agrees, support closing **#67** with a short verification comment (human may post if automation lacks Issues write).
+- If dev/staging already match acceptance, optional production spot-check on **sakario.sg**; if product agrees, support closing **#67** with a short verification comment (human may post if automation lacks Issues write).
 - Run or extend automated coverage for public feedback i18n if present under `front/scripts/`; keep landing/staff smoke passing per `AGENTS.md`.
 - Do not open a **NEW-** task for this issue—GitHub-driven work stays in **FEAT-** queue.
 
@@ -30,7 +30,7 @@ Public guest feedback URLs (e.g. `/feedback/{tenant}` with optional `?token=…`
 - Reviewed `FeedbackPublicComponent` (template + `Title` / `translate.get` for tab title), `LanguageService` / language picker, and **FEEDBACK** keys in `front/public/i18n/*.json` (all locales aligned with `en.json`).
 - No application code changes were required: acceptance criteria for **#67** (no raw `FEEDBACK.*` in visible UI or document title; locales en/de/fr/es/ca/zh-CN/hi; `?token=` path; thank-you after submit; invalid `/feedback/0`) are already covered.
 - Automated check: `BASE_URL=http://127.0.0.1:4202 node front/scripts/test-feedback-public-i18n.mjs` — **exit 0** on local Docker (HAProxy 4202). Documented in `docs/testing.md` as `npm run test:feedback-public-i18n --prefix front`.
-- **Production (#67):** If satisfecho.de still showed old behaviour, likely stale assets or pre-fix deploy; human can confirm live and comment on the issue to close.
+- **Production (#67):** If sakario.sg still showed old behaviour, likely stale assets or pre-fix deploy; human can confirm live and comment on the issue to close.
 
 ---
 
@@ -80,7 +80,7 @@ Public guest feedback URLs (e.g. `/feedback/{tenant}` with optional `?token=…`
 5. **Overall:** **PASS**
 
 6. **Product owner feedback**  
-   - Local Docker verification matches **#67** acceptance: guest feedback is fully translated across supported languages, including deep link with token, success state, and invalid-tenant error. Production was not re-checked in this run; if **satisfecho.de** ever diverges, confirm deploy/cache there separately.
+   - Local Docker verification matches **#67** acceptance: guest feedback is fully translated across supported languages, including deep link with token, success state, and invalid-tenant error. Production was not re-checked in this run; if **sakario.sg** ever diverges, confirm deploy/cache there separately.
 
 7. **URLs tested**  
    1. `http://127.0.0.1:4202/feedback/1`  

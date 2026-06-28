@@ -11,7 +11,7 @@
 # Fix UI clipping and z-index overlap on status dropdown
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/179
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/179
 - **179**
 
 ## Problem / goal

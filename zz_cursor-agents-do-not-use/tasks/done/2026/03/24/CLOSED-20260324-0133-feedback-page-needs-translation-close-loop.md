@@ -11,7 +11,7 @@
 # Feedback page needs translation — verification & GitHub close loop
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 Issue **#67** is still **open** on GitHub, but implementation and tester **PASS** are already archived in `agents/tasks/done/2026/03/23/CLOSED-20260323-2214-feedback-page-needs-translation.md` (public feedback URL i18n). Goal: confirm the fix still holds, align GitHub state with delivery (comment / close when product agrees), and only implement further i18n if QA finds real gaps.

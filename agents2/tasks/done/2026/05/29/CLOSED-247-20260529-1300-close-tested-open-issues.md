@@ -10,7 +10,7 @@
 # Close tested open issues #214, #215, #245, #246
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/247
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/247
 - **247**
 
 ## Problem / goal

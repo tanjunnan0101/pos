@@ -8,7 +8,7 @@ This folder contains deployment guides, feature documentation, implementation pl
 
 | Need to… | See |
 |----------|-----|
-| Set up Revolut (sandbox, redirects, certificates) | [REVOLUT.md](REVOLUT.md) |
+| Set up HitPay checkout | Configure HitPay mode, API key, and webhook salt in Settings. |
 | Run Puppeteer/UI tests | [testing.md](testing.md) |
 | Multi-agent task loop + GitHub Issues handoff | [agent-loop.md](agent-loop.md) |
 | Deploy to a server | [0004-deployment.md](0004-deployment.md) |
@@ -49,9 +49,8 @@ This folder contains deployment guides, feature documentation, implementation pl
 | [0014-provider-portal.md](0014-provider-portal.md) | Provider portal: register, login, catalog at `/provider` (tile/list, add/edit/delete products). |
 | [0015-kitchen-display.md](0015-kitchen-display.md) | Kitchen display: full-screen at `/kitchen`, auto-refresh, WebSocket, optional sound. |
 | [0016-reports.md](0016-reports.md) | Reports (Sales & Revenue): date range, summary, by product/category/table/waiter, CSV/Excel export. |
-| [0017-billing-customers-factura.md](0017-billing-customers-factura.md) | Billing customers (Factura): register company details, search, print invoice with “Bill to”. |
+| [0017-billing-customers-factura.md](0017-billing-customers-factura.md) | Billing customers (Tax invoice): register company details, search, print invoice with “Bill to”. |
 | [0028-tenant-public-branding.md](0028-tenant-public-branding.md) | Tenant public branding: background colour and header image for book, menu, reservation-view. |
-| [REVOLUT.md](REVOLUT.md) | Revolut Merchant API: checkout extension, sandbox CSR, redirect URLs, tenant payment setup. |
 
 ---
 

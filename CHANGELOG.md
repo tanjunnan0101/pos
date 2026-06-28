@@ -10,35 +10,35 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### Added
 
-- **Marketing / Ariba Döner:** Registered **satisfecho.de/ariba-doner/es/** — manifest entry for **`090_aribakebab`** (slug **`ariba-doner`** matches SPA **`baseHref`**; artifact **`ariba-doner-satisfecho-deploy`**; **`deploySubpath`** **`es`**).
-- **Marketing / Amigo Kebab:** Registered **satisfecho.de/amigo-kebab/es/** — manifest entry for **`089_amigokebab`** (slug **`amigo-kebab`** matches SPA **`baseHref`**; artifact **`amigo-kebab-satisfecho-deploy`**; **`deploySubpath`** **`es`**).
-- **Marketing / La Bella Toscana:** Registered **satisfecho.de/labellatoscana/es/** — manifest entry for **`060_labellatoscana`** (slug **`labellatoscana`** matches SPA **`baseHref`**; artifact **`labellatoscana-satisfecho-deploy`**; **`deploySubpath`** **`es`**).
-- **Marketing / Pizza Luna:** Registered **satisfecho.de/pizzaluna/es/** — manifest entry for **`087_pizzalluna`** (slug **`pizzaluna`** matches SPA **`baseHref`**; artifact **`pizzaluna-satisfecho-deploy`**; **`deploySubpath`** **`es`**).
-- **Marketing / Rico Kebab:** Registered **satisfecho.de/rico-kebab/** — manifest entry for **`088_ricokebab`** (slug matches SPA **`baseHref`** `/rico-kebab/`; artifact **`rico-kebab-satisfecho-deploy`**).
+- **Marketing / Ariba Döner:** Registered **sakario.sg/ariba-doner/es/** — manifest entry for **`090_aribakebab`** (slug **`ariba-doner`** matches SPA **`baseHref`**; artifact **`ariba-doner-sakario-deploy`**; **`deploySubpath`** **`es`**).
+- **Marketing / Amigo Kebab:** Registered **sakario.sg/amigo-kebab/es/** — manifest entry for **`089_amigokebab`** (slug **`amigo-kebab`** matches SPA **`baseHref`**; artifact **`amigo-kebab-sakario-deploy`**; **`deploySubpath`** **`es`**).
+- **Marketing / La Bella Toscana:** Registered **sakario.sg/labellatoscana/es/** — manifest entry for **`060_labellatoscana`** (slug **`labellatoscana`** matches SPA **`baseHref`**; artifact **`labellatoscana-sakario-deploy`**; **`deploySubpath`** **`es`**).
+- **Marketing / Pizza Luna:** Registered **sakario.sg/pizzaluna/es/** — manifest entry for **`087_pizzalluna`** (slug **`pizzaluna`** matches SPA **`baseHref`**; artifact **`pizzaluna-sakario-deploy`**; **`deploySubpath`** **`es`**).
+- **Marketing / Rico Kebab:** Registered **sakario.sg/rico-kebab/** — manifest entry for **`088_ricokebab`** (slug matches SPA **`baseHref`** `/rico-kebab/`; artifact **`rico-kebab-sakario-deploy`**).
 
 ### Fixed
 
 - **Products / categories:** Translated category strings (e.g. **Entrantes**, **Plat principal**, **Vorspeisen**) are normalized to canonical English keys on product create/update, bulk import, and catalog merge — staff no longer see duplicate category options for the same logical category; existing data is repaired idempotently on migrate (#265).
 - **Products / categories:** Staff **Products** category dropdowns and **Product categories** now always list all five standard categories (Starters, Main Course, Desserts, Beverages, Sides) even when the tenant has no products yet — `GET /catalog/categories` seeds empty subcategory lists for missing standard keys in fixed order (#263).
 - **Marketing / Rico Kebab:** Corrected manifest and **`front/sites/`** slug from **`ricokebab`** to **`rico-kebab`** so paths match production **`/rico-kebab/`** and the SPA **`baseHref`** (`088_ricokebab`).
-- **Marketing / Rico Kebab:** Sync **`rico-kebab-satisfecho-deploy`** into **`front/sites/rico-kebab/es/`** (manifest **`deploySubpath`**) so **`/rico-kebab/es/`** serves the current bundle instead of a stale root-only sync (`088_ricokebab` #2).
-- **Marketing / Boss Kebab:** Restored **satisfecho.de/bosskebabypizzeria/** — `baseHref` and deploy paths now match the live slug so Angular scripts and styles load instead of 404 (blank page) after marketing build and amvara9 sync (`085_Bosskebabypizzeria` #1).
+- **Marketing / Rico Kebab:** Sync **`rico-kebab-sakario-deploy`** into **`front/sites/rico-kebab/es/`** (manifest **`deploySubpath`**) so **`/rico-kebab/es/`** serves the current bundle instead of a stale root-only sync (`088_ricokebab` #2).
+- **Marketing / Boss Kebab:** Restored **sakario.sg/bosskebabypizzeria/** — `baseHref` and deploy paths now match the live slug so Angular scripts and styles load instead of 404 (blank page) after marketing build and amvara9 sync (`085_Bosskebabypizzeria` #1).
 
 ### Changed
 
 - **Repository:** Removed a committed diagnostics zip archive from the repo root and added **`diagnostics_*.zip`** to **`.gitignore`** so local diagnostics dumps are not tracked in version control (#267).
-- **Marketing / Wimpi:** Removed carta and booking CTAs from **satisfecho.de/wimpi/es/** per venue request after marketing build and amvara9 deploy (`083_wimpi`).
+- **Marketing / Wimpi:** Removed carta and booking CTAs from **sakario.sg/wimpi/es/** per venue request after marketing build and amvara9 deploy (`083_wimpi`).
 - **Public menu API:** `GET /public/tenants/{id}/menu` groups sections by **subcategory** when set (e.g. Carta principal, Ensaladas); otherwise by the **localized** standard category label (Desserts → Postres for `lang=es`) — marketing sites and `/public-menu/:id` show restaurant-style section titles instead of raw English category keys.
-- **Marketing / Wimpi:** Updated Google reviews copy on **satisfecho.de/wimpi/es/** — **4,8 / 5 · 239 valoraciones** (was 4,7 / 102) to match the current Google listing after marketing build and amvara9 deploy (`083_wimpi` #2).
+- **Marketing / Wimpi:** Updated Google reviews copy on **sakario.sg/wimpi/es/** — **4,8 / 5 · 239 valoraciones** (was 4,7 / 102) to match the current Google listing after marketing build and amvara9 deploy (`083_wimpi` #2).
 - **Agent loop:** Per-step wall-clock limits on **`cursor-agent`** in **`agents2/pos-cursor-loop.sh`** (default **25** minutes; tester **32** minutes for deploy polling) so a hung step does not block the whole cycle — on timeout the orchestrator logs and continues; **`TESTING-`** / **`WIP-`** tasks are retried on the next pass. Disable with **`AGENT_CURSOR_TIMEOUT=0`**.
-- **Marketing / Gustazo:** Removed gallery image **`local-04`** from live **satisfecho.de/gustazo/** after **`gustazo-dist`** bundle sync (`040_gustazo` #1).
+- **Marketing / Gustazo:** Removed gallery image **`local-04`** from live **sakario.sg/gustazo/** after **`gustazo-dist`** bundle sync (`040_gustazo` #1).
 - **Agent tasks:** **`move-agent-task-to-done.sh`** now parses **`CLOSED-MKT-<repo>-<issue>-…`** filenames when archiving marketing tasks to **`agents2/tasks/done/`**.
-- **Release / production:** Promoted **`development` → `master`** and confirmed green **Deploy to amvara9** on production (**satisfecho.de**) — live **2.1.4** at merge **`d81564ed`** (#266; includes category normalization #265).
-- **Release / production:** Promoted **`development` → `master`** and confirmed green **Deploy to amvara9** on production (**satisfecho.de**) — live **2.1.4** at merge **`8739e33f`** (#264).
-- **Release / production:** Promoted **`development` → `master`** and confirmed green **Deploy to amvara9** on production (**satisfecho.de**) — live **2.1.4** at merge **`41bc798a`** (#261).
-- **Marketing / Wimpi:** Mobile opening-hours layout on **satisfecho.de/wimpi/es/** — short weekday labels (LUN–DOM), wrapped rows on narrow viewports, full names from 720px up (`083_wimpi` #1).
-- **Agent loop:** Added **005 marketing repos reviewer** — preflight scans **`satisfecho/NNN_slug`** org repos for new sites, bundle updates, and untracked issues; registers **`config/marketing-sites.json`** and **`front/sites/<slug>/`**, can trigger **Deploy to amvara9**, and queues **`FEAT-MKT-*`** tasks for the feature coder. Wired into **`agents2/pos-cursor-loop.sh`** with gating env vars; **`010-feature-coder.md`** documents marketing-repo work.
-- **Release / production:** Promoted **`development` → `master`** and confirmed green **Deploy to amvara9** on production (**satisfecho.de**) — live **2.1.6** at **`1bfafe84`**; courier token endpoint returns **401** (not **500**) after enum migration (#274; includes courier auth fix #273).
+- **Release / production:** Promoted **`development` → `master`** and confirmed green **Deploy to amvara9** on production (**sakario.sg**) — live **2.1.4** at merge **`d81564ed`** (#266; includes category normalization #265).
+- **Release / production:** Promoted **`development` → `master`** and confirmed green **Deploy to amvara9** on production (**sakario.sg**) — live **2.1.4** at merge **`8739e33f`** (#264).
+- **Release / production:** Promoted **`development` → `master`** and confirmed green **Deploy to amvara9** on production (**sakario.sg**) — live **2.1.4** at merge **`41bc798a`** (#261).
+- **Marketing / Wimpi:** Mobile opening-hours layout on **sakario.sg/wimpi/es/** — short weekday labels (LUN–DOM), wrapped rows on narrow viewports, full names from 720px up (`083_wimpi` #1).
+- **Agent loop:** Added **005 marketing repos reviewer** — preflight scans **`sakario/NNN_slug`** org repos for new sites, bundle updates, and untracked issues; registers **`config/marketing-sites.json`** and **`front/sites/<slug>/`**, can trigger **Deploy to amvara9**, and queues **`FEAT-MKT-*`** tasks for the feature coder. Wired into **`agents2/pos-cursor-loop.sh`** with gating env vars; **`010-feature-coder.md`** documents marketing-repo work.
+- **Release / production:** Promoted **`development` → `master`** and confirmed green **Deploy to amvara9** on production (**sakario.sg**) — live **2.1.6** at **`1bfafe84`**; courier token endpoint returns **401** (not **500**) after enum migration (#274; includes courier auth fix #273).
 - **Agent tasks:** Archived **#274** deploy verification task to **`agents2/tasks/done/`** after production PASS.
 
 ## [2.1.6] - 2026-06-22
@@ -60,7 +60,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### Changed
 
-- **Release / production:** Promoted **`development` → `master`** and deployed to amvara9 (**satisfecho.de**) — live **2.1.5** (#272; includes courier portal #270, pricing helper #269, schedule write auth #271).
+- **Release / production:** Promoted **`development` → `master`** and deployed to amvara9 (**sakario.sg**) — live **2.1.5** (#272; includes courier portal #270, pricing helper #269, schedule write auth #271).
 
 ## [2.1.4] - 2026-06-01
 
@@ -94,7 +94,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### Added
 
-- **Users / support access:** Owners and admins can grant temporary Administrator access to **`support@satisfecho.de`** from **Users** via **Add Satisfecho support** — pre-filled create or edit modal, **Support** badge on the user card, and guidance hints in all locales (#257).
+- **Users / support access:** Owners and admins can grant temporary Administrator access to **`support@sakario.sg`** from **Users** via **Add Sakario support** — pre-filled create or edit modal, **Support** badge on the user card, and guidance hints in all locales (#257).
 
 ## [2.1.0] - 2026-06-01
 
@@ -106,7 +106,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 ### Changed
 
 - **Landing / public menu:** Each tenant QR on **`/`** is now a link — desktop visitors can click through to **`/public-menu/:tenantId`** (same URL as scan); hint copy mentions scan or click and the link has a localized accessible name in all nine locales (#255).
-- **Release / production:** Promoted **`development` → `master`** and confirmed green **Deploy to amvara9** on production (**satisfecho.de**) (#253). Closes the pending promotion noted for #252.
+- **Release / production:** Promoted **`development` → `master`** and confirmed green **Deploy to amvara9** on production (**sakario.sg**) (#253). Closes the pending promotion noted for #252.
 
 ### Fixed
 
@@ -239,7 +239,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### Changed
 
-- **Marketing:** **`config/marketing-sites.json`** aligned with **satisfecho** GitHub org repos **`010_antillana`**, **`020_dilruba`**, **`030_flamanapolitana`**, **`040_gustazo`**, **`050_hakone`** (paths **`/antillana/`** … **`/hakone/`**); **`040_gustazo`** artifact **`gustazo-dist`**, branch **`main`**. Placeholder **`front/sites/<slug>/`** trees for packaging and nginx generation.
+- **Marketing:** **`config/marketing-sites.json`** aligned with **sakario** GitHub org repos **`010_antillana`**, **`020_dilruba`**, **`030_flamanapolitana`**, **`040_gustazo`**, **`050_hakone`** (paths **`/antillana/`** … **`/hakone/`**); **`040_gustazo`** artifact **`gustazo-dist`**, branch **`main`**. Placeholder **`front/sites/<slug>/`** trees for packaging and nginx generation.
 
 ## [2.0.76] - 2026-04-20
 

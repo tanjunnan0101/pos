@@ -11,10 +11,10 @@
 # Tables floor plan: center/fit all tables in view on load
 
 ## GitHub Issues
-- [github.com/satisfecho/pos/issues](https://github.com/satisfecho/pos/issues)
-- `gh issue list --repo satisfecho/pos --state open --limit 40`
+- [github.com/tanjunnan0101/pos/issues](https://github.com/tanjunnan0101/pos/issues)
+- `gh issue list --repo tanjunnan0101/pos --state open --limit 40`
 - Optional: `--json number,title,labels,updatedAt,url`
-- **Issue:** https://github.com/satisfecho/pos/issues/172
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/172
 
 ## Problem / goal
 When the floor plan loads (and when switching floor/area tabs), the full set of tables should be visible, centered in the viewport with comfortable padding—not stuck in a corner or flush to an edge. Match typical “fit to content” / “zoom to fit” canvas behavior.
@@ -80,4 +80,4 @@ pos-front | chunk-H4EGRUJV.js   | tables-canvas-component | 199.76 kB |
 … (rebuilds; no TS/NG errors in tail)
 ```
 
-**GitHub:** Comment posted when verification started: https://github.com/satisfecho/pos/issues/172#issuecomment-4198901106. Label `agent:testing` is **not** defined in the repo (`gh issue edit` failed); labels unchanged.
+**GitHub:** Comment posted when verification started: https://github.com/tanjunnan0101/pos/issues/172#issuecomment-4198901106. Label `agent:testing` is **not** defined in the repo (`gh issue edit` failed); labels unchanged.

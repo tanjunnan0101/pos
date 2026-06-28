@@ -1,10 +1,10 @@
 ---
 ## Closing summary (TOP)
 
-- **What happened:** GitHub [#67](https://github.com/satisfecho/pos/issues/67) tracked missing translations on public guest feedback URLs (`/feedback/{tenant}`, token flow); the loop reached verified closure after coder hardening and a full tester run.
+- **What happened:** GitHub [#67](https://github.com/tanjunnan0101/pos/issues/67) tracked missing translations on public guest feedback URLs (`/feedback/{tenant}`, token flow); the loop reached verified closure after coder hardening and a full tester run.
 - **What was done:** Confirmed `FeedbackPublicComponent` uses ngx-translate end-to-end; extended `front/scripts/test-feedback-public-i18n.mjs` (hi locale, `/feedback/0` invalid-tenant + de switch, localStorage ordering) and aligned `docs/testing.md` with the script.
 - **What was tested:** `BASE_URL=http://127.0.0.1:4202 npm run test:feedback-public-i18n` on docker dev (HAProxy 4202) — **PASS** (no `FEEDBACK.*` leaks, titles, token URL, invalid tenant i18n).
-- **Why closed:** Test report documents **PASS** on all stated criteria; archive per `agents/tasks/README.md`. Optional production spot-check on satisfecho.de was not run; `gh issue comment` previously failed (token) — human may still post, adjust labels, and decide close vs prod confirmation.
+- **Why closed:** Test report documents **PASS** on all stated criteria; archive per `agents/tasks/README.md`. Optional production spot-check on sakario.sg was not run; `gh issue comment` previously failed (token) — human may still post, adjust labels, and decide close vs prod confirmation.
 - **Closed at (UTC):** 2026-03-24 04:37
 ---
 
@@ -12,7 +12,7 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
@@ -42,7 +42,7 @@ Public guest feedback URLs (e.g. `/feedback/{tenant}` with `?token=…`) must sh
 
 - Stack up (e.g. HAProxy on **4202**): `docker compose -f docker-compose.yml -f docker-compose.dev.yml ps`
 - From **`front/`:** `BASE_URL=http://127.0.0.1:4202 npm run test:feedback-public-i18n`
-- Optional: manual spot-check production URL from the issue on **satisfecho.de** with the same picker locales.
+- Optional: manual spot-check production URL from the issue on **sakario.sg** with the same picker locales.
 
 ### Pass / fail criteria
 
@@ -67,7 +67,7 @@ Public guest feedback URLs (e.g. `/feedback/{tenant}` with `?token=…`) must sh
    - `/feedback/0` translated error + Deutsch switch, no raw keys (**PASS**) — stdout: “Invalid tenant /feedback/0 error UI i18n OK”.
    - Script exit code (**PASS**) — exit **0**.
 5. **Overall:** **PASS** (all criteria above).
-6. **Product owner feedback:** Automated coverage now includes **hi** and invalid-tenant **de** assertions; local dev stack behaviour matches the stated acceptance criteria. Optional production spot-check on **satisfecho.de** was not run in this pass; recommend a quick manual picker check on prod before closing **#67** if desired.
+6. **Product owner feedback:** Automated coverage now includes **hi** and invalid-tenant **de** assertions; local dev stack behaviour matches the stated acceptance criteria. Optional production spot-check on **sakario.sg** was not run in this pass; recommend a quick manual picker check on prod before closing **#67** if desired.
 7. **URLs tested:**
    1. `http://127.0.0.1:4202/feedback/1` (en, de, fr, es, ca, zh-CN, hi via picker)
    2. `http://127.0.0.1:4202/feedback/1?token=dummy-token-for-i18n-smoke`

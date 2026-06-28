@@ -11,7 +11,7 @@
 # Fix payment-pending chip lost after marking order unpaid in Orders; restore correct persistence on Tables view
 
 ## GitHub Issues
-- **Issue:** https://github.com/satisfecho/pos/issues/190
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/190
 - **190**
 
 ## Problem / goal

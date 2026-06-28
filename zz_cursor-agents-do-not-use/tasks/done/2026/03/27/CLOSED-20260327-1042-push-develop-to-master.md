@@ -3,7 +3,7 @@
 
 - **What happened:** Tras promover **`development` → `master`**, el despliegue en amvara9 se detuvo porque **`app.migrate`** fallaba: la tabla legada **`staff_contract_template_preset`** existía sin la restricción UNIQUE esperada por el seed **`ON CONFLICT`**, y el backend ya asumía esquema alineado (p. ej. **`tenant.country_code`**).
 - **What was done:** Se endureció la migración **`back/migrations/20260326133000_contract_template_locale_presets.sql`** con un bloque idempotente que añade **`uq_staff_contract_template_preset_region_locale_key`** si falta y normaliza defaults de **`created_at`/`updated_at`**; en producción se aplicó **`git pull`**, migraciones y **`docker compose … up -d`** (o flujo equivalente de despliegue).
-- **What was tested:** Migración local y en amvara9, **`migrate --sync-idempotent`**, **`docker compose ps`** con stack completo en **Up**, humo **`https://satisfecho.de/` → 200**, y verificación de esquema en BD; informe del tester: **PASS** en todos los criterios.
+- **What was tested:** Migración local y en amvara9, **`migrate --sync-idempotent`**, **`docker compose ps`** con stack completo en **Up**, humo **`https://sakario.sg/` → 200**, y verificación de esquema en BD; informe del tester: **PASS** en todos los criterios.
 - **Why closed:** Criterios de prueba cumplidos y resultado global **PASS** según **Test report (tester 003)**.
 - **Closed at (UTC):** 2026-03-27 11:22
 ---
@@ -11,7 +11,7 @@
 # Push develop to master
 
 ## GitHub
-- **Issue:** https://github.com/satisfecho/pos/issues/112
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/112
 
 ## Problem / goal
 Tras promover **`development` → `master`**, el autor del issue indica que hubo un problema y pide revisarlo y resolverlo. El texto del issue es breve; hace falta **aclarar qué falló** (despliegue, CI, app en producción, migraciones, SSL, etc.) y corregirlo o documentar el siguiente paso.
@@ -35,7 +35,7 @@ Contexto de política de ramas: **`.cursor/rules/git-development-branch-workflow
 
 1. **Migración (local):** `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec back python -m app.migrate` → termina sin error (BD ya al día o aplica pendientes).
 2. **amvara9:** Tras pull de **`master`**, `… run --rm back python -m app.migrate` y `… run --rm back python -m app.migrate --sync-idempotent` → OK; `… ps` → **haproxy**, **front**, **back**, **ws-bridge**, **db**, **redis** en **Up** (no solo db/redis).
-3. **Humo público:** Desde una red que alcance el servidor, `curl -sS -o /dev/null -w "%{http_code}\n" https://satisfecho.de/` → **200**.
+3. **Humo público:** Desde una red que alcance el servidor, `curl -sS -o /dev/null -w "%{http_code}\n" https://sakario.sg/` → **200**.
 4. **Esquema:** En PostgreSQL, `\d tenant` incluye **`country_code`**; `\d staff_contract_template_preset` lista la restricción **`uq_staff_contract_template_preset_region_locale_key`** (o equivalente UNIQUE en esas columnas).
 
 ---
@@ -51,7 +51,7 @@ Contexto de política de ramas: **`.cursor/rules/git-development-branch-workflow
 4. **Results:**
    - **(1) Migración local:** **PASS** — `docker compose … exec -T back python -m app.migrate` terminó con `Database is up to date (version 20260327100000)` y código de salida 0.
    - **(2) amvara9 migrate + sync-idempotent + ps:** **PASS** — `docker compose … run --rm back python -m app.migrate` OK (schema 20260327100000). `docker compose … ps`: **haproxy**, **front**, **back**, **ws-bridge**, **db**, **redis** en **Up**. `exec -T back python -m app.migrate --sync-idempotent` terminó con `Sync-idempotent finished …` y salida 0. *Nota operativa:* había sesiones bloqueadas en PostgreSQL (varias ejecuciones concurrentes de sync/migración y una sesión **idle in transaction**); **no** se interrumpió el backend **pg_dump**. Se usó `pg_terminate_backend` solo para sesiones con consultas `-- Migration …` y la **idle in transaction** que bloqueaban; tras eso **sync-idempotent** completó en segundos. Evitar lanzar varias migraciones/sync en paralelo contra prod.
-   - **(3) Humo público:** **PASS** — `curl -sS -o /dev/null -w "%{http_code}\n" https://satisfecho.de/` → **200**.
+   - **(3) Humo público:** **PASS** — `curl -sS -o /dev/null -w "%{http_code}\n" https://sakario.sg/` → **200**.
    - **(4) Esquema:** **PASS** — En amvara9 (psql): columna **`tenant.country_code`** presente; restricción UNIQUE **`uq_staff_contract_template_preset_region_locale_key`** en **`staff_contract_template_preset`**. Misma comprobación en BD local (dev).
 
 5. **Overall:** **PASS** (todos los criterios).
@@ -59,7 +59,7 @@ Contexto de política de ramas: **`.cursor/rules/git-development-branch-workflow
 6. **Product owner feedback:** La corrección de migración idempotente y el estado de la BD en producción cuadran con el incidente descrito: las migraciones aplican, el sitio público responde **200** y el stack en amvara9 está completo. Conviene que operaciones eviten migraciones concurrentes y vigilen sesiones **idle in transaction** tras herramientas automáticas.
 
 7. **URLs tested:**
-   1. `https://satisfecho.de/` (humo HTTP; código **200**).
+   1. `https://sakario.sg/` (humo HTTP; código **200**).
 
 8. **Relevant log excerpts (last section)**
 

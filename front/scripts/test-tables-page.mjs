@@ -9,7 +9,7 @@
  * Uses tenant=1 for login URL unless TENANT_ID is set.
  *
  * Env (or .env):
- *   BASE_URL       App URL (default: auto-detect 4203/4202/4200 or satisfecho.de)
+ *   BASE_URL       App URL (default: auto-detect 4203/4202/4200 or sakario.sg)
  *   LOGIN_EMAIL    Staff user email (or DEMO_LOGIN_EMAIL)
  *   LOGIN_PASSWORD Password (or DEMO_LOGIN_PASSWORD)
  *   TENANT_ID      Tenant for login, e.g. 1 (default: 1)
@@ -66,7 +66,7 @@ async function main() {
         }
       } catch (_) {}
     }
-    baseUrl = baseUrl || 'http://satisfecho.de';
+    baseUrl = baseUrl || 'https://sakario.sg';
   }
 
   const headless = isHeadless();

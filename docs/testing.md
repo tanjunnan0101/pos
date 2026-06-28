@@ -8,13 +8,13 @@ This document describes the UI test suite maintained for the POS project. All UI
 - **App built and running** (e.g. `docker compose up`; frontend must serve successfully — see `AGENTS.md` for port and logs). If the frontend build fails (e.g. TypeScript errors), UI tests will get 503 or timeouts.
 - Optional: `.env` in repo root with `DEMO_LOGIN_EMAIL`, `DEMO_LOGIN_PASSWORD` for tests that need login.
 
-Tests auto-detect the first responding port among **4203, 4202, 4200** when `BASE_URL` is not set. For production (e.g. satisfecho.de), set `BASE_URL` explicitly.
+Tests auto-detect the first responding port among **4203, 4202, 4200** when `BASE_URL` is not set. For production (e.g. sakario.sg), set `BASE_URL` explicitly.
 
 ## Environment variables (common)
 
 | Variable | Description |
 |----------|-------------|
-| `BASE_URL` | App base URL (e.g. `http://127.0.0.1:4203`, `http://satisfecho.de`). Default: auto-detect localhost port or fallback. |
+| `BASE_URL` | App base URL (e.g. `http://127.0.0.1:4203`, `https://sakario.sg`). Default: auto-detect localhost port or fallback. |
 | `HEADLESS` | Default **headless**. Set `0`, `false`, or `no` for a visible Chrome window. |
 | `PUPPETEER_EXECUTABLE_PATH` | Path to Chrome binary; default macOS: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`. |
 | `LOGIN_EMAIL` / `LOGIN_PASSWORD` | Staff/demo user for login-required tests. Often loaded from `.env` as `DEMO_LOGIN_EMAIL` / `DEMO_LOGIN_PASSWORD`. |
@@ -57,7 +57,7 @@ Pytest sets **`RATE_LIMIT_ENABLED=false`** via `back/tests/conftest.py` (and `pg
 
 `tests/test_public_menu_order_response.py` checks that the first public menu order response is **`created`** and the next is **`updated`** (same `order_id`).
 
-`tests/test_settings_defaults.py` asserts the **`EMAIL_FROM`** settings default is **`noreply@satisfecho.de`** (not **`example.com`**).
+`tests/test_settings_defaults.py` asserts the **`EMAIL_FROM`** settings default is **`noreply@sakario.sg`** (not **`example.com`**).
 
 **Note:** `GET /users/me` returns **200** with JSON **`null`** when there is no session (not **401**), so the SPA auth probe does not show as a failed request for guests.
 
@@ -89,7 +89,7 @@ node front/scripts/debug-reservations.mjs
 ./scripts/run-reservation-tests.sh
 # With staff test: STAFF_TEST=1 ./scripts/run-reservation-tests.sh
 # Headless: HEADLESS=1 ./scripts/run-reservation-tests.sh
-# Custom URLs: BASE_URLS="http://127.0.0.1:4203 http://satisfecho.de" ./scripts/run-reservation-tests.sh
+# Custom URLs: BASE_URLS="http://127.0.0.1:4203 https://sakario.sg" ./scripts/run-reservation-tests.sh
 ```
 
 | Script | Purpose |
@@ -103,8 +103,8 @@ node front/scripts/debug-reservations.mjs
 
 ```bash
 node front/scripts/test-reservation-create.mjs
-# amvara9 headless (sends confirmation to ralf.roeber@amvara.de by default):
-#   BASE_URL=https://www.satisfecho.de HEADLESS=1 node front/scripts/test-reservation-create.mjs
+# amvara9 headless (sends confirmation to ralf.roeber@sakario.sg by default):
+#   BASE_URL=https://www.sakario.sg HEADLESS=1 node front/scripts/test-reservation-create.mjs
 # Override email: TEST_EMAIL=you@your-domain.com node front/scripts/test-reservation-create.mjs
 # Or: npm run test:reservation-create --prefix front
 ```
@@ -117,7 +117,7 @@ Checks tenant 1 has ≥10 tables, ≥10 products, and that `/book/1` loads. Uses
 
 ```bash
 npm run test:demo-data --prefix front
-# Or: BASE_URL=http://satisfecho.de LOGIN_EMAIL=... LOGIN_PASSWORD=... node front/scripts/test-demo-data.mjs
+# Or: BASE_URL=https://sakario.sg LOGIN_EMAIL=... LOGIN_PASSWORD=... node front/scripts/test-demo-data.mjs
 ```
 
 - **Env:** `BASE_URL`, `LOGIN_EMAIL`, `LOGIN_PASSWORD`, `BOOK_TENANT_ID` (default `1`), `HEADLESS`.
@@ -130,7 +130,7 @@ Smoke test for the Working plan (shift schedule) page. Logs in as a user with sc
 
 ```bash
 npm run test:working-plan --prefix front
-# Or: LOGIN_EMAIL=owner@amvara.de LOGIN_PASSWORD=secret node front/scripts/test-working-plan.mjs
+# Or: LOGIN_EMAIL=owner@sakario.sg LOGIN_PASSWORD=secret node front/scripts/test-working-plan.mjs
 # Headless: BASE_URL=http://127.0.0.1:4202 HEADLESS=1 LOGIN_EMAIL=... LOGIN_PASSWORD=... node front/scripts/test-working-plan.mjs
 ```
 
@@ -145,7 +145,7 @@ Smoke test for the dashboard "What's new" tile and changelog modal. Logs in, ope
 
 ```bash
 npm run test:changelog --prefix front
-# Or: LOGIN_EMAIL=owner@amvara.de LOGIN_PASSWORD=secret node front/scripts/test-changelog.mjs
+# Or: LOGIN_EMAIL=owner@sakario.sg LOGIN_PASSWORD=secret node front/scripts/test-changelog.mjs
 # Headless: BASE_URL=http://127.0.0.1:4202 HEADLESS=1 npm run test:changelog --prefix front
 ```
 
@@ -206,7 +206,7 @@ npm run test:landing-version --prefix front
 
 - Asserts `[data-testid="landing-version"]` or `.landing-version-bar` is visible and contains a version-like string (e.g. `1.0.1`). Skips if redirected to dashboard/login.
 - When `LOGIN_EMAIL`/`LOGIN_PASSWORD` or `DEMO_LOGIN_EMAIL`/`DEMO_LOGIN_PASSWORD` are set (e.g. from repo `.env`), also logs in with `TENANT_ID` (default `1`), then from `/dashboard` clicks each visible sidebar `a.nav-link` and each inventory `a.nav-sublink` (opens the inventory section when needed). Fullscreen routes (`/kitchen`, `/bar`) have no sidebar, so the test returns to `/dashboard` before each link. Without credentials, only the landing check runs (CI-friendly).
-- Set `LANDING_VERSION_ONLY=1` to force only the landing/version step even when `.env` defines demo login vars (e.g. `BASE_URL=https://satisfecho.de` smoke without a **401** from wrong credentials).
+- Set `LANDING_VERSION_ONLY=1` to force only the landing/version step even when `.env` defines demo login vars (e.g. `BASE_URL=https://sakario.sg` smoke without a **401** from wrong credentials).
 - For **non-local** `BASE_URL`, the script runs a short HTTP reachability probe to `/` before Puppeteer so firewall/sandbox issues fail fast with a clear hint. Set `LANDING_SMOKE_NO_REACHABILITY_PROBE=1` to skip that probe. Use `SKIP_LANDING_PACKAGE_VERSION_CHECK=1` when the deployed footer semver may differ from this checkout’s `front/package.json`.
 
 **Provider login and register links:**
@@ -216,7 +216,7 @@ npm run test:landing-provider-links --prefix front
 # Or: node front/scripts/test-landing-provider-links.mjs
 ```
 
-- Asserts footer has provider login and “Register as provider” links, a **Contact us** link with `mailto:sales@satisfecho.de`, and `data-testid="landing-contact-us"`; clicks register and checks navigation to `/provider/register` and presence of registration form.
+- Asserts footer has provider login and “Register as provider” links, a **Contact us** link with `mailto:sales@sakario.sg`, and `data-testid="landing-contact-us"`; clicks register and checks navigation to `/provider/register` and presence of registration form.
 
 ---
 
@@ -224,7 +224,7 @@ npm run test:landing-provider-links --prefix front
 
 Tests for the provider portal: landing links, registration, login, and dashboard (add product).
 
-**Landing → provider links** (see §4): `test-landing-provider-links` checks footer links to `/provider/login` and `/provider/register`, the **Contact us** `mailto:sales@satisfecho.de` link, and that the register link opens the provider registration form.
+**Landing → provider links** (see §4): `test-landing-provider-links` checks footer links to `/provider/login` and `/provider/register`, the **Contact us** `mailto:sales@sakario.sg` link, and that the register link opens the provider registration form.
 
 **Provider registration** (creates a new provider account; no cleanup — leaves DB entry):
 
@@ -233,13 +233,13 @@ npm run test:provider-register --prefix front
 # Or: BASE_URL=http://127.0.0.1:4202 HEADLESS=1 node front/scripts/test-provider-register.mjs
 ```
 
-- **Env:** `BASE_URL`, `PROVIDER_NAME`, `PROVIDER_EMAIL` (default: `provider-<timestamp>@amvara.de`), `PROVIDER_PASSWORD`, `PROVIDER_FULL_NAME`, `HEADLESS`.
+- **Env:** `BASE_URL`, `PROVIDER_NAME`, `PROVIDER_EMAIL` (default: `provider-<timestamp>@sakario.sg`), `PROVIDER_PASSWORD`, `PROVIDER_FULL_NAME`, `HEADLESS`.
 - Opens `/provider/register`, fills form, submits; asserts success or reports error.
 
 **Provider login + add product** (requires an existing provider account):
 
 ```bash
-PROVIDER_TEST_EMAIL=pos-provider@amvara.de PROVIDER_TEST_PASSWORD=secret npm run test:provider-add-product --prefix front
+PROVIDER_TEST_EMAIL=pos-provider@sakario.sg PROVIDER_TEST_PASSWORD=secret npm run test:provider-add-product --prefix front
 # Or: BASE_URL=http://127.0.0.1:4202 HEADLESS=1 node front/scripts/test-provider-add-product.mjs
 ```
 
@@ -269,10 +269,10 @@ npm run test:register-page --prefix front
 
 ```bash
 npm run test:register --prefix front
-# Or: BASE_URL=http://satisfecho.de node front/scripts/test-register.mjs
+# Or: BASE_URL=https://sakario.sg node front/scripts/test-register.mjs
 ```
 
-- **Env:** `BASE_URL`, `REGISTER_EMAIL`, `REGISTER_PASSWORD`, `REGISTER_FULL_NAME`, `REGISTER_TENANT_NAME`, `HEADLESS`. Uses unique email by default (`test-<timestamp>@amvara.de`).
+- **Env:** `BASE_URL`, `REGISTER_EMAIL`, `REGISTER_PASSWORD`, `REGISTER_FULL_NAME`, `REGISTER_TENANT_NAME`, `HEADLESS`. Uses unique email by default (`test-<timestamp>@sakario.sg`).
 
 ---
 
@@ -334,7 +334,7 @@ Login, open `/catalog`, count cards and how many show real images vs placeholder
 
 ```bash
 npm run test:catalog --prefix front
-# Or: LOGIN_EMAIL=... LOGIN_PASSWORD=... BASE_URL=http://satisfecho.de node front/scripts/test-catalog.mjs
+# Or: LOGIN_EMAIL=... LOGIN_PASSWORD=... BASE_URL=https://sakario.sg node front/scripts/test-catalog.mjs
 ```
 
 - **Env:** `BASE_URL`, `LOGIN_EMAIL`, `LOGIN_PASSWORD`, `HEADLESS`.
@@ -550,6 +550,6 @@ npm run test:bartender-role --prefix front
 ## Maintenance notes
 
 - **Selectors:** Tests use stable selectors (e.g. `[data-testid="..."]`, `.auth-card`, `.order-card`). When changing UI, update tests or add data-testids so tests stay green.
-- **Port detection:** Scripts try 4203, 4202, 4200 then fallback (e.g. satisfecho.de). For CI or fixed port, set `BASE_URL`.
+- **Port detection:** Scripts try 4203, 4202, 4200 then fallback (e.g. sakario.sg). For CI or fixed port, set `BASE_URL`.
 - **Credentials:** Never commit real credentials. Use `.env` (gitignored) or env vars; document only variable names in this file.
 - **Chrome:** Use `puppeteer-core` and system Chrome; no install of Chromium via npm (see AGENTS.md). On other OS, set `PUPPETEER_EXECUTABLE_PATH` if needed.

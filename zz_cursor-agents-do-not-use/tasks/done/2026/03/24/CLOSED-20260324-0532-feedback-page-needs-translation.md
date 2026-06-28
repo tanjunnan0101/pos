@@ -12,18 +12,18 @@
 
 ## GitHub
 
-- **Issue:** https://github.com/satisfecho/pos/issues/67
+- **Issue:** https://github.com/tanjunnan0101/pos/issues/67
 
 ## Problem / goal
 
-Public guest feedback URLs (e.g. `https://satisfecho.de/feedback/1?token=…`) must show **every part of the form** in the user’s selected language; several strings were still untranslated. Prior implementation and tester archives live under `agents/tasks/done/` (multiple **CLOSED** entries for this theme); confirm behaviour on dev and production, close any real i18n gaps, and align GitHub (verification comment, labels, close when product accepts). See `front/public/i18n/`, `docs/agent-loop.md`, and Puppeteer `test-feedback-public-i18n` if present.
+Public guest feedback URLs (e.g. `https://sakario.sg/feedback/1?token=…`) must show **every part of the form** in the user’s selected language; several strings were still untranslated. Prior implementation and tester archives live under `agents/tasks/done/` (multiple **CLOSED** entries for this theme); confirm behaviour on dev and production, close any real i18n gaps, and align GitHub (verification comment, labels, close when product accepts). See `front/public/i18n/`, `docs/agent-loop.md`, and Puppeteer `test-feedback-public-i18n` if present.
 
 ## High-level instructions for coder
 
 - Re-read **#67** and spot-check `/feedback/{tenant}` with and without `?token=…` across supported locales (picker + `Accept-Language`).
 - Ensure no raw `FEEDBACK.*` keys leak in the DOM or document title; titles should follow translation load (avoid brief key flashes after first paint).
 - Run the project’s public feedback i18n smoke / Puppeteer coverage and fix any failures.
-- If dev matches acceptance: optional production spot-check on **satisfecho.de**; coordinate **close #67** with a short verification comment when product agrees.
+- If dev matches acceptance: optional production spot-check on **sakario.sg**; coordinate **close #67** with a short verification comment when product agrees.
 
 ---
 
@@ -42,7 +42,7 @@ Public guest feedback URLs (e.g. `https://satisfecho.de/feedback/1?token=…`) m
    Expect exit **0** and **six** `>>> RESULT:` lines (including post-submit thank-you); no `FEEDBACK.` substring in asserted body/title checks.
 2. Regression: `BASE_URL=http://127.0.0.1:4202 npm run test:landing-version --prefix front` — exit **0**.
 3. Optional manual: `/feedback/1`, switch locale, hard refresh — no raw keys; tab title matches locale.
-4. Optional prod: spot-check **satisfecho.de** if product wants **#67** closed with a prod note.
+4. Optional prod: spot-check **sakario.sg** if product wants **#67** closed with a prod note.
 
 **Closer / product:** On tester **PASS**, mirror verification on GitHub **#67** when agreed; archive per `agents/tasks/README.md`.
 
@@ -63,7 +63,7 @@ Public guest feedback URLs (e.g. `https://satisfecho.de/feedback/1?token=…`) m
 
 5. **Overall:** **PASS** (failed criteria: none).
 
-6. **Product owner feedback:** Public feedback i18n automation on local Docker (port 4202) matches the acceptance bar: locales, token URL, German thank-you after submit, and invalid tenant UI all pass without raw translation keys. Landing regression also passed, so the change does not appear to break core staff navigation. Production confirmation on satisfecho.de remains optional before closing **#67** if you want a prod-specific note.
+6. **Product owner feedback:** Public feedback i18n automation on local Docker (port 4202) matches the acceptance bar: locales, token URL, German thank-you after submit, and invalid tenant UI all pass without raw translation keys. Landing regression also passed, so the change does not appear to break core staff navigation. Production confirmation on sakario.sg remains optional before closing **#67** if you want a prod-specific note.
 
 7. **URLs tested (Puppeteer):**
    1. `http://127.0.0.1:4202/feedback/1` (first load with es navigator stub; main locale loop; post-submit flow; revisits)
